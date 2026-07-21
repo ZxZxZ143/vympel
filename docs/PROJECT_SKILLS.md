@@ -1896,6 +1896,12 @@
 * **How:** Poll each upstream from inside its own container with a finite deadline before starting the proxy; keep the proxy health and route assertions separate.
 * **Why:** Nginx health can be ready before the last upstream accepts connections, producing a transient 502 that tests orchestration timing rather than routing policy.
 
+### Provision PostgreSQL for the complete backend CI suite
+
+* **When to use:** Run the full Gradle test task, which includes Spring context, Liquibase, CRM auth, and CMS media integration tests.
+* **How:** Give each GitHub Actions backend job an isolated PostgreSQL 16 service, wait on `pg_isready`, and point the test profile's `VYMPEL_DB_*` variables to CI-only credentials on loopback.
+* **Why:** Unit tests alone do not need PostgreSQL, but the full suite intentionally validates real migrations and persistence; without the service, those contexts fail with connection refusal before their assertions run.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, readiness gates, executable modes, command resolution, build configuration, and Buildx export modes.
+2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, disposable test services, readiness gates, executable modes, command resolution, build configuration, and Buildx export modes.
