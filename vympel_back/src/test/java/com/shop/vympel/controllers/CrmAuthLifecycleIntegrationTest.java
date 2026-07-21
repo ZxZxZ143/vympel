@@ -6,11 +6,14 @@ import com.shop.vympel.db.entity.auth.Role;
 import com.shop.vympel.db.entity.auth.User;
 import com.shop.vympel.db.entity.auth.UserRole;
 import com.shop.vympel.db.entity.analytics.ProductAnalyticsEvent;
+import com.shop.vympel.db.entity.features.Brand;
+import com.shop.vympel.db.entity.product.Product;
 import com.shop.vympel.db.repositories.user.RoleRepository;
 import com.shop.vympel.db.repositories.user.UserRepository;
 import com.shop.vympel.db.repositories.user.UserRoleRepository;
 import com.shop.vympel.db.repositories.analytics.ProductAnalyticsEventRepository;
 import com.shop.vympel.db.repositories.product.ProductRepository;
+import com.shop.vympel.db.repositories.product.features.BrandRepository;
 import com.shop.vympel.services.product.ProductAnalyticsRetentionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,12 +64,16 @@ class CrmAuthLifecycleIntegrationTest {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
+    private BrandRepository brandRepository;
+    @Autowired
     private ProductAnalyticsRetentionService analyticsRetentionService;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final List<Long> analyticsEventIds = new ArrayList<>();
     private User admin;
     private User manager;
+    private Product analyticsProduct;
+    private Brand analyticsBrand;
 
     @BeforeEach
     void createTestUsers() {
@@ -82,6 +90,12 @@ class CrmAuthLifecycleIntegrationTest {
             assertThat(analyticsEventRepository.findAll().stream().map(event -> event.getId()))
                     .doesNotContainAnyElementsOf(analyticsEventIds);
             analyticsEventIds.clear();
+        }
+        if (analyticsProduct != null && productRepository.existsById(analyticsProduct.getId())) {
+            productRepository.deleteById(analyticsProduct.getId());
+        }
+        if (analyticsBrand != null && brandRepository.existsById(analyticsBrand.getId())) {
+            brandRepository.deleteById(analyticsBrand.getId());
         }
         if (manager != null && userRepository.existsById(manager.getId())) {
             userRepository.deleteById(manager.getId());
@@ -247,7 +261,7 @@ class CrmAuthLifecycleIntegrationTest {
 
     @Test
     void duplicateAnalyticsEventIsAcknowledgedWithoutSecondPersistence() throws Exception {
-        Long productId = productRepository.findAll().stream().findFirst().orElseThrow().getId();
+        Long productId = analyticsProduct().getId();
         String sessionId = "step4-analytics-" + UUID.randomUUID();
         String body = objectMapper.writeValueAsString(Map.of(
                 "productId", productId,
@@ -290,7 +304,7 @@ class CrmAuthLifecycleIntegrationTest {
 
     @Test
     void analyticsRetentionDeletesExpiredEventsAndPreservesCurrentEvents() {
-        var product = productRepository.findAll().stream().findFirst().orElseThrow();
+        var product = analyticsProduct();
         ProductAnalyticsEvent expired = new ProductAnalyticsEvent();
         expired.setProduct(product);
         expired.setEventType("VIEW");
@@ -323,6 +337,28 @@ class CrmAuthLifecycleIntegrationTest {
         );
         assertThat(invalid.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(invalid.body()).contains("INVALID_SORT", "requestId");
+    }
+
+    private Product analyticsProduct() {
+        if (analyticsProduct != null) {
+            return analyticsProduct;
+        }
+        String suffix = UUID.randomUUID().toString();
+        analyticsBrand = new Brand();
+        analyticsBrand.setCode("TEST-ANALYTICS-" + suffix);
+        analyticsBrand.setName("Test analytics brand");
+        analyticsBrand.setActive(true);
+        analyticsBrand = brandRepository.saveAndFlush(analyticsBrand);
+
+        analyticsProduct = new Product();
+        analyticsProduct.setModel("Test analytics product");
+        analyticsProduct.setSku("TEST-ANALYTICS-" + suffix);
+        analyticsProduct.setPrice(BigDecimal.ONE);
+        analyticsProduct.setStockQuantity(1);
+        analyticsProduct.setStatus("ACTIVE");
+        analyticsProduct.setProductType("ACCESSORY");
+        analyticsProduct.setBrand(analyticsBrand);
+        return productRepository.saveAndFlush(analyticsProduct);
     }
 
     @Test

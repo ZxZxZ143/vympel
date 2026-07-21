@@ -15,7 +15,7 @@ Status: local provider-independent gates passed; remote commit/CI/tag evidence p
 
 | Area | Result | Evidence |
 | --- | --- | --- |
-| Backend full tests | PASS | Gradle test, 2026-07-22 |
+| Backend full tests | PASS | 161 tests / 1 skipped on a fresh disposable PostgreSQL 16 database, 2026-07-22 |
 | Backend executable JAR | PASS | Gradle `bootJar` |
 | ADMIN regression | PASS | Included in full suite; controlled procedure added to staging/production checklists |
 | Canonical Liquibase clean path | PASS | 77 changes, latest `2026-07-19-02-update-public-image-paths-to-webp` |
@@ -31,8 +31,8 @@ Status: local provider-independent gates passed; remote commit/CI/tag evidence p
 | Storefront image | PASS | `sha256:a93a2be21103b67817bced4d1e4158d805cdd4c55d34620b7ed85c7037190ab6` |
 | CRM image | PASS | `sha256:4d6595f2f368c779377cae747103e92063e54421b1c1e9a2d8cdbce98bcbb86a`; `/login` HTTP 200 |
 | Local/staging/production Compose | PASS | All three `config --quiet` checks |
-| Backup/restore | PASS | `BACKUP_RESTORE_REHEARSAL_REPORT.md` |
-| CMS signed freshness/retry | PASS | `CMS_REVALIDATION_INTEGRATION_REPORT.md` |
+| Backup/restore | PASS | final-postmaster rerun `aaeaae0e31b6`; `BACKUP_RESTORE_REHEARSAL_REPORT.md` |
+| CMS signed freshness/retry | PASS | final-postmaster rerun `02d552977bfa`; `CMS_REVALIDATION_INTEGRATION_REPORT.md` |
 | Reverse proxy | PASS | Rehearsal `2434c49c8067`; second consecutive pass after command-resolution and bounded upstream-readiness corrections |
 | Prometheus/rules | PASS | `promtool` 3.5.0; one config and seven rules |
 | Workflow semantics | PASS | pinned actionlint 1.7.7 |

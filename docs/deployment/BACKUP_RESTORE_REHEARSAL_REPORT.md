@@ -11,12 +11,12 @@ Scope: isolated local technical proof; this is not managed-provider restore proo
 
 | Check | Result |
 | --- | --- |
-| Rehearsal ID | `d22b5176088a` |
+| Rehearsal ID | `aaeaae0e31b6` (rerun after final-postmaster readiness correction) |
 | PostgreSQL | `16.13` |
 | Backup command | `pg_dump --format=custom --no-owner --no-acl` |
 | Format | PostgreSQL custom |
-| Size | 148,414 bytes |
-| SHA-256 | `3e5e8ea9c1c3dc119864b912bc42ea258688008774a1dbe075a69a0bfddfd285` |
+| Size | 148,409 bytes |
+| SHA-256 | `5ec91b10bf5f8dc0a5531d642e0d89b7c2cab01d0781c2f7c44bbef855e8a058` |
 | Liquibase rows | 77 |
 | Public base tables | 51 |
 | Representative country/translation/CMS/user | `1 / 1 / 1 / 1` |

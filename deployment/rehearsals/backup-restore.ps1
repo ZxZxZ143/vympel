@@ -47,7 +47,9 @@ function Wait-Postgres([string]$Container) {
     $deadline = [DateTime]::UtcNow.AddSeconds($StartupTimeoutSeconds)
     do {
         try {
-            Invoke-Docker -Arguments @('exec', $Container, 'pg_isready', '-U', $dbUser, '-d', $dbName) | Out-Null
+            $pidOne = ((Invoke-Docker -Arguments @('exec', $Container, 'cat', '/proc/1/comm')) -join '').Trim()
+            if ($pidOne -ne 'postgres') { throw "PostgreSQL entrypoint is still initializing (PID 1: $pidOne)" }
+            Invoke-Docker -Arguments @('exec', $Container, 'pg_isready', '-q', '-U', $dbUser, '-d', $dbName) | Out-Null
             return
         } catch {
             Start-Sleep -Milliseconds 500

@@ -1902,6 +1902,18 @@
 * **How:** Give each GitHub Actions backend job an isolated PostgreSQL 16 service, wait on `pg_isready`, and point the test profile's `VYMPEL_DB_*` variables to CI-only credentials on loopback.
 * **Why:** Unit tests alone do not need PostgreSQL, but the full suite intentionally validates real migrations and persistence; without the service, those contexts fail with connection refusal before their assertions run.
 
+### Own integration-test domain fixtures
+
+* **When to use:** An integration test needs a product or another mutable domain row.
+* **How:** Create a namespaced minimal valid entity graph inside the test and delete it in dependency order during teardown; never select an arbitrary row from seed data.
+* **Why:** A fresh Liquibase database can correctly contain no products, while a developer database may hide that dependency with pre-existing rows.
+
+### Wait for the final PostgreSQL postmaster
+
+* **When to use:** Start the official PostgreSQL container and immediately run migrations, restore a dump, or start the backend.
+* **How:** Require both `pg_isready` and `/proc/1/comm=postgres` within a finite loop. The PID 1 check distinguishes the final postmaster from the temporary initialization server run by the entrypoint.
+* **Why:** `pg_isready` can briefly succeed against the initialization postmaster immediately before the entrypoint shuts it down, causing a following `pg_restore` to fail with “database system is shutting down”.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, disposable test services, readiness gates, executable modes, command resolution, build configuration, and Buildx export modes.
+2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, self-owned integration fixtures, final PostgreSQL readiness, non-publishing image evidence, and remote-CI portability across concurrency, disposable test services, readiness gates, executable modes, command resolution, build configuration, and Buildx export modes.

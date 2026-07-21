@@ -3,6 +3,8 @@
 Date: 2026-07-22
 Scope: isolated production-like integration using the current backend, production storefront build, PostgreSQL 16, signed revalidation endpoint, and persistent retry queue.
 
+Latest cleanup/readiness rerun: `02d552977bfa` (passed after requiring the final PostgreSQL postmaster).
+
 ## Result
 
 **PASS.** `deployment/rehearsals/cms-revalidation.ps1` used a random, unprinted HMAC secret and temporary ADMIN credentials. It created draft namespaced home-page blocks, published them through the real CRM API, observed public storefront HTML, and removed all disposable blocks and jobs before destroying the isolated database.
