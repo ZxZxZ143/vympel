@@ -45,6 +45,20 @@ function Get-PublishedPort([string]$Container, [string]$ContainerPort) {
     return [int](($binding | Select-Object -First 1) -split ':')[-1]
 }
 
+function Wait-MockUpstream([string]$Container, [string]$Port, [DateTime]$Deadline) {
+    do {
+        try {
+            Invoke-Docker -Arguments @('exec', $Container, 'python', '-c',
+                "import urllib.request; urllib.request.urlopen('http://127.0.0.1:$Port', timeout=1).read()") | Out-Null
+            return
+        }
+        catch {
+            Start-Sleep -Milliseconds 250
+        }
+    } while ([DateTime]::UtcNow -lt $Deadline)
+    throw "Mock upstream $Container did not become ready before the bounded deadline"
+}
+
 try {
     New-Item -ItemType Directory -Path (Join-Path $tempRoot 'tls') -Force | Out-Null
     $mockServer = @'
@@ -107,6 +121,7 @@ http.server.ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
             '--network-alias', $definition.Service, '-v', "${tempRoot}/mock.py:/mock.py:ro",
             '-e', "MOCK_SERVICE=$($definition.Service)", '-e', "MOCK_PORT=$($definition.Port)",
             'python:3.13-alpine', 'python', '/mock.py') | Out-Null
+        Wait-MockUpstream -Container $definition.Name -Port $definition.Port -Deadline ([DateTime]::UtcNow.AddSeconds($StartupTimeoutSeconds))
     }
 
     $workspace = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path

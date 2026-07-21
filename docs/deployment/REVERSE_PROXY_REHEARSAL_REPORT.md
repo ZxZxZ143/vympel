@@ -9,7 +9,7 @@ Scope: isolated local syntax and routing proof using disposable mock upstreams a
 
 | Check | Result |
 | --- | --- |
-| Rehearsal ID | `d96d97430666` |
+| Rehearsal ID | `2434c49c8067` (second consecutive pass after bounded upstream-readiness correction) |
 | Storefront routing | Passed |
 | CRM routing | Passed |
 | API routing and one-second bounded response | Passed |

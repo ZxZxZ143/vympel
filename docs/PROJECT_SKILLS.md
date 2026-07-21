@@ -1890,6 +1890,12 @@
 * **How:** Keep provenance and SBOM attestations enabled for the guarded registry-push path; disable them for the `--load` path, which uses Docker's single-image exporter.
 * **Why:** Buildx cannot export an attested manifest list through the Docker image loader (`docker exporter does not currently support exporting manifest lists`).
 
+### Gate proxy assertions on upstream readiness
+
+* **When to use:** A disposable reverse-proxy test starts multiple independent upstream containers immediately before routing assertions.
+* **How:** Poll each upstream from inside its own container with a finite deadline before starting the proxy; keep the proxy health and route assertions separate.
+* **Why:** Nginx health can be ready before the last upstream accepts connections, producing a transient 502 that tests orchestration timing rather than routing policy.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, executable modes, command resolution, build configuration, and Buildx export modes.
+2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, readiness gates, executable modes, command resolution, build configuration, and Buildx export modes.
