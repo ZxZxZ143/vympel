@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-02-08-04-00-ensure-country-iso2-unique" author="admin">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="country"/>
+                <not>
+                    <uniqueConstraintExists tableName="country" constraintName="uq_country_iso2"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addUniqueConstraint tableName="country" columnNames="iso2" constraintName="uq_country_iso2"/>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-alter-country-code-length" author="admin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="country" columnName="code"/>
+        </preConditions>
+
+        <modifyDataType tableName="country" columnName="code" newDataType="varchar(100)"/>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-01-seed-country" author="admin" runOnChange="true">
+        <sql>
+            INSERT INTO country (code, iso2, active)
+            VALUES
+                ('switzerland',    'CH', true),
+                ('south-korea',    'KR', true),
+                ('japan',          'JP', true),
+                ('germany',        'DE', true),
+                ('france',         'FR', true),
+                ('italy',          'IT', true),
+                ('united-states',  'US', true),
+                ('china',          'CN', true),
+                ('hong-kong',      'HK', true),
+                ('austria',        'AT', true),
+                ('united-kingdom', 'GB', true),
+                ('sweden',         'SE', true)
+                ON CONFLICT (iso2)
+            DO UPDATE SET
+                code = EXCLUDED.code,
+                                   active = EXCLUDED.active;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-02-seed-country-i18n" author="admin" runOnChange="true">
+        <sql>
+            INSERT INTO country_i18n (country_id, lang, name)
+            SELECT c.id, 'en', v.name
+            FROM (VALUES
+                      ('CH','Switzerland'),
+                      ('KR','South Korea'),
+                      ('JP','Japan'),
+                      ('DE','Germany'),
+                      ('FR','France'),
+                      ('IT','Italy'),
+                      ('US','United States'),
+                      ('CN','China'),
+                      ('HK','Hong Kong'),
+                      ('AT','Austria'),
+                      ('GB','United Kingdom'),
+                      ('SE','Sweden')
+                 ) AS v(iso2, name)
+                     JOIN country c ON c.iso2 = v.iso2
+                ON CONFLICT (country_id, lang) DO UPDATE SET name = EXCLUDED.name;
+
+            INSERT INTO country_i18n (country_id, lang, name)
+            SELECT c.id, 'ru', v.name
+            FROM (VALUES
+                      ('CH','Швейцария'),
+                      ('KR','Южная Корея'),
+                      ('JP','Япония'),
+                      ('DE','Германия'),
+                      ('FR','Франция'),
+                      ('IT','Италия'),
+                      ('US','США'),
+                      ('CN','Китай'),
+                      ('HK','Гонконг'),
+                      ('AT','Австрия'),
+                      ('GB','Великобритания'),
+                      ('SE','Швеция')
+                 ) AS v(iso2, name)
+                     JOIN country c ON c.iso2 = v.iso2
+                ON CONFLICT (country_id, lang) DO UPDATE SET name = EXCLUDED.name;
+
+            INSERT INTO country_i18n (country_id, lang, name)
+            SELECT c.id, 'kz', v.name
+            FROM (VALUES
+                      ('CH','Швейцария'),
+                      ('KR','Оңтүстік Корея'),
+                      ('JP','Жапония'),
+                      ('DE','Германия'),
+                      ('FR','Франция'),
+                      ('IT','Италия'),
+                      ('US','АҚШ'),
+                      ('CN','Қытай'),
+                      ('HK','Гонконг'),
+                      ('AT','Австрия'),
+                      ('GB','Ұлыбритания'),
+                      ('SE','Швеция')
+                 ) AS v(iso2, name)
+                     JOIN country c ON c.iso2 = v.iso2
+                ON CONFLICT (country_id, lang) DO UPDATE SET name = EXCLUDED.name;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

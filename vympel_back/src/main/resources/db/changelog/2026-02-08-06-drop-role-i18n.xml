@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-02-08-06-drop-role-i18n" author="admin">
+
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="role_i18n"/>
+        </preConditions>
+
+        <dropTable tableName="role_i18n" cascadeConstraints="true"/>
+
+    </changeSet>
+
+</databaseChangeLog>

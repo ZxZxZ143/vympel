@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-06-28-01-product-reviews" author="codex">
+        <createTable tableName="product_review">
+            <column name="id" type="BIGSERIAL">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_product_review"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT"/>
+            <column name="author_name" type="VARCHAR(160)"/>
+            <column name="author_type" type="VARCHAR(20)" defaultValue="GUEST">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="review_text" type="VARCHAR(2000)"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="moderated_at" type="TIMESTAMP"/>
+            <column name="moderated_by" type="BIGINT"/>
+            <column name="moderation_comment" type="VARCHAR(1000)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="product_review" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_product_review_product" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="product_review" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_product_review_user" onDelete="SET NULL"/>
+        <addForeignKeyConstraint baseTableName="product_review" baseColumnNames="moderated_by"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_product_review_moderator" onDelete="SET NULL"/>
+
+        <sql>
+            ALTER TABLE product_review
+                ADD CONSTRAINT chk_product_review_rating CHECK (rating BETWEEN 1 AND 5),
+                ADD CONSTRAINT chk_product_review_author_type CHECK (author_type IN ('GUEST', 'USER')),
+                ADD CONSTRAINT chk_product_review_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'DELETED'));
+        </sql>
+
+        <createIndex tableName="product_review" indexName="idx_product_review_product">
+            <column name="product_id"/>
+        </createIndex>
+        <createIndex tableName="product_review" indexName="idx_product_review_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="product_review" indexName="idx_product_review_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="product_review" indexName="idx_product_review_product_status">
+            <column name="product_id"/>
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

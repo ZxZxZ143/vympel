@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-16-01-crm-refresh-sessions" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <not>
+                <tableExists tableName="refresh_token_session"/>
+            </not>
+            <tableExists tableName="users"/>
+        </preConditions>
+
+        <comment>
+            Adds server-side CRM refresh-token rotation state. token_hash stores SHA-256(jti), never a raw
+            access/refresh token. User deletion cascades session removal; replacement deletion clears only
+            the historical pointer. Forward recovery is to revoke active rows before disabling refresh.
+        </comment>
+
+        <createTable tableName="refresh_token_session">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_refresh_token_session"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_hash" type="CHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="family_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_used_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="revoked_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="replaced_by_session_id" type="BIGINT"/>
+            <column name="revocation_reason" type="VARCHAR(64)"/>
+        </createTable>
+
+        <addUniqueConstraint
+                tableName="refresh_token_session"
+                columnNames="token_hash"
+                constraintName="uk_refresh_token_session_token_hash"/>
+
+        <addForeignKeyConstraint
+                baseTableName="refresh_token_session"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_refresh_token_session_user"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                baseTableName="refresh_token_session"
+                baseColumnNames="replaced_by_session_id"
+                referencedTableName="refresh_token_session"
+                referencedColumnNames="id"
+                constraintName="fk_refresh_token_session_replacement"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="refresh_token_session" indexName="idx_refresh_token_session_user">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="refresh_token_session" indexName="idx_refresh_token_session_family">
+            <column name="family_id"/>
+        </createIndex>
+        <createIndex tableName="refresh_token_session" indexName="idx_refresh_token_session_expires">
+            <column name="expires_at"/>
+        </createIndex>
+        <createIndex tableName="refresh_token_session" indexName="idx_refresh_token_session_revoked">
+            <column name="revoked_at"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="refresh_token_session" cascadeConstraints="true"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-01-01-optional-product-details" author="codex" dbms="postgresql">
+        <dropNotNullConstraint tableName="watch_details" columnName="mechanism_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="watch_details" columnName="gender_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="watch_details" columnName="case_material_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="watch_details" columnName="strap_material_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="watch_details" columnName="glass_type_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="watch_details" columnName="case_size_mm" columnDataType="NUMERIC(4,1)"/>
+
+        <dropNotNullConstraint tableName="interior_clock_details" columnName="production_country_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="interior_clock_details" columnName="case_material_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="interior_clock_details" columnName="color_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="interior_clock_details" columnName="mechanism_type_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="interior_clock_details" columnName="power_type_id" columnDataType="BIGINT"/>
+    </changeSet>
+
+    <changeSet id="2026-07-01-02-cms-media-variants" author="codex" dbms="postgresql">
+        <addColumn tableName="cms_block">
+            <column name="media_kz_id" type="BIGINT"/>
+            <column name="media_en_id" type="BIGINT"/>
+            <column name="mobile_media_id" type="BIGINT"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="media_kz_id"
+                                 referencedTableName="cms_media" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_media_kz" onDelete="SET NULL"/>
+        <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="media_en_id"
+                                 referencedTableName="cms_media" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_media_en" onDelete="SET NULL"/>
+        <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="mobile_media_id"
+                                 referencedTableName="cms_media" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_mobile_media" onDelete="SET NULL"/>
+    </changeSet>
+</databaseChangeLog>

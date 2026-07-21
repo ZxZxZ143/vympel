@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-19-01-minimize-product-analytics" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="product_analytics_event"/>
+            <columnExists tableName="product_analytics_event" columnName="user_id"/>
+            <columnExists tableName="product_analytics_event" columnName="session_id"/>
+            <columnExists tableName="product_analytics_event" columnName="metadata_json"/>
+            <columnExists tableName="product_analytics_event" columnName="ip_address"/>
+            <columnExists tableName="product_analytics_event" columnName="user_agent"/>
+        </preConditions>
+        <dropColumn tableName="product_analytics_event" columnName="user_id"/>
+        <dropColumn tableName="product_analytics_event" columnName="session_id"/>
+        <dropColumn tableName="product_analytics_event" columnName="metadata_json"/>
+        <dropColumn tableName="product_analytics_event" columnName="ip_address"/>
+        <dropColumn tableName="product_analytics_event" columnName="user_agent"/>
+    </changeSet>
+</databaseChangeLog>

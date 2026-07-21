@@ -1,0 +1,10 @@
+Step 9 CMS cleanup lifecycle (sanitized)
+
+- Admin login: 200; requestId=step9-cms-cleanup-login. Access token intentionally omitted.
+- Orphan dry-run: 200; exactly one protected rehearsal candidate, mediaId=25, referenceCount=0.
+- Orphan cleanup: 200; processed=1, succeeded=1, failed=0, skipped=0; requestId=step9-cms-orphan-cleanup.
+- Object GET after cleanup: 404.
+- Media-reference GET after cleanup: 404 RESOURCE_NOT_FOUND; correlated requestId present.
+- Logout: 204.
+
+No password, refresh cookie, or access token is retained in this artifact.

@@ -1,0 +1,17 @@
+{
+  "registerStatus": 201,
+  "loginTokenPresent": true,
+  "mediaId": 26,
+  "blockId": 23,
+  "deleteReturnedBlockId": 23,
+  "afterCommitErrorCount": 0,
+  "orphanLogCount": 1,
+  "cleanupProcessed": 1,
+  "cleanupSucceeded": 1,
+  "cleanupFailed": 0,
+  "mediaRowCountAfterCleanup": 0,
+  "blockRowCountAfterCleanup": 0,
+  "objectUrlAfterCleanup": "http://127.0.0.1:9000/dev-backet/cms/b297f55e-6b41-4cf7-b76d-19c755339ccb.png",
+  "objectStatusAfterCleanup": 404,
+  "correctionNote": "The original PowerShell evidence serialized an unset response property as 0. A direct HEAD probe returned HTTP 404; the disposable database IDs also returned zero rows."
+}

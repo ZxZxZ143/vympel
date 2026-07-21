@@ -1,0 +1,162 @@
+spring:
+  application:
+    name: vympel
+
+  datasource:
+    url: "${VYMPEL_DB_URL:}"
+    username: "${VYMPEL_DB_USERNAME:}"
+    password: "${VYMPEL_DB_PASSWORD:}"
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: "${VYMPEL_JPA_SHOW_SQL:false}"
+    open-in-view: false
+
+    hibernate:
+      ddl-auto: validate
+      format_sql: "${VYMPEL_JPA_FORMAT_SQL:false}"
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  data:
+    redis:
+      url: "${VYMPEL_REDIS_URL:}"
+      connect-timeout: "${VYMPEL_REDIS_CONNECT_TIMEOUT:1s}"
+      timeout: "${VYMPEL_REDIS_COMMAND_TIMEOUT:1s}"
+
+  servlet:
+    multipart:
+      max-file-size: "${VYMPEL_MULTIPART_MAX_FILE_SIZE:10MB}"
+      max-request-size: "${VYMPEL_MULTIPART_MAX_REQUEST_SIZE:101MB}"
+
+logging:
+  file:
+    path: "${APP_LOG_DIR:logs}"
+  level:
+    root: "${APP_LOG_LEVEL:INFO}"
+    org.hibernate.SQL: warn
+    org.hibernate.orm.jdbc.bind: warn
+
+security:
+  jwt:
+    secret: "${VYMPEL_JWT_SECRET:}"
+    access-ttl-min: "${VYMPEL_JWT_ACCESS_TTL_MIN:15}"
+    refresh-ttl-days: "${VYMPEL_JWT_REFRESH_TTL_DAYS:14}"
+    issuer: "${VYMPEL_JWT_ISSUER:vympel-api}"
+    audience: "${VYMPEL_JWT_AUDIENCE:vympel-crm}"
+    clock-skew-seconds: "${VYMPEL_JWT_CLOCK_SKEW_SECONDS:30}"
+  crm-session:
+    cookie-name: "${VYMPEL_CRM_REFRESH_COOKIE_NAME:vympel_crm_refresh}"
+    cookie-path: "${VYMPEL_CRM_REFRESH_COOKIE_PATH:/api/crm/auth}"
+    secure: "${VYMPEL_CRM_REFRESH_COOKIE_SECURE:true}"
+    same-site: "${VYMPEL_CRM_REFRESH_COOKIE_SAME_SITE:Lax}"
+    cleanup-retention-days: "${VYMPEL_CRM_REFRESH_CLEANUP_RETENTION_DAYS:30}"
+    cleanup-cron: "${VYMPEL_CRM_REFRESH_CLEANUP_CRON:0 15 3 * * *}"
+  rate-limit:
+    enabled: "${VYMPEL_RATE_LIMIT_ENABLED:true}"
+    storage: "${VYMPEL_RATE_LIMIT_STORAGE:redis}"
+    key-prefix: "${VYMPEL_RATE_LIMIT_KEY_PREFIX:vympel:rate-limit:v1}"
+    hmac-secret: "${VYMPEL_RATE_LIMIT_HMAC_SECRET:}"
+    trusted-proxies: "${VYMPEL_TRUSTED_PROXY_CIDRS:}"
+    max-local-entries: "${VYMPEL_RATE_LIMIT_MAX_LOCAL_ENTRIES:10000}"
+    login-backoff-threshold: "${VYMPEL_LOGIN_BACKOFF_THRESHOLD:3}"
+    login-backoff-base-seconds: "${VYMPEL_LOGIN_BACKOFF_BASE_SECONDS:2}"
+    login-backoff-max-seconds: "${VYMPEL_LOGIN_BACKOFF_MAX_SECONDS:300}"
+    policies:
+      crm-login-source: { capacity: "${VYMPEL_RL_CRM_LOGIN_SOURCE_CAPACITY:20}", window-seconds: "${VYMPEL_RL_CRM_LOGIN_SOURCE_WINDOW:300}", fail-open: false }
+      customer-login-source: { capacity: "${VYMPEL_RL_CUSTOMER_LOGIN_SOURCE_CAPACITY:30}", window-seconds: "${VYMPEL_RL_CUSTOMER_LOGIN_SOURCE_WINDOW:300}", fail-open: false }
+      login-account-failures: { capacity: "${VYMPEL_RL_LOGIN_ACCOUNT_CAPACITY:10}", window-seconds: "${VYMPEL_RL_LOGIN_ACCOUNT_WINDOW:900}", fail-open: false }
+      registration-source: { capacity: "${VYMPEL_RL_REGISTRATION_SOURCE_CAPACITY:5}", window-seconds: "${VYMPEL_RL_REGISTRATION_SOURCE_WINDOW:3600}", fail-open: false }
+      registration-identity: { capacity: "${VYMPEL_RL_REGISTRATION_IDENTITY_CAPACITY:3}", window-seconds: "${VYMPEL_RL_REGISTRATION_IDENTITY_WINDOW:86400}", fail-open: false }
+      refresh-source: { capacity: "${VYMPEL_RL_REFRESH_SOURCE_CAPACITY:60}", window-seconds: "${VYMPEL_RL_REFRESH_SOURCE_WINDOW:60}", fail-open: false }
+      logout-source: { capacity: "${VYMPEL_RL_LOGOUT_SOURCE_CAPACITY:60}", window-seconds: "${VYMPEL_RL_LOGOUT_SOURCE_WINDOW:60}", fail-open: true }
+      public-review: { capacity: "${VYMPEL_RL_PUBLIC_REVIEW_CAPACITY:5}", window-seconds: "${VYMPEL_RL_PUBLIC_REVIEW_WINDOW:3600}", fail-open: false }
+      public-review-source: { capacity: "${VYMPEL_RL_PUBLIC_REVIEW_SOURCE_CAPACITY:8}", window-seconds: "${VYMPEL_RL_PUBLIC_REVIEW_SOURCE_WINDOW:3600}", fail-open: false }
+      public-review-duplicate: { capacity: 1, window-seconds: "${VYMPEL_RL_PUBLIC_REVIEW_DUPLICATE_WINDOW:120}", fail-open: false }
+      public-request: { capacity: "${VYMPEL_RL_PUBLIC_REQUEST_CAPACITY:5}", window-seconds: "${VYMPEL_RL_PUBLIC_REQUEST_WINDOW:3600}", fail-open: false }
+      public-request-contact: { capacity: 1, window-seconds: "${VYMPEL_RL_PUBLIC_REQUEST_CONTACT_WINDOW:1800}", fail-open: false }
+      analytics-source: { capacity: "${VYMPEL_RL_ANALYTICS_SOURCE_CAPACITY:120}", window-seconds: "${VYMPEL_RL_ANALYTICS_SOURCE_WINDOW:60}", fail-open: false }
+      analytics-dedup: { capacity: 1, window-seconds: "${VYMPEL_RL_ANALYTICS_DEDUP_WINDOW:30}", fail-open: false }
+      quick-search: { capacity: "${VYMPEL_RL_QUICK_SEARCH_CAPACITY:120}", window-seconds: "${VYMPEL_RL_QUICK_SEARCH_WINDOW:60}", fail-open: true }
+      public-catalog-read: { capacity: "${VYMPEL_RL_PUBLIC_CATALOG_CAPACITY:600}", window-seconds: "${VYMPEL_RL_PUBLIC_CATALOG_WINDOW:60}", fail-open: true }
+      global-public-write: { capacity: "${VYMPEL_RL_GLOBAL_PUBLIC_WRITE_CAPACITY:300}", window-seconds: "${VYMPEL_RL_GLOBAL_PUBLIC_WRITE_WINDOW:60}", fail-open: false }
+
+server:
+  port: "${SERVER_PORT:8080}"
+  forward-headers-strategy: none
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health"
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: "livenessState"
+        readiness:
+          include: "readinessState,db"
+
+storage:
+  s3:
+    bucket: "${VYMPEL_S3_BUCKET:}"
+    region: "${VYMPEL_S3_REGION:}"
+    endpoint: "${VYMPEL_S3_ENDPOINT:}"
+    public-endpoint: "${VYMPEL_S3_PUBLIC_ENDPOINT:}"
+    accessKey: "${VYMPEL_S3_ACCESS_KEY:}"
+    secretKey: "${VYMPEL_S3_SECRET_KEY:}"
+    pathStyle: "${VYMPEL_S3_PATH_STYLE:true}"
+    api-call-timeout: "${VYMPEL_S3_API_CALL_TIMEOUT:10s}"
+    api-attempt-timeout: "${VYMPEL_S3_API_ATTEMPT_TIMEOUT:5s}"
+
+app:
+  analytics:
+    retention-days: "${VYMPEL_ANALYTICS_RETENTION_DAYS:180}"
+    cleanup-enabled: "${VYMPEL_ANALYTICS_CLEANUP_ENABLED:true}"
+    cleanup-dry-run: "${VYMPEL_ANALYTICS_CLEANUP_DRY_RUN:false}"
+    cleanup-cron: "${VYMPEL_ANALYTICS_CLEANUP_CRON:0 45 3 * * *}"
+    cleanup-batch-size: "${VYMPEL_ANALYTICS_CLEANUP_BATCH_SIZE:5000}"
+    cleanup-max-batches: "${VYMPEL_ANALYTICS_CLEANUP_MAX_BATCHES:20}"
+  performance:
+    slow-operation-threshold-ms: "${VYMPEL_SLOW_OPERATION_THRESHOLD_MS:500}"
+  logging:
+    max-file-size: "${APP_LOG_MAX_FILE_SIZE:50MB}"
+    retention-days: "${APP_LOG_RETENTION_DAYS:30}"
+    total-size-cap: "${APP_LOG_TOTAL_SIZE_CAP:256MB}"
+  cors:
+    allowed-origins: "${VYMPEL_CORS_ALLOWED_ORIGINS:}"
+  security:
+    allow-localhost-services: "${VYMPEL_ALLOW_LOCALHOST_SERVICES:false}"
+    allow-insecure-service-transport: "${VYMPEL_ALLOW_INSECURE_SERVICE_TRANSPORT:false}"
+  cms:
+    public-revalidate:
+      enabled: "${VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED:true}"
+      url: "${VYMPEL_CMS_PUBLIC_REVALIDATE_URL:}"
+      secret: "${VYMPEL_CMS_REVALIDATE_SECRET:}"
+      timeout-ms: "${VYMPEL_CMS_PUBLIC_REVALIDATE_TIMEOUT_MS:3000}"
+      required: "${VYMPEL_CMS_REVALIDATE_REQUIRED:true}"
+      max-attempts: "${VYMPEL_CMS_PUBLIC_REVALIDATE_MAX_ATTEMPTS:8}"
+      retry-base-delay: "${VYMPEL_CMS_PUBLIC_REVALIDATE_RETRY_BASE_DELAY:5s}"
+      retry-max-delay: "${VYMPEL_CMS_PUBLIC_REVALIDATE_RETRY_MAX_DELAY:5m}"
+      retry-poll-interval: "${VYMPEL_CMS_PUBLIC_REVALIDATE_RETRY_POLL_MS:5000}"
+      retry-batch-size: "${VYMPEL_CMS_PUBLIC_REVALIDATE_RETRY_BATCH_SIZE:20}"
+      stale-claim-timeout: "${VYMPEL_CMS_PUBLIC_REVALIDATE_STALE_CLAIM_TIMEOUT:2m}"
+    media-cleanup:
+      grace-period: "${VYMPEL_CMS_MEDIA_CLEANUP_GRACE_PERIOD:24h}"
+      scheduled-enabled: "${VYMPEL_CMS_MEDIA_CLEANUP_ENABLED:true}"
+      cron: "${VYMPEL_CMS_MEDIA_CLEANUP_CRON:0 30 3 * * *}"
+      batch-size: "${VYMPEL_CMS_MEDIA_CLEANUP_BATCH_SIZE:25}"
+      max-batch-size: "${VYMPEL_CMS_MEDIA_CLEANUP_MAX_BATCH_SIZE:100}"
+      retry-base-delay: "${VYMPEL_CMS_MEDIA_CLEANUP_RETRY_BASE_DELAY:5m}"
+      retry-max-delay: "${VYMPEL_CMS_MEDIA_CLEANUP_RETRY_MAX_DELAY:6h}"
+      stale-claim-timeout: "${VYMPEL_CMS_MEDIA_CLEANUP_STALE_CLAIM_TIMEOUT:15m}"
+  recommendations:
+    price-band-percent: "${VYMPEL_RECOMMENDATION_PRICE_BAND_PERCENT:25}"
+    query-timeout-ms: "${VYMPEL_RECOMMENDATION_QUERY_TIMEOUT_MS:1500}"

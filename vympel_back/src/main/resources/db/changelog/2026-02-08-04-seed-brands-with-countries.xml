@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-02-08-04-add-brand-name" author="chatgpt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="brand" columnName="name"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="brand">
+            <column name="name" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-create-brand-country" author="chatgpt">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="brand_country"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="brand_country">
+            <column name="brand_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="country_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="brand_country"
+                columnNames="brand_id,country_id"
+                constraintName="pk_brand_country"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_brand_country_brand"
+                baseTableName="brand_country"
+                baseColumnNames="brand_id"
+                referencedTableName="brand"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_brand_country_country"
+                baseTableName="brand_country"
+                baseColumnNames="country_id"
+                referencedTableName="country"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-seed-brands" author="chatgpt" runOnChange="true">
+        <sql>
+            INSERT INTO brand (code, name, active)
+            VALUES
+                ('romanson', 'Romanson', true),
+                ('apella', 'Apella', true),
+                ('pierre-ricaude', 'Pierre Ricaude', true),
+                ('adriatica', 'Adriatica', true),
+                ('rhythm', 'Rhythm', true),
+                ('royal-london', 'Royal London', true)
+                ON CONFLICT (code)
+            DO UPDATE SET
+                name = EXCLUDED.name,
+                                   active = EXCLUDED.active;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-romanson-countries" author="chatgpt" runOnChange="true">
+        <sql>
+            INSERT INTO brand_country (brand_id, country_id)
+            SELECT b.id, c.id
+            FROM brand b
+                     JOIN country c ON c.iso2 IN ('KR','CH')
+            WHERE b.code = 'romanson'
+                ON CONFLICT DO NOTHING;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-other-brands-country" author="chatgpt" runOnChange="true">
+        <sql>
+            INSERT INTO brand_country (brand_id, country_id)
+            SELECT b.id, c.id
+            FROM brand b
+                     JOIN country c ON c.iso2 = 'CH'
+            WHERE b.code IN ('apella','pierre-ricaude','adriatica','rhythm','royal-london')
+                ON CONFLICT DO NOTHING;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

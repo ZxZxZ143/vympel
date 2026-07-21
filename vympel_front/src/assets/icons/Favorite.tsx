@@ -1,0 +1,12 @@
+import React, {FC} from 'react';
+import {IconProps} from "@/assets/icons/type";
+
+const Favorite: FC<IconProps> = (props) => {
+    return (
+        <svg {...props} width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.93427 18.5443L15.3154 27.3568C15.6398 27.6616 15.802 27.814 16 27.814C16.1981 27.814 16.3603 27.6616 16.6847 27.3568L26.0658 18.5443C28.674 16.0941 28.9908 12.0621 26.7971 9.23476L26.3846 8.70312C23.7604 5.32077 18.4929 5.88802 16.6489 9.75153C16.3885 10.2973 15.6116 10.2973 15.3512 9.75153C13.5072 5.88802 8.23967 5.32077 5.61543 8.70312L5.20296 9.23476C3.00931 12.0621 3.32604 16.0941 5.93427 18.5443Z" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+    );
+};
+
+export default Favorite;

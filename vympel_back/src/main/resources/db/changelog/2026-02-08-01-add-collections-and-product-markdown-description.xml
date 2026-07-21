@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-02-08-01-drop-brand-i18n" author="chatgpt">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="brand_i18n"/>
+        </preConditions>
+
+        <dropTable tableName="brand_i18n"/>
+    </changeSet>
+
+    <changeSet id="2026-02-08-02-create-collection" author="chatgpt">
+        <createTable tableName="collection">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="brand_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="code" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="name" type="varchar(255)"/>
+
+            <column name="active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_at" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated_at" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                constraintName="fk_collection_brand"
+                baseTableName="collection"
+                baseColumnNames="brand_id"
+                referencedTableName="brand"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <addUniqueConstraint
+                tableName="collection"
+                columnNames="brand_id,code"
+                constraintName="uq_collection_brand_code"/>
+
+        <createIndex tableName="collection" indexName="idx_collection_brand">
+            <column name="brand_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-02-08-03-add-product-collection" author="chatgpt">
+        <addColumn tableName="product">
+            <column name="collection_id" type="bigint"/>
+        </addColumn>
+
+        <addForeignKeyConstraint
+                constraintName="fk_product_collection"
+                baseTableName="product"
+                baseColumnNames="collection_id"
+                referencedTableName="collection"
+                referencedColumnNames="id"
+                onDelete="SET NULL"/>
+
+        <createIndex tableName="product" indexName="idx_product_collection">
+            <column name="collection_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-02-08-04-create-product-description" author="chatgpt">
+        <createTable tableName="product_description">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="product_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="created_at" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated_at" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                constraintName="fk_product_description_product"
+                baseTableName="product_description"
+                baseColumnNames="product_id"
+                referencedTableName="product"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createTable tableName="product_description_i18n">
+            <column name="description_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="lang" type="varchar(5)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="title" type="varchar(255)"/>
+            <column name="short_text" type="text"/>
+
+            <column name="content_md" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="product_description_i18n"
+                columnNames="description_id,lang"
+                constraintName="pk_product_description_i18n"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_product_description_i18n_description"
+                baseTableName="product_description_i18n"
+                baseColumnNames="description_id"
+                referencedTableName="product_description"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="product_description_i18n" indexName="idx_product_desc_i18n_lang">
+            <column name="lang"/>
+        </createIndex>
+
+        <sql>
+            ALTER TABLE product_description_i18n
+                ADD CONSTRAINT chk_product_description_lang
+                    CHECK (lang IN ('ru','en','kz'));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

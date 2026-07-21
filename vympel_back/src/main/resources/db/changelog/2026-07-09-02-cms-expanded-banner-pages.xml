@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-09-02-cms-expanded-banner-pages" author="codex" dbms="postgresql">
+        <sql splitStatements="false"><![CDATA[
+            INSERT INTO cms_page (page_key, title, status)
+            VALUES
+                ('catalog', 'Catalog', 'ACTIVE'),
+                ('product', 'Product', 'ACTIVE'),
+                ('brands', 'Brands', 'ACTIVE')
+            ON CONFLICT (page_key) DO NOTHING;
+
+            INSERT INTO cms_media (storage_type, public_url, original_filename, content_type, size_bytes)
+            SELECT 'PUBLIC_PATH', seed.public_url, seed.original_filename, seed.content_type, 0
+            FROM (VALUES
+                ('/catalog-hero-banner.png', 'catalog-hero-banner.png', 'image/png'),
+                ('/contact-banner-catalog.png', 'contact-banner-catalog.png', 'image/png'),
+                ('/product-hero-banner.png', 'product-hero-banner.png', 'image/png'),
+                ('/product-banner.jpg', 'product-banner.jpg', 'image/jpeg'),
+                ('/contact_banner.png', 'contact_banner.png', 'image/png'),
+                ('/Romanson_brand_banner.png', 'Romanson_brand_banner.png', 'image/png'),
+                ('/Adriatica_brand_banner.jpg', 'Adriatica_brand_banner.jpg', 'image/jpeg'),
+                ('/Appella_brand_banner.jpg', 'Appella_brand_banner.jpg', 'image/jpeg'),
+                ('/PIERRE_RICAUD_brand_banner.jpg', 'PIERRE_RICAUD_brand_banner.jpg', 'image/jpeg'),
+                ('/Rhythm_brand_banner.jpg', 'Rhythm_brand_banner.jpg', 'image/jpeg'),
+                ('/Royal_london_brand_banner.png', 'Royal_london_brand_banner.png', 'image/png')
+            ) AS seed(public_url, original_filename, content_type)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM cms_media media
+                WHERE media.public_url = seed.public_url
+            );
+
+            WITH block_seeds(page_key, block_key, block_type, sort_order, public_url) AS (
+                VALUES
+                    ('catalog', 'catalog.heroBanner', 'BANNER', 10, '/catalog-hero-banner.png'),
+                    ('catalog', 'catalog.contactBanner', 'BANNER', 20, '/contact-banner-catalog.png'),
+                    ('product', 'product.heroBanner', 'BANNER', 10, '/product-hero-banner.png'),
+                    ('product', 'product.stateBanner', 'BANNER', 20, '/product-banner.jpg'),
+                    ('product', 'product.contactBanner', 'BANNER', 30, '/contact_banner.png'),
+                    ('brands', 'brands.romanson.heroBanner', 'BANNER', 10, '/Romanson_brand_banner.png'),
+                    ('brands', 'brands.adriatica.heroBanner', 'BANNER', 20, '/Adriatica_brand_banner.jpg'),
+                    ('brands', 'brands.appella.heroBanner', 'BANNER', 30, '/Appella_brand_banner.jpg'),
+                    ('brands', 'brands.pierre-ricaud.heroBanner', 'BANNER', 40, '/PIERRE_RICAUD_brand_banner.jpg'),
+                    ('brands', 'brands.rhythm.heroBanner', 'BANNER', 50, '/Rhythm_brand_banner.jpg'),
+                    ('brands', 'brands.royal-london.heroBanner', 'BANNER', 60, '/Royal_london_brand_banner.png')
+            )
+            INSERT INTO cms_block (
+                page_id,
+                block_key,
+                block_type,
+                sort_order,
+                status,
+                media_id,
+                link_type,
+                link_open_behavior
+            )
+            SELECT page.id,
+                   seed.block_key,
+                   seed.block_type,
+                   seed.sort_order,
+                   'PUBLISHED',
+                   media.id,
+                   'NONE',
+                   'SAME_TAB'
+            FROM block_seeds seed
+            JOIN cms_page page ON page.page_key = seed.page_key
+            LEFT JOIN cms_media media ON media.id = (
+                SELECT id
+                FROM cms_media media_lookup
+                WHERE media_lookup.public_url = seed.public_url
+                ORDER BY id
+                LIMIT 1
+            )
+            ON CONFLICT (block_key) DO NOTHING;
+
+            INSERT INTO cms_block_translation (block_id, lang, alt_text)
+            SELECT block.id, seed.lang, seed.alt_text
+            FROM cms_block block
+            JOIN (VALUES
+                ('catalog.heroBanner', 'ru', 'Баннер каталога Vympel'),
+                ('catalog.heroBanner', 'en', 'Vympel catalog banner'),
+                ('catalog.heroBanner', 'kk', 'Vympel каталог баннері'),
+                ('catalog.contactBanner', 'ru', 'Контактный баннер каталога Vympel'),
+                ('catalog.contactBanner', 'en', 'Vympel catalog contact banner'),
+                ('catalog.contactBanner', 'kk', 'Vympel каталог байланыс баннері'),
+                ('product.heroBanner', 'ru', 'Баннер страницы товара Vympel'),
+                ('product.heroBanner', 'en', 'Vympel product page banner'),
+                ('product.heroBanner', 'kk', 'Vympel тауар бетінің баннері'),
+                ('product.stateBanner', 'ru', 'Баннер состояния товара Vympel'),
+                ('product.stateBanner', 'en', 'Vympel product state banner'),
+                ('product.stateBanner', 'kk', 'Vympel тауар күйі баннері'),
+                ('product.contactBanner', 'ru', 'Контактный баннер товара Vympel'),
+                ('product.contactBanner', 'en', 'Vympel product contact banner'),
+                ('product.contactBanner', 'kk', 'Vympel тауар байланыс баннері'),
+                ('brands.romanson.heroBanner', 'ru', 'Баннер бренда Romanson'),
+                ('brands.romanson.heroBanner', 'en', 'Romanson brand banner'),
+                ('brands.romanson.heroBanner', 'kk', 'Romanson бренді баннері'),
+                ('brands.adriatica.heroBanner', 'ru', 'Баннер бренда Adriatica'),
+                ('brands.adriatica.heroBanner', 'en', 'Adriatica brand banner'),
+                ('brands.adriatica.heroBanner', 'kk', 'Adriatica бренді баннері'),
+                ('brands.appella.heroBanner', 'ru', 'Баннер бренда Appella'),
+                ('brands.appella.heroBanner', 'en', 'Appella brand banner'),
+                ('brands.appella.heroBanner', 'kk', 'Appella бренді баннері'),
+                ('brands.pierre-ricaud.heroBanner', 'ru', 'Баннер бренда Pierre Ricaud'),
+                ('brands.pierre-ricaud.heroBanner', 'en', 'Pierre Ricaud brand banner'),
+                ('brands.pierre-ricaud.heroBanner', 'kk', 'Pierre Ricaud бренді баннері'),
+                ('brands.rhythm.heroBanner', 'ru', 'Баннер бренда Rhythm'),
+                ('brands.rhythm.heroBanner', 'en', 'Rhythm brand banner'),
+                ('brands.rhythm.heroBanner', 'kk', 'Rhythm бренді баннері'),
+                ('brands.royal-london.heroBanner', 'ru', 'Баннер бренда Royal London'),
+                ('brands.royal-london.heroBanner', 'en', 'Royal London brand banner'),
+                ('brands.royal-london.heroBanner', 'kk', 'Royal London бренді баннері')
+            ) AS seed(block_key, lang, alt_text) ON seed.block_key = block.block_key
+            ON CONFLICT (block_id, lang) DO UPDATE
+                SET alt_text = COALESCE(cms_block_translation.alt_text, EXCLUDED.alt_text);
+
+            SELECT setval(pg_get_serial_sequence('cms_page', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_page));
+            SELECT setval(pg_get_serial_sequence('cms_media', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_media));
+            SELECT setval(pg_get_serial_sequence('cms_block', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_block));
+            SELECT setval(pg_get_serial_sequence('cms_block_translation', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_block_translation));
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>

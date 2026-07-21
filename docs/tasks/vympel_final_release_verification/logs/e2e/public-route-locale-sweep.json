@@ -1,0 +1,427 @@
+[
+  {
+    "path": "/ru/about",
+    "url": "http://127.0.0.1:3100/ru/about",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "О нас"
+    ],
+    "h2": [
+      "О компании",
+      "Наша деятельность в соцсетях",
+      "Сотрудничество и партнёрство",
+      "Хотите\nсвязаться\nс Vympel?",
+      "Онлайн площадки",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/guarantee",
+    "url": "http://127.0.0.1:3100/ru/guarantee",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Гарантийные обязательства"
+    ],
+    "h2": [
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/delivery",
+    "url": "http://127.0.0.1:3100/ru/delivery",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Доставка"
+    ],
+    "h2": [
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/payment",
+    "url": "http://127.0.0.1:3100/ru/payment",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Оплата"
+    ],
+    "h2": [
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/brands",
+    "url": "http://127.0.0.1:3100/ru/brands",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Бренды"
+    ],
+    "h2": [
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/brands/romanson",
+    "url": "http://127.0.0.1:3100/ru/brands/romanson",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "ROMANSON"
+    ],
+    "h2": [
+      "История бренда",
+      "Новинки",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/catalog?categoryCode=WATCH_INTERIOR&page=1",
+    "url": "http://127.0.0.1:3100/ru/catalog?categoryCode=WATCH_INTERIOR&page=1",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Интерьерные часы"
+    ],
+    "h2": [
+      "Ничего не найдено",
+      "Онлайн площадки",
+      "Связаться с нами",
+      "Готовы связаться\nс Vympel?",
+      "Benefits",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/catalog?categoryCode=ACCESSORIES&page=1",
+    "url": "http://127.0.0.1:3100/ru/catalog?categoryCode=ACCESSORIES&page=1",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Аксессуары"
+    ],
+    "h2": [
+      "Ничего не найдено",
+      "Онлайн площадки",
+      "Связаться с нами",
+      "Готовы связаться\nс Vympel?",
+      "Benefits",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/catalog?query=APA&page=1",
+    "url": "http://127.0.0.1:3100/ru/catalog?page=1",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Все товары"
+    ],
+    "h2": [
+      "Онлайн площадки",
+      "Связаться с нами",
+      "Готовы связаться\nс Vympel?",
+      "Benefits",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 27,
+    "title": "Vympel"
+  },
+  {
+    "path": "/kz",
+    "url": "http://127.0.0.1:3100/kz",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Vympel"
+    ],
+    "h2": [
+      "Benefits",
+      "Жаңа өнімдер",
+      "Брендтер",
+      "Санаттар",
+      "Философия",
+      "Онлайн маркетплейстер",
+      "Vympel"
+    ],
+    "lang": "kz",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 54,
+    "title": "Vympel"
+  },
+  {
+    "path": "/kz/catalog?categoryCode=WATCH_WRIST&page=1",
+    "url": "http://127.0.0.1:3100/kz/catalog?categoryCode=WATCH_WRIST&page=1",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Қол сағаттар"
+    ],
+    "h2": [
+      "Онлайн маркетплейстер",
+      "Бізбен байланысу",
+      "Vympel-мен\nбайланысуға дайынсыз ба?",
+      "Benefits",
+      "Vympel"
+    ],
+    "lang": "kz",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 27,
+    "title": "Vympel"
+  },
+  {
+    "path": "/kz/product/44",
+    "url": "http://127.0.0.1:3100/kz/product/44",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "kfgjnlfgnjbg алоти"
+    ],
+    "h2": [
+      "Rhythm",
+      "Ұқсас тауарлар",
+      "Бізбен байланысу",
+      "Vympel-мен\nбайланысуға дайынсыз ба?",
+      "Vympel"
+    ],
+    "lang": "kz",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 36,
+    "title": "Vympel"
+  },
+  {
+    "path": "/en",
+    "url": "http://127.0.0.1:3100/en",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Vympel"
+    ],
+    "h2": [
+      "Benefits",
+      "New arrivals",
+      "Brands",
+      "Categories",
+      "Philosophy",
+      "Online marketplaces",
+      "Vympel"
+    ],
+    "lang": "en",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 54,
+    "title": "Vympel"
+  },
+  {
+    "path": "/en/catalog?categoryCode=WATCH_WRIST&page=1",
+    "url": "http://127.0.0.1:3100/en/catalog?categoryCode=WATCH_WRIST&page=1",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "Wrist watches"
+    ],
+    "h2": [
+      "Online marketplaces",
+      "Contact us",
+      "Ready to contact\nVympel?",
+      "Benefits",
+      "Vympel"
+    ],
+    "lang": "en",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 27,
+    "title": "Vympel"
+  },
+  {
+    "path": "/en/product/44",
+    "url": "http://127.0.0.1:3100/en/product/44",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [
+      "kfbnlnblitgjn"
+    ],
+    "h2": [
+      "Rhythm",
+      "Related products",
+      "Contact us",
+      "Ready to contact\nVympel?",
+      "Vympel"
+    ],
+    "lang": "en",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": false,
+    "overflow": false,
+    "productLinks": 36,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/definitely-missing-step9",
+    "url": "http://127.0.0.1:3100/ru/definitely-missing-step9",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [],
+    "h2": [
+      "Страница не найдена",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": true,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/product/999999",
+    "url": "http://127.0.0.1:3100/ru/product/999999",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [],
+    "h2": [
+      "Страница не найдена",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": true,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/brands/not-a-real-brand",
+    "url": "http://127.0.0.1:3100/ru/brands/not-a-real-brand",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [],
+    "h2": [
+      "Страница не найдена",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": true,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  },
+  {
+    "path": "/ru/catalog?categoryCode=NOT_REAL&page=1",
+    "url": "http://127.0.0.1:3100/ru/catalog?categoryCode=NOT_REAL&page=1",
+    "duplicateIds": [],
+    "footer": 1,
+    "forbiddenRecommendationText": false,
+    "h1": [],
+    "h2": [
+      "Страница не найдена",
+      "Vympel"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "notFound": true,
+    "overflow": false,
+    "productLinks": 0,
+    "title": "Vympel"
+  }
+]

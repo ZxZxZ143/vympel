@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-17-01-cms-media-lifecycle" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT">
+            <tableExists tableName="cms_media"/>
+            <tableExists tableName="cms_block"/>
+        </preConditions>
+
+        <addColumn tableName="cms_media">
+            <column name="lifecycle_status" type="VARCHAR(24)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cleanup_protected" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="orphaned_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="delete_requested_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="last_delete_attempt_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="next_delete_attempt_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="delete_attempt_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_delete_error_code" type="VARCHAR(64)"/>
+        </addColumn>
+
+        <sql>
+            ALTER TABLE cms_media
+                ADD CONSTRAINT chk_cms_media_lifecycle_status
+                CHECK (lifecycle_status IN ('ACTIVE', 'DELETE_PENDING', 'DELETE_FAILED'));
+            ALTER TABLE cms_media
+                ADD CONSTRAINT chk_cms_media_delete_attempt_count
+                CHECK (delete_attempt_count &gt;= 0);
+        </sql>
+
+        <createIndex tableName="cms_media" indexName="idx_cms_media_cleanup_candidates">
+            <column name="storage_type"/>
+            <column name="lifecycle_status"/>
+            <column name="cleanup_protected"/>
+            <column name="delete_requested_at"/>
+            <column name="orphaned_at"/>
+            <column name="created_at"/>
+            <column name="next_delete_attempt_at"/>
+        </createIndex>
+
+        <createIndex tableName="cms_block" indexName="idx_cms_block_media_id">
+            <column name="media_id"/>
+        </createIndex>
+        <createIndex tableName="cms_block" indexName="idx_cms_block_media_kz_id">
+            <column name="media_kz_id"/>
+        </createIndex>
+        <createIndex tableName="cms_block" indexName="idx_cms_block_media_en_id">
+            <column name="media_en_id"/>
+        </createIndex>
+        <createIndex tableName="cms_block" indexName="idx_cms_block_mobile_media_id">
+            <column name="mobile_media_id"/>
+        </createIndex>
+        <createIndex tableName="cms_block" indexName="idx_cms_block_mobile_media_kz_id">
+            <column name="mobile_media_kz_id"/>
+        </createIndex>
+        <createIndex tableName="cms_block" indexName="idx_cms_block_mobile_media_en_id">
+            <column name="mobile_media_en_id"/>
+        </createIndex>
+
+        <dropForeignKeyConstraint baseTableName="cms_block" constraintName="fk_cms_block_media"/>
+        <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="media_id"
+                                 referencedTableName="cms_media" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_media" onDelete="SET NULL"/>
+
+        <rollback>
+            <dropForeignKeyConstraint baseTableName="cms_block" constraintName="fk_cms_block_media"/>
+            <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="media_id"
+                                     referencedTableName="cms_media" referencedColumnNames="id"
+                                     constraintName="fk_cms_block_media"/>
+            <dropIndex tableName="cms_block" indexName="idx_cms_block_mobile_media_en_id"/>
+            <dropIndex tableName="cms_block" indexName="idx_cms_block_mobile_media_kz_id"/>
+            <dropIndex tableName="cms_block" indexName="idx_cms_block_mobile_media_id"/>
+            <dropIndex tableName="cms_block" indexName="idx_cms_block_media_en_id"/>
+            <dropIndex tableName="cms_block" indexName="idx_cms_block_media_kz_id"/>
+            <dropIndex tableName="cms_block" indexName="idx_cms_block_media_id"/>
+            <dropIndex tableName="cms_media" indexName="idx_cms_media_cleanup_candidates"/>
+            <sql>
+                ALTER TABLE cms_media DROP CONSTRAINT chk_cms_media_delete_attempt_count;
+                ALTER TABLE cms_media DROP CONSTRAINT chk_cms_media_lifecycle_status;
+            </sql>
+            <dropColumn tableName="cms_media" columnName="last_delete_error_code"/>
+            <dropColumn tableName="cms_media" columnName="delete_attempt_count"/>
+            <dropColumn tableName="cms_media" columnName="next_delete_attempt_at"/>
+            <dropColumn tableName="cms_media" columnName="last_delete_attempt_at"/>
+            <dropColumn tableName="cms_media" columnName="delete_requested_at"/>
+            <dropColumn tableName="cms_media" columnName="orphaned_at"/>
+            <dropColumn tableName="cms_media" columnName="updated_at"/>
+            <dropColumn tableName="cms_media" columnName="cleanup_protected"/>
+            <dropColumn tableName="cms_media" columnName="lifecycle_status"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-07-17-02-cms-revalidation-outbox" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT">
+            <not>
+                <tableExists tableName="cms_revalidation_job"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="cms_revalidation_job">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_key" type="VARCHAR(80)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_cms_revalidation_job_page_key"/>
+            </column>
+            <column name="request_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(24)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempt_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_attempt_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="last_attempt_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="completed_at" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="last_error_code" type="VARCHAR(64)"/>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql>
+            ALTER TABLE cms_revalidation_job
+                ADD CONSTRAINT chk_cms_revalidation_job_status
+                CHECK (status IN ('PENDING', 'PROCESSING', 'RETRY', 'SUCCEEDED', 'FAILED_PERMANENT'));
+            ALTER TABLE cms_revalidation_job
+                ADD CONSTRAINT chk_cms_revalidation_attempt_count
+                CHECK (attempt_count &gt;= 0);
+        </sql>
+
+        <createIndex tableName="cms_revalidation_job" indexName="idx_cms_revalidation_due">
+            <column name="status"/>
+            <column name="next_attempt_at"/>
+            <column name="locked_at"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="cms_revalidation_job"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

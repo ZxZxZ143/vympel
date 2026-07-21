@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-06-19-02-normalize-watch-detail-categories" author="codex" dbms="postgresql">
+        <comment>
+            Move legacy products that have wristwatch details out of interior-clock catalog scopes.
+            ProductService now treats watch_details as wristwatch data and interior_clock_details as
+            interior-clock data, so category links must match the stored detail table.
+        </comment>
+
+        <sql>
+            WITH legacy_watch_products AS (
+                SELECT DISTINCT pc.product_id
+                FROM product_category pc
+                         JOIN category c ON c.id = pc.category_id
+                         JOIN watch_details wd ON wd.product_id = pc.product_id
+                WHERE c.code IN ('WATCH_INTERIOR', 'WATCH_WALL', 'WATCH_FLOOR')
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM interior_clock_details icd
+                    WHERE icd.product_id = pc.product_id
+                )
+            ),
+            wrist_category AS (
+                SELECT id
+                FROM category
+                WHERE code = 'WATCH_WRIST'
+            )
+            INSERT INTO product_category (product_id, category_id)
+            SELECT legacy_watch_products.product_id, wrist_category.id
+            FROM legacy_watch_products
+                     CROSS JOIN wrist_category
+            ON CONFLICT DO NOTHING;
+
+            WITH legacy_watch_products AS (
+                SELECT DISTINCT pc.product_id
+                FROM product_category pc
+                         JOIN category c ON c.id = pc.category_id
+                         JOIN watch_details wd ON wd.product_id = pc.product_id
+                WHERE c.code IN ('WATCH_INTERIOR', 'WATCH_WALL', 'WATCH_FLOOR')
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM interior_clock_details icd
+                    WHERE icd.product_id = pc.product_id
+                )
+            )
+            DELETE FROM product_category pc
+            USING category c, legacy_watch_products
+            WHERE pc.category_id = c.id
+              AND pc.product_id = legacy_watch_products.product_id
+              AND c.code IN ('WATCH_INTERIOR', 'WATCH_WALL', 'WATCH_FLOOR');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

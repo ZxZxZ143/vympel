@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-02-08-05-01-add-brand-name" author="admin">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="brand" columnName="name"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="brand">
+            <column name="name" type="varchar(255)"/>
+        </addColumn>
+
+        <createIndex tableName="brand" indexName="idx_brand_name">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

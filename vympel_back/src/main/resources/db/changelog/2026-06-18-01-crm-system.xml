@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-06-18-01-product-crm-fields" author="codex">
+        <addColumn tableName="product">
+            <column name="stock_quantity" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="kaspi_url" type="VARCHAR(2048)"/>
+            <column name="wildberries_url" type="VARCHAR(2048)"/>
+        </addColumn>
+
+        <createIndex tableName="product" indexName="idx_product_stock_quantity">
+            <column name="stock_quantity"/>
+        </createIndex>
+        <createIndex tableName="product" indexName="idx_product_kaspi_url">
+            <column name="kaspi_url"/>
+        </createIndex>
+        <createIndex tableName="product" indexName="idx_product_wildberries_url">
+            <column name="wildberries_url"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-06-18-02-manager-role" author="codex" dbms="postgresql">
+        <sql>
+            INSERT INTO role (id, code, active)
+            VALUES (3, 'MANAGER', true)
+            ON CONFLICT (code) DO NOTHING;
+
+            SELECT setval(pg_get_serial_sequence('role', 'id'), (SELECT MAX(id) FROM role));
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-06-18-03-create-crm-activity" author="codex" dbms="postgresql">
+        <createTable tableName="crm_activity">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="actor_user_id" type="BIGINT"/>
+            <column name="actor_role" type="VARCHAR(80)"/>
+            <column name="event_type" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="BIGINT"/>
+            <column name="metadata" type="JSONB"/>
+            <column name="ip_address" type="VARCHAR(64)"/>
+            <column name="user_agent" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="crm_activity" baseColumnNames="actor_user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_crm_activity_actor_user" onDelete="SET NULL"/>
+
+        <createIndex tableName="crm_activity" indexName="idx_crm_activity_event_type">
+            <column name="event_type"/>
+        </createIndex>
+        <createIndex tableName="crm_activity" indexName="idx_crm_activity_entity">
+            <column name="entity_type"/>
+            <column name="entity_id"/>
+        </createIndex>
+        <createIndex tableName="crm_activity" indexName="idx_crm_activity_actor">
+            <column name="actor_user_id"/>
+        </createIndex>
+        <createIndex tableName="crm_activity" indexName="idx_crm_activity_created_at">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

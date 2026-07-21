@@ -1,0 +1,766 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="001-001-create-user" author="admin">
+        <createTable tableName="users">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(100)"/>
+            <column name="last_name" type="VARCHAR(100)"/>
+            <column name="phone" type="VARCHAR(50)"/>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="001-002-create-role" author="admin">
+        <createTable tableName="role">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="role_i18n">
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="role_i18n" columnNames="role_id,lang" constraintName="pk_role_i18n"/>
+        <addForeignKeyConstraint baseTableName="role_i18n" baseColumnNames="role_id"
+                                 referencedTableName="role" referencedColumnNames="id"
+                                 constraintName="fk_role_i18n_role" onDelete="CASCADE"/>
+
+        <createTable tableName="user_role">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="user_role" columnNames="user_id,role_id" constraintName="pk_user_role"/>
+        <addForeignKeyConstraint baseTableName="user_role" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_user_role_user" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_role" baseColumnNames="role_id"
+                                 referencedTableName="role" referencedColumnNames="id"
+                                 constraintName="fk_user_role_role" onDelete="CASCADE"/>
+
+        <createIndex tableName="user_role" indexName="idx_user_role_user">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="user_role" indexName="idx_user_role_role">
+            <column name="role_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- =========================
+         I18N HELPER CHECK
+    ========================== -->
+    <changeSet id="001-003-lang-check" author="admin" dbms="postgresql">
+        <sql>
+            ALTER TABLE role_i18n
+                ADD CONSTRAINT chk_role_i18n_lang CHECK (lang IN ('ru', 'en', 'kk'));
+        </sql>
+    </changeSet>
+
+    <!-- =========================
+         DICTIONARIES
+    ========================== -->
+
+    <changeSet id="001-010-country" author="admin">
+        <createTable tableName="country">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(10)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="iso2" type="VARCHAR(2)"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="country_i18n">
+            <column name="country_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="country_i18n" columnNames="country_id,lang" constraintName="pk_country_i18n"/>
+        <addForeignKeyConstraint baseTableName="country_i18n" baseColumnNames="country_id"
+                                 referencedTableName="country" referencedColumnNames="id"
+                                 constraintName="fk_country_i18n_country" onDelete="CASCADE"/>
+        <createIndex tableName="country_i18n" indexName="idx_country_i18n_lang">
+            <column name="lang"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="001-011-brand" author="admin">
+        <createTable tableName="brand">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="country_id" type="BIGINT"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="brand" baseColumnNames="country_id"
+                                 referencedTableName="country" referencedColumnNames="id"
+                                 constraintName="fk_brand_country"/>
+
+        <createTable tableName="brand_i18n">
+            <column name="brand_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="brand_i18n" columnNames="brand_id,lang" constraintName="pk_brand_i18n"/>
+        <addForeignKeyConstraint baseTableName="brand_i18n" baseColumnNames="brand_id"
+                                 referencedTableName="brand" referencedColumnNames="id"
+                                 constraintName="fk_brand_i18n_brand" onDelete="CASCADE"/>
+        <createIndex tableName="brand" indexName="idx_brand_country">
+            <column name="country_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="001-012-material" author="admin">
+        <createTable tableName="material">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="material_group" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="material_i18n">
+            <column name="material_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="material_i18n" columnNames="material_id,lang" constraintName="pk_material_i18n"/>
+        <addForeignKeyConstraint baseTableName="material_i18n" baseColumnNames="material_id"
+                                 referencedTableName="material" referencedColumnNames="id"
+                                 constraintName="fk_material_i18n_material" onDelete="CASCADE"/>
+
+        <createIndex tableName="material" indexName="idx_material_group">
+            <column name="material_group"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="001-013-watch-mechanism" author="admin">
+        <createTable tableName="watch_mechanism">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="watch_mechanism_i18n" columnNames="mechanism_id,lang"
+                       constraintName="pk_watch_mech_i18n"/>
+        <addForeignKeyConstraint baseTableName="watch_mechanism_i18n" baseColumnNames="mechanism_id"
+                                 referencedTableName="watch_mechanism" referencedColumnNames="id"
+                                 constraintName="fk_watch_mech_i18n_mech" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="001-014-gender" author="admin">
+        <createTable tableName="gender">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(20)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="gender_i18n">
+            <column name="gender_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="gender_i18n" columnNames="gender_id,lang" constraintName="pk_gender_i18n"/>
+        <addForeignKeyConstraint baseTableName="gender_i18n" baseColumnNames="gender_id"
+                                 referencedTableName="gender" referencedColumnNames="id"
+                                 constraintName="fk_gender_i18n_gender" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="001-015-glass-type" author="admin">
+        <createTable tableName="glass_type">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="glass_type_i18n">
+            <column name="glass_type_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="glass_type_i18n" columnNames="glass_type_id,lang"
+                       constraintName="pk_glass_type_i18n"/>
+        <addForeignKeyConstraint baseTableName="glass_type_i18n" baseColumnNames="glass_type_id"
+                                 referencedTableName="glass_type" referencedColumnNames="id"
+                                 constraintName="fk_glass_type_i18n" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="001-017-stone-inlay" author="admin">
+        <createTable tableName="stone_inlay">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="stone_inlay_i18n">
+            <column name="stone_inlay_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="stone_inlay_i18n" columnNames="stone_inlay_id,lang"
+                       constraintName="pk_stone_inlay_i18n"/>
+        <addForeignKeyConstraint baseTableName="stone_inlay_i18n" baseColumnNames="stone_inlay_id"
+                                 referencedTableName="stone_inlay" referencedColumnNames="id"
+                                 constraintName="fk_stone_inlay_i18n" onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- =========================
+         CATEGORY
+    ========================== -->
+
+    <changeSet id="001-020-category" author="admin">
+        <createTable tableName="category">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(120)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="parent_id" type="BIGINT"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="category" baseColumnNames="parent_id"
+                                 referencedTableName="category" referencedColumnNames="id"
+                                 constraintName="fk_category_parent"/>
+
+        <createTable tableName="category_i18n">
+            <column name="category_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="category_i18n" columnNames="category_id,lang" constraintName="pk_category_i18n"/>
+        <addForeignKeyConstraint baseTableName="category_i18n" baseColumnNames="category_id"
+                                 referencedTableName="category" referencedColumnNames="id"
+                                 constraintName="fk_category_i18n" onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- =========================
+         PRODUCT / PRODUCT_I18N
+    ========================== -->
+
+    <changeSet id="001-030-product" author="admin" dbms="postgresql">
+        <createTable tableName="product">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="sku" type="VARCHAR(120)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="price" type="NUMERIC(12,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_type" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="brand_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="product" baseColumnNames="brand_id"
+                                 referencedTableName="brand" referencedColumnNames="id"
+                                 constraintName="fk_product_brand"/>
+
+        <sql>
+            ALTER TABLE product
+                ADD CONSTRAINT chk_product_status CHECK (status IN ('ACTIVE', 'DRAFT', 'ARCHIVED'));
+        </sql>
+        <sql>
+            ALTER TABLE product
+                ADD CONSTRAINT chk_product_type CHECK (product_type IN
+                                                       ('WATCH', 'APPLE_CASE', 'ACCESSORY', 'WALL_CLOCK',
+                                                        'FLOOR_CLOCK'));
+        </sql>
+
+        <createTable tableName="product_i18n">
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+        </createTable>
+
+        <addPrimaryKey tableName="product_i18n" columnNames="product_id,lang" constraintName="pk_product_i18n"/>
+        <addForeignKeyConstraint baseTableName="product_i18n" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_product_i18n" onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE product_i18n
+                ADD CONSTRAINT chk_product_i18n_lang CHECK (lang IN ('ru', 'en', 'kk'));
+        </sql>
+
+        <createIndex tableName="product" indexName="idx_product_brand">
+            <column name="brand_id"/>
+        </createIndex>
+        <createIndex tableName="product" indexName="idx_product_price">
+            <column name="price"/>
+        </createIndex>
+        <createIndex tableName="product" indexName="idx_product_type_status">
+            <column name="product_type"/>
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="001-031-media" author="admin" dbms="postgresql">
+        <createTable tableName="media">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="url" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="media" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_media_product" onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE media
+                ADD CONSTRAINT chk_media_type CHECK (type IN ('IMAGE', 'VIDEO'));
+        </sql>
+
+        <createIndex tableName="media" indexName="idx_media_product">
+            <column name="product_id"/>
+        </createIndex>
+
+        <createTable tableName="media_i18n">
+            <column name="media_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="alt_text" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addPrimaryKey tableName="media_i18n" columnNames="media_id,lang" constraintName="pk_media_i18n"/>
+        <addForeignKeyConstraint baseTableName="media_i18n" baseColumnNames="media_id"
+                                 referencedTableName="media" referencedColumnNames="id"
+                                 constraintName="fk_media_i18n" onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE media_i18n
+                ADD CONSTRAINT chk_media_i18n_lang CHECK (lang IN ('ru', 'en', 'kk'));
+        </sql>
+    </changeSet>
+
+    <!-- =========================
+         PRODUCT_CATEGORY
+    ========================== -->
+    <changeSet id="001-032-product-category" author="admin">
+        <createTable tableName="product_category">
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="product_category" columnNames="product_id,category_id"
+                       constraintName="pk_product_category"/>
+        <addForeignKeyConstraint baseTableName="product_category" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_product_category_product" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="product_category" baseColumnNames="category_id"
+                                 referencedTableName="category" referencedColumnNames="id"
+                                 constraintName="fk_product_category_category" onDelete="CASCADE"/>
+
+        <createIndex tableName="product_category" indexName="idx_product_category_category">
+            <column name="category_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- =========================
+         WATCH DETAILS + FEATURES
+    ========================== -->
+
+    <changeSet id="001-040-watch-details" author="admin">
+        <createTable tableName="watch_details">
+            <column name="product_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="mechanism_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gender_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="case_material_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="strap_material_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="glass_type_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="case_size_mm" type="NUMERIC(4,1)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="water_resistance" type="VARCHAR(50)"/>
+            <column name="stone_inlay_id" type="BIGINT"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_product" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="mechanism_id"
+                                 referencedTableName="watch_mechanism" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_mechanism"/>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="gender_id"
+                                 referencedTableName="gender" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_gender"/>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="case_material_id"
+                                 referencedTableName="material" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_case_material"/>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="strap_material_id"
+                                 referencedTableName="material" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_strap_material"/>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="glass_type_id"
+                                 referencedTableName="glass_type" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_glass_type"/>
+
+        <addForeignKeyConstraint baseTableName="watch_details" baseColumnNames="stone_inlay_id"
+                                 referencedTableName="stone_inlay" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_stone_inlay"/>
+
+        <createIndex tableName="watch_details" indexName="idx_watch_details_mechanism">
+            <column name="mechanism_id"/>
+        </createIndex>
+        <createIndex tableName="watch_details" indexName="idx_watch_details_gender">
+            <column name="gender_id"/>
+        </createIndex>
+        <createIndex tableName="watch_details" indexName="idx_watch_details_case_material">
+            <column name="case_material_id"/>
+        </createIndex>
+        <createIndex tableName="watch_details" indexName="idx_watch_details_strap_material">
+            <column name="strap_material_id"/>
+        </createIndex>
+        <createIndex tableName="watch_details" indexName="idx_watch_details_glass_type">
+            <column name="glass_type_id"/>
+        </createIndex>
+        <createIndex tableName="watch_details" indexName="idx_watch_details_case_size_mm">
+            <column name="case_size_mm"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="001-041-watch-feature" author="admin" dbms="postgresql">
+        <createTable tableName="watch_feature">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="watch_feature_i18n">
+            <column name="feature_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+        </createTable>
+
+        <addPrimaryKey tableName="watch_feature_i18n" columnNames="feature_id,lang"
+                       constraintName="pk_watch_feature_i18n"/>
+        <addForeignKeyConstraint baseTableName="watch_feature_i18n" baseColumnNames="feature_id"
+                                 referencedTableName="watch_feature" referencedColumnNames="id"
+                                 constraintName="fk_watch_feature_i18n" onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE watch_feature_i18n
+                ADD CONSTRAINT chk_watch_feature_i18n_lang CHECK (lang IN ('ru', 'en', 'kk'));
+        </sql>
+
+        <createTable tableName="watch_details_feature">
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feature_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="watch_details_feature" columnNames="product_id,feature_id"
+                       constraintName="pk_watch_details_feature"/>
+        <addForeignKeyConstraint baseTableName="watch_details_feature" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_feature_product" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="watch_details_feature" baseColumnNames="feature_id"
+                                 referencedTableName="watch_feature" referencedColumnNames="id"
+                                 constraintName="fk_watch_details_feature_feature" onDelete="CASCADE"/>
+
+        <createIndex tableName="watch_details_feature" indexName="idx_watch_details_feature_feature">
+            <column name="feature_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- =========================
+         CMS
+    ========================== -->
+
+    <changeSet id="001-050-cms" author="admin" dbms="postgresql">
+        <createTable tableName="cms_banner">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(120)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="link_url" type="TEXT"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="position" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="cms_banner_i18n">
+            <column name="banner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="subtitle" type="VARCHAR(255)"/>
+            <column name="button_text" type="VARCHAR(120)"/>
+        </createTable>
+
+        <addPrimaryKey tableName="cms_banner_i18n" columnNames="banner_id,lang" constraintName="pk_cms_banner_i18n"/>
+        <addForeignKeyConstraint baseTableName="cms_banner_i18n" baseColumnNames="banner_id"
+                                 referencedTableName="cms_banner" referencedColumnNames="id"
+                                 constraintName="fk_cms_banner_i18n" onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE cms_banner_i18n
+                ADD CONSTRAINT chk_cms_banner_i18n_lang CHECK (lang IN ('ru', 'en', 'kk'));
+        </sql>
+
+        <createTable tableName="cms_banner_media">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="banner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="media_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="cms_banner_media" baseColumnNames="banner_id"
+                                 referencedTableName="cms_banner" referencedColumnNames="id"
+                                 constraintName="fk_cms_banner_media_banner" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="cms_banner_media" baseColumnNames="media_id"
+                                 referencedTableName="media" referencedColumnNames="id"
+                                 constraintName="fk_cms_banner_media_media" onDelete="CASCADE"/>
+
+        <createIndex tableName="cms_banner_media" indexName="idx_cms_banner_media_banner">
+            <column name="banner_id"/>
+        </createIndex>
+
+        <createTable tableName="cms_config">
+            <column name="key" type="VARCHAR(200)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="value" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-06-20-01-product-promotion-fields" author="codex">
+        <addColumn tableName="product">
+            <column name="promotion_mode" type="VARCHAR(20)" defaultValue="NOT_PROMOTED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="promotion_score" type="NUMERIC(8,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="promoted_until" type="TIMESTAMP"/>
+            <column name="promotion_updated_at" type="TIMESTAMP"/>
+        </addColumn>
+
+        <sql>
+            ALTER TABLE product
+                ADD CONSTRAINT chk_product_promotion_mode
+                CHECK (promotion_mode IN ('NOT_PROMOTED', 'MANUAL', 'AUTO'));
+        </sql>
+
+        <createIndex tableName="product" indexName="idx_product_promotion">
+            <column name="promotion_mode"/>
+            <column name="promotion_score"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-06-20-02-product-analytics-event" author="codex">
+        <createTable tableName="product_analytics_event">
+            <column name="id" type="BIGSERIAL">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_product_analytics_event"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="VARCHAR(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT"/>
+            <column name="session_id" type="VARCHAR(100)"/>
+            <column name="metadata_json" type="TEXT"/>
+            <column name="ip_address" type="VARCHAR(64)"/>
+            <column name="user_agent" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="product_analytics_event" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_product_analytics_event_product" onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE product_analytics_event
+                ADD CONSTRAINT chk_product_analytics_event_type
+                CHECK (event_type IN ('VIEW', 'FAVORITE', 'UNFAVORITE', 'ADD_TO_CART', 'REMOVE_FROM_CART', 'MARKETPLACE_CLICK'));
+        </sql>
+
+        <createIndex tableName="product_analytics_event" indexName="idx_product_analytics_event_product">
+            <column name="product_id"/>
+        </createIndex>
+        <createIndex tableName="product_analytics_event" indexName="idx_product_analytics_event_type_created">
+            <column name="event_type"/>
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="product_analytics_event" indexName="idx_product_analytics_event_created">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

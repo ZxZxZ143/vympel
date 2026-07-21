@@ -1,0 +1,36 @@
+{
+  "name": "vympel-crm",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:security": "node --test --test-isolation=none scripts/test-security-headers.mjs",
+    "test:budgets": "node ../scripts/check-performance-budgets.mjs",
+    "test:budgets:ci": "node ../scripts/check-performance-budgets.mjs --require-build",
+    "test:production-headers": "node scripts/test-production-headers.mjs"
+  },
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.80.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "typescript": "^5",
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.20"
+    }
+  }
+}

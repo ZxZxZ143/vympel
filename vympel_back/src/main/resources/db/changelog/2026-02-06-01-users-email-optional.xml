@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-02-06-01-users-email-optional" author="admin">
+
+        <dropNotNullConstraint
+                tableName="users"
+                columnName="email"
+                columnDataType="VARCHAR(255)"/>
+
+        <dropUniqueConstraint tableName="users" constraintName="users_email_key"/>
+
+        <sql>
+            ALTER TABLE users
+                ADD CONSTRAINT ck_users_email_or_phone_not_null
+                    CHECK (email IS NOT NULL OR phone IS NOT NULL);
+        </sql>
+
+        <sql>
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_users_email_ci
+                ON users (LOWER(email))
+                WHERE email IS NOT NULL;
+        </sql>
+
+        <sql>
+            CREATE UNIQUE INDEX IF NOT EXISTS ux_users_phone
+                ON users (phone)
+                WHERE phone IS NOT NULL;
+        </sql>
+
+    </changeSet>
+</databaseChangeLog>

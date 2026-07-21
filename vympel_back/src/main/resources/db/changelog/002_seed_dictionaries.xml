@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- ROLES -->
+    <changeSet id="002-001-seed-roles" author="admin">
+        <insert tableName="role">
+            <column name="code" value="ADMIN"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="role">
+            <column name="code" value="CUSTOMER"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- ADMIN i18n -->
+        <insert tableName="role_i18n">
+            <column name="role_id" valueComputed="(SELECT id FROM role WHERE code='ADMIN')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Администратор"/>
+        </insert>
+        <insert tableName="role_i18n">
+            <column name="role_id" valueComputed="(SELECT id FROM role WHERE code='ADMIN')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Administrator"/>
+        </insert>
+        <insert tableName="role_i18n">
+            <column name="role_id" valueComputed="(SELECT id FROM role WHERE code='ADMIN')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Әкімші"/>
+        </insert>
+
+        <!-- CUSTOMER i18n -->
+        <insert tableName="role_i18n">
+            <column name="role_id" valueComputed="(SELECT id FROM role WHERE code='CUSTOMER')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Покупатель"/>
+        </insert>
+        <insert tableName="role_i18n">
+            <column name="role_id" valueComputed="(SELECT id FROM role WHERE code='CUSTOMER')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Customer"/>
+        </insert>
+        <insert tableName="role_i18n">
+            <column name="role_id" valueComputed="(SELECT id FROM role WHERE code='CUSTOMER')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Сатып алушы"/>
+        </insert>
+    </changeSet>
+
+    <!-- GENDER -->
+    <changeSet id="002-010-seed-gender" author="admin">
+        <insert tableName="gender">
+            <column name="code" value="MEN"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="gender">
+            <column name="code" value="WOMEN"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="gender">
+            <column name="code" value="UNISEX"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='MEN')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Мужские"/>
+        </insert>
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='MEN')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Men"/>
+        </insert>
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='MEN')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Ерлер"/>
+        </insert>
+
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='WOMEN')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Женские"/>
+        </insert>
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='WOMEN')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Women"/>
+        </insert>
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='WOMEN')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Әйелдер"/>
+        </insert>
+
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='UNISEX')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Унисекс"/>
+        </insert>
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='UNISEX')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Unisex"/>
+        </insert>
+        <insert tableName="gender_i18n">
+            <column name="gender_id" valueComputed="(SELECT id FROM gender WHERE code='UNISEX')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Унисекс"/>
+        </insert>
+    </changeSet>
+
+    <!-- GLASS TYPE (из UI: Минеральное / Сапфировое / Пластиковое / Комбинированное) -->
+    <changeSet id="002-011-seed-glass" author="admin">
+        <insert tableName="glass_type">
+            <column name="code" value="MINERAL"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="glass_type">
+            <column name="code" value="SAPPHIRE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="glass_type">
+            <column name="code" value="PLASTIC"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="glass_type">
+            <column name="code" value="COMBINED"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- MINERAL -->
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='MINERAL')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Минеральное"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='MINERAL')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Mineral"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='MINERAL')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Минералды"/>
+        </insert>
+
+        <!-- SAPPHIRE -->
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='SAPPHIRE')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Сапфировое"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='SAPPHIRE')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Sapphire"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='SAPPHIRE')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Сапфирлі"/>
+        </insert>
+
+        <!-- PLASTIC -->
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='PLASTIC')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Пластиковое"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='PLASTIC')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Plastic"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='PLASTIC')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Пластик"/>
+        </insert>
+
+        <!-- COMBINED -->
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='COMBINED')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Комбинированное"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='COMBINED')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Combined"/>
+        </insert>
+        <insert tableName="glass_type_i18n">
+            <column name="glass_type_id" valueComputed="(SELECT id FROM glass_type WHERE code='COMBINED')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Аралас"/>
+        </insert>
+    </changeSet>
+
+    <!-- WATCH MECHANISM -->
+    <changeSet id="002-012-seed-mechanism" author="admin">
+        <insert tableName="watch_mechanism">
+            <column name="code" value="QUARTZ"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_mechanism">
+            <column name="code" value="MECHANICAL"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_mechanism">
+            <column name="code" value="AUTOMATIC"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='QUARTZ')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Кварцевый"/>
+        </insert>
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='QUARTZ')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Quartz"/>
+        </insert>
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='QUARTZ')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Кварц"/>
+        </insert>
+
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='MECHANICAL')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Механический"/>
+        </insert>
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='MECHANICAL')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Mechanical"/>
+        </insert>
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='MECHANICAL')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Механикалық"/>
+        </insert>
+
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='AUTOMATIC')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Автоматический"/>
+        </insert>
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='AUTOMATIC')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Automatic"/>
+        </insert>
+        <insert tableName="watch_mechanism_i18n">
+            <column name="mechanism_id" valueComputed="(SELECT id FROM watch_mechanism WHERE code='AUTOMATIC')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Автоматты"/>
+        </insert>
+    </changeSet>
+
+    <!-- MATERIALS (из фильтров: Корпус/Браслет) -->
+    <changeSet id="002-020-seed-materials" author="admin">
+        <!-- CASE materials -->
+        <insert tableName="material">
+            <column name="code" value="STEEL"/>
+            <column name="material_group" value="CASE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="material">
+            <column name="code" value="CERAMIC"/>
+            <column name="material_group" value="CASE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="material">
+            <column name="code" value="TITANIUM"/>
+            <column name="material_group" value="CASE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="material">
+            <column name="code" value="CARBON"/>
+            <column name="material_group" value="CASE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- STRAP materials -->
+        <insert tableName="material">
+            <column name="code" value="LEATHER"/>
+            <column name="material_group" value="STRAP"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="material">
+            <column name="code" value="RUBBER"/>
+            <column name="material_group" value="STRAP"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="material">
+            <column name="code" value="SILICONE"/>
+            <column name="material_group" value="STRAP"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="material">
+            <column name="code" value="METAL"/>
+            <column name="material_group" value="STRAP"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- i18n helper: STEEL -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='STEEL')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Стальной"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='STEEL')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Steel"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='STEEL')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Болат"/>
+        </insert>
+
+        <!-- CERAMIC -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='CERAMIC')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Керамический"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='CERAMIC')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Ceramic"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='CERAMIC')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Керамика"/>
+        </insert>
+
+        <!-- TITANIUM -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='TITANIUM')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Титановый"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='TITANIUM')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Titanium"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='TITANIUM')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Титан"/>
+        </insert>
+
+        <!-- CARBON -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='CARBON')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Карбоновый"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='CARBON')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Carbon"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='CARBON')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Көміртек"/>
+        </insert>
+
+        <!-- LEATHER -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='LEATHER')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Кожаный"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='LEATHER')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Leather"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='LEATHER')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Былғары"/>
+        </insert>
+
+        <!-- RUBBER -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='RUBBER')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Каучуковый"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='RUBBER')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Rubber"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='RUBBER')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Каучук"/>
+        </insert>
+
+        <!-- SILICONE -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='SILICONE')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Силиконовый"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='SILICONE')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Silicone"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='SILICONE')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Силикон"/>
+        </insert>
+
+        <!-- METAL (bracelet) -->
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='METAL')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Металлический"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='METAL')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Metal"/>
+        </insert>
+        <insert tableName="material_i18n">
+            <column name="material_id" valueComputed="(SELECT id FROM material WHERE code='METAL')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Металл"/>
+        </insert>
+    </changeSet>
+
+    <!-- STONE INLAY (минимум) -->
+    <changeSet id="002-030-seed-stone-inlay" author="admin">
+        <insert tableName="stone_inlay">
+            <column name="code" value="SWAROVSKI"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="stone_inlay_i18n">
+            <column name="stone_inlay_id" valueComputed="(SELECT id FROM stone_inlay WHERE code='SWAROVSKI')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Swarovski"/>
+        </insert>
+        <insert tableName="stone_inlay_i18n">
+            <column name="stone_inlay_id" valueComputed="(SELECT id FROM stone_inlay WHERE code='SWAROVSKI')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Swarovski"/>
+        </insert>
+        <insert tableName="stone_inlay_i18n">
+            <column name="stone_inlay_id" valueComputed="(SELECT id FROM stone_inlay WHERE code='SWAROVSKI')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Swarovski"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

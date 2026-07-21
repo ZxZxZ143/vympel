@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="003-001-seed-watch-features" author="admin">
+        <!-- feature list -->
+        <insert tableName="watch_feature">
+            <column name="code" value="DATE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="DAY_OF_WEEK"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="CHRONOGRAPH"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="GMT"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="LUME"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="TACHYMETER"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="ALARM"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="STOPWATCH"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="WORLD_TIME"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+        <insert tableName="watch_feature">
+            <column name="code" value="MOON_PHASE"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- DATE -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='DATE')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Дата"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='DATE')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Date"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='DATE')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Күні"/>
+        </insert>
+
+        <!-- DAY_OF_WEEK -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='DAY_OF_WEEK')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="День недели"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='DAY_OF_WEEK')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Day of week"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='DAY_OF_WEEK')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Апта күні"/>
+        </insert>
+
+        <!-- CHRONOGRAPH -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='CHRONOGRAPH')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Хронограф"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='CHRONOGRAPH')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Chronograph"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='CHRONOGRAPH')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Хронограф"/>
+        </insert>
+
+        <!-- GMT -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='GMT')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="GMT (второй часовой пояс)"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='GMT')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="GMT (second time zone)"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='GMT')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="GMT (екінші уақыт белдеуі)"/>
+        </insert>
+
+        <!-- LUME -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='LUME')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Люминесцентные метки"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='LUME')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Luminous markers"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='LUME')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Жарықтандырғыш белгілер"/>
+        </insert>
+
+        <!-- TACHYMETER -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='TACHYMETER')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Тахиметр"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='TACHYMETER')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Tachymeter"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='TACHYMETER')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Тахиметр"/>
+        </insert>
+
+        <!-- ALARM -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='ALARM')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Будильник"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='ALARM')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Alarm"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='ALARM')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Оятқыш"/>
+        </insert>
+
+        <!-- STOPWATCH -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='STOPWATCH')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Секундомер"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='STOPWATCH')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Stopwatch"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='STOPWATCH')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Секундомер"/>
+        </insert>
+
+        <!-- WORLD_TIME -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='WORLD_TIME')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Мировое время"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='WORLD_TIME')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="World time"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='WORLD_TIME')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Әлем уақыты"/>
+        </insert>
+
+        <!-- MOON_PHASE -->
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='MOON_PHASE')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Фаза луны"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='MOON_PHASE')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Moon phase"/>
+        </insert>
+        <insert tableName="watch_feature_i18n">
+            <column name="feature_id" valueComputed="(SELECT id FROM watch_feature WHERE code='MOON_PHASE')"/>
+            <column name="lang" value="kk"/>
+            <column name="name" value="Ай фазасы"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

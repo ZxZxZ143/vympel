@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="fix-category-i18n-constraint" author="admin">
+        <update tableName="category_i18n">
+            <column name="lang" value="kk"/>
+            <where>lang = 'kz'</where>
+        </update>
+
+        <sql dbms="postgresql" splitStatements="true" endDelimiter=";">
+            ALTER TABLE category_i18n
+                ADD CONSTRAINT chk_category_name_lang
+                    CHECK (lang IN ('ru','en','kk'));
+        </sql>
+    </changeSet>
+</databaseChangeLog>

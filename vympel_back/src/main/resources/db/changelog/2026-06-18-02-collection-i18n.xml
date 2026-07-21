@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-06-18-02-create-collection-i18n" author="codex">
+        <createTable tableName="collection_i18n">
+            <column name="collection_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="lang" type="varchar(5)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="description" type="text" defaultValue="">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="collection_i18n"
+                columnNames="collection_id,lang"
+                constraintName="pk_collection_i18n"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_collection_i18n_collection"
+                baseTableName="collection_i18n"
+                baseColumnNames="collection_id"
+                referencedTableName="collection"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="collection_i18n" indexName="idx_collection_i18n_lang">
+            <column name="lang"/>
+        </createIndex>
+
+        <sql dbms="postgresql">
+            ALTER TABLE collection_i18n
+                ADD CONSTRAINT chk_collection_i18n_lang
+                    CHECK (lang IN ('ru','en','kk'));
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-06-18-03-backfill-collection-i18n" author="codex">
+        <sql dbms="postgresql" splitStatements="true" endDelimiter=";">
+            INSERT INTO collection_i18n (collection_id, lang, name, description)
+            SELECT id, 'ru', COALESCE(NULLIF(name, ''), code), ''
+            FROM collection
+            ON CONFLICT (collection_id, lang) DO NOTHING;
+
+            INSERT INTO collection_i18n (collection_id, lang, name, description)
+            SELECT id, 'en', COALESCE(NULLIF(name, ''), code), ''
+            FROM collection
+            ON CONFLICT (collection_id, lang) DO NOTHING;
+
+            INSERT INTO collection_i18n (collection_id, lang, name, description)
+            SELECT id, 'kk', COALESCE(NULLIF(name, ''), code), ''
+            FROM collection
+            ON CONFLICT (collection_id, lang) DO NOTHING;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

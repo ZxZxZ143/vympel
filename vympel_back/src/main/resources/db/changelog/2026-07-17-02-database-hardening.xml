@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-17-03-step7-data-normalization" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="product"/>
+            <tableExists tableName="media"/>
+            <tableExists tableName="cms_page"/>
+            <tableExists tableName="cms_block"/>
+            <sqlCheck expectedResult="3">
+                SELECT COUNT(*)
+                FROM cms_block b
+                JOIN cms_page p ON p.id = b.page_id
+                WHERE p.page_key = 'about'
+                  AND b.block_key IN ('about.heroBanner', 'about.intro', 'about.cooperationBanner')
+            </sqlCheck>
+            <sqlCheck expectedResult="3">
+                SELECT COUNT(DISTINCT b.block_key)
+                FROM cms_block b
+                JOIN cms_page p ON p.id = b.page_id
+                WHERE p.page_key = 'about'
+                  AND b.block_key IN ('about.heroBanner', 'about.intro', 'about.cooperationBanner')
+            </sqlCheck>
+        </preConditions>
+
+        <comment>
+            Restore the intended About-page sequence and demote only the exact audited image-less
+            ACTIVE product. Unknown dirty data is rejected by the following changeset instead of
+            being guessed or silently rewritten.
+        </comment>
+        <sql>
+            UPDATE cms_block b
+            SET sort_order = CASE b.block_key
+                WHEN 'about.heroBanner' THEN 10
+                WHEN 'about.intro' THEN 20
+                WHEN 'about.cooperationBanner' THEN 30
+            END
+            FROM cms_page p
+            WHERE p.id = b.page_id
+              AND p.page_key = 'about'
+              AND b.block_key IN ('about.heroBanner', 'about.intro', 'about.cooperationBanner');
+
+            UPDATE product p
+            SET status = 'DRAFT'
+            WHERE p.id = 45
+              AND p.sku = 'SKU-ADRIATICA-OLOLO-FAG-ACCESSORIES-ACCESSORY-A9717CA9'
+              AND p.status = 'ACTIVE'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM media m
+                  WHERE m.product_id = p.id
+                    AND m.type = 'IMAGE'
+                    AND m.is_main = TRUE
+                    AND m.position = 0
+              );
+        </sql>
+
+        <!-- Data recovery is forward-only: restore an old order/status only after a fresh audit. -->
+        <rollback>
+            <empty/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-07-17-04-step7-database-integrity" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT" onError="HALT">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM product WHERE price &lt; 0 OR stock_quantity &lt; 0
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM media WHERE position &lt; 0
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM (
+                    SELECT product_id, type, position
+                    FROM media
+                    GROUP BY product_id, type, position
+                    HAVING COUNT(*) &gt; 1
+                ) duplicates
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM media
+                WHERE is_main = TRUE
+                  AND (type &lt;&gt; 'IMAGE' OR position &lt;&gt; 0)
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM product p
+                WHERE p.status = 'ACTIVE'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM media m
+                      WHERE m.product_id = p.id
+                        AND m.type = 'IMAGE'
+                        AND m.is_main = TRUE
+                        AND m.position = 0
+                  )
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM cms_block WHERE sort_order &lt; 0
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM (
+                    SELECT page_id, sort_order
+                    FROM cms_block
+                    GROUP BY page_id, sort_order
+                    HAVING COUNT(*) &gt; 1
+                ) duplicates
+            </sqlCheck>
+            <sqlCheck expectedResult="6">
+                SELECT COUNT(*)
+                FROM pg_constraint c
+                JOIN pg_class t ON t.oid = c.conrelid
+                WHERE t.relname = 'cms_block'
+                  AND c.contype = 'f'
+                  AND c.confdeltype = 'n'
+                  AND c.conname IN (
+                      'fk_cms_block_media',
+                      'fk_cms_block_media_kz',
+                      'fk_cms_block_media_en',
+                      'fk_cms_block_mobile_media',
+                      'fk_cms_block_mobile_media_kz',
+                      'fk_cms_block_mobile_media_en'
+                  )
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM pg_constraint
+                WHERE conname IN (
+                    'chk_product_price_nonnegative',
+                    'chk_product_stock_nonnegative',
+                    'chk_media_position_nonnegative',
+                    'uk_media_product_type_position',
+                    'chk_media_main_image_position',
+                    'chk_cms_block_sort_order_nonnegative',
+                    'uk_cms_block_page_sort_order'
+                )
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+            ALTER TABLE product
+                ADD CONSTRAINT chk_product_price_nonnegative CHECK (price &gt;= 0),
+                ADD CONSTRAINT chk_product_stock_nonnegative CHECK (stock_quantity &gt;= 0);
+
+            ALTER TABLE media
+                ADD CONSTRAINT chk_media_position_nonnegative CHECK (position &gt;= 0),
+                ADD CONSTRAINT uk_media_product_type_position UNIQUE (product_id, type, position),
+                ADD CONSTRAINT chk_media_main_image_position
+                    CHECK (is_main = FALSE OR (type = 'IMAGE' AND position = 0));
+
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_sort_order_nonnegative CHECK (sort_order &gt;= 0),
+                ADD CONSTRAINT uk_cms_block_page_sort_order UNIQUE (page_id, sort_order);
+        </sql>
+
+        <rollback>
+            <sql>
+                ALTER TABLE cms_block
+                    DROP CONSTRAINT uk_cms_block_page_sort_order,
+                    DROP CONSTRAINT chk_cms_block_sort_order_nonnegative;
+
+                ALTER TABLE media
+                    DROP CONSTRAINT chk_media_main_image_position,
+                    DROP CONSTRAINT uk_media_product_type_position,
+                    DROP CONSTRAINT chk_media_position_nonnegative;
+
+                ALTER TABLE product
+                    DROP CONSTRAINT chk_product_stock_nonnegative,
+                    DROP CONSTRAINT chk_product_price_nonnegative;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

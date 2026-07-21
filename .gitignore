@@ -1,0 +1,102 @@
+# Local secrets and environment overrides
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!.env.docker.example
+!**/.env.example
+!**/.env.docker.example
+
+# Node and Next.js
+**/node_modules/
+**/.next/
+**/dist/
+**/out/
+**/coverage/
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/.playwright/
+**/.cache/
+**/.npm/
+**/.pnp
+**/.pnp.*
+**/.yarn/
+**/.vercel/
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# Java and Gradle
+**/.gradle/
+**/build/
+**/target/
+**/*.class
+**/junit-results/
+
+# IDE and local workspace tools
+**/.idea/
+**/.vscode/
+**/*.iml
+/.agents/
+/.codex/
+
+# Runtime logs
+logs/
+**/logs/
+**/*.log
+**/*.log.*
+
+# Temporary and patch files
+**/*.tmp
+**/*.temp
+**/*.bak
+**/*.orig
+**/*.rej
+**/*.swp
+**/*~
+
+# Local credentials, keys, and deployment-generated secret material
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/.npmrc
+**/docker-config.json
+**/secrets/
+**/*.secrets.yml
+**/*.secrets.yaml
+**/*.secrets.json
+infrastructure/env/*.env
+deployment/*.env
+
+# Operating systems
+**/.DS_Store
+**/Thumbs.db
+
+# Temporary audit workspaces
+/.step9_verification_work/
+/.step9_lockregen_crm/
+
+# Local database exports
+**/*.dump
+**/*.backup
+**/*.sql.gz
+**/pg_dump*.sql
+**/database-backups/
+
+# Local backup archives and infrastructure state
+**/*.zip
+**/*.7z
+**/*.rar
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform/
+
+# Preserve repository-owned verification evidence, including its logs and
+# archived transcripts, despite the generic runtime/temp rules above.
+!docs/tasks/**/logs/
+!docs/tasks/**/logs/**

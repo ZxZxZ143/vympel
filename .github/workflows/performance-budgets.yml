@@ -1,0 +1,42 @@
+name: Performance budgets
+
+on:
+  pull_request:
+    paths:
+      - "vympel_front/**"
+      - "vympel_crm/**"
+      - "scripts/check-performance-budgets.mjs"
+      - "scripts/performance-budget-allowlist.json"
+      - ".github/workflows/performance-budgets.yml"
+  push:
+    branches: [main]
+
+jobs:
+  budgets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            vympel_front/package-lock.json
+            vympel_crm/package-lock.json
+      - name: Build storefront
+        working-directory: vympel_front
+        env:
+          SECURITY_HEADERS_CSP_MODE: enforce
+          NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+          TELEMETRY_ENABLED: "false"
+        run: npm ci && npm run build
+      - name: Build CRM
+        working-directory: vympel_crm
+        env:
+          SECURITY_HEADERS_CSP_MODE: enforce
+          NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+          TELEMETRY_ENABLED: "false"
+        run: npm ci && npm run build
+      - name: Enforce public asset and JS budgets
+        working-directory: vympel_front
+        run: npm run test:budgets:ci

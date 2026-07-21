@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-03-01-product-image-main" author="codex" dbms="postgresql">
+        <addColumn tableName="media">
+            <column name="is_main" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <sql>
+            WITH first_images AS (
+                SELECT DISTINCT ON (product_id) id
+                FROM media
+                WHERE type = 'IMAGE'
+                ORDER BY product_id, position, id
+            )
+            UPDATE media
+            SET is_main = TRUE
+            WHERE id IN (SELECT id FROM first_images);
+        </sql>
+
+        <sql>
+            CREATE UNIQUE INDEX ux_media_one_main_image_per_product
+                ON media (product_id)
+                WHERE is_main = TRUE AND type = 'IMAGE';
+        </sql>
+
+        <rollback>
+            <sql>DROP INDEX IF EXISTS ux_media_one_main_image_per_product;</sql>
+            <dropColumn tableName="media" columnName="is_main"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

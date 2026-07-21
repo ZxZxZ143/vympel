@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: "${VYMPEL_DB_URL:jdbc:postgresql://localhost:5432/vympel_db}"
+    username: "${VYMPEL_DB_USERNAME:postgres}"
+    password: "${VYMPEL_DB_PASSWORD:123}"
+  data:
+    redis:
+      url: "redis://localhost:6379"
+
+security:
+  jwt:
+    secret: "test-only-vympel-jwt-signing-key-000000000000000000000000"
+  crm-session:
+    secure: false
+  rate-limit:
+    storage: memory
+    hmac-secret: "test-only-vympel-rate-limit-hmac-key-000000000000000000"
+    trusted-proxies: "127.0.0.1/32,::1/128"
+    max-local-entries: 2000
+    policies:
+      crm-login-source:
+        capacity: 1000
+      global-public-write:
+        capacity: 10000
+
+storage:
+  s3:
+    bucket: test-bucket
+    region: us-east-1
+    endpoint: http://localhost:9000
+    public-endpoint: http://localhost:9000
+    accessKey: test-access-key
+    secretKey: test-secret-key-000000000000000000
+    pathStyle: true
+
+app:
+  cors:
+    allowed-origins: "http://localhost:3000,http://localhost:3001"
+  cms:
+    public-revalidate:
+      enabled: false
+      required: false
+    media-cleanup:
+      grace-period: 1ms
+      scheduled-enabled: false

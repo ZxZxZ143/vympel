@@ -1,0 +1,4 @@
+# Compatibility entrypoint for developers accustomed to running Compose from
+# vympel_back. The single authoritative stack lives at the workspace root.
+include:
+  - path: ../compose.yml

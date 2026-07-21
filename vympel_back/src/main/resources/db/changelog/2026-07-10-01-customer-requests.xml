@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-10-01-customer-requests" author="codex">
+        <createTable tableName="customer_request">
+            <column name="id" type="BIGSERIAL">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_customer_request"/>
+            </column>
+            <column name="name" type="VARCHAR(160)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="phone" type="VARCHAR(80)"/>
+            <column name="message" type="VARCHAR(2000)"/>
+            <column name="source" type="VARCHAR(120)"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="NEW">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed_at" type="TIMESTAMP"/>
+            <column name="processed_by" type="BIGINT"/>
+            <column name="admin_comment" type="VARCHAR(2000)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="customer_request" baseColumnNames="processed_by"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_customer_request_processed_by" onDelete="SET NULL"/>
+
+        <sql>
+            ALTER TABLE customer_request
+                ADD CONSTRAINT chk_customer_request_status CHECK (status IN ('NEW', 'IN_PROGRESS', 'DONE', 'CANCELLED')),
+                ADD CONSTRAINT chk_customer_request_contact CHECK (email IS NOT NULL OR phone IS NOT NULL);
+        </sql>
+
+        <createIndex tableName="customer_request" indexName="idx_customer_request_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="customer_request" indexName="idx_customer_request_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="customer_request" indexName="idx_customer_request_source">
+            <column name="source"/>
+        </createIndex>
+        <createIndex tableName="customer_request" indexName="idx_customer_request_processed_at">
+            <column name="processed_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

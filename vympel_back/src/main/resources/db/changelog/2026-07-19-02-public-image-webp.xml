@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-19-02-update-public-image-paths-to-webp" author="codex">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="cms_media"/>
+            <columnExists tableName="cms_media" columnName="storage_type"/>
+            <columnExists tableName="cms_media" columnName="public_url"/>
+            <columnExists tableName="cms_media" columnName="original_filename"/>
+            <columnExists tableName="cms_media" columnName="content_type"/>
+        </preConditions>
+        <sql>
+            UPDATE cms_media AS media
+            SET public_url = mapping.new_url,
+                original_filename = substring(mapping.new_url from 2),
+                content_type = 'image/webp'
+            FROM (VALUES
+                ('/PIERRE_RICAUD_brand_banner.jpg', '/PIERRE_RICAUD_brand_banner.webp'),
+                ('/Romanson_brand_banner.png', '/Romanson_brand_banner.webp'),
+                ('/shop.png', '/shop.webp'),
+                ('/romanson.png', '/romanson.webp'),
+                ('/contact-banner-catalog.png', '/contact-banner-catalog.webp'),
+                ('/accessories_hero_banner.png', '/accessories_hero_banner.webp'),
+                ('/Royal_london_brand_banner.png', '/Royal_london_brand_banner.webp'),
+                ('/caseBanner.png', '/caseBanner.webp'),
+                ('/newsBanner.png', '/newsBanner.webp'),
+                ('/product-hero-banner.png', '/product-hero-banner.webp'),
+                ('/catalog-hero-banner.png', '/catalog-hero-banner.webp'),
+                ('/pierre-ricaud.png', '/pierre-ricaud.webp'),
+                ('/braceletBanner.png', '/braceletBanner.webp'),
+                ('/Romanson_banner.png', '/Romanson_banner.webp'),
+                ('/philosophy_1.png', '/philosophy_1.webp'),
+                ('/rhythm.png', '/rhythm.webp'),
+                ('/adriatica.png', '/adriatica.webp'),
+                ('/interior_hero_banner.png', '/interior_hero_banner.webp'),
+                ('/appella.png', '/appella.webp'),
+                ('/about-us-banner.png', '/about-us-banner.webp'),
+                ('/insta-3.png', '/insta-3.webp'),
+                ('/insta-4.png', '/insta-4.webp'),
+                ('/insta-1.png', '/insta-1.webp'),
+                ('/category_3.png', '/category_3.webp'),
+                ('/Rhythm_brand_banner.jpg', '/Rhythm_brand_banner.webp')
+            ) AS mapping(old_url, new_url)
+            WHERE media.storage_type = 'PUBLIC_PATH'
+              AND media.public_url = mapping.old_url;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

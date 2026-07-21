@@ -1,0 +1,677 @@
+{
+  "nav": {
+    "search": {
+      "ariaLabel": "Catalog search",
+      "placeholder": "Search the catalog",
+      "submit": "Search",
+      "clear": "Clear search",
+      "emptyPrompt": "Enter a product name, brand, or model",
+      "loading": "Searching products...",
+      "noResultsTitle": "Nothing found",
+      "noResultsDescription": "Try changing the search query.",
+      "errorTitle": "Could not run search",
+      "errorDescription": "Please try again.",
+      "rateLimitTitle": "Search is temporarily limited",
+      "rateLimitDescription": "Please wait {seconds} seconds before searching again.",
+      "retryIn": "Retry in {seconds}s",
+      "retry": "Retry",
+      "goCatalog": "Go to catalog",
+      "showAll": "All search results",
+      "imageFallback": "Photo",
+      "modelLabel": "Model {model}",
+      "skuLabel": "SKU {sku}",
+      "resultAria": "{name} - {price}",
+      "unavailable": "Out of stock"
+    },
+    "home": "Home",
+    "catalog": "Catalog",
+    "categories": "Categories",
+    "wrist": "Wristwatches",
+    "interior": "Clocks",
+    "brands": "Brands",
+    "accessories": "Accessories",
+    "favorites": "Favorites",
+    "cart": "Cart",
+    "profile": "Profile",
+    "about": "About Us",
+    "payment": "Payment",
+    "warranty": "Warranty",
+    "delivery": "Delivery",
+    "info": "Information",
+    "contacts": "Contacts",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mobileMenu": "Menu",
+    "mobileBottomNav": "Bottom mobile navigation",
+    "profileUnavailable": "Profile page is not available yet",
+    "profileSoonTitle": "Profile is coming soon",
+    "profileSoonDescription": "This section is in development",
+    "searchPlaceholder": "Search",
+    "brandDropdownAria": "Brand list",
+    "call": "Call",
+    "message": "Message us on WhatsApp",
+    "mainNavigation": "Main navigation",
+    "primaryNavigation": "Primary navigation",
+    "languageSelector": "Language selector",
+    "homeLink": "Go to homepage"
+  },
+  "requestDialog": {
+    "titles": {
+      "request": "Submit a request",
+      "question": "Ask a question about this model"
+    },
+    "description": "Request form for contacting a Vympel manager.",
+    "close": "Close form",
+    "or": "or",
+    "fields": {
+      "name": "Your name",
+      "email": "Your e-mail",
+      "phone": "Your phone",
+      "message": "Comment"
+    },
+    "placeholders": {
+      "name": "Dear User",
+      "email": "example@mail.com",
+      "phone": "+7 777 777 77 77",
+      "message": "I need a consultation"
+    },
+    "submit": "Send",
+    "submitting": "Sending...",
+    "success": {
+      "title": "Request sent",
+      "description": "We will contact you shortly."
+    },
+    "error": {
+      "title": "Could not send the request",
+      "description": "Please try again."
+    },
+    "rateLimit": {
+      "title": "Too many requests",
+      "description": "Please wait {seconds} seconds. Your form data has been kept.",
+      "retryIn": "Retry in {seconds}s"
+    },
+    "validation": {
+      "title": "Check the form fields",
+      "contact": "Enter an e-mail or phone number.",
+      "email": "Enter a valid e-mail.",
+      "phone": "Enter the full phone number in the +7 777 777 77 77 format.",
+      "nameLength": "Name must be 160 characters or fewer.",
+      "emailLength": "E-mail must be 255 characters or fewer.",
+      "phoneLength": "Phone must be 80 characters or fewer.",
+      "messageLength": "Comment must be 2000 characters or fewer."
+    }
+  },
+  "telemetry": {
+    "errorTitle": "Something went wrong",
+    "errorDescription": "Please try again. If the problem continues, share the support reference with Vympel.",
+    "retry": "Try again",
+    "home": "Go to homepage",
+    "supportReference": "Support reference: {requestId}"
+  },
+  "pagination": {
+    "aria": "Catalog pagination",
+    "page": "Go to page {page}",
+    "items": "Go to items {range}"
+  },
+  "bannerCarousel": {
+    "aria": "Promotional banners",
+    "fallbackAlt": "Romanson promotional banner"
+  },
+  "benefits": {
+    "marketplaces": "Online marketplaces",
+    "payment": "Convenient payment",
+    "paymentSub": "Pay by card, bank transfer, or cash.",
+    "return": "Returns",
+    "returnSub": "You can return the product."
+  },
+  "title": {
+    "more": "View all",
+    "new": "New arrivals",
+    "brands": "Brands",
+    "case": "Cases",
+    "categories": "Categories",
+    "accessories": "Accessories",
+    "philosophy": "Philosophy",
+    "marketplaces": "Online marketplaces",
+    "about": "About Us"
+  },
+  "good": {
+    "collection": "Collection",
+    "collectionWithName": "Collection {collection}",
+    "currencySymbol": "₸",
+    "productLinkAria": "{name} — {price}",
+    "openProduct": "Open {name}",
+    "addToCart": "Add {name} to cart",
+    "addFavorite": "Add {name} to favorites",
+    "removeFavorite": "Remove {name} from favorites",
+    "outOfStock": "Out of stock",
+    "inCart": "{name} is already in cart",
+    "ratingSummary": "{average} · {count, plural, one {# review} other {# reviews}}",
+    "noRatings": "No ratings yet"
+  },
+  "productImageFallback": {
+    "label": "No photos"
+  },
+  "goodsCarousel": {
+    "bannerAlt": "Watch banner",
+    "productsAria": "Products carousel",
+    "roleDescription": "carousel",
+    "controlsAria": "Carousel controls",
+    "previousItems": "Previous products",
+    "nextItems": "Next products",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "brands": {
+    "brand": "Brand",
+    "romanson": "A South Korean brand that embodies modern aesthetics and refined minimalism. Each model reflects a pursuit of harmony between form and function, combining clean design with high-quality craftsmanship.",
+    "adriatica": "A Swiss watch brand with a rich history, embodying the traditions of precise movements\nand elegant, classic design. Each model combines signature Swiss Made quality\nwith a versatile style suitable for both everyday wear and special occasions.",
+    "appella": "A Swiss watch brand that combines centuries-old traditions of precise timekeeping with elegant, understated design. The high precision of its movements, the Swiss Made mark, and its simplicity make these timepieces versatile for both casual and business wear.",
+    "pierre-ricaud": "A German watch brand that harmoniously blends classic elegance with contemporary design solutions. Each model is meticulously crafted: precise proportions, high-quality materials, and reliable mechanisms create a well-balanced accessory.",
+    "rhythm": "A Japanese brand with a rich history in watch and movement production, renowned for its combination of technical precision and sophisticated design.\nIts products offer stylish and practical solutions. Rhythm places particular emphasis on the quality of its materials and precision.",
+    "more": "More"
+  },
+  "brandPage": {
+    "breadcrumbsAria": "Brand page navigation",
+    "breadcrumbBrands": "Brands",
+    "breadcrumbSeparator": "—",
+    "historyTitle": "Brand history",
+    "catalogLink": "Go to catalog",
+    "catalogLinkAria": "Go to the {brand} catalog",
+    "newProducts": "New arrivals",
+    "notFoundTitle": "Brand not found",
+    "notFoundDescription": "Check the page address or choose a brand from the navigation.",
+    "productsError": "Failed to load products for this brand.",
+    "productsEmpty": "No products for this brand were found yet.",
+    "bannerFallback": "{brand} banner is temporarily unavailable.",
+    "brandBannerAlt": "{brand} brand banner",
+    "catalogBannerAlt": "{brand} catalog banner"
+  },
+  "aboutPage": {
+    "title": "About Us",
+    "bannerAria": "About Vympel banner",
+    "bannerAlt": "Vympel brand distributor banner",
+    "intro": {
+      "aria": "About Vympel introduction",
+      "left": "Vympel is a watch distributor\nwith more than 30 years of market experience.",
+      "right": "Over these years, we have built partnerships with leading global brands and created a reliable supply system so we can offer customers only original products and impeccable service. Our mission is to make quality watches accessible to people who value aesthetics, precision, and a true culture of time."
+    },
+    "company": {
+      "title": "About the company",
+      "cards": {
+        "official": {
+          "title": "Official status and warranty",
+          "text": "We operate officially and are authorized distributors in Kazakhstan. We guarantee the authenticity and quality of every watch presented in our store, and we provide service and warranty support."
+        },
+        "expertise": {
+          "title": "Experience and expertise",
+          "text": "For more than 30 years, our company has distributed original watches, visited international exhibitions, spoken with experts, and followed the trends of watchmaking art."
+        },
+        "selection": {
+          "title": "Careful product selection",
+          "text": "Every model that enters our catalog passes a strict selection process. We evaluate design, material quality, and movement precision to make sure we offer only truly worthy watches."
+        },
+        "service": {
+          "title": "Personalized service",
+          "text": "Our managers will help you at every stage, from selection to purchase. We are ready to answer questions, give recommendations, and help find watches that reflect your personal style."
+        }
+      }
+    },
+    "social": {
+      "title": "Our activity on social media",
+      "postAlt": "Vympel Instagram post {number}",
+      "postAria": "Open Vympel Instagram post {number}",
+      "dotsAria": "Instagram slider pagination",
+      "dotAria": "Go to Instagram slide {number}"
+    },
+    "cooperation": {
+      "title": "Cooperation and partnership",
+      "bannerTitle": "Want\nto contact\nVympel?",
+      "button": "Submit a request",
+      "body1": "We are always glad to start new collaborations and are open to interesting projects.",
+      "body2": "Over more than 30 years of work, we have accumulated deep experience in watch distribution, understand the market, and know how to create value for our partners. Joint campaigns, exclusive collections, or special projects - we are ready to discuss any ideas and bring them to life together.",
+      "body3": "Contact us, and let us create unique solutions that combine style, quality, and trust."
+    },
+    "platforms": {
+      "title": "Online platforms"
+    }
+  },
+  "categories": {
+    "all": "All",
+    "man": "Men's",
+    "woman": "Women's",
+    "child": "Kids'",
+    "sport": "Sports"
+  },
+  "philosophy": {
+    "title": "TIME\nIS ART",
+    "redWatchAlt": "Red wristwatch",
+    "blackWatchAlt": "Black wristwatch",
+    "start": "In the era of digitalization, when every moment can be measured and recorded to the millisecond, the concept of time has become utilitarian. We have grown used to looking at a screen to know the time — quickly, thoughtlessly, between notifications and messages. But the true value of time is not in numbers, but in the ощущение of its flow. Mechanical watches bring us back to this awareness. Their ticking is a reminder of life’s rhythm, that every moment is created not for haste, but for meaning. It is the choice of those who see in time not a tool, but an art.",
+    "end": "Our approach is rooted in respect for tradition and a стремление to modernity. We believe that a watch is not just a device for measuring time, but a reflection of personality, taste, and state of mind. In a world of technology, where everything becomes virtual, mechanical watches remain the last physical embodiment of time — an object you can feel, hear, pass on. They live by their own laws and remind us: the present is not on a screen, but in the movement of gears reflecting our rhythm."
+  },
+  "marketplaces": {
+    "go": "Go to"
+  },
+  "footer": {
+    "wristWatches": "Wrist Watches",
+    "interiorWatches": "Interior Clocks",
+    "accessories": "Accessories",
+    "brands": "Brands",
+    "menWatches": "Men’s Watches",
+    "womenWatches": "Women’s Watches",
+    "sportWatches": "Sports Watches",
+    "kidsWatches": "Kids’ Watches",
+    "straps": "Straps",
+    "cases": "Cases",
+    "about": "About Us",
+    "payment": "Payment",
+    "warranty": "Warranty",
+    "delivery": "Delivery",
+    "shop": "Our Store",
+    "message": "Send us a message",
+    "instagram": "Open Vympel on Instagram",
+    "sections": "Sections",
+    "information": "Information"
+  },
+  "infoPages": {
+    "marketplaces": {
+      "kaspi": "Kaspi",
+      "wildberries": "Wildberries",
+      "ozon": "Ozon"
+    },
+    "store": {
+      "imageAlt": "Vympel store in TD TSUM",
+      "address": {
+        "title": "TD TSUM",
+        "street": "Abylai Khan Avenue, 62",
+        "floor": "3rd floor, opposite the escalator",
+        "district": "Almaly District, Almaty,",
+        "postalCode": "050004/A05A2M6"
+      },
+      "hours": "Today from 10:00 to 19:00",
+      "phone": "+7–747–408–06–20"
+    },
+    "guarantee": {
+      "title": "Warranty obligations",
+      "intro": {
+        "paragraph1": "We guarantee the quality and reliability of the products we sell and take full responsibility for their proper operation during the established warranty period.",
+        "paragraph2": "Before shipping, <strong>every product undergoes a mandatory inspection</strong> for manufacturing defects, faults, and package discrepancies. We ship only properly working and fully completed products.",
+        "paragraph3": "If a product stops working during the warranty period, our company covers <strong>all expenses related to warranty service</strong>, including:"
+      },
+      "serviceItems": {
+        "deliveryToService": "arranging and paying for product delivery to the service center;",
+        "diagnostics": "diagnostic and repair work;",
+        "returnDelivery": "return delivery of the repaired product to the recipient."
+      },
+      "badges": {
+        "warranty": {
+          "title": "1 year",
+          "subtitle": "warranty period"
+        },
+        "support": {
+          "title": "Customer support",
+          "subtitle": "always in touch with you"
+        }
+      },
+      "lower": {
+        "paragraph1": "Warranty service is provided when the product operating conditions are followed and does not cover damage caused by mechanical impact, improper use, or independent intervention in the product structure.",
+        "paragraph2": "Our goal is to make warranty service as simple and transparent as possible for the customer, without extra costs or complications."
+      }
+    },
+    "delivery": {
+      "title": "Delivery",
+      "intro": {
+        "paragraph1": "Orders are delivered by the delivery services of the marketplaces where our products are available:",
+        "paragraph2": "All logistics operations, including order processing, delivery times, and delivery cost, are handled by the selected <strong>marketplace according to its rules</strong>.",
+        "paragraph3": "Current information about delivery times and methods is shown when placing the order on the marketplace platform.",
+        "paragraph4": "You can also pick up your order <strong>independently at our store</strong>."
+      },
+      "final": "Before handoff, an order may be additionally checked for completeness and appearance."
+    },
+    "payment": {
+      "title": "Payment",
+      "intro": {
+        "paragraph1": "When placing an order on marketplaces, payment is made <strong>directly on the marketplace platform</strong> according to its rules and available payment methods:",
+        "paragraph2": "Available payment methods, fund posting times, and payment confirmation are determined by the selected marketplace and shown during checkout.",
+        "paragraph3": "You can also pay for your order in <strong>our store</strong>."
+      },
+      "methodsIntro": "For pickup from our store, payment is available in the following ways:",
+      "methods": {
+        "cash": "cash payment;",
+        "cards": "bank cards through Kaspi Bank and Halyk Bank terminals;",
+        "transfer": "bank transfer."
+      },
+      "final": "Payment is made when the product is received."
+    }
+  },
+  "catalog": {
+    "home": "Home",
+    "allGoods": "All products",
+    "breadcrumbsAria": "Catalog navigation",
+    "error": "Failed to load products.",
+    "empty": "No products found.",
+    "sort": {
+      "trigger": "Sort",
+      "close": "Close sorting",
+      "priceAsc": "Price ascending",
+      "priceDesc": "Price descending",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "short": {
+        "priceAsc": "Price",
+        "priceDesc": "Price",
+        "newest": "Newest",
+        "oldest": "Oldest"
+      }
+    },
+    "filters": {
+      "trigger": "Filters",
+      "close": "Close filters",
+      "loading": "Loading filters...",
+      "error": "Failed to load filters.",
+      "apply": "Apply",
+      "reset": "Reset",
+      "priceMin": "From",
+      "priceMax": "To"
+    },
+    "categories": {
+      "trigger": "Categories",
+      "loading": "Loading categories...",
+      "error": "Failed to load categories.",
+      "all": "All categories",
+      "allProducts": "All products",
+      "back": "Back",
+      "empty": "No subcategories"
+    }
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "No favorite products yet.",
+    "similarTitle": "Similar products",
+    "loading": "Loading products...",
+    "similarEmpty": "No similar products found yet.",
+    "breadcrumbsAria": "Favorites navigation"
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "clear": "Clear cart",
+    "total": "Total",
+    "checkout": "Checkout",
+    "increase": "Increase quantity for {name}",
+    "decrease": "Decrease quantity for {name}",
+    "remove": "Remove {name} from cart",
+    "unknownProduct": "Product #{id}",
+    "productImage": "Product",
+    "loading": "Refreshing products...",
+    "stockLimitTooltip": "No more stock is available for this product",
+    "stockLimitInline": "Only {stockQuantity} pcs. available.",
+    "whatsapp": {
+      "greeting": "Hello! I would like to place an order:",
+      "quantity": "Quantity",
+      "unitPrice": "Unit price",
+      "lineTotal": "Line total",
+      "article": "Article",
+      "total": "Total",
+      "piece": "pcs."
+    },
+    "confirmRemove": {
+      "title": "Remove product from cart?",
+      "description": "This product will be removed from your cart.",
+      "cancel": "Cancel",
+      "confirm": "Remove"
+    },
+    "confirmClear": {
+      "title": "Clear cart?",
+      "description": "All products will be removed from your cart.",
+      "cancel": "Cancel",
+      "confirm": "Clear"
+    }
+  },
+  "toasts": {
+    "favoriteAdded": "Product added to favorites",
+    "favoriteRemoved": "Product removed from favorites",
+    "favoriteFailed": "Could not update favorites. Please try again.",
+    "goFavorites": "Go to favorites",
+    "openFavorites": "Open favorites",
+    "cartAdded": "Product added to cart",
+    "cartAlreadyInCart": "Product is already in cart",
+    "cartQuantityUpdated": "Product quantity updated",
+    "cartOutOfStock": "This product is out of stock",
+    "cartStockLimit": "No more stock is available for this product",
+    "cartCheckoutEmpty": "Your cart is empty. Add products before checkout.",
+    "cartCheckoutMissingData": "Could not create the order message: product data is still updating. Please try again.",
+    "cartCheckoutUnavailable": "Your cart contains a product that is currently out of stock.",
+    "cartFailed": "Could not update the cart. Please try again.",
+    "goCart": "Go to cart",
+    "go": "Go",
+    "undo": "Undo"
+  },
+  "states": {
+    "actions": {
+      "retry": "Retry",
+      "goHome": "Go home",
+      "goCatalog": "Go to catalog",
+      "resetFilters": "Reset filters"
+    },
+    "catalog": {
+      "emptyTitle": "Nothing found",
+      "emptyDescription": "Try changing the filters or search query.",
+      "errorTitle": "Could not load the catalog",
+      "errorDescription": "Check your connection and try again."
+    },
+    "favorites": {
+      "emptyTitle": "Favorites are empty",
+      "emptyDescription": "Add products to favorites so you can quickly return to them later.",
+      "loadErrorTitle": "Could not load products",
+      "loadErrorDescription": "Try refreshing the page."
+    },
+    "cart": {
+      "emptyTitle": "Your cart is empty",
+      "emptyDescription": "Add products to your cart to place an order.",
+      "loadErrorTitle": "Could not load products",
+      "loadErrorDescription": "Try refreshing the page."
+    },
+    "similar": {
+      "emptyTitle": "No similar products yet",
+      "emptyDescription": "We will show recommendations here when suitable products are available.",
+      "errorTitle": "Could not load similar products",
+      "errorDescription": "Try again in a moment."
+    },
+    "product": {
+      "notFoundTitle": "Product not found",
+      "notFoundDescription": "It may have been removed or temporarily unavailable.",
+      "errorTitle": "Could not load the product",
+      "errorDescription": "Try refreshing the page or return to the catalog."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page may have been removed or the address may be incorrect."
+    }
+  },
+  "product": {
+    "article": "Article",
+    "brand": "Brand",
+    "collection": "Collection",
+    "category": "Category",
+    "status": "Status",
+    "addToCart": "Add to cart",
+    "inCart": "In cart",
+    "favorite": "Favorite",
+    "description": "Description",
+    "specs": "Specifications",
+    "breadcrumbsAria": "Product navigation",
+    "mechanism": "Mechanism",
+    "gender": "Gender",
+    "caseMaterial": "Case material",
+    "strapMaterial": "Strap material",
+    "glassType": "Glass",
+    "caseSize": "Case size",
+    "waterResistance": "Water resistance",
+    "stoneInlay": "Stone inlay",
+    "emptySpecs": "Specifications are not filled in yet.",
+    "country": "Country",
+    "details": {
+      "bracelet": "Bracelet",
+      "case": "Case",
+      "glass": "Glass",
+      "stoneInsert": "Stone insert",
+      "mechanismType": "Movement type",
+      "color": "Color",
+      "style": "Style",
+      "powerType": "Power type",
+      "dimensions": "Dimensions",
+      "weight": "Weight",
+      "warrantyMonths": "Warranty"
+    },
+    "currencySymbol": "₸",
+    "breadcrumbSeparator": " — ",
+    "relatedProducts": "Related products",
+    "search": {
+      "ariaLabel": "Catalog search",
+      "placeholder": "Search the catalog",
+      "submit": "Search"
+    },
+    "gallery": {
+      "sectionAria": "Product images",
+      "showImage": "Show image {number}",
+      "thumbnailAlt": "{name}, thumbnail {number}",
+      "openZoom": "Open enlarged product image",
+      "dialogAria": "Enlarged product image",
+      "closeZoom": "Close enlarged product image",
+      "previousImage": "Previous image",
+      "nextImage": "Next image",
+      "thumbnailRailAria": "Product thumbnails",
+      "previousThumbnails": "Show previous thumbnails",
+      "nextThumbnails": "Show next thumbnails",
+      "imageCounter": "{current} of {total}"
+    },
+    "summary": {
+      "outOfStockTitle": "Out of stock",
+      "outOfStockBody": "This model is currently out of stock. However, it may become available soon. If you would like to be notified when it becomes available, please leave your email in the form below.",
+      "askQuestion": "Ask a question about this model",
+      "certificateAria": "Product certificate",
+      "warrantyAria": "Product warranty",
+      "emailLabel": "Your e-mail",
+      "emailPlaceholder": "example@gmail.com",
+      "phoneLabel": "Your phone number",
+      "phonePlaceholder": "+7 777 777 77 77",
+      "notifySubmit": "Send"
+    },
+    "reviews": {
+      "title": "Reviews",
+      "ratingAria": "Rating {rating} out of 5",
+      "noRating": "No ratings yet",
+      "reviewsCount": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}",
+      "summary": "{average} · {count, plural, one {# review} other {# reviews}}",
+      "yourRating": "Your rating",
+      "selectRating": "Select {rating} out of 5",
+      "ratingRequired": "Choose a rating from 1 to 5",
+      "reviewText": "Review text (optional)",
+      "reviewPlaceholder": "Tell us about the product",
+      "textTooLong": "The review must not exceed 2000 characters",
+      "textInvalid": "Do not use HTML tags in the review",
+      "send": "Send review",
+      "sending": "Sending",
+      "moderationHint": "Your review will appear after moderation.",
+      "sentForModeration": "Review sent for moderation",
+      "submitError": "Failed to send review",
+      "rateLimit": "Too many review submissions. Try again in {seconds} seconds.",
+      "retryIn": "Retry in {seconds}s",
+      "loadErrorTitle": "Failed to load reviews",
+      "loadErrorDescription": "Please refresh the page later.",
+      "guest": "Guest",
+      "user": "User",
+      "ratingOnly": "The user left a rating without text.",
+      "emptyTitle": "No reviews yet",
+      "emptyDescription": "Be the first to leave a review for this product.",
+      "filteredEmptyTitle": "No reviews match the selected filters yet",
+      "filteredEmptyDescription": "Try changing the filter or sorting.",
+      "activeControls": "Current:",
+      "defaultControls": "All reviews · newest first",
+      "activeSort": "Sort: {value}",
+      "activeFilter": "{value}",
+      "updating": "Updating reviews...",
+      "sort": {
+        "label": "Sorting",
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "highestRating": "Highest rating",
+        "lowestRating": "Lowest rating",
+        "positiveFirst": "Positive first",
+        "negativeFirst": "Negative first"
+      },
+      "filters": {
+        "ratingLabel": "Rating",
+        "ratingAll": "All ratings",
+        "ratingStars": "{rating, plural, one {# star} other {# stars}}",
+        "textLabel": "Text",
+        "text": {
+          "all": "All reviews",
+          "with": "With text",
+          "without": "Without text"
+        },
+        "reset": "Reset filters"
+      },
+      "pagination": {
+        "ariaLabel": "Reviews pagination",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {page}",
+        "pageAria": "Page {page}"
+      }
+    },
+    "tabs": {
+      "ariaLabel": "Product information",
+      "warranty": "Warranty",
+      "delivery": "Delivery",
+      "payment": "Order and payment",
+      "warrantyText": "The watch is covered by the manufacturer's warranty. Keep your receipt and packaging for service.",
+      "deliveryText": "Delivery is coordinated with a manager after the order is placed. Available methods depend on the city.",
+      "paymentText": "You can pay after availability and purchase details are confirmed with a Vympel manager.",
+      "allBrandWatches": "All {brand} wristwatches",
+      "aboutBrand": "About the brand",
+      "detailsLink": "More details",
+      "warrantyInfo": {
+        "title": "Product warranty period - 1 year",
+        "description": "If the product fails during the warranty period, our company covers all expenses related to warranty service, including delivery of the product to the service center, repair work, and return delivery of the repaired product to the recipient."
+      },
+      "deliveryInfo": {
+        "paragraph1": "Orders are delivered by <strong>marketplace services</strong> where our products are available: <strong>Kaspi, Wildberries, Ozon.</strong>",
+        "paragraph2": "Delivery times and costs are set by the marketplace and shown during checkout.",
+        "paragraph3": "Free pickup from the store is also available.\nThe address and working hours are shown on the site."
+      },
+      "paymentInfo": {
+        "paragraph1": "Orders are paid <strong>through marketplaces</strong> when purchasing on their platforms: <strong>Kaspi, Wildberries, Ozon</strong>.",
+        "paragraph2": "For pickup from the store, payment is available by:",
+        "methods": {
+          "cash": "cash;",
+          "cards": "bank cards through <strong>Kaspi Bank and Halyk Bank</strong> terminals;",
+          "transfer": "bank transfer."
+        }
+      }
+    },
+    "units": {
+      "millimeter": "mm",
+      "grams": "g",
+      "months": "months"
+    },
+    "contact": {
+      "heading": "Contact us",
+      "bannerTitle": "Ready to contact\nVympel?",
+      "button": "Submit a request",
+      "body1": "Choosing a watch can raise more questions than it seems at first glance.",
+      "body2": "We value an informed approach to choosing a product and are always ready to help. If you'd like advice, clarify details, or find the perfect model, please submit a request, and our managers will contact you via WhatsApp. We'll answer all your questions, share recommendations, and help you make a confident decision.",
+      "body3": "Your time is in reliable hands."
+    }
+  },
+  "brandsPage": {
+    "title": "Brands",
+    "breadcrumbsAria": "Brands page navigation",
+    "brandCount": "{count, plural, one {# product} other {# products}}",
+    "openBrand": "Open {brand} brand page",
+    "emptyTitle": "No brands found yet",
+    "emptyDescription": "Brands will appear here when they are available in the catalog."
+  }
+}

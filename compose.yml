@@ -1,0 +1,239 @@
+name: vympel-local
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "${VYMPEL_DB_NAME:-vympel_db}"
+      POSTGRES_USER: "${VYMPEL_DB_USERNAME:-vympel_local}"
+      POSTGRES_PASSWORD: "${VYMPEL_DB_PASSWORD:-vympel-local-db-password-only}"
+    ports:
+      - "${VYMPEL_POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - vympel-local
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${VYMPEL_REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - vympel-local
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "${VYMPEL_S3_ACCESS_KEY:-vympel-local-access}"
+      MINIO_ROOT_PASSWORD: "${VYMPEL_S3_SECRET_KEY:-vympel-local-minio-secret-2026-only}"
+    ports:
+      - "${VYMPEL_MINIO_API_HOST_PORT:-9100}:9000"
+      - "${VYMPEL_MINIO_CONSOLE_HOST_PORT:-9101}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - vympel-local
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: "${VYMPEL_S3_ACCESS_KEY:-vympel-local-access}"
+      MINIO_ROOT_PASSWORD: "${VYMPEL_S3_SECRET_KEY:-vympel-local-minio-secret-2026-only}"
+      VYMPEL_S3_BUCKET: "${VYMPEL_S3_BUCKET:-dev-backet}"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        attempt=0
+        until mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" >/dev/null 2>&1; do
+          attempt=$$((attempt + 1))
+          if [ "$${attempt}" -ge 12 ]; then
+            echo "MinIO alias setup did not become ready in time" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        mc mb --ignore-existing "local/$${VYMPEL_S3_BUCKET}"
+        mc anonymous set download "local/$${VYMPEL_S3_BUCKET}"
+    restart: "no"
+    networks:
+      - vympel-local
+
+  backend-logs-init:
+    image: vympel-local-backend:latest
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["chown -R 10001:10001 /app/logs"]
+    volumes:
+      - backend-logs:/app/logs
+    restart: "no"
+    networks:
+      - vympel-local
+
+  backend:
+    image: vympel-local-backend:latest
+    build:
+      context: ./vympel_back
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE:-local}"
+      SERVER_PORT: "8080"
+      APP_LOG_DIR: /app/logs
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+      VYMPEL_DB_URL: "${VYMPEL_DB_URL:-jdbc:postgresql://postgres:5432/vympel_db}"
+      VYMPEL_DB_USERNAME: "${VYMPEL_DB_USERNAME:-vympel_local}"
+      VYMPEL_DB_PASSWORD: "${VYMPEL_DB_PASSWORD:-vympel-local-db-password-only}"
+      VYMPEL_JWT_SECRET: "${VYMPEL_JWT_SECRET:-LocalVympelJwt_2026!DockerOnly#A7xQ2mN9pR4sT8vK6}"
+      VYMPEL_RATE_LIMIT_HMAC_SECRET: "${VYMPEL_RATE_LIMIT_HMAC_SECRET:-LocalVympelLimiter_2026!DockerOnly#B8zW3nK6uS9qP2}"
+      VYMPEL_RATE_LIMIT_STORAGE: "${VYMPEL_RATE_LIMIT_STORAGE:-redis}"
+      VYMPEL_REDIS_URL: "${VYMPEL_REDIS_URL:-redis://redis:6379}"
+      VYMPEL_S3_BUCKET: "${VYMPEL_S3_BUCKET:-dev-backet}"
+      VYMPEL_S3_REGION: "${VYMPEL_S3_REGION:-us-east-1}"
+      VYMPEL_S3_ENDPOINT: "${VYMPEL_S3_ENDPOINT:-http://minio:9000}"
+      VYMPEL_S3_PUBLIC_ENDPOINT: "${VYMPEL_S3_PUBLIC_ENDPOINT:-http://localhost:9100}"
+      VYMPEL_S3_ACCESS_KEY: "${VYMPEL_S3_ACCESS_KEY:-vympel-local-access}"
+      VYMPEL_S3_SECRET_KEY: "${VYMPEL_S3_SECRET_KEY:-vympel-local-minio-secret-2026-only}"
+      VYMPEL_CORS_ALLOWED_ORIGINS: "${VYMPEL_CORS_ALLOWED_ORIGINS:-http://localhost:3200,http://localhost:3201}"
+      VYMPEL_CRM_REFRESH_COOKIE_SECURE: "${VYMPEL_CRM_REFRESH_COOKIE_SECURE:-false}"
+      VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED: "${VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED:-true}"
+      VYMPEL_CMS_REVALIDATE_REQUIRED: "${VYMPEL_CMS_REVALIDATE_REQUIRED:-true}"
+      VYMPEL_CMS_PUBLIC_REVALIDATE_URL: "${VYMPEL_CMS_PUBLIC_REVALIDATE_URL:-http://public:3000/api/revalidate}"
+      VYMPEL_CMS_REVALIDATE_SECRET: "${VYMPEL_CMS_REVALIDATE_SECRET:-LocalCmsRevalidation_2026!DockerOnly#C9vT4mL8qR2wP6}"
+      VYMPEL_CMS_MEDIA_CLEANUP_ENABLED: "${VYMPEL_CMS_MEDIA_CLEANUP_ENABLED:-false}"
+      VYMPEL_BOOTSTRAP_ADMIN_ENABLED: "${VYMPEL_BOOTSTRAP_ADMIN_ENABLED:-false}"
+      VYMPEL_BOOTSTRAP_ADMIN_EMAIL: "${VYMPEL_BOOTSTRAP_ADMIN_EMAIL:-}"
+      VYMPEL_BOOTSTRAP_ADMIN_PASSWORD: "${VYMPEL_BOOTSTRAP_ADMIN_PASSWORD:-}"
+      VYMPEL_BOOTSTRAP_ADMIN_NAME: "${VYMPEL_BOOTSTRAP_ADMIN_NAME:-}"
+    ports:
+      - "${VYMPEL_BACKEND_HOST_PORT:-8080}:8080"
+    volumes:
+      - backend-logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      backend-logs-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      - vympel-local
+
+  public:
+    build:
+      context: ./vympel_front
+      dockerfile: Dockerfile
+      args:
+        BASE_API_PUBLIC: "${BASE_API_PUBLIC:-http://backend:8080/api/public}"
+        NEXT_PUBLIC_BASE_API_PUBLIC: "${NEXT_PUBLIC_BASE_API_PUBLIC:-http://localhost:8080/api/public}"
+        NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:-http://localhost:9100}"
+        NEXT_PUBLIC_APP_ENV: local
+        NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+      BASE_API_PUBLIC: "${BASE_API_PUBLIC:-http://backend:8080/api/public}"
+      NEXT_PUBLIC_BASE_API_PUBLIC: "${NEXT_PUBLIC_BASE_API_PUBLIC:-http://localhost:8080/api/public}"
+      NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:-http://localhost:9100}"
+      NEXT_PUBLIC_APP_ENV: local
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+      TELEMETRY_ENABLED: "false"
+      CMS_REVALIDATE_SECRET: "${VYMPEL_CMS_REVALIDATE_SECRET:-LocalCmsRevalidation_2026!DockerOnly#C9vT4mL8qR2wP6}"
+    ports:
+      - "${VYMPEL_PUBLIC_HOST_PORT:-3200}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/ru').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - vympel-local
+
+  crm:
+    build:
+      context: ./vympel_crm
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CRM_API_BASE: "${NEXT_PUBLIC_CRM_API_BASE:-http://localhost:8080/api/crm}"
+        NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:-http://localhost:9100}"
+        NEXT_PUBLIC_APP_ENV: local
+        NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_CRM_API_BASE: "${NEXT_PUBLIC_CRM_API_BASE:-http://localhost:8080/api/crm}"
+      NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:-http://localhost:9100}"
+      NEXT_PUBLIC_APP_ENV: local
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+      TELEMETRY_ENABLED: "false"
+    ports:
+      - "${VYMPEL_CRM_HOST_PORT:-3201}:3001"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - vympel-local
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  backend-logs:
+
+networks:
+  vympel-local:
+    name: vympel-local

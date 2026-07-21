@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <include file="db/changelog/001_init_schema.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/002_seed_dictionaries.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/003_seed_watch_features.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/2026-02-06-01-users-email-optional.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-08-01-add-collections-and-product-markdown-description.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-08-02-brand-name.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-08-03-seed-countries.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-08-04-seed-brands-with-countries.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-08-05-remove-country-from-brand.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-08-06-drop-role-i18n.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-02-13-01-seed-categories.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-03-01-01-remove-description-product-i18n.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-03-01-02-fix-product-description-constraint.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-03-02-01-fix-category-i18n-constraint.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-03-10-01-fix-lang-and-add-checks-countryi18n.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-03-13-01-add-model-product.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-18-01-crm-system.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-18-02-collection-i18n.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-19-01-catalog-filters-and-search.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-19-02-normalize-watch-detail-categories.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-20-01-product-analytics-promotion.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-28-01-product-reviews.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-30-01-cms-content-system.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-06-30-02-audit-security-performance.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-01-01-product-drafts-cms-media-variants.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-03-01-product-image-main.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-08-01-cms-mobile-locale-media.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-09-01-seed-kids-watches-category.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-09-02-cms-expanded-banner-pages.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-10-01-customer-requests.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-16-01-crm-refresh-sessions.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-16-02-crm-refresh-token-hash-type.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-17-01-cms-media-lifecycle-revalidation.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-17-02-database-hardening.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-19-01-analytics-privacy-retention.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-07-19-02-public-image-webp.xml" relativeToChangelogFile="false" />
+</databaseChangeLog>

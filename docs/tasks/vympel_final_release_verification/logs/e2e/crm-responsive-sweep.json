@@ -1,0 +1,90 @@
+[
+  {
+    "w": 1440,
+    "h": 900,
+    "path": "/dashboard",
+    "name": "final-crm-dashboard-1440x900.png",
+    "url": "http://127.0.0.1:3101/dashboard",
+    "alerts": [],
+    "clientWidth": 1425,
+    "dialogs": 0,
+    "duplicateIds": [],
+    "h1": [
+      "Дашборд"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "overflow": false,
+    "scrollWidth": 1425,
+    "tables": 2,
+    "title": "Vympel CRM",
+    "file": "E:/vympel_full/docs/tasks/vympel_final_release_verification/screenshots/crm/desktop/final-crm-dashboard-1440x900.png"
+  },
+  {
+    "w": 1280,
+    "h": 800,
+    "path": "/products",
+    "name": "final-crm-products-1280x800.png",
+    "url": "http://127.0.0.1:3101/products",
+    "alerts": [],
+    "clientWidth": 1265,
+    "dialogs": 0,
+    "duplicateIds": [],
+    "h1": [
+      "Товары"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "overflow": false,
+    "scrollWidth": 1265,
+    "tables": 1,
+    "title": "Vympel CRM",
+    "file": "E:/vympel_full/docs/tasks/vympel_final_release_verification/screenshots/crm/desktop/final-crm-products-1280x800.png"
+  },
+  {
+    "w": 1024,
+    "h": 768,
+    "path": "/cms",
+    "name": "final-crm-cms-1024x768.png",
+    "url": "http://127.0.0.1:3101/cms",
+    "alerts": [],
+    "clientWidth": 1009,
+    "dialogs": 0,
+    "duplicateIds": [],
+    "h1": [
+      "CMS"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "overflow": false,
+    "scrollWidth": 1009,
+    "tables": 0,
+    "title": "Vympel CRM",
+    "file": "E:/vympel_full/docs/tasks/vympel_final_release_verification/screenshots/crm/tablet/final-crm-cms-1024x768.png"
+  },
+  {
+    "w": 768,
+    "h": 1024,
+    "path": "/dashboard",
+    "name": "final-crm-dashboard-768x1024.png",
+    "url": "http://127.0.0.1:3101/dashboard",
+    "alerts": [],
+    "clientWidth": 753,
+    "dialogs": 0,
+    "duplicateIds": [],
+    "h1": [
+      "Дашборд"
+    ],
+    "lang": "ru",
+    "main": 1,
+    "missingAlt": 0,
+    "overflow": false,
+    "scrollWidth": 753,
+    "tables": 2,
+    "title": "Vympel CRM",
+    "file": "E:/vympel_full/docs/tasks/vympel_final_release_verification/screenshots/crm/tablet/final-crm-dashboard-768x1024.png"
+  }
+]

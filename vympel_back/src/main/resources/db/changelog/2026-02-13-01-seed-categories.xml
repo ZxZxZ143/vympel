@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-02-13-02-01-watch-split" author="admin">
+
+        <insert tableName="category">
+            <column name="code" value="WATCH_WRIST"/>
+            <column name="parent_id" valueComputed="(SELECT id FROM category WHERE code='WATCH')"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="category">
+            <column name="code" value="WATCH_INTERIOR"/>
+            <column name="parent_id" valueComputed="(SELECT id FROM category WHERE code='WATCH')"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="category">
+            <column name="code" value="WATCH_WALL"/>
+            <column name="parent_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_INTERIOR')"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="category">
+            <column name="code" value="WATCH_FLOOR"/>
+            <column name="parent_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_INTERIOR')"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <update tableName="category">
+            <column name="parent_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WRIST')"/>
+            <where>code IN ('WATCH_MEN','WATCH_WOMEN','WATCH_UNISEX','SMARTWATCH')</where>
+        </update>
+
+
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WRIST')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Наручные часы"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WRIST')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Wrist Watches"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WRIST')"/>
+            <column name="lang" value="kz"/>
+            <column name="name" value="Қолсағаттар"/>
+        </insert>
+
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_INTERIOR')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Интерьерные часы"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_INTERIOR')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Interior Clocks"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_INTERIOR')"/>
+            <column name="lang" value="kz"/>
+            <column name="name" value="Интерьерлік сағаттар"/>
+        </insert>
+
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WALL')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Настенные часы"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WALL')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Wall Clocks"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_WALL')"/>
+            <column name="lang" value="kz"/>
+            <column name="name" value="Қабырға сағаттары"/>
+        </insert>
+
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_FLOOR')"/>
+            <column name="lang" value="ru"/>
+            <column name="name" value="Напольные часы"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_FLOOR')"/>
+            <column name="lang" value="en"/>
+            <column name="name" value="Floor Clocks"/>
+        </insert>
+        <insert tableName="category_i18n">
+            <column name="category_id" valueComputed="(SELECT id FROM category WHERE code='WATCH_FLOOR')"/>
+            <column name="lang" value="kz"/>
+            <column name="name" value="Еден сағаттары"/>
+        </insert>
+
+    </changeSet>
+</databaseChangeLog>

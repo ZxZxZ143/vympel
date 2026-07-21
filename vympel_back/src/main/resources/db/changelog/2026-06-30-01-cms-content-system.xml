@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-06-30-01-cms-pages" author="codex" dbms="postgresql">
+        <createTable tableName="cms_page">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_key" type="VARCHAR(120)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql>
+            ALTER TABLE cms_page
+                ADD CONSTRAINT chk_cms_page_status CHECK (status IN ('ACTIVE', 'INACTIVE'));
+        </sql>
+
+        <createTable tableName="cms_media">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="storage_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="object_key" type="TEXT"/>
+            <column name="public_url" type="TEXT"/>
+            <column name="original_filename" type="VARCHAR(255)"/>
+            <column name="content_type" type="VARCHAR(120)"/>
+            <column name="size_bytes" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql>
+            ALTER TABLE cms_media
+                ADD CONSTRAINT chk_cms_media_storage_type CHECK (storage_type IN ('OBJECT_STORAGE', 'PUBLIC_PATH'));
+        </sql>
+        <sql>
+            ALTER TABLE cms_media
+                ADD CONSTRAINT chk_cms_media_source CHECK (
+                    (storage_type = 'OBJECT_STORAGE' AND object_key IS NOT NULL)
+                    OR (storage_type = 'PUBLIC_PATH' AND public_url IS NOT NULL)
+                );
+        </sql>
+
+        <createTable tableName="cms_block">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="block_key" type="VARCHAR(160)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="block_type" type="VARCHAR(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)" defaultValue="PUBLISHED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="settings_json" type="TEXT"/>
+            <column name="media_id" type="BIGINT"/>
+            <column name="link_type" type="VARCHAR(40)" defaultValue="NONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="link_target" type="TEXT"/>
+            <column name="link_open_behavior" type="VARCHAR(20)" defaultValue="SAME_TAB">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="page_id"
+                                 referencedTableName="cms_page" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_page" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="cms_block" baseColumnNames="media_id"
+                                 referencedTableName="cms_media" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_media"/>
+
+        <sql>
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_type CHECK (block_type IN
+                    ('HERO_SLIDER', 'BANNER', 'TEXT_BLOCK', 'IMAGE_TEXT_BLOCK', 'LINK_CARD',
+                     'MARKETPLACE_LINK', 'FOOTER_LINK_GROUP', 'CUSTOM_JSON'));
+        </sql>
+        <sql>
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_status CHECK (status IN ('DRAFT', 'PUBLISHED'));
+        </sql>
+        <sql>
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_link_type CHECK (link_type IN
+                    ('INTERNAL_ROUTE', 'CATALOG_CATEGORY', 'CATALOG_FILTER', 'BRAND_PAGE',
+                     'PRODUCT_PAGE', 'EXTERNAL_URL', 'NONE'));
+        </sql>
+        <sql>
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_link_open CHECK (link_open_behavior IN ('SAME_TAB', 'NEW_TAB'));
+        </sql>
+
+        <createIndex tableName="cms_block" indexName="idx_cms_block_page_status_sort">
+            <column name="page_id"/>
+            <column name="status"/>
+            <column name="sort_order"/>
+        </createIndex>
+
+        <createTable tableName="cms_block_translation">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="block_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang" type="VARCHAR(5)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="subtitle" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="button_text" type="VARCHAR(160)"/>
+            <column name="alt_text" type="VARCHAR(255)"/>
+            <column name="extra_json" type="TEXT"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="cms_block_translation"
+                             columnNames="block_id,lang"
+                             constraintName="uk_cms_block_translation_block_lang"/>
+        <addForeignKeyConstraint baseTableName="cms_block_translation" baseColumnNames="block_id"
+                                 referencedTableName="cms_block" referencedColumnNames="id"
+                                 constraintName="fk_cms_block_translation_block" onDelete="CASCADE"/>
+        <sql>
+            ALTER TABLE cms_block_translation
+                ADD CONSTRAINT chk_cms_block_translation_lang CHECK (lang IN ('ru', 'en', 'kk'));
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-06-30-02-cms-seed-content" author="codex" dbms="postgresql">
+        <insert tableName="cms_page">
+            <column name="id" valueNumeric="1"/>
+            <column name="page_key" value="home"/>
+            <column name="title" value="Home"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+        <insert tableName="cms_page">
+            <column name="id" valueNumeric="2"/>
+            <column name="page_key" value="about"/>
+            <column name="title" value="About"/>
+            <column name="status" value="ACTIVE"/>
+        </insert>
+
+        <insert tableName="cms_media">
+            <column name="id" valueNumeric="1"/>
+            <column name="storage_type" value="PUBLIC_PATH"/>
+            <column name="public_url" value="/Romanson_banner.png"/>
+            <column name="original_filename" value="Romanson_banner.png"/>
+            <column name="content_type" value="image/png"/>
+        </insert>
+        <insert tableName="cms_media">
+            <column name="id" valueNumeric="2"/>
+            <column name="storage_type" value="PUBLIC_PATH"/>
+            <column name="public_url" value="/newsBanner.png"/>
+            <column name="original_filename" value="newsBanner.png"/>
+            <column name="content_type" value="image/png"/>
+        </insert>
+        <insert tableName="cms_media">
+            <column name="id" valueNumeric="3"/>
+            <column name="storage_type" value="PUBLIC_PATH"/>
+            <column name="public_url" value="/about-us-banner.png"/>
+            <column name="original_filename" value="about-us-banner.png"/>
+            <column name="content_type" value="image/png"/>
+        </insert>
+        <insert tableName="cms_media">
+            <column name="id" valueNumeric="4"/>
+            <column name="storage_type" value="PUBLIC_PATH"/>
+            <column name="public_url" value="/contact_banner.png"/>
+            <column name="original_filename" value="contact_banner.png"/>
+            <column name="content_type" value="image/png"/>
+        </insert>
+
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="1"/>
+            <column name="page_id" valueNumeric="1"/>
+            <column name="block_key" value="home.heroSlider.slide1"/>
+            <column name="block_type" value="HERO_SLIDER"/>
+            <column name="sort_order" valueNumeric="10"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="1"/>
+            <column name="link_type" value="INTERNAL_ROUTE"/>
+            <column name="link_target" value="/brands/romanson"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="2"/>
+            <column name="page_id" valueNumeric="1"/>
+            <column name="block_key" value="home.heroSlider.slide2"/>
+            <column name="block_type" value="HERO_SLIDER"/>
+            <column name="sort_order" valueNumeric="20"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="1"/>
+            <column name="link_type" value="INTERNAL_ROUTE"/>
+            <column name="link_target" value="/brands/romanson"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="3"/>
+            <column name="page_id" valueNumeric="1"/>
+            <column name="block_key" value="home.heroSlider.slide3"/>
+            <column name="block_type" value="HERO_SLIDER"/>
+            <column name="sort_order" valueNumeric="30"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="1"/>
+            <column name="link_type" value="INTERNAL_ROUTE"/>
+            <column name="link_target" value="/brands/romanson"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="4"/>
+            <column name="page_id" valueNumeric="1"/>
+            <column name="block_key" value="home.heroSlider.slide4"/>
+            <column name="block_type" value="HERO_SLIDER"/>
+            <column name="sort_order" valueNumeric="40"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="1"/>
+            <column name="link_type" value="INTERNAL_ROUTE"/>
+            <column name="link_target" value="/brands/romanson"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="5"/>
+            <column name="page_id" valueNumeric="1"/>
+            <column name="block_key" value="home.newGoodsBanner"/>
+            <column name="block_type" value="BANNER"/>
+            <column name="sort_order" valueNumeric="50"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="2"/>
+            <column name="link_type" value="NONE"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="6"/>
+            <column name="page_id" valueNumeric="2"/>
+            <column name="block_key" value="about.heroBanner"/>
+            <column name="block_type" value="BANNER"/>
+            <column name="sort_order" valueNumeric="10"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="3"/>
+            <column name="link_type" value="NONE"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="7"/>
+            <column name="page_id" valueNumeric="2"/>
+            <column name="block_key" value="about.intro"/>
+            <column name="block_type" value="TEXT_BLOCK"/>
+            <column name="sort_order" valueNumeric="20"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="link_type" value="NONE"/>
+            <column name="link_open_behavior" value="SAME_TAB"/>
+        </insert>
+        <insert tableName="cms_block">
+            <column name="id" valueNumeric="8"/>
+            <column name="page_id" valueNumeric="2"/>
+            <column name="block_key" value="about.cooperationBanner"/>
+            <column name="block_type" value="IMAGE_TEXT_BLOCK"/>
+            <column name="sort_order" valueNumeric="30"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="media_id" valueNumeric="4"/>
+            <column name="link_type" value="EXTERNAL_URL"/>
+            <column name="link_target" value="https://wa.me/77474080620"/>
+            <column name="link_open_behavior" value="NEW_TAB"/>
+        </insert>
+
+        <sql>
+            INSERT INTO cms_block_translation (block_id, lang, alt_text)
+            SELECT block_id, lang, alt_text
+            FROM (
+                VALUES
+                    (1, 'ru', 'Romanson 2025 banner'),
+                    (1, 'en', 'Romanson 2025 banner'),
+                    (1, 'kk', 'Romanson 2025 banner'),
+                    (2, 'ru', 'Romanson 2025 banner'),
+                    (2, 'en', 'Romanson 2025 banner'),
+                    (2, 'kk', 'Romanson 2025 banner'),
+                    (3, 'ru', 'Romanson 2025 banner'),
+                    (3, 'en', 'Romanson 2025 banner'),
+                    (3, 'kk', 'Romanson 2025 banner'),
+                    (4, 'ru', 'Romanson 2025 banner'),
+                    (4, 'en', 'Romanson 2025 banner'),
+                    (4, 'kk', 'Romanson 2025 banner'),
+                    (5, 'ru', 'New products banner'),
+                    (5, 'en', 'New products banner'),
+                    (5, 'kk', 'New products banner'),
+                    (6, 'ru', 'About Vympel banner'),
+                    (6, 'en', 'About Vympel banner'),
+                    (6, 'kk', 'About Vympel banner'),
+                    (8, 'ru', 'Vympel contact banner'),
+                    (8, 'en', 'Vympel contact banner'),
+                    (8, 'kk', 'Vympel contact banner')
+            ) AS seed(block_id, lang, alt_text);
+        </sql>
+        <sql>
+            INSERT INTO cms_block_translation (block_id, lang)
+            VALUES
+                (7, 'ru'),
+                (7, 'en'),
+                (7, 'kk');
+        </sql>
+
+        <sql>
+            SELECT setval(pg_get_serial_sequence('cms_page', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_page));
+        </sql>
+        <sql>
+            SELECT setval(pg_get_serial_sequence('cms_media', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_media));
+        </sql>
+        <sql>
+            SELECT setval(pg_get_serial_sequence('cms_block', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_block));
+        </sql>
+        <sql>
+            SELECT setval(pg_get_serial_sequence('cms_block_translation', 'id'), (SELECT COALESCE(MAX(id), 1) FROM cms_block_translation));
+        </sql>
+    </changeSet>
+</databaseChangeLog>

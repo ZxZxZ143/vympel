@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-06-19-01-catalog-categories" author="codex" dbms="postgresql">
+        <sql splitStatements="false"><![CDATA[
+            INSERT INTO category (code, parent_id, active)
+            VALUES ('WATCH_WRIST', (SELECT id FROM category WHERE code = 'WATCH'), true)
+            ON CONFLICT (code) DO UPDATE SET parent_id = EXCLUDED.parent_id, active = true;
+
+            INSERT INTO category (code, parent_id, active)
+            VALUES ('WATCH_INTERIOR', (SELECT id FROM category WHERE code = 'WATCH'), true)
+            ON CONFLICT (code) DO UPDATE SET parent_id = EXCLUDED.parent_id, active = true;
+
+            INSERT INTO category (code, parent_id, active)
+            VALUES ('ACCESSORIES', NULL, true)
+            ON CONFLICT (code) DO UPDATE SET active = true;
+
+            INSERT INTO category (code, parent_id, active)
+            VALUES
+                ('WATCH_CLASSIC', (SELECT id FROM category WHERE code = 'WATCH_WRIST'), true),
+                ('WATCH_SPORT', (SELECT id FROM category WHERE code = 'WATCH_WRIST'), true),
+                ('WATCH_DIVER', (SELECT id FROM category WHERE code = 'WATCH_WRIST'), true),
+                ('WATCH_CHRONOGRAPH', (SELECT id FROM category WHERE code = 'WATCH_WRIST'), true)
+            ON CONFLICT (code) DO UPDATE SET parent_id = EXCLUDED.parent_id, active = true;
+
+            UPDATE category
+            SET parent_id = (SELECT id FROM category WHERE code = 'WATCH_WRIST')
+            WHERE code IN ('WATCH_MEN', 'WATCH_WOMEN', 'WATCH_UNISEX', 'SMARTWATCH');
+
+            INSERT INTO category_i18n (category_id, lang, name)
+            SELECT c.id, v.lang, v.name
+            FROM category c
+            JOIN (VALUES
+                ('WATCH_WRIST', 'ru', 'Наручные часы'),
+                ('WATCH_WRIST', 'en', 'Wrist watches'),
+                ('WATCH_WRIST', 'kk', 'Қол сағаттар'),
+                ('WATCH_INTERIOR', 'ru', 'Интерьерные часы'),
+                ('WATCH_INTERIOR', 'en', 'Interior clocks'),
+                ('WATCH_INTERIOR', 'kk', 'Интерьерлік сағаттар'),
+                ('ACCESSORIES', 'ru', 'Аксессуары'),
+                ('ACCESSORIES', 'en', 'Accessories'),
+                ('ACCESSORIES', 'kk', 'Аксессуарлар'),
+                ('WATCH_CLASSIC', 'ru', 'Классические часы'),
+                ('WATCH_CLASSIC', 'en', 'Classic watches'),
+                ('WATCH_CLASSIC', 'kk', 'Классикалық сағаттар'),
+                ('WATCH_SPORT', 'ru', 'Спортивные часы'),
+                ('WATCH_SPORT', 'en', 'Sport watches'),
+                ('WATCH_SPORT', 'kk', 'Спорт сағаттары'),
+                ('WATCH_DIVER', 'ru', 'Дайверские часы'),
+                ('WATCH_DIVER', 'en', 'Diver watches'),
+                ('WATCH_DIVER', 'kk', 'Дайвер сағаттары'),
+                ('WATCH_CHRONOGRAPH', 'ru', 'Хронографы'),
+                ('WATCH_CHRONOGRAPH', 'en', 'Chronographs'),
+                ('WATCH_CHRONOGRAPH', 'kk', 'Хронографтар')
+            ) AS v(code, lang, name) ON v.code = c.code
+            ON CONFLICT (category_id, lang) DO UPDATE SET name = EXCLUDED.name;
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="2026-06-19-02-interior-clock-details" author="codex" dbms="postgresql">
+        <sql splitStatements="false"><![CDATA[
+            CREATE TABLE IF NOT EXISTS interior_feature (
+                id BIGSERIAL PRIMARY KEY,
+                feature_type VARCHAR(50) NOT NULL,
+                code VARCHAR(100) NOT NULL,
+                active BOOLEAN NOT NULL DEFAULT true,
+                CONSTRAINT uq_interior_feature_type_code UNIQUE (feature_type, code)
+            );
+
+            CREATE TABLE IF NOT EXISTS interior_feature_i18n (
+                feature_id BIGINT NOT NULL REFERENCES interior_feature(id) ON DELETE CASCADE,
+                lang VARCHAR(5) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                CONSTRAINT pk_interior_feature_i18n PRIMARY KEY (feature_id, lang),
+                CONSTRAINT chk_interior_feature_i18n_lang CHECK (lang IN ('ru', 'en', 'kk'))
+            );
+
+            CREATE TABLE IF NOT EXISTS interior_clock_details (
+                product_id BIGINT PRIMARY KEY REFERENCES product(id) ON DELETE CASCADE,
+                production_country_id BIGINT NOT NULL REFERENCES country(id),
+                case_material_id BIGINT NOT NULL REFERENCES material(id),
+                color_id BIGINT NOT NULL REFERENCES interior_feature(id),
+                style_id BIGINT REFERENCES interior_feature(id),
+                mechanism_type_id BIGINT NOT NULL REFERENCES interior_feature(id),
+                power_type_id BIGINT NOT NULL REFERENCES interior_feature(id),
+                dimensions VARCHAR(100),
+                weight_grams INTEGER,
+                warranty_months INTEGER
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_interior_feature_type ON interior_feature(feature_type);
+            CREATE INDEX IF NOT EXISTS idx_interior_clock_country ON interior_clock_details(production_country_id);
+            CREATE INDEX IF NOT EXISTS idx_interior_clock_case_material ON interior_clock_details(case_material_id);
+            CREATE INDEX IF NOT EXISTS idx_interior_clock_color ON interior_clock_details(color_id);
+            CREATE INDEX IF NOT EXISTS idx_interior_clock_style ON interior_clock_details(style_id);
+            CREATE INDEX IF NOT EXISTS idx_interior_clock_mechanism ON interior_clock_details(mechanism_type_id);
+            CREATE INDEX IF NOT EXISTS idx_interior_clock_power ON interior_clock_details(power_type_id);
+
+            INSERT INTO interior_feature (feature_type, code, active)
+            VALUES
+                ('COLOR', 'BLACK', true),
+                ('COLOR', 'WHITE', true),
+                ('COLOR', 'GOLD', true),
+                ('COLOR', 'SILVER', true),
+                ('COLOR', 'WOOD', true),
+                ('STYLE', 'CLASSIC', true),
+                ('STYLE', 'MODERN', true),
+                ('STYLE', 'LOFT', true),
+                ('STYLE', 'MINIMALISM', true),
+                ('MECHANISM', 'QUARTZ', true),
+                ('MECHANISM', 'MECHANICAL', true),
+                ('POWER', 'BATTERY', true),
+                ('POWER', 'MAINS', true),
+                ('POWER', 'MECHANICAL', true)
+            ON CONFLICT (feature_type, code) DO UPDATE SET active = true;
+
+            INSERT INTO interior_feature_i18n (feature_id, lang, name)
+            SELECT f.id, v.lang, v.name
+            FROM interior_feature f
+            JOIN (VALUES
+                ('COLOR', 'BLACK', 'ru', 'Черный'),
+                ('COLOR', 'BLACK', 'en', 'Black'),
+                ('COLOR', 'BLACK', 'kk', 'Қара'),
+                ('COLOR', 'WHITE', 'ru', 'Белый'),
+                ('COLOR', 'WHITE', 'en', 'White'),
+                ('COLOR', 'WHITE', 'kk', 'Ақ'),
+                ('COLOR', 'GOLD', 'ru', 'Золотой'),
+                ('COLOR', 'GOLD', 'en', 'Gold'),
+                ('COLOR', 'GOLD', 'kk', 'Алтын'),
+                ('COLOR', 'SILVER', 'ru', 'Серебристый'),
+                ('COLOR', 'SILVER', 'en', 'Silver'),
+                ('COLOR', 'SILVER', 'kk', 'Күміс'),
+                ('COLOR', 'WOOD', 'ru', 'Дерево'),
+                ('COLOR', 'WOOD', 'en', 'Wood'),
+                ('COLOR', 'WOOD', 'kk', 'Ағаш'),
+                ('STYLE', 'CLASSIC', 'ru', 'Классика'),
+                ('STYLE', 'CLASSIC', 'en', 'Classic'),
+                ('STYLE', 'CLASSIC', 'kk', 'Классика'),
+                ('STYLE', 'MODERN', 'ru', 'Модерн'),
+                ('STYLE', 'MODERN', 'en', 'Modern'),
+                ('STYLE', 'MODERN', 'kk', 'Модерн'),
+                ('STYLE', 'LOFT', 'ru', 'Лофт'),
+                ('STYLE', 'LOFT', 'en', 'Loft'),
+                ('STYLE', 'LOFT', 'kk', 'Лофт'),
+                ('STYLE', 'MINIMALISM', 'ru', 'Минимализм'),
+                ('STYLE', 'MINIMALISM', 'en', 'Minimalism'),
+                ('STYLE', 'MINIMALISM', 'kk', 'Минимализм'),
+                ('MECHANISM', 'QUARTZ', 'ru', 'Кварцевый'),
+                ('MECHANISM', 'QUARTZ', 'en', 'Quartz'),
+                ('MECHANISM', 'QUARTZ', 'kk', 'Кварц'),
+                ('MECHANISM', 'MECHANICAL', 'ru', 'Механический'),
+                ('MECHANISM', 'MECHANICAL', 'en', 'Mechanical'),
+                ('MECHANISM', 'MECHANICAL', 'kk', 'Механикалық'),
+                ('POWER', 'BATTERY', 'ru', 'Батарейка'),
+                ('POWER', 'BATTERY', 'en', 'Battery'),
+                ('POWER', 'BATTERY', 'kk', 'Батарея'),
+                ('POWER', 'MAINS', 'ru', 'От сети'),
+                ('POWER', 'MAINS', 'en', 'Mains'),
+                ('POWER', 'MAINS', 'kk', 'Желіден'),
+                ('POWER', 'MECHANICAL', 'ru', 'Механический завод'),
+                ('POWER', 'MECHANICAL', 'en', 'Mechanical wind'),
+                ('POWER', 'MECHANICAL', 'kk', 'Механикалық бұрау')
+            ) AS v(feature_type, code, lang, name)
+                ON v.feature_type = f.feature_type AND v.code = f.code
+            ON CONFLICT (feature_id, lang) DO UPDATE SET name = EXCLUDED.name;
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="2026-06-19-03-catalog-search-trgm" author="codex" dbms="postgresql">
+        <sql splitStatements="false"><![CDATA[
+            CREATE EXTENSION IF NOT EXISTS pg_trgm;
+            CREATE INDEX IF NOT EXISTS idx_product_model_trgm ON product USING gin (lower(model) gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_product_sku_trgm ON product USING gin (lower(sku) gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_product_i18n_name_trgm ON product_i18n USING gin (lower(name) gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_brand_name_trgm ON brand USING gin (lower(name) gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_collection_name_trgm ON collection USING gin (lower(name) gin_trgm_ops);
+            CREATE INDEX IF NOT EXISTS idx_collection_code_trgm ON collection USING gin (lower(code) gin_trgm_ops);
+        ]]></sql>
+    </changeSet>
+</databaseChangeLog>
