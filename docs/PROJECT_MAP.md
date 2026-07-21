@@ -762,7 +762,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 
 ### Backend
 
-* Install: Gradle wrapper resolves dependencies: `cd vympel_back && .\gradlew.bat build` on Windows.
+* Install: Gradle wrapper resolves dependencies: `cd vympel_back && .\gradlew.bat build` on Windows or `cd vympel_back && ./gradlew build` on Linux; `gradlew` must retain Git mode `100755` for GitHub Actions.
 * Dev: `cd vympel_back && .\gradlew.bat bootRun --args='--spring.profiles.active=local'` so local HTTP uses the explicit `application-local.yml` refresh-cookie exception.
 * Build: `cd vympel_back && .\gradlew.bat build`.
 * Test: `cd vympel_back && .\gradlew.bat test`.
@@ -1124,4 +1124,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-22 - Added the RC SEO/discovery contract, CRM noindex policy, observable runtime signals, historical Liquibase fail-closed gate, disposable rehearsals, commit-specific manifest evidence, and non-colliding standalone/reusable CI concurrency.
+2026-07-22 - Added RC deployment/verification architecture, non-colliding CI concurrency, and the executable Linux Gradle-wrapper contract discovered by remote CI.

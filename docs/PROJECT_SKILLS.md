@@ -1866,6 +1866,12 @@
 * **How:** Include `${{ github.workflow }}` as well as `${{ github.ref }}` in the concurrency group. Keep cancellation enabled for superseded runs within the same workflow/ref, but do not let the aggregate caller cancel the standalone component evidence.
 * **Why:** A ref-only group caused GitHub to cancel all three standalone component runs as soon as Full Release Gate invoked the same workflows.
 
+### Preserve wrapper executable modes in a Windows-authored monorepo
+
+* **When to use:** A script or Gradle wrapper is executed directly on Linux CI after being consolidated or committed from Windows.
+* **How:** Verify the Git index mode with `git ls-files -s`; `vympel_back/gradlew` and directly invoked deployment scripts must be `100755`. Use an explicit index mode change when the Windows filesystem cannot represent POSIX execution bits.
+* **Why:** The first real Backend CI run stopped at `./gradlew: Permission denied` before any test could execute even though local `gradlew.bat` passed.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for signed CMS retry, fail-closed Liquibase acceptance, compiled SEO configuration, disposable rehearsals, YAML/actionlint validation, and standalone/reusable CI concurrency isolation.
+2026-07-22 - Added RC lessons for signed CMS retry, fail-closed Liquibase acceptance, compiled SEO, disposable rehearsals, CI concurrency isolation, and Linux executable-mode preservation.
