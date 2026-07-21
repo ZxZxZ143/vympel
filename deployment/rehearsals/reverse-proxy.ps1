@@ -3,6 +3,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$dockerCommand = (Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue).Source
+if (-not $dockerCommand) { $dockerCommand = (Get-Command docker -CommandType Application -ErrorAction Stop).Source }
+$curlCommand = (Get-Command curl.exe -CommandType Application -ErrorAction SilentlyContinue).Source
+if (-not $curlCommand) { $curlCommand = (Get-Command curl -CommandType Application -ErrorAction Stop).Source }
 $suffix = ([guid]::NewGuid().ToString('N')).Substring(0, 12)
 $prefix = "vympel-rc-proxy-$suffix"
 $network = "$prefix-net"
@@ -18,7 +22,7 @@ function Assert-Equal([string]$Actual, [string]$Expected, [string]$Message) {
 }
 
 function Invoke-Curl([string[]]$Arguments) {
-    $output = & curl.exe @Arguments
+    $output = & $curlCommand @Arguments
     if ($LASTEXITCODE -ne 0) { throw "curl failed with exit code $LASTEXITCODE" }
     return ($output -join "`n")
 }
@@ -26,7 +30,7 @@ function Invoke-Curl([string[]]$Arguments) {
 function Invoke-Docker([string[]]$Arguments) {
     $previousPreference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    $output = @(& docker.exe @Arguments 2>&1 | ForEach-Object { $_.ToString() })
+    $output = @(& $dockerCommand @Arguments 2>&1 | ForEach-Object { $_.ToString() })
     $exitCode = $LASTEXITCODE
     $ErrorActionPreference = $previousPreference
     if ($exitCode -ne 0) {

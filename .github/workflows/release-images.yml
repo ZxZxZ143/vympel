@@ -1,6 +1,13 @@
 name: Release Images
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "vympel_back/**"
+      - "vympel_front/**"
+      - "vympel_crm/**"
+      - ".github/workflows/release-images.yml"
   workflow_dispatch:
     inputs:
       registry:
@@ -64,20 +71,20 @@ jobs:
             context: vympel_front
             dockerfile: vympel_front/Dockerfile
             build_args: |
-              BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
-              NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
-              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins }}
-              NEXT_PUBLIC_SITE_URL=${{ inputs.storefront_site_url }}
-              NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
+              BASE_API_PUBLIC=${{ inputs.storefront_api_base || 'https://api.example.invalid/api/public' }}
+              NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base || 'https://api.example.invalid/api/public' }}
+              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins || 'https://media.example.invalid' }}
+              NEXT_PUBLIC_SITE_URL=${{ inputs.storefront_site_url || 'https://shop.example.invalid' }}
+              NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment || 'ci' }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false
           - image: vympel-crm
             context: vympel_crm
             dockerfile: vympel_crm/Dockerfile
             build_args: |
-              NEXT_PUBLIC_CRM_API_BASE=${{ inputs.crm_api_base }}
-              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins }}
-              NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
+              NEXT_PUBLIC_CRM_API_BASE=${{ inputs.crm_api_base || 'https://api.example.invalid/api/crm' }}
+              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins || 'https://media.example.invalid' }}
+              NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment || 'ci' }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false
     env:
@@ -91,7 +98,7 @@ jobs:
         if: env.PUSH_ENABLED == 'true'
         uses: docker/login-action@v3.4.0
         with:
-          registry: ${{ inputs.registry }}
+          registry: ${{ inputs.registry || 'registry.example.invalid/vympel' }}
           username: ${{ env.REGISTRY_USERNAME }}
           password: ${{ env.REGISTRY_TOKEN }}
       - name: Build immutable image
@@ -104,13 +111,13 @@ jobs:
           pull: true
           push: ${{ env.PUSH_ENABLED == 'true' }}
           load: ${{ env.PUSH_ENABLED != 'true' }}
-          tags: ${{ inputs.registry }}/${{ matrix.image }}:${{ github.sha }}
+          tags: ${{ inputs.registry || 'registry.example.invalid/vympel' }}/${{ matrix.image }}:${{ github.sha }}
           provenance: true
           sbom: true
       - name: Record image metadata
         env:
           IMAGE_NAME: ${{ matrix.image }}
-          IMAGE_REF: ${{ inputs.registry }}/${{ matrix.image }}:${{ github.sha }}
+          IMAGE_REF: ${{ inputs.registry || 'registry.example.invalid/vympel' }}/${{ matrix.image }}:${{ github.sha }}
           IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
         run: |
           mkdir -p release-metadata

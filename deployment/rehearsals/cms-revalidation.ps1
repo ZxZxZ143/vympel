@@ -5,6 +5,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$dockerCommand = (Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue).Source
+if (-not $dockerCommand) { $dockerCommand = (Get-Command docker -CommandType Application -ErrorAction Stop).Source }
 $suffix = ([guid]::NewGuid().ToString('N')).Substring(0, 12)
 $prefix = "vympel-rc-cms-$suffix"
 $network = "$prefix-net"
@@ -30,7 +32,7 @@ $containers = @($backend, $gateway, $storefront, $postgres)
 function Invoke-Docker([string[]]$Arguments) {
     $previousPreference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    $output = @(& docker.exe @Arguments 2>&1 | ForEach-Object { $_.ToString() })
+    $output = @(& $dockerCommand @Arguments 2>&1 | ForEach-Object { $_.ToString() })
     $exitCode = $LASTEXITCODE
     $ErrorActionPreference = $previousPreference
     if ($exitCode -ne 0) {

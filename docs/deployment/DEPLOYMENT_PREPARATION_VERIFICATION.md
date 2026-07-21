@@ -14,7 +14,7 @@ This report records repository-local verification for the provider-neutral deplo
 | Staging/production | `infrastructure/compose/*.yml`, `infrastructure/env/*.env.example` | Implemented; immutable application refs and external data services |
 | Proxy | `infrastructure/reverse-proxy/*` | Implemented; configurable domains and TLS |
 | Operations | `deployment/scripts/*.sh`, release manifest | Implemented; bounded, provider-neutral, no destructive DB rollback |
-| CI | Five required workflows | Implemented; path filters, full-SHA tags, guarded manual push |
+| CI | Five required workflows | Implemented; path filters, non-publishing automatic full-SHA image evidence, guarded manual push |
 | Runbooks | `docs/deployment/*` | Implemented |
 
 ## Verification record

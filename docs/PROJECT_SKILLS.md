@@ -1872,6 +1872,18 @@
 * **How:** Verify the Git index mode with `git ls-files -s`; `vympel_back/gradlew` and directly invoked deployment scripts must be `100755`. Use an explicit index mode change when the Windows filesystem cannot represent POSIX execution bits.
 * **Why:** The first real Backend CI run stopped at `./gradlew: Permission denied` before any test could execute even though local `gradlew.bat` passed.
 
+### Resolve native commands portably in PowerShell rehearsals
+
+* **When to use:** The same `.ps1` release rehearsal runs in Windows PowerShell locally and `pwsh` on an Ubuntu GitHub runner.
+* **How:** Resolve native applications with `Get-Command <name> -CommandType Application`; prefer the Windows `.exe` name when present and fall back to the portable name. Invoke the resolved path rather than hardcoding `docker.exe` or `curl.exe`.
+* **Why:** Windows-only executable names passed every local rehearsal but failed immediately on the real Ubuntu full-release runner.
+
+### Separate image-build evidence from publication authority
+
+* **When to use:** CI must prove immutable release images build before a registry and credentials are approved.
+* **How:** Let relevant `main` changes run the image workflow with non-secret placeholder build URLs and `push=false`; retain registry publication only behind `workflow_dispatch`, an explicit boolean input, a repository variable, and registry credentials.
+* **Why:** This produces real remote build metadata without accidentally granting a push or coupling validation to a hosting provider.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for signed CMS retry, fail-closed Liquibase acceptance, compiled SEO, disposable rehearsals, CI concurrency isolation, and Linux executable-mode preservation.
+2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, executable modes, and native PowerShell command resolution.

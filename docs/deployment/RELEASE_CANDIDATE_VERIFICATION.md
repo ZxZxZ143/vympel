@@ -33,9 +33,10 @@ Status: local provider-independent gates passed; remote commit/CI/tag evidence p
 | Local/staging/production Compose | PASS | All three `config --quiet` checks |
 | Backup/restore | PASS | `BACKUP_RESTORE_REHEARSAL_REPORT.md` |
 | CMS signed freshness/retry | PASS | `CMS_REVALIDATION_INTEGRATION_REPORT.md` |
-| Reverse proxy | PASS | Rehearsal `b03676967e08` |
+| Reverse proxy | PASS | Rehearsal `4e57b0f0c2c0`; rerun after Windows/Ubuntu command-resolution correction |
 | Prometheus/rules | PASS | `promtool` 3.5.0; one config and seven rules |
 | Workflow semantics | PASS | pinned actionlint 1.7.7 |
+| Release image policy | PASS | relevant `main` changes build full-SHA images without publication; registry push remains manually and externally guarded |
 | YAML and script syntax | PASS | Psych syntax parsing, ten POSIX scripts, three PowerShell rehearsals, Node gateway |
 | Secret/generated artifact scan | PASS | gitleaks 8.28.0 scanned the exact staged index with redacted output; no leaks found; generated/dependency/dump/key inventory passed |
 | Remote GitHub CI | PENDING | Recorded separately in `REMOTE_CI_VERIFICATION.md` after push |
