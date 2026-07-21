@@ -33,7 +33,7 @@ Status: local provider-independent gates passed; remote commit/CI/tag evidence p
 | Local/staging/production Compose | PASS | All three `config --quiet` checks |
 | Backup/restore | PASS | `BACKUP_RESTORE_REHEARSAL_REPORT.md` |
 | CMS signed freshness/retry | PASS | `CMS_REVALIDATION_INTEGRATION_REPORT.md` |
-| Reverse proxy | PASS | Rehearsal `4e57b0f0c2c0`; rerun after Windows/Ubuntu command-resolution correction |
+| Reverse proxy | PASS | Rehearsal `d96d97430666`; rerun after Windows/Ubuntu command-resolution correction |
 | Prometheus/rules | PASS | `promtool` 3.5.0; one config and seven rules |
 | Workflow semantics | PASS | pinned actionlint 1.7.7 |
 | Release image policy | PASS | relevant `main` changes build full-SHA images without publication; registry push remains manually and externally guarded |

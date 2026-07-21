@@ -27,6 +27,7 @@ jobs:
         working-directory: vympel_front
         env:
           SECURITY_HEADERS_CSP_MODE: enforce
+          NEXT_PUBLIC_SITE_URL: https://shop.example.invalid
           NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
           TELEMETRY_ENABLED: "false"
         run: npm ci && npm run build

@@ -1124,4 +1124,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-22 - Added RC deployment/verification architecture, non-publishing automatic image evidence, and remote-CI portability corrections for concurrency, executable Gradle wrapper, and Windows/Ubuntu rehearsal command resolution.
+2026-07-22 - Added RC deployment/verification architecture, non-publishing automatic image evidence, and remote-CI corrections for concurrency, executable modes, native command resolution, canonical build configuration, and Buildx export compatibility.

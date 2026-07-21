@@ -5,8 +5,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$dockerCommand = (Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue).Source
-if (-not $dockerCommand) { $dockerCommand = (Get-Command docker -CommandType Application -ErrorAction Stop).Source }
+$dockerCommand = (Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+if (-not $dockerCommand) { $dockerCommand = (Get-Command docker -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source }
 $suffix = ([guid]::NewGuid().ToString('N')).Substring(0, 12)
 $prefix = "vympel-rc-cms-$suffix"
 $network = "$prefix-net"

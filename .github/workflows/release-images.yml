@@ -112,8 +112,8 @@ jobs:
           push: ${{ env.PUSH_ENABLED == 'true' }}
           load: ${{ env.PUSH_ENABLED != 'true' }}
           tags: ${{ inputs.registry || 'registry.example.invalid/vympel' }}/${{ matrix.image }}:${{ github.sha }}
-          provenance: true
-          sbom: true
+          provenance: ${{ env.PUSH_ENABLED == 'true' }}
+          sbom: ${{ env.PUSH_ENABLED == 'true' }}
       - name: Record image metadata
         env:
           IMAGE_NAME: ${{ matrix.image }}

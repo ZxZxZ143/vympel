@@ -1875,8 +1875,8 @@
 ### Resolve native commands portably in PowerShell rehearsals
 
 * **When to use:** The same `.ps1` release rehearsal runs in Windows PowerShell locally and `pwsh` on an Ubuntu GitHub runner.
-* **How:** Resolve native applications with `Get-Command <name> -CommandType Application`; prefer the Windows `.exe` name when present and fall back to the portable name. Invoke the resolved path rather than hardcoding `docker.exe` or `curl.exe`.
-* **Why:** Windows-only executable names passed every local rehearsal but failed immediately on the real Ubuntu full-release runner.
+* **How:** Resolve native applications with `Get-Command <name> -CommandType Application | Select-Object -First 1`; prefer the Windows `.exe` name when present and fall back to the portable name. Invoke the single resolved path rather than hardcoding `docker.exe` or `curl.exe`.
+* **Why:** Windows-only executable names passed every local rehearsal but failed immediately on the real Ubuntu full-release runner; Ubuntu can also return both `/usr/bin` and `/bin` aliases, so the resolved value must be singular.
 
 ### Separate image-build evidence from publication authority
 
@@ -1884,6 +1884,12 @@
 * **How:** Let relevant `main` changes run the image workflow with non-secret placeholder build URLs and `push=false`; retain registry publication only behind `workflow_dispatch`, an explicit boolean input, a repository variable, and registry credentials.
 * **Why:** This produces real remote build metadata without accidentally granting a push or coupling validation to a hosting provider.
 
+### Couple Buildx attestations to registry export
+
+* **When to use:** One image workflow supports both CI-only local loading and later registry publication.
+* **How:** Keep provenance and SBOM attestations enabled for the guarded registry-push path; disable them for the `--load` path, which uses Docker's single-image exporter.
+* **Why:** Buildx cannot export an attested manifest list through the Docker image loader (`docker exporter does not currently support exporting manifest lists`).
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, executable modes, and native PowerShell command resolution.
+2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, non-publishing image evidence, and remote-CI portability across concurrency, executable modes, command resolution, build configuration, and Buildx export modes.
