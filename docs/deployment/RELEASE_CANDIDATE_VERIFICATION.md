@@ -37,7 +37,7 @@ Status: local provider-independent gates passed; remote commit/CI/tag evidence p
 | Prometheus/rules | PASS | `promtool` 3.5.0; one config and seven rules |
 | Workflow semantics | PASS | pinned actionlint 1.7.7 |
 | Release image policy | PASS | relevant `main` changes build full-SHA images without publication; registry push remains manually and externally guarded |
-| YAML and script syntax | PASS | Psych syntax parsing, ten POSIX scripts, three PowerShell rehearsals, Node gateway |
+| YAML and script syntax | PASS | Psych syntax parsing, eleven POSIX scripts, three PowerShell rehearsals, Node gateway |
 | Secret/generated artifact scan | PASS | gitleaks 8.28.0 scanned the exact staged index with redacted output; no leaks found; generated/dependency/dump/key inventory passed |
 | Remote GitHub CI | PENDING | Recorded separately in `REMOTE_CI_VERIFICATION.md` after push |
 

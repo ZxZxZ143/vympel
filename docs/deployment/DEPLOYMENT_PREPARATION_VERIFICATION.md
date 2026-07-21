@@ -60,7 +60,7 @@ These are local verification tags only. No registry push occurred. Release workf
 | Check | Exit | Result |
 | --- | ---: | --- |
 | Local/staging/production `docker compose config --quiet` | 0 / 0 / 0 | All three configurations resolve. Deployment app refs are immutable and only proxy ports are published. |
-| `sh -n deployment/scripts/*.sh` | 0 | All ten POSIX deployment scripts parse. |
+| `sh -n deployment/scripts/*.sh` | 0 | All eleven POSIX deployment scripts parse, including validated immutable-manifest generation. |
 | Example environment validation | expected nonzero | Both placeholder templates fail closed before deployment. |
 | YAML parse | 0 | All workflow, Compose, and release-manifest YAML parses. |
 | `actionlint` 1.7.7 | 0 | All GitHub Actions workflows pass semantic and embedded shell checks. |

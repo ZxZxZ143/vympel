@@ -108,17 +108,11 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Create immutable release metadata
         run: |
-          mkdir -p release-metadata
-          generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          sed \
-            -e "s/0000000000000000000000000000000000000000/${GITHUB_SHA}/g" \
-            -e "s/GENERATED_AT_UTC/${generated_at}/g" \
-            -e "s/REMOTE_CI_RUN_PENDING/${GITHUB_SERVER_URL}\/${GITHUB_REPOSITORY}\/actions\/runs\/${GITHUB_RUN_ID}/g" \
-            -e 's/backendCi: PENDING/backendCi: VERIFIED_BY_FULL_RELEASE_GATE/g' \
-            -e 's/storefrontCi: PENDING/storefrontCi: VERIFIED_BY_FULL_RELEASE_GATE/g' \
-            -e 's/crmCi: PENDING/crmCi: VERIFIED_BY_FULL_RELEASE_GATE/g' \
-            -e 's/fullReleaseGate: PENDING/fullReleaseGate: PASSED/g' \
-            deployment/release-manifest.example.yml > release-metadata/v1.0.0-rc.1.yml
+          sh deployment/scripts/generate-release-manifest.sh \
+            deployment/release-manifest.example.yml \
+            release-metadata/v1.0.0-rc.1.yml \
+            "$GITHUB_SHA" \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           jq -n \
             --arg commit "$GITHUB_SHA" \
             --arg ref "$GITHUB_REF" \

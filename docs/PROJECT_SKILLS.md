@@ -1914,6 +1914,12 @@
 * **How:** Require both `pg_isready` and `/proc/1/comm=postgres` within a finite loop. The PID 1 check distinguishes the final postmaster from the temporary initialization server run by the entrypoint.
 * **Why:** `pg_isready` can briefly succeed against the initialization postmaster immediately before the entrypoint shuts it down, causing a following `pg_restore` to fail with “database system is shutting down”.
 
+### Use a URL-safe delimiter for release-manifest substitution
+
+* **When to use:** Inject a GitHub run URL into the release-manifest template with `sed`.
+* **How:** Keep substitution in `deployment/scripts/generate-release-manifest.sh`, validate the SHA and HTTPS run URL first, use a delimiter such as `|` for the URL, and reject unresolved immutable placeholders in the output.
+* **Why:** The first real metadata job passed every substantive gate but failed on `sed: unknown option to s` before it could upload the immutable manifest.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, self-owned integration fixtures, final PostgreSQL readiness, non-publishing image evidence, and remote-CI portability across concurrency, disposable test services, readiness gates, executable modes, command resolution, build configuration, and Buildx export modes.
+2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, self-owned integration fixtures, final PostgreSQL readiness, non-publishing image evidence, and remote-CI portability across concurrency, disposable test services, readiness gates, executable modes, command resolution, build configuration, Buildx export modes, and manifest substitution.
