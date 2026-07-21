@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:security": "node --test --test-isolation=none scripts/test-security-headers.mjs",
     "test:budgets": "node ../scripts/check-performance-budgets.mjs",
@@ -15,8 +16,8 @@
   },
   "dependencies": {
     "next": "16.2.10",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "react-hook-form": "^7.80.0"
   },
   "devDependencies": {

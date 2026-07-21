@@ -7,13 +7,11 @@ import com.shop.vympel.db.repositories.user.RoleRepository;
 import com.shop.vympel.db.repositories.user.UserRepository;
 import com.shop.vympel.db.repositories.user.UserRoleRepository;
 import com.shop.vympel.enums.RoleCode;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Profile("local")
 public class LocalAdminBootstrapService {
     private static final String ADMIN_ROLE = RoleCode.ADMIN.name();
 
@@ -62,7 +60,7 @@ public class LocalAdminBootstrapService {
         requireAdminRole();
         User existingUser = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new IllegalStateException(
-                        "Local ADMIN bootstrap encountered a database conflict without an existing account"
+                        "ADMIN bootstrap encountered a database conflict without an existing account"
                 ));
         ensureExistingUserIsAdmin(existingUser);
         return BootstrapResult.EXISTING_ADMIN;
@@ -70,7 +68,7 @@ public class LocalAdminBootstrapService {
 
     private Role requireAdminRole() {
         return roleRepository.findByCodeAndActiveTrue(ADMIN_ROLE)
-                .orElseThrow(() -> new IllegalStateException("Active ADMIN role is required for local bootstrap"));
+                .orElseThrow(() -> new IllegalStateException("Active ADMIN role is required for bootstrap"));
     }
 
     private void ensureExistingUserIsAdmin(User user) {
@@ -78,7 +76,7 @@ public class LocalAdminBootstrapService {
                 .anyMatch(userRole -> ADMIN_ROLE.equals(userRole.getRole().getCode()));
         if (!isAdmin) {
             throw new IllegalStateException(
-                    "Configured local ADMIN bootstrap email already belongs to a non-admin account"
+                    "Configured ADMIN bootstrap email already belongs to a non-admin account"
             );
         }
     }

@@ -3,7 +3,7 @@
 Date: 2026-07-21  
 Workspace: `E:\vympel_full`  
 Target branch: `main`  
-Baseline commit: recorded after creation in the deployment implementation commit
+Baseline commit: `0fd2f14f75021aab8eafcd4c6f34739d3d1a3418`
 
 No secret values are included in this report.
 
@@ -89,3 +89,5 @@ Vitest and the post-compile Next worker required the same bounded process-spawn 
 ## Baseline Decision
 
 All required finite baseline checks pass. The final staged index contains 1,143 intentional files, the prohibited-path classifier reports zero violations, the staged private-key/provider-token signature scan has no matches, and the only JWT-shaped match is the documented synthetic masking fixture. The candidate is approved for the local commit `Initial Vympel monorepo baseline`. No remote, push, registry operation, or external deployment is authorized or performed.
+
+The commit was created successfully as `0fd2f14f75021aab8eafcd4c6f34739d3d1a3418`. Immediately afterward, root `git status` was clean, root `git log` resolved the commit, no remote existed, and no nested canonical `.git` directory was present.

@@ -1,0 +1,61 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vympel_back/**"
+      - "compose.yml"
+      - ".env.example"
+      - ".env.docker.example"
+      - "infrastructure/**"
+      - "deployment/**"
+      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/full-release-gate.yml"
+  pull_request:
+    paths:
+      - "vympel_back/**"
+      - "compose.yml"
+      - ".env.example"
+      - ".env.docker.example"
+      - "infrastructure/**"
+      - "deployment/**"
+      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/full-release-gate.yml"
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - name: Run backend tests
+        working-directory: vympel_back
+        run: ./gradlew --no-daemon --console=plain test
+      - name: Build executable JAR
+        working-directory: vympel_back
+        run: ./gradlew --no-daemon --console=plain bootJar
+      - name: Verify migration and security coverage
+        working-directory: vympel_back
+        run: >-
+          ./gradlew --no-daemon --console=plain test
+          --tests com.shop.vympel.db.RefreshSessionMigrationTest
+          --tests com.shop.vympel.deployment.MigrationVerificationRunnerTest
+          --tests com.shop.vympel.security.config.NonLocalSecurityConfigurationValidatorTest
+          --tests com.shop.vympel.bootstrap.admin.LocalAdminBootstrapRunnerTest
+          --tests com.shop.vympel.bootstrap.admin.LocalAdminBootstrapServiceTest
+      - name: Build backend image
+        run: docker build --pull --tag "vympel-backend:${GITHUB_SHA}" vympel_back

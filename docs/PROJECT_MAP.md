@@ -42,9 +42,18 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 |-- compose.yml                       # authoritative full local Docker stack
 |-- .env.example                      # placeholder-only full-Docker variable inventory
 |-- .env.docker.example               # optional non-secret Compose host-port overrides
+|-- .github/workflows/                # component CI, image release, and full release gates
+|-- deployment/
+|   |-- release-manifest.example.yml  # immutable release/digest evidence template
+|   `-- scripts/                       # validation, migration, deploy, smoke, rollback helpers
+|-- infrastructure/
+|   |-- compose/                       # prebuilt-image staging and production stacks
+|   |-- env/                           # placeholder-only deployment environment templates
+|   `-- reverse-proxy/                 # configurable TLS Nginx templates
 |-- docs/
 |   |-- PROJECT_MAP.md                # project architecture memory
 |   |-- PROJECT_SKILLS.md             # project lessons and working patterns
+|   |-- deployment/                   # provider-neutral runbooks and release checklists
 |   `-- tasks/
 |       |-- prepare_vympel_ui_polish_audit.md
 |       |-- vympel_ui_polish_audit/   # audit spec, screenshot index, and responsive evidence
@@ -708,14 +717,14 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * Request correlation: `vympel_back/src/main/java/com/shop/vympel/logging/RequestCorrelationFilter.java`.
 * Abuse controls: `RateLimitFilter`, `RateLimitService`, `LoginBackoffService`, `AbuseProtectionService`, and Redis/memory `RateLimitStore` implementations under `security/ratelimit`.
 * Secure startup guard: `NonLocalSecurityConfigurationValidator`, registered before bean creation through `META-INF/spring.factories`.
-* Local ADMIN bootstrap: `LocalAdminBootstrapRunner` executes after application initialization/Liquibase only when the `local` profile is active; it delegates all database work to `LocalAdminBootstrapService`.
+* ADMIN bootstrap: historically named `LocalAdminBootstrapRunner`, it executes after application initialization/Liquibase in any profile only when `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=true`; all database work is delegated to `LocalAdminBootstrapService`.
 * Error response boundary: `vympel_back/src/main/java/com/shop/vympel/security/GlobalErrorHandler.java`.
 * File logging config: `vympel_back/src/main/resources/logback-spring.xml`.
 
 ### Other
 
 * CLI: None discovered beyond npm and Gradle commands.
-* Workers: `LocalAdminBootstrapRunner` is a local-profile-only one-shot startup runner; scheduled background jobs are listed below.
+* Workers: `LocalAdminBootstrapRunner` is an opt-in one-shot startup runner; `MigrationVerificationRunner` closes a finite migration container after confirming `databasechangelog`; scheduled background jobs are listed below.
 * Cron jobs: `RefreshSessionCleanupJob` removes expired/revoked CRM refresh sessions daily using `VYMPEL_CRM_REFRESH_CLEANUP_CRON` and the configured retention window.
 * Scripts: Frontend npm scripts in `package.json`; backend Gradle wrapper tasks.
 
@@ -743,6 +752,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * Security-header unit matrix: `cd vympel_crm && npm run test:security`.
 * Production response-header test: after `npm run build`, `cd vympel_crm && npm run test:production-headers`; it uses an ephemeral local port and verifies cleanup.
 * Lint: `cd vympel_crm && npm run lint`.
+* Typecheck: `cd vympel_crm && npm run typecheck`.
 * Format: Unknown; no format script is defined.
 
 ### Backend
@@ -755,7 +765,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * Logging verification: backend tests load `logback-spring.xml`; focused tests cover request IDs, safe error responses, masking, and dedicated security/CRM logger routing. Generated files appear under `${APP_LOG_DIR:logs}` and are ignored by Git.
 * Lint: Unknown; no lint task was discovered.
 * Format: Unknown; no format task was discovered.
-* Migrations: Liquibase runs on application startup when `spring.liquibase.enabled=true`.
+* Migrations: local startup may run Liquibase directly; deployment uses `deployment/scripts/verify-migrations.sh <compose-file> <env-file>` and the finite `migrate` service before normal replicas start with Liquibase disabled.
 * Seeds: Liquibase seed changelogs run through `db.changelog-master.xml`.
 
 ### Full Project
@@ -768,7 +778,8 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * Test: Backend `.\gradlew.bat test`; public frontend `npm run test`; CRM `npm test`.
 * Docker compatibility entrypoint: `cd vympel_back && docker compose up -d --build --wait` includes the authoritative root stack; service definitions are not duplicated.
 * Docker status/logs: `docker compose ps` and bounded `docker compose logs --no-color --tail 200 <service>`.
-* CI: `.github/workflows/performance-budgets.yml` installs/builds both Next applications and runs the finite public-assets/public-JS/CRM-JS budget gate.
+* Deployment validation: use the environment, pull, migration, deploy, smoke, and rollback scripts under `deployment/scripts`; staging/production Compose consumes prebuilt full-SHA tags.
+* CI: `backend-ci.yml`, `storefront-ci.yml`, and `crm-ci.yml` own component checks/image builds; `release-images.yml` has a doubly guarded manual registry push; `full-release-gate.yml` runs all component and shared infrastructure gates. The older `performance-budgets.yml` remains the dedicated combined budget gate.
 
 ## External Dependencies & Integrations
 
@@ -821,10 +832,10 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 | `VYMPEL_DB_URL` | yes outside local/test | PostgreSQL JDBC URL; non-local values may not be blank, placeholders, or localhost. |
 | `VYMPEL_DB_USERNAME` | yes outside local/test | PostgreSQL username; non-local values may not be blank/placeholders. |
 | `VYMPEL_DB_PASSWORD` | yes outside local/test | PostgreSQL password; non-local values may not be blank/placeholders. |
-| `VYMPEL_BOOTSTRAP_ADMIN_ENABLED` | no; local only | Enables the idempotent local ADMIN startup bootstrap. Default is `false`, and the bootstrap beans do not exist outside the explicit `local` profile. |
-| `VYMPEL_BOOTSTRAP_ADMIN_EMAIL` | when local bootstrap is enabled | Email is trimmed/lowercased and checked through the existing case-insensitive unique-email repository/index contract. |
-| `VYMPEL_BOOTSTRAP_ADMIN_PASSWORD` | when local bootstrap is enabled | Local-only plaintext input used once with the existing BCrypt `PasswordEncoder`; it must be 16-255 characters with upper/lower/digit/symbol/variety and is never logged or stored raw. Existing admins never have their password reset. |
-| `VYMPEL_BOOTSTRAP_ADMIN_NAME` | no; local only | Optional display name stored in `users.first_name` when the account is first created; maximum 100 characters. |
+| `VYMPEL_BOOTSTRAP_ADMIN_ENABLED` | no | Enables the idempotent ADMIN startup bootstrap. Default is `false` in every profile; staging/production may enable it only for one controlled initial setup, then must disable and remove/rotate the temporary secret. |
+| `VYMPEL_BOOTSTRAP_ADMIN_EMAIL` | when bootstrap is enabled | Email is trimmed/lowercased and checked through the existing case-insensitive unique-email repository/index contract. |
+| `VYMPEL_BOOTSTRAP_ADMIN_PASSWORD` | when bootstrap is enabled | Temporary plaintext input used only for initial BCrypt creation; it must be 16-255 characters with upper/lower/digit/symbol/variety and is never logged or stored raw. Existing admins never have their password reset. |
+| `VYMPEL_BOOTSTRAP_ADMIN_NAME` | no | Optional display name stored in `users.first_name` when the account is first created; maximum 100 characters. |
 | `VYMPEL_JWT_SECRET` | yes outside local/test | High-entropy JWT signing secret of at least 48 characters; must differ from the limiter HMAC secret. |
 | `VYMPEL_RATE_LIMIT_HMAC_SECRET` | yes outside local/test | Independent high-entropy secret of at least 48 characters used to digest limiter identities. Rotation resets all buckets. |
 | `VYMPEL_RATE_LIMIT_STORAGE` | yes outside local/test | Must be `redis` in non-local environments. Bounded `memory` is accepted only for explicit local/test operation. |
@@ -888,7 +899,12 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 
 | Variable | Required | Description |
 | -------- | -------- | ----------- |
-| Backend log persistence | deployment-owned | The opt-in backend Compose profile is local-only and does not mount production logs. A production container must set `APP_LOG_DIR=/app/logs` and mount a persistent host/named volume; non-container servers should use a protected persistent path such as `/var/log/vympel`. |
+| `REGISTRY` | staging/production | Registry namespace only; Compose appends the exact `vympel-backend`, `vympel-storefront`, and `vympel-crm` image names. |
+| `RELEASE_TAG` | staging/production | Full lowercase 40-character Git commit SHA; all three application images use the same immutable tag. |
+| `STOREFRONT_DOMAIN` / `CRM_DOMAIN` / `API_DOMAIN` | staging/production | Final ingress domains supplied externally; examples use `.example.invalid`. |
+| `TLS_CERT_DIR` | staging/production | Absolute host directory containing readable `fullchain.pem` and `privkey.pem`; key material is ignored and never committed. |
+| `*_HEALTH_URL` | staging/production | External HTTPS URLs used by bounded health and smoke scripts after internal container health passes. |
+| Backend log persistence | deployment-owned | Deployment Compose sets `APP_LOG_DIR=/app/logs` on a bounded writable tmpfs and relies on stdout/stderr aggregation. A provider may replace that with a protected persistent log volume, but source mounts and committed log credentials are forbidden. |
 
 ## Database & Migrations
 
@@ -932,7 +948,7 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 * Backend auth middleware: `JwtAuthFilter` is inserted before `UsernamePasswordAuthenticationFilter`; it accepts access-type tokens only, requires issuer/audience/jti/iat/exp, rejects missing/disabled users, and reloads current roles from the database so access-token role claims cannot keep stale privileges.
 * Roles/permissions: `/api/public/**`, `/api/auth/**`, and `/api/crm/auth/login|refresh|logout` are public at the filter-chain level; refresh/logout still require trusted browser origin validation. `/api/customer/**` requires `CUSTOMER` or `ADMIN`; `/api/admin/**` requires `ADMIN`; `/api/crm/users`, `/api/crm/users/**`, `/api/crm/cms`, and `/api/crm/cms/**` require `ADMIN`; `/api/crm/requests/**` and other non-admin CRM routes require `ADMIN` or `MANAGER`; all other requests require authentication.
 * User access status: `users.enabled=false` blocks login and existing access JWTs. Role changes and user disable operations revoke every active refresh session; refresh also checks current enabled/role state. Admin user-management prevents removing or disabling the last active admin.
-* Local ADMIN bootstrap: `users` has no separate `UserStatus` enum; a newly bootstrapped account is ACTIVE by setting `users.enabled=true`. The runner is disabled by default and available only under the explicit `local` profile. It loads the Liquibase-seeded active ADMIN role, never seeds a password through Liquibase, never promotes a non-admin collision, and never resets an existing admin password.
+* ADMIN bootstrap: `users` has no separate `UserStatus` enum; a newly bootstrapped account is ACTIVE by setting `users.enabled=true`. The runner is disabled by default in every profile. Local may opt in; staging/production may enable it only for controlled first setup before disabling/removing the temporary secret. It loads the Liquibase-seeded active ADMIN role, never seeds a password through Liquibase, never promotes a non-admin collision, and never resets an existing admin password.
 * Password-change policy: No password-change mutation exists in the current application. Any future password-change/reset implementation must call `CrmSessionService.revokeAllForUser` after the password hash is committed so existing refresh sessions cannot survive a credential reset.
 * CORS/CSRF model: Reads exact comma-separated origins from `VYMPEL_CORS_ALLOWED_ORIGINS`; empty/wildcard credentialed allowlists fail startup. Local fallback allows same-site `http://localhost:3000` and `http://localhost:3001`. Because refresh/logout are cookie-authenticated while Spring CSRF is disabled, `TrustedOriginValidator` additionally requires an exact allowed `Origin` or `Referer`. Production CRM and API must stay same-site, use HTTPS/Secure cookies, and never activate the `local` profile.
 * Request/user log context: The correlation filter runs before request handling, exposes `X-Request-Id` through CORS, and stores `requestId`, `httpMethod`, and `requestPath` in MDC. A valid access JWT adds `userId` and comma-separated `roles`; tokens, authorization headers, passwords, and raw bodies are not logged.
@@ -964,7 +980,7 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 ## Testing Strategy
 
 * Frontend tests: Public Vitest covers recommendation behavior, one-request/in-flight-deduplicated batch summary, batch snapshot/unavailable merging, 429 parsing, and CMS revalidation signature/payload/target mapping; CRM Vitest covers auth/session behavior plus explicit CMS partial-success feedback. Both apps require lint and production builds; public additionally runs typecheck and the isolated production status/content matrix.
-* Backend tests: The Java 17 suite covers the Step 4/5/6 baseline plus Step 7 product activation/final-image rules, collision-free media/CMS reordering, stable constraint error codes, fresh-chain constraints, direct invalid SQL, concurrent stock/media/CMS writes, and local ADMIN bootstrap validation/creation/idempotency/collision/log-safety behavior.
+* Backend tests: The Java 17 suite covers the Step 4/5/6 baseline plus Step 7 product activation/final-image rules, collision-free media/CMS reordering, stable constraint error codes, fresh-chain constraints, direct invalid SQL, concurrent stock/media/CMS writes, and ADMIN bootstrap validation/creation/idempotency/collision/log-safety behavior.
 * Integration tests: `CmsMediaDryRunIntegrationTest` is a read-only configured-PostgreSQL reconciliation check; on 2026-07-17 it observed 24 media rows and 5 eligible zero-reference candidates without changing the row count. `RefreshSessionMigrationTest` rehearses the fresh PostgreSQL 16 chain, all six CMS reference slots, Step 7 constraints, invalid writes, and concurrency. Environment-gated `Step7ExternalDatabaseRehearsalTest` finite-migrates a restored/current external database and verifies constraints/data plus direct rejection without becoming a normal live dependency.
 * E2E tests: No browser E2E suite; the CRM auth lifecycle is covered across a real Spring HTTP boundary plus CRM client unit tests.
 * Test data/mocking: Liquibase seed data exists for database bootstrap. Recommendation service tests use Mockito projections; frontend recommendation render tests mock only shared title/carousel shells and exercise the real omission/loader logic.
@@ -1087,6 +1103,18 @@ Both Next applications use Next.js 16.2.10 and `eslint-config-next` 16.2.10. Pub
 
 `docs/tasks/vympel_repository_cleanup_audit/REPOSITORY_CLEANUP_AUDIT.md` records the 2026-07-21 non-destructive workspace cleanup: Git boundaries, retained dirty/staged changes, removed Step 9 copies/processes/container/volumes, retained generated/runtime state, environment/IDE inventory, and deferred repository/deployment decisions.
 
+## Deployment Architecture
+
+The workspace is one root Git monorepo with three independent image boundaries: `vympel-backend`, `vympel-storefront`, and `vympel-crm`. `compose.yml` remains the local source-build stack with PostgreSQL 16, Redis 7.4, and MinIO. `infrastructure/compose/compose.staging.yml` and `compose.production.yml` consume immutable `${REGISTRY}/<image>:${RELEASE_TAG}` references and expect PostgreSQL, Redis, S3-compatible storage, TLS, and secrets to be supplied externally.
+
+Both Next apps use `output: "standalone"` and run as the image's non-root `node` user. The Spring Boot image runs as UID/GID 10001. Deployment starts the finite `migrate` service before backend replicas; normal replicas have Liquibase disabled. Nginx is the sole published service and routes configurable storefront, CRM, and API domains while keeping readiness and protected Actuator endpoints internal.
+
+`deployment/scripts` provides environment validation, image pull, migration verification, bounded health polling, smoke checks, deploy, backup evidence checks, and immutable image rollback. The migration container publishes no port, disables scheduling, and closes as soon as the verification runner confirms Liquibase state; it retains the normal web application type because the current security configuration requires `HttpSecurity` during context creation. Database rollback is deliberately absent. The five CI workflows split backend/storefront/CRM checks, manual guarded image release, and the full release gate. Full commit SHA is the application image tag and the release manifest records digests.
+
+ADMIN bootstrap is configured by the exact `VYMPEL_BOOTSTRAP_ADMIN_*` variables. It is disabled by default in every environment; local and a controlled one-time staging/production setup may enable it. The canonical active state is `User.enabled=true` because this model has no separate `UserStatus` field. Existing ADMIN accounts are unchanged, non-admin accounts are never promoted, and uniqueness conflict handling makes repeated/concurrent startup safe.
+
+Provider-neutral deployment templates and runbooks live under `infrastructure`, `deployment`, and `docs/deployment`. Production remains blocked on target provider/domain/registry/data-service/secrets/TLS/restore/revalidation/monitoring/SEO evidence.
+
 ## Last Updated
 
-2026-07-21 - Completed and verified the approved move of all three old `.git` directories to the external backup, preserved histories/indexes/remotes and canonical source hashes, confirmed zero nested Git metadata, and stopped before root initialization.
+2026-07-21 - Added the one-root monorepo deployment map: three standalone images, local/staging/production Compose boundaries, one-time ADMIN bootstrap, migration-first rollout, reverse proxy, SHA-tagged CI gates, rollback policy, environment contract, and production blockers.

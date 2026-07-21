@@ -1,0 +1,76 @@
+name: Storefront CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vympel_front/**"
+      - ".env.example"
+      - ".env.docker.example"
+      - "scripts/check-performance-budgets.mjs"
+      - "scripts/performance-budget-allowlist.json"
+      - "infrastructure/**"
+      - "deployment/**"
+      - ".github/workflows/storefront-ci.yml"
+      - ".github/workflows/full-release-gate.yml"
+  pull_request:
+    paths:
+      - "vympel_front/**"
+      - ".env.example"
+      - ".env.docker.example"
+      - "scripts/check-performance-budgets.mjs"
+      - "scripts/performance-budget-allowlist.json"
+      - "infrastructure/**"
+      - "deployment/**"
+      - ".github/workflows/storefront-ci.yml"
+      - ".github/workflows/full-release-gate.yml"
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storefront-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vympel_front
+    env:
+      BASE_API_PUBLIC: http://127.0.0.1:9/api/public
+      NEXT_PUBLIC_BASE_API_PUBLIC: https://api.example.invalid/api/public
+      NEXT_PUBLIC_MEDIA_ORIGINS: https://media.example.invalid
+      NEXT_PUBLIC_APP_ENV: ci
+      NEXT_PUBLIC_APP_RELEASE: ${{ github.sha }}
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+      TELEMETRY_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: vympel_front/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm audit --audit-level=high
+      - run: npm run build
+      - name: Enforce storefront asset and bundle budgets
+        run: node ../scripts/check-performance-budgets.mjs --require-build --scope=storefront
+      - name: Build storefront image
+        working-directory: ${{ github.workspace }}
+        run: >-
+          docker build --pull
+          --build-arg BASE_API_PUBLIC=http://127.0.0.1:9/api/public
+          --build-arg NEXT_PUBLIC_BASE_API_PUBLIC=https://api.example.invalid/api/public
+          --build-arg NEXT_PUBLIC_MEDIA_ORIGINS=https://media.example.invalid
+          --build-arg NEXT_PUBLIC_APP_ENV=ci
+          --build-arg NEXT_PUBLIC_APP_RELEASE="${GITHUB_SHA}"
+          --tag "vympel-storefront:${GITHUB_SHA}"
+          vympel_front

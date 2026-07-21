@@ -564,11 +564,11 @@
 * **How:** Keep endpoints under `/api/crm/users/**`, require `ADMIN` in `SecurityConfig` and `@PreAuthorize`, validate DTOs, hash passwords with `PasswordEncoder`, never return password hashes, use `users.enabled` for blocking, and preserve at least one active admin.
 * **Why:** User-management is security-sensitive; frontend route hiding is helpful but backend role enforcement and audit logging are the actual protection.
 
-### Idempotent local ADMIN bootstrap
+### Idempotent ADMIN bootstrap
 
-* **When to use:** A fresh or preserved local database needs one CRM-capable ADMIN without putting a plaintext or fixed user password in Liquibase.
-* **How:** Bind `VYMPEL_BOOTSTRAP_ADMIN_*` through typed `vympel.bootstrap.admin` properties, default disabled, and register the runner/service only for the explicit `local` profile. Validate email and password before repository work; load the active Liquibase-seeded ADMIN role; normalize email; create an enabled user with the existing `PasswordEncoder`; save the `user_role` transactionally. Treat an existing ADMIN as a no-write success and an existing non-admin as a hard failure. Force the user insert with `saveAndFlush`; catch a case-insensitive unique-email race outside the rolled-back transaction and verify the winner as ADMIN in a fresh read transaction.
-* **Why:** Repeated or concurrent local starts converge on one admin without password resets, silent privilege escalation, migration secrets, or weakened non-local validation.
+* **When to use:** A fresh environment needs one CRM-capable ADMIN without putting a plaintext or fixed user password in Liquibase.
+* **How:** Bind `VYMPEL_BOOTSTRAP_ADMIN_*` through typed `vympel.bootstrap.admin` properties and default disabled in every profile. Validate email/password before repository work; load the active Liquibase-seeded ADMIN role; normalize email; create an enabled user with the existing `PasswordEncoder`; save `user_role` transactionally. Treat an existing ADMIN as a no-write success and an existing non-admin as a hard failure. Force the insert with `saveAndFlush`; catch a case-insensitive unique-email race outside the rolled-back transaction and verify the winner as ADMIN in a fresh read transaction. In staging/production, enable for one controlled deployment only, verify login, disable it, rotate/remove the temporary secret, and redeploy.
+* **Why:** Repeated or concurrent starts converge on one admin without password resets, silent privilege escalation, Liquibase credentials, or weakened non-local validation.
 
 ### CRM audit service
 
@@ -1806,6 +1806,30 @@
 * **How:** Allow **READY FOR STAGING** only when no Must-fix application issue remains. Keep migration-history drift, TLS/HSTS/Redis/backups/alerts, real CMS revalidation, and SEO decisions as explicit production conditions with owners/checklist items.
 * **Why:** Local correctness evidence cannot prove deployment infrastructure or authorize an unattended production rollout.
 
+### Keep frontend image configuration split by visibility
+
+* **When to use:** Building standalone storefront or CRM images for a target environment.
+* **How:** Compile only browser-visible API/media/environment/release values through `NEXT_PUBLIC_*`; keep internal SSR URLs and CMS revalidation HMAC server-only. Rebuild the frontend image whenever a compiled public origin changes.
+* **Why:** Next.js embeds public values at build time, while secrets in a public variable become browser-readable.
+
+### Run migrations as a finite release job
+
+* **When to use:** Deploying backend replicas from an immutable image.
+* **How:** Start the same backend image once with Liquibase enabled, scheduling disabled, no published port, and `VYMPEL_MIGRATION_ONLY=true`; verify `databasechangelog`, then close the context and start regular replicas with Liquibase disabled. Keep the normal web application type because this project's `SecurityConfig` requires `HttpSecurity` during context creation. Use new forward-fix changesets rather than editing applied history.
+* **Why:** A single bounded migration owner avoids concurrent replica migration races and separates schema failure from application promotion.
+
+### Use one full commit SHA across independent images
+
+* **When to use:** Releasing backend, storefront, and CRM together.
+* **How:** Tag all three image boundaries with the same full 40-character Git SHA, record registry digests in the release manifest, and roll applications back only to an explicitly supplied compatible prior SHA.
+* **Why:** The deployment is reproducible and auditable without coupling the applications into one image or relying on mutable `latest` tags.
+
+### Bootstrap ADMIN once, then disable it
+
+* **When to use:** A controlled environment has no initial ADMIN.
+* **How:** Supply temporary `VYMPEL_BOOTSTRAP_ADMIN_*` secrets externally, enable for one deployment, verify login, disable bootstrap, rotate/remove the secret, and redeploy. Existing ADMIN users must cause no write or password reset; an existing non-admin email is a hard failure.
+* **Why:** Idempotence supports restart/concurrency while avoiding a permanent privileged credential rotation mechanism.
+
 ## Last Updated
 
-2026-07-21 - Applied the reversible nested-Git consolidation pattern: moved all three metadata directories to the external same-drive backup, verified pre/post hashes and repository connectivity, preserved source parity, and retained separate gates for initialization, commit, remote, and push.
+2026-07-21 - Added reusable deployment patterns for standalone Next images, server-only configuration, finite Liquibase jobs, full-SHA image releases, application-only rollback, and one-time idempotent ADMIN bootstrap.

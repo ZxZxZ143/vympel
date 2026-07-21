@@ -160,3 +160,11 @@ app:
   recommendations:
     price-band-percent: "${VYMPEL_RECOMMENDATION_PRICE_BAND_PERCENT:25}"
     query-timeout-ms: "${VYMPEL_RECOMMENDATION_QUERY_TIMEOUT_MS:1500}"
+
+vympel:
+  bootstrap:
+    admin:
+      enabled: "${VYMPEL_BOOTSTRAP_ADMIN_ENABLED:false}"
+      email: "${VYMPEL_BOOTSTRAP_ADMIN_EMAIL:}"
+      password: "${VYMPEL_BOOTSTRAP_ADMIN_PASSWORD:}"
+      name: "${VYMPEL_BOOTSTRAP_ADMIN_NAME:}"

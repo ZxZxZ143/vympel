@@ -5,6 +5,11 @@ import {fileURLToPath} from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const requireBuild = process.argv.includes("--require-build");
+const scopeArgument = process.argv.find((argument) => argument.startsWith("--scope="));
+const scope = scopeArgument?.slice("--scope=".length) ?? "all";
+if (!["all", "storefront", "crm"].includes(scope)) {
+  throw new Error(`Unsupported performance-budget scope: ${scope}`);
+}
 const MiB = 1024 * 1024;
 const budgets = {
   publicAssets: 24 * MiB,
@@ -104,8 +109,12 @@ function checkBuiltJs(app, limit) {
 validateAllowlist();
 verifyBudgetDetector();
 checkPublicAssets();
-checkBuiltJs("vympel_front", budgets.storefrontJs);
-checkBuiltJs("vympel_crm", budgets.crmJs);
+if (scope === "all" || scope === "storefront") {
+  checkBuiltJs("vympel_front", budgets.storefrontJs);
+}
+if (scope === "all" || scope === "crm") {
+  checkBuiltJs("vympel_crm", budgets.crmJs);
+}
 
 if (failures.length) {
   console.error("Performance budget failures:\n- " + failures.join("\n- "));

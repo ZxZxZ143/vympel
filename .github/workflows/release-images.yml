@@ -1,0 +1,136 @@
+name: Release Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: Registry namespace, for example ghcr.io/owner
+        required: true
+        default: registry.example.invalid/vympel
+        type: string
+      storefront_api_base:
+        description: Browser-visible storefront API URL compiled into the image
+        required: true
+        default: https://api.example.invalid/api/public
+        type: string
+      crm_api_base:
+        description: Browser-visible CRM API URL compiled into the image
+        required: true
+        default: https://api.example.invalid/api/crm
+        type: string
+      media_origins:
+        description: Comma-separated browser-visible media origins
+        required: true
+        default: https://media.example.invalid
+        type: string
+      deployment_environment:
+        description: Public environment label compiled into frontend images
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+      push_images:
+        description: Push only after registry selection, credentials, and VYMPEL_REGISTRY_PUSH_ENABLED=true
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release-images-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: vympel-backend
+            context: vympel_back
+            dockerfile: vympel_back/Dockerfile
+            build_args: ""
+          - image: vympel-storefront
+            context: vympel_front
+            dockerfile: vympel_front/Dockerfile
+            build_args: |
+              BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
+              NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
+              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins }}
+              NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
+              NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
+              NEXT_PUBLIC_TELEMETRY_ENABLED=false
+          - image: vympel-crm
+            context: vympel_crm
+            dockerfile: vympel_crm/Dockerfile
+            build_args: |
+              NEXT_PUBLIC_CRM_API_BASE=${{ inputs.crm_api_base }}
+              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins }}
+              NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
+              NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
+              NEXT_PUBLIC_TELEMETRY_ENABLED=false
+    env:
+      PUSH_ENABLED: ${{ inputs.push_images && vars.VYMPEL_REGISTRY_PUSH_ENABLED == 'true' }}
+      REGISTRY_USERNAME: ${{ secrets.VYMPEL_REGISTRY_USERNAME }}
+      REGISTRY_TOKEN: ${{ secrets.VYMPEL_REGISTRY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: docker/setup-buildx-action@v3.11.1
+      - name: Log in to selected registry
+        if: env.PUSH_ENABLED == 'true'
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_TOKEN }}
+      - name: Build immutable image
+        id: image
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          build-args: ${{ matrix.build_args }}
+          pull: true
+          push: ${{ env.PUSH_ENABLED == 'true' }}
+          load: ${{ env.PUSH_ENABLED != 'true' }}
+          tags: ${{ inputs.registry }}/${{ matrix.image }}:${{ github.sha }}
+          provenance: true
+          sbom: true
+      - name: Record image metadata
+        env:
+          IMAGE_NAME: ${{ matrix.image }}
+          IMAGE_REF: ${{ inputs.registry }}/${{ matrix.image }}:${{ github.sha }}
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          mkdir -p release-metadata
+          jq -n \
+            --arg image "$IMAGE_NAME" \
+            --arg ref "$IMAGE_REF" \
+            --arg digest "$IMAGE_DIGEST" \
+            --arg commit "$GITHUB_SHA" \
+            --arg pushed "$PUSH_ENABLED" \
+            '{image: $image, ref: $ref, digest: $digest, commit: $commit, pushed: ($pushed == "true")}' \
+            > "release-metadata/${IMAGE_NAME}.json"
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: image-metadata-${{ matrix.image }}-${{ github.sha }}
+          path: release-metadata/*.json
+          if-no-files-found: error
+          retention-days: 30
+
+  push-policy:
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Report push policy
+        run: |
+          if [ "${{ inputs.push_images }}" = "true" ] && [ "${{ vars.VYMPEL_REGISTRY_PUSH_ENABLED }}" != "true" ]; then
+            echo "Image builds passed, but push remained disabled because VYMPEL_REGISTRY_PUSH_ENABLED is not true."
+          else
+            echo "Image release policy completed. No deployment is part of this workflow."
+          fi

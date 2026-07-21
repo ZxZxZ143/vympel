@@ -108,3 +108,15 @@ The baseline commit has its own explicit approval gate. If rollback is requested
 - [ ] `git fsck --full` has no missing/corrupt objects.
 - [ ] No source, migration, lockfile, release evidence, or local `.env` file was moved.
 - [ ] External backup retained.
+
+## Root Monorepo Completion Status
+
+After the separately authorized initialization gate, `git init -b main` created the sole canonical repository at `E:\vympel_full\.git`. The verified baseline commit is `0fd2f14f75021aab8eafcd4c6f34739d3d1a3418` (`Initial Vympel monorepo baseline`). Root `git status` and `git log` work, no remote exists, and storefront, CRM, backend, infrastructure, deployment, and documentation are tracked by the root repository. No nested canonical `.git` has been restored.
+
+The exact three historical metadata backups remain at:
+
+- `E:\vympel_git_backup_20260721_183725\repositories\workspace-root\.git`
+- `E:\vympel_git_backup_20260721_183725\repositories\vympel_front\.git`
+- `E:\vympel_git_backup_20260721_183725\repositories\vympel_back\.git`
+
+The backup is recovery material, is outside the monorepo, and was not deleted, modified, or used as canonical source during deployment preparation. Rollback after root initialization must preserve the new root `.git` in a separate approved backup before restoring any historical metadata.

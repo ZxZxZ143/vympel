@@ -1,0 +1,196 @@
+name: "${COMPOSE_PROJECT_NAME:-vympel-staging}"
+
+x-backend-environment: &backend-environment
+  SPRING_PROFILES_ACTIVE: "${SPRING_PROFILES_ACTIVE:-staging}"
+  SERVER_PORT: "8080"
+  APP_LOG_DIR: /app/logs
+  VYMPEL_DB_URL: "${VYMPEL_DB_URL:?set VYMPEL_DB_URL}"
+  VYMPEL_DB_USERNAME: "${VYMPEL_DB_USERNAME:?set VYMPEL_DB_USERNAME}"
+  VYMPEL_DB_PASSWORD: "${VYMPEL_DB_PASSWORD:?set VYMPEL_DB_PASSWORD}"
+  VYMPEL_JWT_SECRET: "${VYMPEL_JWT_SECRET:?set VYMPEL_JWT_SECRET}"
+  VYMPEL_RATE_LIMIT_HMAC_SECRET: "${VYMPEL_RATE_LIMIT_HMAC_SECRET:?set VYMPEL_RATE_LIMIT_HMAC_SECRET}"
+  VYMPEL_RATE_LIMIT_STORAGE: "${VYMPEL_RATE_LIMIT_STORAGE:-redis}"
+  VYMPEL_REDIS_URL: "${VYMPEL_REDIS_URL:?set VYMPEL_REDIS_URL}"
+  VYMPEL_TRUSTED_PROXY_CIDRS: "${VYMPEL_TRUSTED_PROXY_CIDRS:?set VYMPEL_TRUSTED_PROXY_CIDRS}"
+  VYMPEL_S3_BUCKET: "${VYMPEL_S3_BUCKET:?set VYMPEL_S3_BUCKET}"
+  VYMPEL_S3_REGION: "${VYMPEL_S3_REGION:?set VYMPEL_S3_REGION}"
+  VYMPEL_S3_ENDPOINT: "${VYMPEL_S3_ENDPOINT:?set VYMPEL_S3_ENDPOINT}"
+  VYMPEL_S3_PUBLIC_ENDPOINT: "${VYMPEL_S3_PUBLIC_ENDPOINT:?set VYMPEL_S3_PUBLIC_ENDPOINT}"
+  VYMPEL_S3_ACCESS_KEY: "${VYMPEL_S3_ACCESS_KEY:?set VYMPEL_S3_ACCESS_KEY}"
+  VYMPEL_S3_SECRET_KEY: "${VYMPEL_S3_SECRET_KEY:?set VYMPEL_S3_SECRET_KEY}"
+  VYMPEL_S3_PATH_STYLE: "${VYMPEL_S3_PATH_STYLE:-false}"
+  VYMPEL_CORS_ALLOWED_ORIGINS: "${VYMPEL_CORS_ALLOWED_ORIGINS:?set VYMPEL_CORS_ALLOWED_ORIGINS}"
+  VYMPEL_CRM_REFRESH_COOKIE_SECURE: "${VYMPEL_CRM_REFRESH_COOKIE_SECURE:-true}"
+  VYMPEL_CRM_REFRESH_COOKIE_SAME_SITE: "${VYMPEL_CRM_REFRESH_COOKIE_SAME_SITE:-Lax}"
+  VYMPEL_ALLOW_LOCALHOST_SERVICES: "${VYMPEL_ALLOW_LOCALHOST_SERVICES:-false}"
+  VYMPEL_ALLOW_INSECURE_SERVICE_TRANSPORT: "${VYMPEL_ALLOW_INSECURE_SERVICE_TRANSPORT:-false}"
+  VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED: "${VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED:-true}"
+  VYMPEL_CMS_REVALIDATE_REQUIRED: "${VYMPEL_CMS_REVALIDATE_REQUIRED:-true}"
+  VYMPEL_CMS_PUBLIC_REVALIDATE_URL: "${VYMPEL_CMS_PUBLIC_REVALIDATE_URL:?set VYMPEL_CMS_PUBLIC_REVALIDATE_URL}"
+  VYMPEL_CMS_REVALIDATE_SECRET: "${VYMPEL_CMS_REVALIDATE_SECRET:?set VYMPEL_CMS_REVALIDATE_SECRET}"
+  VYMPEL_CMS_MEDIA_CLEANUP_ENABLED: "${VYMPEL_CMS_MEDIA_CLEANUP_ENABLED:-false}"
+  VYMPEL_ANALYTICS_CLEANUP_ENABLED: "${VYMPEL_ANALYTICS_CLEANUP_ENABLED:-true}"
+  VYMPEL_ANALYTICS_CLEANUP_DRY_RUN: "${VYMPEL_ANALYTICS_CLEANUP_DRY_RUN:-true}"
+
+services:
+  migrate:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      <<: *backend-environment
+      SPRING_LIQUIBASE_ENABLED: "true"
+      VYMPEL_MIGRATION_ONLY: "true"
+      VYMPEL_BOOTSTRAP_ADMIN_ENABLED: "false"
+    command:
+      - "--spring.task.scheduling.enabled=false"
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=10001,gid=10001,mode=1770
+      - /app/logs:rw,noexec,nosuid,size=64m,uid=10001,gid=10001,mode=0770
+    pids_limit: 256
+    networks: [application]
+
+  backend:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      <<: *backend-environment
+      SPRING_LIQUIBASE_ENABLED: "false"
+      VYMPEL_BOOTSTRAP_ADMIN_ENABLED: "${VYMPEL_BOOTSTRAP_ADMIN_ENABLED:-false}"
+      VYMPEL_BOOTSTRAP_ADMIN_EMAIL: "${VYMPEL_BOOTSTRAP_ADMIN_EMAIL:-}"
+      VYMPEL_BOOTSTRAP_ADMIN_PASSWORD: "${VYMPEL_BOOTSTRAP_ADMIN_PASSWORD:-}"
+      VYMPEL_BOOTSTRAP_ADMIN_NAME: "${VYMPEL_BOOTSTRAP_ADMIN_NAME:-}"
+    expose: ["8080"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=1770
+      - /app/logs:rw,noexec,nosuid,size=128m,uid=10001,gid=10001,mode=0770
+    pids_limit: 512
+    deploy:
+      resources:
+        limits: {cpus: "2.0", memory: 1536M, pids: 512}
+        reservations: {cpus: "0.25", memory: 512M}
+    networks: [application]
+
+  storefront:
+    image: "${REGISTRY:?set REGISTRY}/vympel-storefront:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+      BASE_API_PUBLIC: "${BASE_API_PUBLIC:-http://backend:8080/api/public}"
+      NEXT_PUBLIC_BASE_API_PUBLIC: "${NEXT_PUBLIC_BASE_API_PUBLIC:?set NEXT_PUBLIC_BASE_API_PUBLIC}"
+      NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:?set NEXT_PUBLIC_MEDIA_ORIGINS}"
+      NEXT_PUBLIC_APP_ENV: "${NEXT_PUBLIC_APP_ENV:-staging}"
+      NEXT_PUBLIC_APP_RELEASE: "${RELEASE_TAG:?set RELEASE_TAG}"
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "${NEXT_PUBLIC_TELEMETRY_ENABLED:-false}"
+      TELEMETRY_ENABLED: "${TELEMETRY_ENABLED:-false}"
+      CMS_REVALIDATE_SECRET: "${VYMPEL_CMS_REVALIDATE_SECRET:?set VYMPEL_CMS_REVALIDATE_SECRET}"
+    expose: ["3000"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ru').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1000,gid=1000,mode=1770
+      - /app/.next/cache:rw,noexec,nosuid,size=256m,uid=1000,gid=1000,mode=0770
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "1.0", memory: 768M, pids: 256}
+        reservations: {cpus: "0.10", memory: 256M}
+    networks: [application]
+
+  crm:
+    image: "${REGISTRY:?set REGISTRY}/vympel-crm:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_CRM_API_BASE: "${NEXT_PUBLIC_CRM_API_BASE:?set NEXT_PUBLIC_CRM_API_BASE}"
+      NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:?set NEXT_PUBLIC_MEDIA_ORIGINS}"
+      NEXT_PUBLIC_APP_ENV: "${NEXT_PUBLIC_APP_ENV:-staging}"
+      NEXT_PUBLIC_APP_RELEASE: "${RELEASE_TAG:?set RELEASE_TAG}"
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "${NEXT_PUBLIC_TELEMETRY_ENABLED:-false}"
+      TELEMETRY_ENABLED: "${TELEMETRY_ENABLED:-false}"
+    expose: ["3001"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1000,gid=1000,mode=1770
+      - /app/.next/cache:rw,noexec,nosuid,size=128m,uid=1000,gid=1000,mode=0770
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "1.0", memory: 768M, pids: 256}
+        reservations: {cpus: "0.10", memory: 256M}
+    networks: [application]
+
+  reverse-proxy:
+    image: nginx:1.28-alpine
+    environment:
+      STOREFRONT_DOMAIN: "${STOREFRONT_DOMAIN:?set STOREFRONT_DOMAIN}"
+      CRM_DOMAIN: "${CRM_DOMAIN:?set CRM_DOMAIN}"
+      API_DOMAIN: "${API_DOMAIN:?set API_DOMAIN}"
+    ports:
+      - "${PROXY_HTTP_PORT:-80}:80"
+      - "${PROXY_HTTPS_PORT:-443}:443"
+    volumes:
+      - ../reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../reverse-proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - "${TLS_CERT_DIR:?set TLS_CERT_DIR}:/etc/nginx/tls:ro"
+    depends_on:
+      storefront: {condition: service_healthy}
+      crm: {condition: service_healthy}
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=64m
+      - /var/run:rw,noexec,nosuid,size=8m
+      - /tmp:rw,noexec,nosuid,size=16m
+    pids_limit: 128
+    deploy:
+      resources:
+        limits: {cpus: "0.50", memory: 256M, pids: 128}
+        reservations: {cpus: "0.05", memory: 64M}
+    networks: [application]
+
+networks:
+  application:
+    name: "${COMPOSE_PROJECT_NAME:-vympel-staging}-application"

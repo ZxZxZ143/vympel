@@ -74,7 +74,7 @@ public class BootstrapAdminProperties {
         }
 
         if (!errors.isEmpty()) {
-            throw new IllegalStateException("Invalid local ADMIN bootstrap configuration: " + String.join("; ", errors));
+            throw new IllegalStateException("Invalid ADMIN bootstrap configuration: " + String.join("; ", errors));
         }
     }
 

@@ -1,0 +1,106 @@
+name: Full Release Gate
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "vympel_back/**"
+      - "vympel_front/**"
+      - "vympel_crm/**"
+      - "compose.yml"
+      - "infrastructure/**"
+      - "deployment/**"
+      - ".env.example"
+      - ".env.docker.example"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-release-gate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backend:
+    uses: ./.github/workflows/backend-ci.yml
+  storefront:
+    uses: ./.github/workflows/storefront-ci.yml
+  crm:
+    uses: ./.github/workflows/crm-ci.yml
+
+  shared-deployment-gates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Parse workflow and deployment YAML
+        run: >-
+          ruby -e 'require "yaml"; ARGV.each { |path| YAML.load_file(path); puts "parsed #{path}" }'
+          .github/workflows/*.yml infrastructure/compose/*.yml deployment/*.yml
+      - name: Validate deployment scripts
+        run: for script in deployment/scripts/*.sh; do sh -n "$script"; done
+      - name: Validate local Compose
+        run: docker compose -f compose.yml config --quiet
+      - name: Validate staging Compose
+        run: docker compose --env-file infrastructure/env/staging.env.example -f infrastructure/compose/compose.staging.yml config --quiet
+      - name: Validate production Compose
+        run: docker compose --env-file infrastructure/env/production.env.example -f infrastructure/compose/compose.production.yml config --quiet
+      - name: Reject mutable application image tags
+        run: |
+          images=$(docker compose --env-file infrastructure/env/production.env.example -f infrastructure/compose/compose.production.yml config --images)
+          if printf '%s\n' "$images" | grep -E 'vympel-(backend|storefront|crm):latest$'; then
+            echo "Mutable application image tag detected" >&2
+            exit 1
+          fi
+      - name: Validate reverse proxy syntax
+        run: |
+          temp_dir=$(mktemp -d)
+          trap 'rm -rf "$temp_dir"' EXIT
+          mkdir -p "$temp_dir/tls"
+          openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+            -subj '/CN=vympel-ci.invalid' \
+            -keyout "$temp_dir/tls/privkey.pem" \
+            -out "$temp_dir/tls/fullchain.pem" >/dev/null 2>&1
+          docker run --rm \
+            --add-host storefront:127.0.0.1 \
+            --add-host crm:127.0.0.1 \
+            --add-host backend:127.0.0.1 \
+            -e STOREFRONT_DOMAIN=shop.ci.invalid \
+            -e CRM_DOMAIN=crm.ci.invalid \
+            -e API_DOMAIN=api.ci.invalid \
+            -v "$PWD/infrastructure/reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            -v "$PWD/infrastructure/reverse-proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro" \
+            -v "$temp_dir/tls:/etc/nginx/tls:ro" \
+            nginx:1.28-alpine nginx -t
+      - name: Reject browser-exposed secret names
+        run: |
+          if grep -RIE '^NEXT_PUBLIC_[A-Z0-9_]*(SECRET|PASSWORD|TOKEN|PRIVATE_KEY|ACCESS_KEY)=' infrastructure/env vympel_front/.env.example vympel_crm/.env.example; then
+            echo "Secret-bearing NEXT_PUBLIC variable detected" >&2
+            exit 1
+          fi
+
+  release-metadata:
+    runs-on: ubuntu-24.04
+    needs: [backend, storefront, crm, shared-deployment-gates]
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Create immutable release metadata
+        run: |
+          mkdir -p release-metadata
+          jq -n \
+            --arg commit "$GITHUB_SHA" \
+            --arg ref "$GITHUB_REF" \
+            --arg generatedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{commit: $commit, imageTag: $commit, ref: $ref, generatedAt: $generatedAt, deployPerformed: false}' \
+            > release-metadata/full-release-gate.json
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: full-release-gate-${{ github.sha }}
+          path: |
+            release-metadata/full-release-gate.json
+            deployment/release-manifest.example.yml
+          if-no-files-found: error
+          retention-days: 30

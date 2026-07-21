@@ -51,3 +51,18 @@ The following staged-index checks were completed immediately before the baseline
 ## Decision
 
 Secret review passes for the explicitly authorized baseline commit. No real environment file, private key, provider token, database dump, dependency cache, build output, old Git backup, or temporary verification repository is staged.
+
+## Deployment Implementation Candidate Gate
+
+The separately authorized deployment/ADMIN implementation was scanned again before its second commit. The 59-file pre-report candidate set contained only source, tests, lockfiles, Docker/Compose/proxy templates, placeholder environment examples, scripts, workflows, runbooks, and cleanup/project-memory updates.
+
+| Path | Risk type | Git status | Action |
+| --- | --- | --- | --- |
+| Root and application working `.env` files | Database, JWT, HMAC, Redis, object-storage, CMS, and local bootstrap values | Ignored; absent from candidate set | Preserved locally; never print or stage |
+| `infrastructure/env/*.env.example` | Deployment credential names and deliberately invalid placeholder values | Implementation candidate | Include; fail-closed validator rejects placeholders/all-zero SHA |
+| `deployment/release-manifest.example.yml` | Registry/digest/backup evidence fields | Implementation candidate | Include placeholder-only template; real release manifests stay outside Git if they contain sensitive evidence |
+| `.github/workflows/release-images.yml` | Optional registry credentials | Implementation candidate | Include secret-name references only; push requires manual input plus repository variable and configured secrets |
+| Dockerfiles and deployment Compose | Runtime secret injection boundaries | Implementation candidate | Include; no `.env`, credential, or private key is copied/baked |
+| Disposable ADMIN verification container/database | Temporary local account and encoded hash | Removed runtime state; never a Git candidate | Only sanitized pass/fail evidence retained |
+
+Pre-report candidate scans returned zero prohibited generated/secret paths, PEM/OpenSSH private-key headers, AWS/GitHub/Slack/Stripe provider-token signatures, compact JWT-shaped values, or secret-bearing `NEXT_PUBLIC_*` keys. `git diff --check` passed. The final staged index contains 60 intentional files and was rescanned after this report itself was staged: zero prohibited paths, private keys, provider tokens, JWT-shaped values, browser-exposed secret keys, mutable application `latest` tags, or unexplained files above 2 MiB; all nine shell scripts are mode `100755`, no remote exists, and the staged diff whitespace check passes. No resolved Compose output, password, hash, access/refresh token, TLS key, database dump, dependency tree, build output, Docker credential, or verification database/container enters the commit.
