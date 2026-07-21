@@ -1860,6 +1860,12 @@
 * **How:** Use `Psych.parse_file` for Ruby syntax validation and pinned `actionlint` for GitHub Actions semantics. Do not use modern `YAML.load_file` defaults for this gate because alias deserialization is disabled and rejects valid Compose anchors.
 * **Why:** This avoids a remote-only false failure while retaining strict syntax and workflow validation.
 
+### Isolate standalone and reusable CI concurrency
+
+* **When to use:** A component workflow runs on `push` and is also invoked with `workflow_call` from an aggregate gate.
+* **How:** Include `${{ github.workflow }}` as well as `${{ github.ref }}` in the concurrency group. Keep cancellation enabled for superseded runs within the same workflow/ref, but do not let the aggregate caller cancel the standalone component evidence.
+* **Why:** A ref-only group caused GitHub to cancel all three standalone component runs as soon as Full Release Gate invoked the same workflows.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for idempotent signed CMS retry, fail-closed historical Liquibase acceptance, compiled canonical SEO configuration, exact disposable rehearsals, and YAML/actionlint validation.
+2026-07-22 - Added RC lessons for signed CMS retry, fail-closed Liquibase acceptance, compiled SEO configuration, disposable rehearsals, YAML/actionlint validation, and standalone/reusable CI concurrency isolation.

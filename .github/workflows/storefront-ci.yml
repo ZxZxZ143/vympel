@@ -30,7 +30,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: storefront-ci-${{ github.ref }}
+  group: storefront-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

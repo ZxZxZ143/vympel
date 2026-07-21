@@ -30,7 +30,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: crm-ci-${{ github.ref }}
+  group: crm-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
