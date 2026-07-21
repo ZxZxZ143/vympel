@@ -5,7 +5,7 @@
 | Classification | Conditions |
 | --- | --- |
 | Resolved locally | Three-image builds; SEO/CRM crawler policy; ADMIN regression and controlled procedure; canonical 77-change migration; isolated PostgreSQL backup/restore; signed CMS freshness/retry/timeout; proxy routing/policy; Prometheus/rule syntax; Compose/workflow/script validation |
-| Verified in remote CI | Pending until the exact release-candidate SHA passes backend, storefront, CRM, full release, and no-push image build workflows; record in `REMOTE_CI_VERIFICATION.md` |
+| Verified in remote CI | Exact commit `954e8a3a659371ba0203369aec9d2fef968fab5b` passed backend, storefront, CRM, full release, performance, and three-boundary no-push image workflows; evidence is in `REMOTE_CI_VERIFICATION.md` |
 | Provider-specific | Hosting, final domains, registry/digests, managed PostgreSQL restore, Redis, object storage, secret manager, monitoring/alert delivery, public TLS/trusted proxies, real staging |
 | Blocked | Any target database containing `2026-07-13-01-seed-accessory-split-categories` without an exact accountable external acceptance record |
 | Accepted risk | None granted by this repository task; local self-signed TLS and local restore are explicitly non-production evidence |
@@ -13,7 +13,7 @@
 ## Before approval
 
 - [ ] Hosting/provider, domains, registry, PostgreSQL, Redis, object storage, secrets manager, monitoring, and owners are selected.
-- [ ] Full release gate passed at the exact 40-character Git SHA.
+- [x] Full release gate passed at exact SHA `954e8a3a659371ba0203369aec9d2fef968fab5b`; RC tag `v1.0.0-rc.1` points to that commit.
 - [ ] The release manifest records three immutable image refs and verified digests; none uses `latest`.
 - [ ] Images were built for the final public API/media origins.
 - [ ] Secrets were generated/stored outside Git and environment validation passes.

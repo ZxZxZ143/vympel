@@ -13,6 +13,10 @@ This runbook deploys three independently versioned containers with one full 40-c
 5. Provision private PostgreSQL, Redis, and S3-compatible storage. Complete the backup and restore prerequisites.
 6. Confirm explicit storefront and CRM CORS origins, trusted proxy CIDRs, secure refresh-cookie policy, and server-only CMS revalidation secret.
 
+## Release-candidate evidence
+
+`v1.0.0-rc.1` points to remotely verified commit `954e8a3a659371ba0203369aec9d2fef968fab5b`. The authoritative CI runs and artifact digests are recorded in `REMOTE_CI_VERIFICATION.md`. The generated manifest intentionally uses registry placeholders and marks image digests pending; do not deploy it until a registry is approved, all three full-SHA images are published, their registry digests are recorded, and the target-environment conditions below are proven.
+
 ## Validate and deploy
 
 ```sh

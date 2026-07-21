@@ -46,4 +46,6 @@ Do not commit working environment files, credentials, TLS private keys, database
 
 ## Release status
 
-The provider-independent release-candidate baseline now includes SEO, local PostgreSQL backup/restore proof, real signed CMS revalidation/retry proof, validated Prometheus examples, and an isolated reverse-proxy rehearsal. Production remains **NOT READY** until the historical Liquibase condition is accountably accepted for any target database that contains it and the provider, final domains, registry, managed data services, secret manager, public TLS/trusted proxies, monitoring/alerts, and real staging deployment are selected and proven.
+Release candidate `v1.0.0-rc.1` points to exact commit `954e8a3a659371ba0203369aec9d2fef968fab5b`. That commit passed the required real GitHub backend, storefront, CRM, full-release, performance, and non-publishing three-image workflows; see [remote CI verification](docs/deployment/REMOTE_CI_VERIFICATION.md). No image was published and no external deployment ran.
+
+The provider-independent baseline includes SEO, local PostgreSQL backup/restore proof, real signed CMS revalidation/retry proof, validated Prometheus examples, and an isolated reverse-proxy rehearsal. Production remains **NOT READY** until the historical Liquibase condition is accountably accepted for any target database that contains it and the provider, final domains, registry and image digests, managed data services, secret manager, public TLS/trusted proxies, monitoring/alerts, and real staging deployment are selected and proven.

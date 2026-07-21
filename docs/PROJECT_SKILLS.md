@@ -1920,6 +1920,12 @@
 * **How:** Keep substitution in `deployment/scripts/generate-release-manifest.sh`, validate the SHA and HTTPS run URL first, use a delimiter such as `|` for the URL, and reject unresolved immutable placeholders in the output.
 * **Why:** The first real metadata job passed every substantive gate but failed on `sed: unknown option to s` before it could upload the immutable manifest.
 
+### Tag the exact remotely verified commit
+
+* **When to use:** Evidence/documentation commits follow a release-candidate implementation commit that has already passed every required remote gate.
+* **How:** Record the complete workflow run and artifact evidence first, create an annotated RC tag explicitly on the verified 40-character SHA, verify the tag target locally and remotely, and push normally without force. Keep subsequent documentation-only commits on `main` outside the tagged source snapshot.
+* **Why:** The tag must identify the code and configuration actually exercised by CI, not a later bookkeeping commit that was never subjected to the same component gates.
+
 ## Last Updated
 
-2026-07-22 - Added RC lessons for CMS/Liquibase/SEO/rehearsal safety, self-owned integration fixtures, final PostgreSQL readiness, non-publishing image evidence, and remote-CI portability across concurrency, disposable test services, readiness gates, executable modes, command resolution, build configuration, Buildx export modes, and manifest substitution.
+2026-07-22 - Added the exact-SHA RC tagging rule and recorded successful remote CI/manifest evidence without converting registry placeholders into unverified image digests.

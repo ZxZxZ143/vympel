@@ -2,7 +2,7 @@
 
 Date: 2026-07-22
 Candidate: `v1.0.0-rc.1`
-Status: local provider-independent gates passed; remote commit/CI/tag evidence pending at the time of this section.
+Status: provider-independent local and remote CI gates passed; tag published; provider-specific production conditions remain open.
 
 ## Preserved starting state
 
@@ -39,7 +39,9 @@ Status: local provider-independent gates passed; remote commit/CI/tag evidence p
 | Release image policy | PASS | relevant `main` changes build full-SHA images without publication; registry push remains manually and externally guarded |
 | YAML and script syntax | PASS | Psych syntax parsing, eleven POSIX scripts, three PowerShell rehearsals, Node gateway |
 | Secret/generated artifact scan | PASS | gitleaks 8.28.0 scanned the exact staged index with redacted output; no leaks found; generated/dependency/dump/key inventory passed |
-| Remote GitHub CI | PENDING | Recorded separately in `REMOTE_CI_VERIFICATION.md` after push |
+| Remote GitHub CI | PASS | Exact SHA passed backend, storefront, CRM, full release, performance, and non-publishing release-image workflows; `REMOTE_CI_VERIFICATION.md` |
+| Immutable RC manifest | PASS WITH PENDING REGISTRY DATA | Full-gate artifact `full-release-gate-954e8a3a659371ba0203369aec9d2fef968fab5b`, ID `8510711242`, identifies three full-SHA images; registry repositories and image digests intentionally remain pending |
+| Release-candidate tag | PASS | Annotated `v1.0.0-rc.1` points to `954e8a3a659371ba0203369aec9d2fef968fab5b`, was pushed normally, and its Full Release Gate run `29870201605` passed all five jobs |
 
 The image IDs above are local verification images, not registry digests. No image was pushed.
 

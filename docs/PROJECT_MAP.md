@@ -32,7 +32,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 * Monorepo/workspace tool: One root Git repository with three independently built sibling applications; no package workspace orchestrator.
 * Testing: Public and CRM apps use finite Vitest suites; backend uses JUnit/Spring Boot, Mockito, real HTTP integration tests, and Testcontainers for PostgreSQL/Redis integration checks.
 * Linting/formatting: Frontend uses ESLint through `npm run lint`; backend has no explicit lint/format task discovered.
-* Docker/DevOps: Three multi-stage non-root images, preserved local Compose, immutable-image staging/production Compose, Nginx templates, deployment/rehearsal scripts, Prometheus examples, and component/full-release GitHub Actions workflows.
+* Docker/DevOps: Three multi-stage non-root images, preserved local Compose, immutable-image staging/production Compose, Nginx templates, deployment/rehearsal scripts, Prometheus examples, and component/full-release GitHub Actions workflows. Release candidate `v1.0.0-rc.1` identifies exact remotely verified commit `954e8a3a659371ba0203369aec9d2fef968fab5b`; registry digests remain pending.
 
 ## Directory Structure
 
@@ -1124,4 +1124,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-22 - Added RC deployment/verification architecture, non-publishing automatic image evidence, and remote-CI corrections for self-owned database fixtures, final-postmaster readiness, concurrency, executable modes, disposable test PostgreSQL, bounded upstream readiness, native command resolution, canonical build configuration, Buildx export compatibility, and immutable manifest generation.
+2026-07-22 - Recorded exact-SHA remote CI success, immutable RC manifest evidence, and the published `v1.0.0-rc.1` tag while retaining registry and provider deployment gates.

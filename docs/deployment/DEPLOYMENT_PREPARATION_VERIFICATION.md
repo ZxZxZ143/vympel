@@ -79,3 +79,7 @@ The final staged-index scan and disposition are recorded in `docs/cleanup/PRE_CO
 Repository preparation now resolves the provider-independent SEO, local restore, CMS freshness/retry, reverse-proxy flow, and observability-configuration gates. Production is still **NOT READY** until final hosting/domains, registry credentials and digests, managed PostgreSQL restore proof, Redis TLS/ACL/private networking, object-storage versioning/backup, secret manager, public TLS/trusted proxies, monitoring/alert delivery, and real staging are selected and demonstrated.
 
 The exact artifact for historical Liquibase condition `2026-07-13-01-seed-accessory-split-categories` was not recoverable. Any target database containing that row is formally blocked until the fail-closed compatibility script matches a separate accountable acceptance record; no applied history was edited or invented.
+
+## Remote release-candidate verification
+
+Exact commit `954e8a3a659371ba0203369aec9d2fef968fab5b` passed Backend CI, Storefront CI, CRM CI, Full Release Gate, Performance budgets, and the three-boundary non-publishing Release Images workflow in the approved GitHub repository. The successful full gate emitted the commit-specific `v1.0.0-rc.1.yml` manifest artifact. Tag `v1.0.0-rc.1` points to that exact commit. Registry repository values and image digests remain pending, and no image publication or external deployment occurred. Run IDs, artifact IDs, digests, and remote-only correction history are recorded in `REMOTE_CI_VERIFICATION.md`.
