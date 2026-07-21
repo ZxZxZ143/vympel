@@ -1,0 +1,58 @@
+groups:
+  - name: vympel-application
+    rules:
+      - alert: VympelTargetUnavailable
+        expr: up{job=~"vympel-backend|vympel-health"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "Vympel health or metrics target is unavailable"
+          runbook: "docs/deployment/OBSERVABILITY_RUNBOOK.md"
+
+      - alert: VympelBackendHighFiveXxRate
+        expr: sum(rate(http_server_requests_seconds_count{service="vympel-backend",status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{service="vympel-backend"}[5m])), 1) > 0.05
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Backend 5xx ratio is above 5%"
+          runbook: "docs/deployment/OBSERVABILITY_RUNBOOK.md"
+
+      - alert: VympelCmsRevalidationBacklog
+        expr: sum(cms_revalidation_queue_jobs{status=~"pending|retry|processing"}) > 0
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "CMS revalidation queue has not drained"
+          runbook: "docs/deployment/CMS_REVALIDATION_RUNBOOK.md"
+
+      - alert: VympelCmsRevalidationPermanentFailure
+        expr: increase(cms_revalidation_attempts_total{outcome=~"permanent_failure|retry_exhausted|not_configured"}[10m]) > 0
+        for: 0m
+        labels: {severity: critical}
+        annotations:
+          summary: "CMS cache revalidation permanently failed"
+          runbook: "docs/deployment/CMS_REVALIDATION_RUNBOOK.md"
+
+      - alert: VympelRateLimitStoreErrors
+        expr: increase(rate_limit_store_errors_total[5m]) > 0
+        for: 0m
+        labels: {severity: critical}
+        annotations:
+          summary: "Rate-limit storage reported an error"
+          runbook: "docs/deployment/OBSERVABILITY_RUNBOOK.md"
+
+      - alert: VympelDatabasePoolSaturated
+        expr: hikaricp_connections_pending > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Database connection requests are waiting"
+          runbook: "docs/deployment/OBSERVABILITY_RUNBOOK.md"
+
+      - alert: VympelProcessRestartedRepeatedly
+        expr: changes(process_start_time_seconds[15m]) > 2
+        for: 0m
+        labels: {severity: warning}
+        annotations:
+          summary: "Application process restarted repeatedly"
+          runbook: "docs/deployment/OBSERVABILITY_RUNBOOK.md"

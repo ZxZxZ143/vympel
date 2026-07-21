@@ -1,5 +1,15 @@
 # Production Release Checklist
 
+## Condition classification for `v1.0.0-rc.1`
+
+| Classification | Conditions |
+| --- | --- |
+| Resolved locally | Three-image builds; SEO/CRM crawler policy; ADMIN regression and controlled procedure; canonical 77-change migration; isolated PostgreSQL backup/restore; signed CMS freshness/retry/timeout; proxy routing/policy; Prometheus/rule syntax; Compose/workflow/script validation |
+| Verified in remote CI | Pending until the exact release-candidate SHA passes backend, storefront, CRM, full release, and no-push image build workflows; record in `REMOTE_CI_VERIFICATION.md` |
+| Provider-specific | Hosting, final domains, registry/digests, managed PostgreSQL restore, Redis, object storage, secret manager, monitoring/alert delivery, public TLS/trusted proxies, real staging |
+| Blocked | Any target database containing `2026-07-13-01-seed-accessory-split-categories` without an exact accountable external acceptance record |
+| Accepted risk | None granted by this repository task; local self-signed TLS and local restore are explicitly non-production evidence |
+
 ## Before approval
 
 - [ ] Hosting/provider, domains, registry, PostgreSQL, Redis, object storage, secrets manager, monitoring, and owners are selected.
@@ -18,10 +28,12 @@
 
 ## Controlled ADMIN setup (only if no ADMIN exists)
 
-- [ ] Temporary credentials are supplied by the secret manager; bootstrap is enabled for one controlled deployment.
-- [ ] Exactly one ADMIN and CRM login are verified without recording the password/hash.
-- [ ] Bootstrap is disabled, temporary credentials are rotated/removed, and the disabled configuration is redeployed.
-- [ ] ADMIN remains usable and its password hash is unchanged.
+- [ ] Temporary `VYMPEL_BOOTSTRAP_ADMIN_EMAIL`, `VYMPEL_BOOTSTRAP_ADMIN_PASSWORD`, and `VYMPEL_BOOTSTRAP_ADMIN_NAME` values are provisioned through the secret manager.
+- [ ] `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=true` is used for one controlled deployment only.
+- [ ] CRM login and ADMIN authorization are verified; exactly one ADMIN exists without recording the password/hash.
+- [ ] `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=false` is restored.
+- [ ] The temporary password secret is removed or rotated.
+- [ ] The service is redeployed with bootstrap disabled; ADMIN remains usable and its password hash is unchanged.
 
 ## Deploy and close
 

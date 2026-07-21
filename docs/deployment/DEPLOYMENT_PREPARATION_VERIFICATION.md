@@ -40,8 +40,8 @@ The first migration-only preflight showed that `spring.main.web-application-type
 
 | Application | Clean install | Lint | Typecheck | Tests | Audit | Build | Budget |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Storefront | 662 packages | pass | pass | 8 files / 23 tests | 0 vulnerabilities | Next 16.2.10, 32 routes | 1.34 MiB JS / 1.65 MiB |
-| CRM | 387 packages | pass | pass | 6 files / 23 tests | 0 vulnerabilities | Next 16.2.10, 17 routes | 1.09 MiB JS / 1.40 MiB |
+| Storefront | 662 packages | pass | pass | 12 files / 34 tests | 0 vulnerabilities | Next 16.2.10, 34 routes including robots/sitemap | 1.34 MiB JS / 1.65 MiB |
+| CRM | 387 packages | pass | pass | 8 files / 25 tests | 0 vulnerabilities | Next 16.2.10, 17 routes | 1.09 MiB JS / 1.40 MiB |
 
 React and React DOM are pinned at the patched 19.2.4 floor. Node 22/Linux regenerated both portable lockfiles after Windows npm 11 removed Linux/WASI optional peer entries; subsequent local clean installs and Docker `npm ci` both passed.
 
@@ -49,9 +49,9 @@ React and React DOM are pinned at the patched 19.2.4 floor. Node 22/Linux regene
 
 | Image | Local verification image ID | Approx. size | Runtime | Result |
 | --- | --- | ---: | --- | --- |
-| `vympel-backend` | `sha256:c3ead0b10208057db94e12e3b8026cadd12046e77f4d4cebc7912077f06b6097` | 181 MB | `vympel` non-root, Java 17 JRE | build and real readiness passed |
-| `vympel-storefront` | `sha256:18685728ee23d4d54b01f193d98f95f581bcc6c837e1ba9ac2ca0cc81390bf5e` | 86 MB | `node` non-root, standalone Node 22 | build, health, HTTP, security header passed |
-| `vympel-crm` | `sha256:ca26714e39ab162843a410ee1bb1467eb242c34307e37fe5e4b5da8980b8e85f` | 77 MB | `node` non-root, standalone Node 22 | build, health, login page, security header passed |
+| `vympel-backend` | `sha256:65228d906ddfac523565ba0a781c5a5c587adf53da8d7bb994498c1f6c4adac9` | 183 MB | `vympel` non-root, Java 17 JRE | build, restored-DB readiness, and CMS integration passed |
+| `vympel-storefront` | `sha256:a93a2be21103b67817bced4d1e4158d805cdd4c55d34620b7ed85c7037190ab6` | 86 MB | `node` non-root, standalone Node 22 | build, health, signed freshness/retry, SEO passed |
+| `vympel-crm` | `sha256:4d6595f2f368c779377cae747103e92063e54421b1c1e9a2d8cdbce98bcbb86a` | 77 MB | `node` non-root, standalone Node 22 | build, login health, noindex passed |
 
 These are local verification tags only. No registry push occurred. Release workflows use the full Git commit SHA rather than these local tags.
 
@@ -60,10 +60,11 @@ These are local verification tags only. No registry push occurred. Release workf
 | Check | Exit | Result |
 | --- | ---: | --- |
 | Local/staging/production `docker compose config --quiet` | 0 / 0 / 0 | All three configurations resolve. Deployment app refs are immutable and only proxy ports are published. |
-| `bash -n deployment/scripts/*.sh` | 0 | All nine scripts parse. |
+| `sh -n deployment/scripts/*.sh` | 0 | All ten POSIX deployment scripts parse. |
 | Example environment validation | expected nonzero | Both placeholder templates fail closed before deployment. |
 | YAML parse | 0 | All workflow, Compose, and release-manifest YAML parses. |
 | `actionlint` 1.7.7 | 0 | All GitHub Actions workflows pass semantic and embedded shell checks. |
+| `promtool` 3.5.0 | 0 | Prometheus configuration and all seven alert rules parse. |
 | `nginx -t` using generated one-day test certificate and local upstream aliases | 0 | Proxy syntax succeeds; temporary certificate was removed. |
 | Standalone image smoke resources | 0 | Temporary storefront/CRM containers were removed. |
 
@@ -75,6 +76,6 @@ The final staged-index scan and disposition are recorded in `docs/cleanup/PRE_CO
 
 ## Production blockers
 
-Repository preparation supports staging, but production is **NOT READY** until final hosting and domains, registry credentials, managed PostgreSQL and restore proof, Redis TLS/ACL/private networking, object-storage provider/versioning/backup, secrets manager, target TLS/proxy behavior, CMS revalidation freshness, monitoring/alerts, and SEO/analytics decisions are selected and demonstrated.
+Repository preparation now resolves the provider-independent SEO, local restore, CMS freshness/retry, reverse-proxy flow, and observability-configuration gates. Production is still **NOT READY** until final hosting/domains, registry credentials and digests, managed PostgreSQL restore proof, Redis TLS/ACL/private networking, object-storage versioning/backup, secret manager, public TLS/trusted proxies, monitoring/alert delivery, and real staging are selected and demonstrated.
 
-The known historical Liquibase condition `2026-07-13-01-seed-accessory-split-categories` must be reconciled without editing already-applied history. Final canonical domain, sitemap, robots, localized metadata, and analytics baseline decisions also require target-environment approval.
+The exact artifact for historical Liquibase condition `2026-07-13-01-seed-accessory-split-categories` was not recoverable. Any target database containing that row is formally blocked until the fail-closed compatibility script matches a separate accountable acceptance record; no applied history was edited or invented.

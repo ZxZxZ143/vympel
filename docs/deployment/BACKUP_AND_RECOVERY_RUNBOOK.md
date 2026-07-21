@@ -13,6 +13,8 @@ The production environment file must identify the latest database backup and res
 
 ## Restore rehearsal
 
+The provider-neutral local rehearsal command is `pwsh deployment/rehearsals/backup-restore.ps1`; its latest sanitized result is in `BACKUP_RESTORE_REHEARSAL_REPORT.md`. It is technical proof of application compatibility, not a substitute for the selected provider's restore evidence.
+
 1. Record recovery point objective, recovery time objective, source backup identifier, and responsible operator.
 2. Provision an isolated private recovery database and object-storage namespace.
 3. Restore without overwriting production.

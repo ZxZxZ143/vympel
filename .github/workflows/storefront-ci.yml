@@ -41,9 +41,10 @@ jobs:
       run:
         working-directory: vympel_front
     env:
-      BASE_API_PUBLIC: http://127.0.0.1:9/api/public
+      BASE_API_PUBLIC: http://127.0.0.1:65535/api/public
       NEXT_PUBLIC_BASE_API_PUBLIC: https://api.example.invalid/api/public
       NEXT_PUBLIC_MEDIA_ORIGINS: https://media.example.invalid
+      NEXT_PUBLIC_SITE_URL: https://shop.example.invalid
       NEXT_PUBLIC_APP_ENV: ci
       NEXT_PUBLIC_APP_RELEASE: ${{ github.sha }}
       NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
@@ -67,9 +68,10 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: >-
           docker build --pull
-          --build-arg BASE_API_PUBLIC=http://127.0.0.1:9/api/public
+          --build-arg BASE_API_PUBLIC=http://127.0.0.1:65535/api/public
           --build-arg NEXT_PUBLIC_BASE_API_PUBLIC=https://api.example.invalid/api/public
           --build-arg NEXT_PUBLIC_MEDIA_ORIGINS=https://media.example.invalid
+          --build-arg NEXT_PUBLIC_SITE_URL=https://shop.example.invalid
           --build-arg NEXT_PUBLIC_APP_ENV=ci
           --build-arg NEXT_PUBLIC_APP_RELEASE="${GITHUB_SHA}"
           --tag "vympel-storefront:${GITHUB_SHA}"

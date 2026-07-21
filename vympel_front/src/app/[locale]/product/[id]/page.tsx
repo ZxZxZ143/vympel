@@ -5,6 +5,7 @@ import {PublicApiController} from "@/api/controllers/PublicController";
 import {ApiError} from "@/api/types/ApiError";
 import ProductPage from "@/screens/ProductPage";
 import {LocaleEnum} from "@/i18n/routing";
+import {publicSeoMetadata} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,11 @@ type Props = {
         locale: LocaleEnum;
     }>;
 };
+
+export async function generateMetadata({params}: Props) {
+    const {locale, id} = await params;
+    return publicSeoMetadata(locale, ["product", id], "Vympel — Product");
+}
 
 export default async function Page({params}: Props) {
     const {id, locale} = await params;

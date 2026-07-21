@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CmsRevalidationJobRepository extends JpaRepository<CmsRevalidationJob, Long> {
+    long countByStatus(CmsRevalidationJobStatus status);
+
     @Modifying
     @Query(value = """
             INSERT INTO cms_revalidation_job (

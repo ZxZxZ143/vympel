@@ -23,6 +23,11 @@ on:
         required: true
         default: https://media.example.invalid
         type: string
+      storefront_site_url:
+        description: Browser-visible canonical storefront origin compiled into the image
+        required: true
+        default: https://shop.example.invalid
+        type: string
       deployment_environment:
         description: Public environment label compiled into frontend images
         required: true
@@ -62,6 +67,7 @@ jobs:
               BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
               NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
               NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins }}
+              NEXT_PUBLIC_SITE_URL=${{ inputs.storefront_site_url }}
               NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false

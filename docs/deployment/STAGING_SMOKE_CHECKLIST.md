@@ -9,7 +9,9 @@ Record release SHA, all three image digests, date/operator, target environment, 
 - [ ] Storefront RU, KZ, and EN home/catalog/product paths return expected content.
 - [ ] Storefront server-side API and browser-visible API/media origins point to staging.
 - [ ] CRM login works using a disposable/approved staging ADMIN; refresh cookie is Secure, HttpOnly, and has the approved SameSite value.
-- [ ] Existing ADMIN bootstrap is idempotent and disabled after controlled initial setup.
+- [ ] If initial ADMIN setup is required, provision the four `VYMPEL_BOOTSTRAP_ADMIN_*` values through the staging secret manager for one controlled deployment only.
+- [ ] Verify CRM login and ADMIN authorization, then set `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=false`, remove or rotate the temporary password secret, and redeploy.
+- [ ] Existing ADMIN bootstrap is idempotent, does not reset the existing password, and remains disabled after controlled setup.
 - [ ] Representative CRM read/write flow works with request IDs and no secret-bearing errors.
 - [ ] CMS publish triggers signed server-only revalidation and content becomes fresh in RU/KZ/EN.
 - [ ] Image upload limits, object retrieval, orphan/lifecycle behavior, and private credentials are correct.

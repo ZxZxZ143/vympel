@@ -30,11 +30,12 @@ The migration job runs first and exits only after Liquibase can read the changel
 
 Production bootstrap is disabled by default. For a first controlled setup only:
 
-1. Put a temporary strong password and ADMIN identity in the secret manager.
-2. Set `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=true` for one deployment.
-3. Verify exactly one ADMIN exists and CRM login works.
-4. Set bootstrap to `false`, remove or rotate the temporary secret, and redeploy.
-5. Verify the user remains and its password hash is unchanged.
+1. Provision temporary `VYMPEL_BOOTSTRAP_ADMIN_EMAIL`, `VYMPEL_BOOTSTRAP_ADMIN_PASSWORD`, and `VYMPEL_BOOTSTRAP_ADMIN_NAME` values through the secret manager.
+2. Set `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=true` for one controlled deployment.
+3. Verify CRM login and ADMIN authorization; confirm exactly one ADMIN exists.
+4. Set `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=false`.
+5. Remove or rotate the temporary password secret.
+6. Redeploy with bootstrap disabled, then verify the user remains and its password hash is unchanged.
 
 Never store the password in Git, image layers, workflow inputs, Compose source, logs, or the release manifest.
 

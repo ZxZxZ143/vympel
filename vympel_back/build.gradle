@@ -59,6 +59,7 @@ dependencies {
 
     // --- Observability / Health (recommended) ---
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     // --- Mail (optional) ---
     implementation("org.springframework.boot:spring-boot-starter-mail")

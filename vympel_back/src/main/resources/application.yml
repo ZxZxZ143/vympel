@@ -92,7 +92,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health"
+        include: "health,prometheus"
   endpoint:
     health:
       show-details: never
@@ -103,6 +103,14 @@ management:
           include: "livenessState"
         readiness:
           include: "readinessState,db"
+  metrics:
+    tags:
+      application: "${spring.application.name}"
+      environment: "${SPRING_PROFILES_ACTIVE:default}"
+  prometheus:
+    metrics:
+      export:
+        enabled: "${VYMPEL_PROMETHEUS_ENABLED:true}"
 
 storage:
   s3:

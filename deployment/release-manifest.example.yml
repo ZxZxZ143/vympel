@@ -1,44 +1,59 @@
 apiVersion: deployment.vympel.dev/v1
 kind: ReleaseManifest
 metadata:
-  releaseTag: 0000000000000000000000000000000000000000
+  releaseName: Vympel 1.0.0 Release Candidate 1
+  releaseTag: v1.0.0-rc.1
   gitCommit: 0000000000000000000000000000000000000000
-  createdAt: 2026-07-21T00:00:00Z
-  environment: staging
+  generatedAt: GENERATED_AT_UTC
+  status: release-candidate
 images:
   backend:
-    repository: registry.example.invalid/vympel/vympel-backend
+    repository: REGISTRY_PENDING/vympel-backend
     tag: 0000000000000000000000000000000000000000
-    digest: sha256:REPLACE_ME
+    digest: PENDING_REGISTRY_PUBLICATION
   storefront:
-    repository: registry.example.invalid/vympel/vympel-storefront
+    repository: REGISTRY_PENDING/vympel-storefront
     tag: 0000000000000000000000000000000000000000
-    digest: sha256:REPLACE_ME
+    digest: PENDING_REGISTRY_PUBLICATION
     buildPublicConfiguration:
-      apiBase: https://api.staging.example.invalid/api/public
-      mediaOrigins: https://media.staging.example.invalid
+      canonicalSiteUrl: DOMAIN_PENDING
+      apiBase: DOMAIN_PENDING/api/public
+      mediaOrigins: OBJECT_STORAGE_ORIGIN_PENDING
   crm:
-    repository: registry.example.invalid/vympel/vympel-crm
+    repository: REGISTRY_PENDING/vympel-crm
     tag: 0000000000000000000000000000000000000000
-    digest: sha256:REPLACE_ME
+    digest: PENDING_REGISTRY_PUBLICATION
     buildPublicConfiguration:
-      apiBase: https://api.staging.example.invalid/api/crm
-      mediaOrigins: https://media.staging.example.invalid
+      apiBase: DOMAIN_PENDING/api/crm
+      mediaOrigins: OBJECT_STORAGE_ORIGIN_PENDING
 database:
   changelog: classpath:db/changelog/db.changelog-master.xml
-  expectedLatestChange: 2026-07-19-02-public-image-webp
+  expectedLatestChange: 2026-07-19-02-update-public-image-paths-to-webp
   migrationMode: one-time-job
-  backupEvidence: REPLACE_ME
-  restoreRehearsal: REPLACE_ME
+  historicalCompatibility: CONDITIONAL_EXTERNAL_ACCEPTANCE_IF_ROW_PRESENT
+  backupEvidence: docs/deployment/BACKUP_RESTORE_REHEARSAL_REPORT.md
+  restoreRehearsal: LOCAL_PASS_PROVIDER_PROOF_PENDING
 rollback:
-  previousReleaseTag: REPLACE_ME_40_CHARACTER_COMMIT_SHA
+  previousReleaseTag: PROVIDER_DEPLOYMENT_NOT_STARTED
   databaseStrategy: forward-fix-only
 verification:
-  backendCiRun: REPLACE_ME
-  storefrontCiRun: REPLACE_ME
-  crmCiRun: REPLACE_ME
-  fullReleaseGateRun: REPLACE_ME
+  remoteCiReference: REMOTE_CI_RUN_PENDING
+  backendCi: PENDING
+  storefrontCi: PENDING
+  crmCi: PENDING
+  fullReleaseGate: PENDING
 approvals:
   registryPushApproved: false
   stagingApproved: false
   productionApproved: false
+unresolvedProviderSpecific:
+  - hosting
+  - final-domains
+  - container-registry
+  - managed-postgresql
+  - redis
+  - object-storage
+  - secret-manager
+  - monitoring-and-alert-routing
+  - public-tls-and-trusted-proxies
+  - real-staging-deployment

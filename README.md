@@ -34,7 +34,9 @@ The CI workflows repeat these checks and build three images tagged with the full
 - Staging: `infrastructure/compose/compose.staging.yml`, immutable prebuilt images, external secrets and data services.
 - Production: `infrastructure/compose/compose.production.yml`, immutable prebuilt images, explicit backup/restore and approval gates.
 
-Start with [the deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md), populate a non-committed environment file from `infrastructure/env/*.env.example`, and record the exact image digests and full Git SHA in a copy of `deployment/release-manifest.example.yml`.
+Start with [the deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md), populate a non-committed environment file from `infrastructure/env/*.env.example`, and use `deployment/release-manifest.example.yml` for the exact full Git SHA and immutable image references. The full release gate also emits a commit-specific manifest artifact; digests remain pending until a registry is selected and images are published.
+
+`NEXT_PUBLIC_SITE_URL` is the browser-safe canonical storefront origin. It is required at storefront build time because Next.js compiles canonical and language-alternate metadata into output; the same value is retained at runtime for dynamic sitemap and robots responses. Do not substitute a final domain until it is approved.
 
 ## ADMIN bootstrap
 
@@ -44,4 +46,4 @@ Do not commit working environment files, credentials, TLS private keys, database
 
 ## Release status
 
-The repository is prepared for provider-neutral staging. Production remains **NOT READY** until the provider, final domains, container registry, managed PostgreSQL, object storage, secrets manager, TLS, restore rehearsal, CMS revalidation, and monitoring/alerting are selected and proven in the target environment.
+The provider-independent release-candidate baseline now includes SEO, local PostgreSQL backup/restore proof, real signed CMS revalidation/retry proof, validated Prometheus examples, and an isolated reverse-proxy rehearsal. Production remains **NOT READY** until the historical Liquibase condition is accountably accepted for any target database that contains it and the provider, final domains, registry, managed data services, secret manager, public TLS/trusted proxies, monitoring/alerts, and real staging deployment are selected and proven.

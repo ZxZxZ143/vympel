@@ -22,3 +22,5 @@ The browser-visible API and media origins are separate build-time values. Do not
 6. Restore the staging content if the test change was temporary.
 
 Treat required revalidation failure as a release blocker. Do not delete queued work to make the check green; diagnose reachability, TLS, signature parity, and storefront health, then allow bounded retry. Rotate the HMAC secret through the secret manager and redeploy both backend and storefront together.
+
+The local production-like proof and exact scenarios are recorded in `CMS_REVALIDATION_INTEGRATION_REPORT.md`. Retries keep the operation request ID and are re-signed with a current timestamp. The storefront treats the same valid request ID/version/page as idempotent so a lost success response can recover; request-ID reuse for another page is rejected.

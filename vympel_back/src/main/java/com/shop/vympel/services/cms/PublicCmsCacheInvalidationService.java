@@ -2,6 +2,10 @@ package com.shop.vympel.services.cms;
 
 import com.shop.vympel.dtos.cms.CmsPublicCacheRefreshResponse;
 import lombok.extern.slf4j.Slf4j;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,14 +31,17 @@ public class PublicCmsCacheInvalidationService {
     private final String revalidateSecret;
     private final Duration timeout;
     private final int maxAttempts;
+    private final MeterRegistry meterRegistry;
 
+    @Autowired
     public PublicCmsCacheInvalidationService(
             CmsRevalidationOutboxService outboxService,
             CmsRevalidationJobStore jobStore,
             @Value("${app.cms.public-revalidate.url:}") String revalidateUrl,
             @Value("${app.cms.public-revalidate.secret:}") String revalidateSecret,
             @Value("${app.cms.public-revalidate.timeout-ms:3000}") int timeoutMs,
-            @Value("${app.cms.public-revalidate.max-attempts:8}") int maxAttempts
+            @Value("${app.cms.public-revalidate.max-attempts:8}") int maxAttempts,
+            MeterRegistry meterRegistry
     ) {
         this.outboxService = outboxService;
         this.jobStore = jobStore;
@@ -42,21 +49,37 @@ public class PublicCmsCacheInvalidationService {
         this.revalidateSecret = revalidateSecret;
         this.timeout = Duration.ofMillis(Math.max(250, timeoutMs));
         this.maxAttempts = Math.max(1, maxAttempts);
+        this.meterRegistry = meterRegistry;
+    }
+
+    PublicCmsCacheInvalidationService(
+            CmsRevalidationOutboxService outboxService,
+            CmsRevalidationJobStore jobStore,
+            String revalidateUrl,
+            String revalidateSecret,
+            int timeoutMs,
+            int maxAttempts
+    ) {
+        this(outboxService, jobStore, revalidateUrl, revalidateSecret, timeoutMs, maxAttempts,
+                new SimpleMeterRegistry());
     }
 
     public CmsPublicCacheRefreshResponse refreshPage(String pageKey) {
         if (!outboxService.isEnabled()) {
+            recordOutcome("disabled");
             return CmsPublicCacheRefreshResponse.notRequired();
         }
 
         Instant now = Instant.now();
         CmsRevalidationJobStore.Claim claim = jobStore.claim(pageKey, now).orElse(null);
         if (claim == null) {
+            recordOutcome("already_pending");
             return CmsPublicCacheRefreshResponse.retryScheduled(null, "ALREADY_PENDING");
         }
         if (isBlank(revalidateUrl) || isBlank(revalidateSecret)) {
             jobStore.completePermanent(claim, now, "NOT_CONFIGURED");
             log.error("Public CMS cache revalidation is enabled but not configured pageKey={}", pageKey);
+            recordOutcome("not_configured");
             return CmsPublicCacheRefreshResponse.notConfigured(claim.requestId());
         }
 
@@ -87,6 +110,8 @@ public class PublicCmsCacheInvalidationService {
                         claim.attemptCount(),
                         elapsedMillis(startedNanos)
                 );
+                recordOutcome("success");
+                recordLatency(startedNanos, "success");
                 return CmsPublicCacheRefreshResponse.success(claim.requestId());
             }
             if (status >= 400 && status < 500) {
@@ -98,6 +123,8 @@ public class PublicCmsCacheInvalidationService {
                         status,
                         elapsedMillis(startedNanos)
                 );
+                recordOutcome("permanent_failure");
+                recordLatency(startedNanos, "permanent_failure");
                 return CmsPublicCacheRefreshResponse.permanentFailure(claim.requestId(), "HTTP_" + status);
             }
             return scheduleRetry(claim, "HTTP_" + status, startedNanos);
@@ -129,6 +156,8 @@ public class PublicCmsCacheInvalidationService {
                     claim.attemptCount(),
                     elapsedMillis(startedNanos)
             );
+            recordOutcome("retry_exhausted");
+            recordLatency(startedNanos, "retry_exhausted");
             return CmsPublicCacheRefreshResponse.permanentFailure(claim.requestId(), "RETRY_EXHAUSTED");
         }
         jobStore.completeRetry(claim, Instant.now(), errorCode);
@@ -140,6 +169,8 @@ public class PublicCmsCacheInvalidationService {
                 errorCode,
                 elapsedMillis(startedNanos)
         );
+        recordOutcome("retry_scheduled");
+        recordLatency(startedNanos, "retry_scheduled");
         return CmsPublicCacheRefreshResponse.retryScheduled(claim.requestId(), errorCode);
     }
 
@@ -163,5 +194,16 @@ public class PublicCmsCacheInvalidationService {
 
     private long elapsedMillis(long startedNanos) {
         return Duration.ofNanos(System.nanoTime() - startedNanos).toMillis();
+    }
+
+    private void recordOutcome(String outcome) {
+        meterRegistry.counter("cms_revalidation_attempts_total", "outcome", outcome).increment();
+    }
+
+    private void recordLatency(long startedNanos, String outcome) {
+        Timer.builder("cms_revalidation_latency")
+                .tag("outcome", outcome)
+                .register(meterRegistry)
+                .record(Duration.ofNanos(System.nanoTime() - startedNanos));
     }
 }

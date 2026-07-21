@@ -8,11 +8,14 @@ import {
     verifyCmsRevalidationSignature,
     type CmsRevalidationPayload,
 } from "@/lib/cmsRevalidation";
+import {
+    consumeCmsRevalidationRequest,
+    type CmsRevalidationReplayEntry,
+} from "@/lib/cmsRevalidationReplay";
 
 export const runtime = "nodejs";
 
-const replayWindow = new Map<string, number>();
-const maxReplayEntries = 1000;
+const replayWindow = new Map<string, CmsRevalidationReplayEntry>();
 
 export async function POST(request: NextRequest) {
     const configuredSecret = process.env.CMS_REVALIDATE_SECRET;
@@ -53,8 +56,17 @@ export async function POST(request: NextRequest) {
     )) {
         return json({ok: false, error: "Unauthorized"}, 401);
     }
-    if (!consumeRequestId(validated.value.requestId, validated.value.timestamp)) {
+    const replayResult = consumeCmsRevalidationRequest(replayWindow, validated.value);
+    if (replayResult === "REJECTED") {
         return json({ok: false, error: "Replay rejected"}, 409);
+    }
+    if (replayResult === "IDEMPOTENT") {
+        return json({
+            ok: true,
+            status: "ALREADY_REVALIDATED",
+            pageKey: validated.value.pageKey,
+            requestId: validated.value.requestId,
+        });
     }
 
     const tag = `cms:${validated.value.pageKey}`;
@@ -76,20 +88,6 @@ export async function POST(request: NextRequest) {
         requestId: validated.value.requestId,
         revalidatedAt: new Date().toISOString(),
     });
-}
-
-function consumeRequestId(requestId: string, timestamp: number) {
-    const now = Math.floor(Date.now() / 1000);
-    for (const [storedId, expiresAt] of replayWindow) {
-        if (expiresAt < now) replayWindow.delete(storedId);
-    }
-    if (replayWindow.has(requestId)) return false;
-    if (replayWindow.size >= maxReplayEntries) {
-        const oldest = replayWindow.keys().next().value;
-        if (oldest) replayWindow.delete(oldest);
-    }
-    replayWindow.set(requestId, timestamp + 300);
-    return true;
 }
 
 function json(body: Record<string, unknown>, status = 200) {

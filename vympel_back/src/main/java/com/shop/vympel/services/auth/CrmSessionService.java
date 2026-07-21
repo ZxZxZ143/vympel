@@ -9,6 +9,8 @@ import com.shop.vympel.exceptions.InvalidRefreshTokenException;
 import com.shop.vympel.logging.SecurityAuditLogger;
 import com.shop.vympel.security.jwt.JwtService;
 import io.jsonwebtoken.JwtException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,15 +40,17 @@ public class CrmSessionService {
     private final UserRoleRepository userRoleRepository;
     private final JwtService jwtService;
     private final Clock clock;
+    private final MeterRegistry meterRegistry;
 
     @Autowired
     public CrmSessionService(
             RefreshTokenSessionRepository sessionRepository,
             UserRepository userRepository,
             UserRoleRepository userRoleRepository,
-            JwtService jwtService
+            JwtService jwtService,
+            MeterRegistry meterRegistry
     ) {
-        this(sessionRepository, userRepository, userRoleRepository, jwtService, Clock.systemUTC());
+        this(sessionRepository, userRepository, userRoleRepository, jwtService, Clock.systemUTC(), meterRegistry);
     }
 
     CrmSessionService(
@@ -56,11 +60,23 @@ public class CrmSessionService {
             JwtService jwtService,
             Clock clock
     ) {
+        this(sessionRepository, userRepository, userRoleRepository, jwtService, clock, new SimpleMeterRegistry());
+    }
+
+    private CrmSessionService(
+            RefreshTokenSessionRepository sessionRepository,
+            UserRepository userRepository,
+            UserRoleRepository userRoleRepository,
+            JwtService jwtService,
+            Clock clock,
+            MeterRegistry meterRegistry
+    ) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.jwtService = jwtService;
         this.clock = clock;
+        this.meterRegistry = meterRegistry;
     }
 
     @Transactional
@@ -73,7 +89,9 @@ public class CrmSessionService {
                 .filter(candidate -> Boolean.TRUE.equals(candidate.getEnabled()))
                 .orElseThrow(InvalidRefreshTokenException::new);
 
-        return createSession(user, authenticatedUser.roles(), UUID.randomUUID().toString());
+        SessionTokens session = createSession(user, authenticatedUser.roles(), UUID.randomUUID().toString());
+        recordSessionEvent("start", "success");
+        return session;
     }
 
     @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
@@ -92,6 +110,7 @@ public class CrmSessionService {
             sessionRepository.save(current);
             sessionRepository.revokeActiveByFamilyId(current.getFamilyId(), now, REASON_REUSE);
             SecurityAuditLogger.refreshTokenReuseDetected(current.getUser().getId(), current.getFamilyId());
+            recordSessionEvent("refresh_replay", "rejected");
             throw new InvalidRefreshTokenException();
         }
 
@@ -105,6 +124,7 @@ public class CrmSessionService {
             revoke(current, now, REASON_REUSE);
             sessionRepository.revokeActiveByFamilyId(current.getFamilyId(), now, REASON_REUSE);
             SecurityAuditLogger.refreshTokenReuseDetected(user.getId(), current.getFamilyId());
+            recordSessionEvent("refresh_replay", "rejected");
             throw new InvalidRefreshTokenException();
         }
 
@@ -123,6 +143,7 @@ public class CrmSessionService {
         SessionTokens replacement = createSession(user, currentRoles, current.getFamilyId());
         current.setReplacedBySession(replacement.session());
         sessionRepository.save(current);
+        recordSessionEvent("refresh_rotate", "success");
         return replacement;
     }
 
@@ -145,6 +166,7 @@ public class CrmSessionService {
                     if (session.getRevokedAt() == null
                             && Objects.equals(session.getUser().getId(), subjectUserId)) {
                         revoke(session, clock.instant(), REASON_LOGOUT);
+                        recordSessionEvent("logout", "success");
                     }
                 });
     }
@@ -231,6 +253,10 @@ public class CrmSessionService {
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException("SHA-256 is unavailable", ex);
         }
+    }
+
+    private void recordSessionEvent(String event, String outcome) {
+        meterRegistry.counter("auth_session_events_total", "event", event, "outcome", outcome).increment();
     }
 
     public record SessionTokens(

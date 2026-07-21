@@ -1,5 +1,6 @@
 import FavoritesPage from "@/screens/FavoritesPage";
 import {LocaleEnum} from "@/i18n/routing";
+import {privatePageMetadata} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,8 @@ type Props = {
         locale: LocaleEnum;
     }>;
 };
+
+export const metadata = privatePageMetadata("Vympel — Favorites");
 
 export default async function Page({params}: Props) {
     const {locale} = await params;

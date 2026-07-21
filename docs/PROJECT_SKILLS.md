@@ -1830,6 +1830,36 @@
 * **How:** Supply temporary `VYMPEL_BOOTSTRAP_ADMIN_*` secrets externally, enable for one deployment, verify login, disable bootstrap, rotate/remove the secret, and redeploy. Existing ADMIN users must cause no write or password reset; an existing non-admin email is a hard failure.
 * **Why:** Idempotence supports restart/concurrency while avoiding a permanent privileged credential rotation mechanism.
 
+### Make CMS delivery retries operation-idempotent
+
+* **When to use:** A signed CMS revalidation request may succeed at the storefront while the backend times out before receiving the response.
+* **How:** Preserve the backend operation request ID, re-sign every retry with a current timestamp, and let the storefront return success for the same valid request ID/version/page. Reject reuse of that ID for a different page, and keep timestamp-skew/HMAC validation on every delivery.
+* **Why:** A lost response must not turn an already-applied invalidation into a permanent replay failure; the isolated RC rehearsal found this exact boundary.
+
+### Fail closed for unrecoverable Liquibase history
+
+* **When to use:** A target database contains an executed changeset whose exact path/body/checksum artifact cannot be recovered.
+* **How:** Never invent or rename the changeset and never edit `databasechangelog`. Query the row before migration; require a separate accountable acceptance that exactly matches ID, author, filename, checksum, execution type, and release SHA, or block deployment.
+* **Why:** Recreating only the remembered intent can cause checksum drift or duplicate data while hiding an unreviewed production-history condition.
+
+### Treat canonical site origin as compiled public configuration
+
+* **When to use:** Building the public Next.js image with canonical metadata, language alternates, sitemap, or robots.
+* **How:** Require origin-only `NEXT_PUBLIC_SITE_URL` at build time and retain the same value at runtime. Generate RU/KZ/EN routes with `kk` as the KZ HTML language, include active public content only, and fail sitemap generation when backend catalog data is unavailable instead of returning a misleading partial success.
+* **Why:** Next compiles static metadata into the image, and search-engine discovery must not publish a placeholder domain or incomplete fake sitemap.
+
+### Rehearse destructive operations only in namespaced disposable resources
+
+* **When to use:** Backup/restore, revalidation-failure, and reverse-proxy release proofs.
+* **How:** Prefix every container/network/volume/data record with a random RC namespace, resolve exact cleanup targets, use `finally` cleanup, and inventory leftovers. Never prune Docker globally or reuse user-owned databases/volumes.
+* **Why:** Release proof can exercise realistic failures without touching the developer's persistent PostgreSQL, Redis, MinIO, or running application stack.
+
+### Parse CI YAML without object deserialization
+
+* **When to use:** Syntax-checking workflow, Compose, and manifest YAML that uses anchors/aliases.
+* **How:** Use `Psych.parse_file` for Ruby syntax validation and pinned `actionlint` for GitHub Actions semantics. Do not use modern `YAML.load_file` defaults for this gate because alias deserialization is disabled and rejects valid Compose anchors.
+* **Why:** This avoids a remote-only false failure while retaining strict syntax and workflow validation.
+
 ## Last Updated
 
-2026-07-21 - Added reusable deployment patterns for standalone Next images, server-only configuration, finite Liquibase jobs, full-SHA image releases, application-only rollback, and one-time idempotent ADMIN bootstrap.
+2026-07-22 - Added RC lessons for idempotent signed CMS retry, fail-closed historical Liquibase acceptance, compiled canonical SEO configuration, exact disposable rehearsals, and YAML/actionlint validation.

@@ -11,15 +11,15 @@
 
 1. Produce a provider-native backup or consistent snapshot and record its identifier/time without credentials.
 2. Confirm the latest restore rehearsal completed in an isolated database and record evidence.
-3. Compare `databasechangelog` with `vympel_back/src/main/resources/db/changelog` and resolve any checksum, missing, or unexpected row before rollout.
-4. Pay special attention to historical changeset `2026-07-13-01-seed-accessory-split-categories`. Do not edit its applied file or checksum in place; reconcile drift and add a new forward-fix changeset if required.
+3. Run `deployment/scripts/check-liquibase-history.sh <env-file>`, then compare `databasechangelog` with `vympel_back/src/main/resources/db/changelog` and resolve any checksum, missing, or unexpected row before rollout.
+4. The exact artifact for historical changeset `2026-07-13-01-seed-accessory-split-categories` was not recoverable. Do not invent it or edit the database row. A target containing it requires the external accountable acceptance described in `LIQUIBASE_HISTORY_RECONCILIATION.md`; without that record the gate must stop.
 5. Confirm sufficient locks, storage, connection headroom, and maintenance window.
 
 ## Migration procedure
 
 Run `deployment/scripts/verify-migrations.sh <compose-file> <env-file>`. The one-time `migrate` service runs the backend image with Liquibase enabled, scheduled jobs disabled, and no published port, then verifies the changelog table and closes its context. It retains the normal Spring web application type because the project security configuration requires `HttpSecurity` at startup. Only after success may backend replicas start with `SPRING_LIQUIBASE_ENABLED=false`.
 
-After migration, compare the expected/latest changeset (currently `2026-07-19-02-public-image-webp`) and review migration logs for errors without copying credentials into evidence.
+After migration, compare the expected/latest changeset (currently `2026-07-19-02-update-public-image-paths-to-webp`) and review migration logs for errors without copying credentials into evidence.
 
 ## Failure policy
 

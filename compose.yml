@@ -165,6 +165,7 @@ services:
         BASE_API_PUBLIC: "${BASE_API_PUBLIC:-http://backend:8080/api/public}"
         NEXT_PUBLIC_BASE_API_PUBLIC: "${NEXT_PUBLIC_BASE_API_PUBLIC:-http://localhost:8080/api/public}"
         NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:-http://localhost:9100}"
+        NEXT_PUBLIC_SITE_URL: "${NEXT_PUBLIC_SITE_URL:-http://localhost:3200}"
         NEXT_PUBLIC_APP_ENV: local
         NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
     environment:
@@ -175,6 +176,7 @@ services:
       BASE_API_PUBLIC: "${BASE_API_PUBLIC:-http://backend:8080/api/public}"
       NEXT_PUBLIC_BASE_API_PUBLIC: "${NEXT_PUBLIC_BASE_API_PUBLIC:-http://localhost:8080/api/public}"
       NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:-http://localhost:9100}"
+      NEXT_PUBLIC_SITE_URL: "${NEXT_PUBLIC_SITE_URL:-http://localhost:3200}"
       NEXT_PUBLIC_APP_ENV: local
       NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
       TELEMETRY_ENABLED: "false"

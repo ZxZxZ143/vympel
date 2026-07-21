@@ -33,15 +33,25 @@ jobs:
 
   shared-deployment-gates:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Parse workflow and deployment YAML
         run: >-
-          ruby -e 'require "yaml"; ARGV.each { |path| YAML.load_file(path); puts "parsed #{path}" }'
+          ruby -e 'require "psych"; ARGV.each { |path| Psych.parse_file(path); puts "parsed #{path}" }'
           .github/workflows/*.yml infrastructure/compose/*.yml deployment/*.yml
+      - name: Lint GitHub Actions workflows
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7
       - name: Validate deployment scripts
         run: for script in deployment/scripts/*.sh; do sh -n "$script"; done
+      - name: Test Liquibase history compatibility gate
+        run: sh deployment/rehearsals/liquibase-history-compatibility.sh
+      - name: Validate Prometheus and alert examples
+        run: >-
+          docker run --rm --entrypoint=/bin/promtool
+          -v "$PWD/infrastructure/observability/prometheus.example.yml:/etc/prometheus/prometheus.yml:ro"
+          -v "$PWD/infrastructure/observability/alert-rules.example.yml:/etc/prometheus/rules/vympel-alerts.yml:ro"
+          prom/prometheus:v3.5.0 check config /etc/prometheus/prometheus.yml
       - name: Validate local Compose
         run: docker compose -f compose.yml config --quiet
       - name: Validate staging Compose
@@ -75,6 +85,15 @@ jobs:
             -v "$PWD/infrastructure/reverse-proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro" \
             -v "$temp_dir/tls:/etc/nginx/tls:ro" \
             nginx:1.28-alpine nginx -t
+      - name: Rehearse reverse proxy routing and policy
+        shell: pwsh
+        run: ./deployment/rehearsals/reverse-proxy.ps1
+      - name: Rehearse PostgreSQL backup and restore
+        shell: pwsh
+        run: ./deployment/rehearsals/backup-restore.ps1
+      - name: Prove CMS revalidation, retry, and timeout recovery
+        shell: pwsh
+        run: ./deployment/rehearsals/cms-revalidation.ps1
       - name: Reject browser-exposed secret names
         run: |
           if grep -RIE '^NEXT_PUBLIC_[A-Z0-9_]*(SECRET|PASSWORD|TOKEN|PRIVATE_KEY|ACCESS_KEY)=' infrastructure/env vympel_front/.env.example vympel_crm/.env.example; then
@@ -90,6 +109,16 @@ jobs:
       - name: Create immutable release metadata
         run: |
           mkdir -p release-metadata
+          generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          sed \
+            -e "s/0000000000000000000000000000000000000000/${GITHUB_SHA}/g" \
+            -e "s/GENERATED_AT_UTC/${generated_at}/g" \
+            -e "s/REMOTE_CI_RUN_PENDING/${GITHUB_SERVER_URL}\/${GITHUB_REPOSITORY}\/actions\/runs\/${GITHUB_RUN_ID}/g" \
+            -e 's/backendCi: PENDING/backendCi: VERIFIED_BY_FULL_RELEASE_GATE/g' \
+            -e 's/storefrontCi: PENDING/storefrontCi: VERIFIED_BY_FULL_RELEASE_GATE/g' \
+            -e 's/crmCi: PENDING/crmCi: VERIFIED_BY_FULL_RELEASE_GATE/g' \
+            -e 's/fullReleaseGate: PENDING/fullReleaseGate: PASSED/g' \
+            deployment/release-manifest.example.yml > release-metadata/v1.0.0-rc.1.yml
           jq -n \
             --arg commit "$GITHUB_SHA" \
             --arg ref "$GITHUB_REF" \
@@ -101,6 +130,6 @@ jobs:
           name: full-release-gate-${{ github.sha }}
           path: |
             release-metadata/full-release-gate.json
-            deployment/release-manifest.example.yml
+            release-metadata/v1.0.0-rc.1.yml
           if-no-files-found: error
           retention-days: 30

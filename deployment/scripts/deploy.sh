@@ -10,6 +10,7 @@ ENV_FILE=$2
 require_command docker
 "$SCRIPT_DIR/validate-environment.sh" "$ENV_FILE"
 "$SCRIPT_DIR/pull-images.sh" "$COMPOSE_FILE" "$ENV_FILE"
+"$SCRIPT_DIR/check-liquibase-history.sh" "$ENV_FILE"
 "$SCRIPT_DIR/verify-migrations.sh" "$COMPOSE_FILE" "$ENV_FILE"
 compose "$COMPOSE_FILE" "$ENV_FILE" up -d --no-build --no-deps --wait backend
 compose "$COMPOSE_FILE" "$ENV_FILE" up -d --no-build --no-deps --wait storefront crm
