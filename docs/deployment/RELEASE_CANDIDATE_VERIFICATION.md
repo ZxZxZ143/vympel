@@ -13,9 +13,9 @@ Status: provider-independent local and remote CI gates passed; tag published; pr
 
 ## Post-candidate sharp security remediation
 
-The current branch contains a verified local remediation for the high-severity libvips advisories inherited through `next@16.2.10 -> sharp@0.34.5` in both storefront and CRM. A Next-scoped npm override selects stable `sharp@^0.35.0`, currently locked at 0.35.3; no framework/runtime package was downgraded, the high-severity audit gate remains enabled, and a shared CI assertion rejects installed `sharp` versions below 0.35.0. Clean audits, application gates, Linux/amd64 image builds, healthy containers, libvips 8.18.3 WebP/AVIF transforms, and local/remote Next image optimization passed. Remote gates are pending the normal fix push.
+Commit `0fe55f39db7c7b5c495e200e778841584014ce04` remediates the high-severity libvips advisories inherited through `next@16.2.10 -> sharp@0.34.5` in both storefront and CRM. A Next-scoped npm override selects stable `sharp@^0.35.0`, currently locked at 0.35.3; no framework/runtime package was downgraded, the high-severity audit gate remains enabled, and a shared CI assertion rejects installed `sharp` versions below 0.35.0. Clean audits, application gates, Linux/amd64 image builds, healthy containers, libvips 8.18.3 WebP/AVIF transforms, and local/remote Next image optimization passed. Storefront CI `29944334362`, CRM CI `29944334256`, Backend CI `29944334263`, Full Release Gate `29944335708`, Release Images `29944334455`, and Performance budgets `29944335576` all passed remotely for the exact commit; the release-image run remained build-only.
 
-This change is intentionally not represented by `v1.0.0-rc.1`, whose immutable target remains `954e8a3a659371ba0203369aec9d2fef968fab5b`. Do not move that tag. If release-candidate packaging is requested after the new commit passes remote CI, create a new candidate such as `v1.0.0-rc.2` and record its exact verified SHA.
+This change is intentionally not represented by `v1.0.0-rc.1`, whose immutable target remains `954e8a3a659371ba0203369aec9d2fef968fab5b`. Do not move that tag. If release-candidate packaging is requested, create a new candidate such as `v1.0.0-rc.2` at the approved verified commit and record its exact SHA; this task did not create a new tag.
 
 ## Provider-independent release gates
 

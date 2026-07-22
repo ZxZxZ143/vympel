@@ -1125,4 +1125,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-22 - Recorded the Next-scoped `sharp@0.35.3` security baseline, shared dependency assertion, and unchanged high-severity audit gate for both frontend applications.
+2026-07-22 - Recorded the Next-scoped `sharp@0.35.3` security baseline, shared dependency assertion, unchanged high-severity audit gate, and successful exact-SHA remote release verification.

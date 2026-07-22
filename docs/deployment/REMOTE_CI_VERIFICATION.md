@@ -5,10 +5,11 @@ Repository: `ZxZxZ143/vympel`
 Branch: `main`
 Verified release-candidate commit: `954e8a3a659371ba0203369aec9d2fef968fab5b`
 Release-candidate tag: `v1.0.0-rc.1`
+Sharp remediation commit: `0fe55f39db7c7b5c495e200e778841584014ce04`
 
 ## Post-RC sharp security remediation
 
-Status: local verification passed; remote GitHub Actions verification is pending the normal push.
+Status: local and remote GitHub Actions verification passed for the exact sharp remediation commit.
 
 Both frontend applications were affected through `next@16.2.10 -> optional sharp@^0.34.5 -> sharp@0.34.5`. The latest stable Next.js release checked during remediation, 16.2.11, still declares `sharp@^0.34.5`, so a framework patch does not remove the vulnerable range. Storefront and CRM now use a narrowly scoped `next -> sharp@^0.35.0` npm override, currently locked at 0.35.3; Next.js, React, React DOM, next-intl, TypeScript, Node, the audit threshold, and image optimization remain unchanged. No direct global `sharp` override was added.
 
@@ -16,7 +17,18 @@ Local clean installs resolved one installed path per app at `next@16.2.10 -> sha
 
 The final Node 22 Alpine images built as Linux/amd64. Both containers became healthy; standalone output contained `sharp@0.35.3`; in-container WebP and AVIF transforms loaded libvips 8.18.3; and storefront `/_next/image` returned HTTP 200 `image/webp` for both a local asset and a public-HTTPS copy of the same repository image. Published `sharp@0.35.3` metadata includes Linux glibc and musl binaries for amd64 and arm64. `scripts/check-sharp-security.mjs` now prints the finite installed graph and rejects any stable `sharp` below 0.35.0 in both component workflows.
 
-The immutable `v1.0.0-rc.1` tag still points to `954e8a3a659371ba0203369aec9d2fef968fab5b` and does not contain this post-RC fix. It was not moved or rewritten. If the security fix is promoted as a release candidate, it requires a new tag after the new commit passes all remote gates.
+| Workflow | Run | Result | Sharp remediation evidence |
+| --- | --- | --- | --- |
+| Storefront CI | [29944334362](https://github.com/ZxZxZ143/vympel/actions/runs/29944334362) | PASS | Clean install, `test:sharp-security`, lint, typecheck, 41 tests, unchanged high audit, build, budget, and storefront image |
+| CRM CI | [29944334256](https://github.com/ZxZxZ143/vympel/actions/runs/29944334256) | PASS | Clean install, `test:sharp-security`, lint, typecheck, 25 tests, unchanged high audit, build, budget, and CRM image/login health |
+| Backend CI | [29944334263](https://github.com/ZxZxZ143/vympel/actions/runs/29944334263) | PASS | Unchanged backend boundary remained green |
+| Full Release Gate | [29944335708](https://github.com/ZxZxZ143/vympel/actions/runs/29944335708) | PASS | Reusable backend/storefront/CRM jobs, shared deployment gates, and immutable metadata all passed |
+| Release Images | [29944334455](https://github.com/ZxZxZ143/vympel/actions/runs/29944334455) | PASS, BUILD ONLY | Backend, storefront, and CRM Linux images built; push-policy passed and no registry publication occurred |
+| Performance budgets | [29944335576](https://github.com/ZxZxZ143/vympel/actions/runs/29944335576) | PASS | Storefront and CRM production budgets passed |
+
+The aggregate artifact is `full-release-gate-0fe55f39db7c7b5c495e200e778841584014ce04` (ID `8539612937`, digest `sha256:ca3991665d2e21baae6c9800fa1b06a01541d88e1e3c7a45562f3ed0f7332814`). Release Images produced commit-specific backend metadata artifact ID `8539534694`, storefront ID `8539520122`, and CRM ID `8539513123`. These are evidence artifacts for non-publishing builds, not registry image digests.
+
+The immutable `v1.0.0-rc.1` tag still points to `954e8a3a659371ba0203369aec9d2fef968fab5b` and does not contain this post-RC fix. It was not moved or rewritten. If the verified security fix is promoted as a release candidate, create a new tag such as `v1.0.0-rc.2` at the approved verified commit; this task did not create a new tag.
 
 ## Required workflow results
 

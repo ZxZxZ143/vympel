@@ -1935,4 +1935,4 @@
 
 ## Last Updated
 
-2026-07-22 - Added the durable rule for supported native dependency remediation: no forced audit fixes, narrowly scoped overrides only with compatibility evidence, and final Linux `sharp` image-runtime verification.
+2026-07-22 - Added and remotely verified the durable native dependency rule: no forced audit fixes, narrowly scoped overrides with compatibility evidence, and final Linux `sharp` image-runtime proof.
