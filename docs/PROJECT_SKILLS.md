@@ -1786,8 +1786,8 @@
 ### Audit the complete dependency graph after a security update
 
 * **When to use:** Any frontend framework/security dependency upgrade.
-* **How:** Run clean `npm ci`, finite tests/build/security gates, `npm audit --omit=dev`, and full `npm audit`. Document narrow transitive overrides with the owning package. Keep Next and `eslint-config-next` aligned.
-* **Why:** Production-only auditing missed advisory-bearing dev/transitive packages that still affect the build and release supply chain.
+* **How:** Never apply `npm audit fix --force` automatically to a framework application. Inspect `npm ls`/`npm explain`, prefer a supported stable framework update, and use a package-owner-scoped override only when no stable framework release fixes the graph and compatibility is proven. Run clean `npm ci`, the installed-graph assertion, finite tests/build/security gates, `npm audit --omit=dev`, full `npm audit`, and native runtime checks inside the final Linux image. For Next.js `sharp` changes, verify standalone tracing, actual local and allowed-remote `/_next/image` responses, container health, and the configured glibc/musl plus amd64/arm64 package coverage. Document why every transitive override exists and keep Next and `eslint-config-next` aligned.
+* **Why:** Production-only auditing can miss advisory-bearing dev/transitive packages, forced fixes can downgrade the framework, and a lockfile-only native-module change can pass on the host while failing in the release container.
 
 ### Run accessibility scans against configured real data
 
@@ -1935,4 +1935,4 @@
 
 ## Last Updated
 
-2026-07-22 - Recorded deterministic catalog-search close semantics, safe focus restoration, and the shared 48px catalog-toolbar height rule.
+2026-07-22 - Added the durable rule for supported native dependency remediation: no forced audit fixes, narrowly scoped overrides only with compatibility evidence, and final Linux `sharp` image-runtime verification.

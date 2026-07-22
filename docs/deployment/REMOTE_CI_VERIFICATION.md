@@ -6,6 +6,18 @@ Branch: `main`
 Verified release-candidate commit: `954e8a3a659371ba0203369aec9d2fef968fab5b`
 Release-candidate tag: `v1.0.0-rc.1`
 
+## Post-RC sharp security remediation
+
+Status: local verification passed; remote GitHub Actions verification is pending the normal push.
+
+Both frontend applications were affected through `next@16.2.10 -> optional sharp@^0.34.5 -> sharp@0.34.5`. The latest stable Next.js release checked during remediation, 16.2.11, still declares `sharp@^0.34.5`, so a framework patch does not remove the vulnerable range. Storefront and CRM now use a narrowly scoped `next -> sharp@^0.35.0` npm override, currently locked at 0.35.3; Next.js, React, React DOM, next-intl, TypeScript, Node, the audit threshold, and image optimization remain unchanged. No direct global `sharp` override was added.
+
+Local clean installs resolved one installed path per app at `next@16.2.10 -> sharp@0.35.3 overridden`. High-level and full npm audits returned zero vulnerabilities. Lint, typecheck, 13 storefront test files / 41 tests, 8 CRM test files / 25 tests, production builds, security-header checks, storefront production status/content, CRM login/header/noindex behavior, and asset/bundle budgets passed. Pinned actionlint 1.7.7 passed.
+
+The final Node 22 Alpine images built as Linux/amd64. Both containers became healthy; standalone output contained `sharp@0.35.3`; in-container WebP and AVIF transforms loaded libvips 8.18.3; and storefront `/_next/image` returned HTTP 200 `image/webp` for both a local asset and a public-HTTPS copy of the same repository image. Published `sharp@0.35.3` metadata includes Linux glibc and musl binaries for amd64 and arm64. `scripts/check-sharp-security.mjs` now prints the finite installed graph and rejects any stable `sharp` below 0.35.0 in both component workflows.
+
+The immutable `v1.0.0-rc.1` tag still points to `954e8a3a659371ba0203369aec9d2fef968fab5b` and does not contain this post-RC fix. It was not moved or rewritten. If the security fix is promoted as a release candidate, it requires a new tag after the new commit passes all remote gates.
+
 ## Required workflow results
 
 | Workflow | Run | Result | Release evidence |

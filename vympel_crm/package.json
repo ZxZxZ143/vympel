@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:sharp-security": "node ../scripts/check-sharp-security.mjs",
     "test:security": "node --test --test-isolation=none scripts/test-security-headers.mjs",
     "test:budgets": "node ../scripts/check-performance-budgets.mjs",
     "test:budgets:ci": "node ../scripts/check-performance-budgets.mjs --require-build",
@@ -31,7 +32,8 @@
   },
   "overrides": {
     "next": {
-      "postcss": "8.5.20"
+      "postcss": "8.5.20",
+      "sharp": "^0.35.0"
     }
   }
 }

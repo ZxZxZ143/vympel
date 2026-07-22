@@ -8,6 +8,7 @@ on:
       - ".env.example"
       - ".env.docker.example"
       - "scripts/check-performance-budgets.mjs"
+      - "scripts/check-sharp-security.mjs"
       - "scripts/performance-budget-allowlist.json"
       - "infrastructure/**"
       - "deployment/**"
@@ -19,6 +20,7 @@ on:
       - ".env.example"
       - ".env.docker.example"
       - "scripts/check-performance-budgets.mjs"
+      - "scripts/check-sharp-security.mjs"
       - "scripts/performance-budget-allowlist.json"
       - "infrastructure/**"
       - "deployment/**"
@@ -57,6 +59,7 @@ jobs:
           cache: npm
           cache-dependency-path: vympel_front/package-lock.json
       - run: npm ci
+      - run: npm run test:sharp-security
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test

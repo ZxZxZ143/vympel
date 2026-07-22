@@ -11,6 +11,7 @@ on:
       - "compose.yml"
       - "infrastructure/**"
       - "deployment/**"
+      - "scripts/check-sharp-security.mjs"
       - ".env.example"
       - ".env.docker.example"
       - ".github/workflows/**"

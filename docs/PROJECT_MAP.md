@@ -1103,7 +1103,7 @@ Public RU/KZ/EN message files include `nav`, `pagination`, `bannerCarousel`, `ph
 
 ### Verified frontend dependency baseline
 
-Both Next applications use Next.js 16.2.10 and `eslint-config-next` 16.2.10. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.20 under Next, and public also pins the affected watcher `picomatch` transitive. Step 9 clean installs, builds, and full npm audits returned zero vulnerabilities.
+Both Next applications use Next.js 16.2.10 and `eslint-config-next` 16.2.10. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.20 under Next, and public also pins the affected watcher `picomatch` transitive. Both apps narrowly override Next's optional `sharp` dependency to the stable `^0.35.0` line, currently locked at `0.35.3`: Next 16.2.10 declares `^0.34.5`, the latest stable Next 16.2.11 still declares that range, and the former lockfiles resolved vulnerable `sharp@0.34.5`. `scripts/check-sharp-security.mjs` prints the installed `next`/`sharp` graph and fails unless every installed `sharp` is a stable version at least `0.35.0`; Storefront CI, CRM CI, and the aggregate gate include that regression boundary without weakening `npm audit --audit-level=high`.
 
 ### Final release evidence
 
@@ -1125,4 +1125,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-22 - Documented deterministic catalog-search close/focus restoration and the shared 48px catalog toolbar control height.
+2026-07-22 - Recorded the Next-scoped `sharp@0.35.3` security baseline, shared dependency assertion, and unchanged high-severity audit gate for both frontend applications.

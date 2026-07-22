@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:sharp-security": "node ../scripts/check-sharp-security.mjs",
     "test:production-status": "node scripts/test-production-status.mjs",
     "test:security": "node --test --test-isolation=none scripts/test-security-headers.mjs",
     "test:budgets": "node ../scripts/check-performance-budgets.mjs",
@@ -56,7 +57,8 @@
       "picomatch": "4.0.5"
     },
     "next": {
-      "postcss": "8.5.20"
+      "postcss": "8.5.20",
+      "sharp": "^0.35.0"
     }
   }
 }
