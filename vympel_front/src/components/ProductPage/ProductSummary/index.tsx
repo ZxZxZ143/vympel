@@ -1,7 +1,7 @@
 "use client";
 
 import {useMemo} from "react";
-import {Award, BadgeCheck} from "lucide-react";
+import Image from "next/image";
 import {useForm} from "react-hook-form";
 import {useLocale, useTranslations} from "use-intl";
 
@@ -20,8 +20,6 @@ import {
     useCartProduct,
     useFavoriteProduct
 } from "@/services/localProductStorage";
-import {Link} from "@/i18n/navigation";
-import {routes} from "@/config/routes";
 import {useProductActionToasts} from "@/hooks/useProductActionToasts";
 import RatingStars from "@/components/ProductRating/RatingStars";
 import CustomerRequestButton from "@/components/CustomerRequestDialog/CustomerRequestButton";
@@ -218,20 +216,30 @@ const ProductSummary = ({product}: Props) => {
                     </CustomerRequestButton>
 
                     <div className="flex gap-3 sm:gap-5">
-                        <Link
-                            href={routes.guarantee()}
-                            aria-label={t("summary.certificateAria")}
-                            className="flex size-14 items-center justify-center rounded-lg bg-product-certificate text-button-text-action sm:size-[74px]"
+                        <div
+                            className="flex size-14 items-center justify-center rounded-lg sm:size-[74px]"
                         >
-                            <Award className="size-8 sm:size-11" aria-hidden="true"/>
-                        </Link>
-                        <Link
-                            href={routes.guarantee()}
-                            aria-label={t("summary.warrantyAria")}
-                            className="flex size-14 items-center justify-center rounded-lg bg-product-warranty text-button-text-action sm:size-[74px]"
+                            <Image
+                                src="/kaspiIcon.png"
+                                alt={t("summary.kaspiPaymentAria")}
+                                width={148}
+                                height={148}
+                                sizes="(min-width: 640px) 74px, 56px"
+                                className="size-full object-contain"
+                            />
+                        </div>
+                        <div
+                            className="flex size-14 items-center justify-center rounded-lg sm:size-[74px]"
                         >
-                            <BadgeCheck className="size-8 sm:size-11" aria-hidden="true"/>
-                        </Link>
+                            <Image
+                                src="/halykIcon.png"
+                                alt={t("summary.halykPaymentAria")}
+                                width={148}
+                                height={148}
+                                sizes="(min-width: 640px) 74px, 56px"
+                                className="size-full object-contain"
+                            />
+                        </div>
                     </div>
                 </>
             ) : (
