@@ -21,6 +21,7 @@ import {
 } from "@/utils/catalogFilterParams";
 import CatalogMobileSheet, {useIsMobileViewport} from "@/components/CatalogPage/CatalogMobileSheet";
 import {useCatalogOverlay} from "@/components/CatalogPage/CatalogOverlayProvider";
+import {CATALOG_TOOLBAR_CONTROL_HEIGHT_CLASS} from "@/components/CatalogPage/CatalogOverlayProvider/state";
 
 type Props = {
     locale: LocaleEnum;
@@ -368,7 +369,10 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                 aria-expanded={isVisible}
                 aria-haspopup="listbox"
                 aria-label={t("trigger")}
-                className="hidden min-h-0 w-fit cursor-pointer items-center justify-start gap-catalog-filter-trigger-gap border-0 px-0 py-0 transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40 min-[1440px]:flex"
+                className={cn(
+                    "hidden w-fit cursor-pointer items-center justify-start gap-catalog-filter-trigger-gap border-0 px-0 py-0 transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40 min-[1440px]:flex",
+                    CATALOG_TOOLBAR_CONTROL_HEIGHT_CLASS
+                )}
                 onClick={(event) => {
                     if (isVisible) {
                         closeOverlay("filters");

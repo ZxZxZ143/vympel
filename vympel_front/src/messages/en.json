@@ -5,6 +5,7 @@
       "placeholder": "Search the catalog",
       "submit": "Search",
       "clear": "Clear search",
+      "close": "Close search",
       "emptyPrompt": "Enter a product name, brand, or model",
       "loading": "Searching products...",
       "noResultsTitle": "Nothing found",

@@ -19,6 +19,10 @@ import ProductImageFallback from "@/components/ui/shared/ProductImageFallback";
 import {formatProductPrice} from "@/utils/formatProductPrice";
 import {isProductUnavailable} from "@/services/localProductStorage";
 import {useCatalogOverlay} from "@/components/CatalogPage/CatalogOverlayProvider";
+import {
+    CATALOG_TOOLBAR_CONTROL_HEIGHT_CLASS,
+    getCatalogSearchRestoreTarget,
+} from "@/components/CatalogPage/CatalogOverlayProvider/state";
 
 const MIN_QUERY_LENGTH = 2;
 const SEARCH_DEBOUNCE_MS = 250;
@@ -69,7 +73,7 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
     const isHomePageSearch = variant === "home";
     const isToolbarSearch = variant === "catalog" || variant === "product";
     const coordinatesCatalogOverlay = variant === "catalog";
-    const isSearchOpen = isOpen && (!coordinatesCatalogOverlay || activeOverlay === "search");
+    const isSearchOpen = coordinatesCatalogOverlay ? activeOverlay === "search" : isOpen;
     const usesHostOverlay = isHomePageSearch || isToolbarSearch;
     const normalizedQuery = query.trim();
     const canSearch = normalizedQuery.length >= MIN_QUERY_LENGTH;
@@ -81,23 +85,24 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
     const submitLabel = isHomeSearch ? navT("submit") : productT("submit");
 
     const closeOverlay = useCallback(() => {
-        setOpen(false);
         if (coordinatesCatalogOverlay) {
             closeCatalogOverlay("search");
+        } else {
+            setOpen(false);
         }
     }, [closeCatalogOverlay, coordinatesCatalogOverlay]);
 
     const openOverlay = useCallback(() => {
         onOpen?.();
         if (coordinatesCatalogOverlay) {
-            const trigger = mobileIconOnly && matchesCompactSearchViewport(variant)
-                ? catalogSearchTriggerRef.current
-                : document.activeElement instanceof HTMLElement
-                    ? document.activeElement
-                    : null;
+            const trigger = getCatalogSearchRestoreTarget(
+                mobileIconOnly && matchesCompactSearchViewport(variant),
+                catalogSearchTriggerRef.current
+            );
             openCatalogOverlay("search", trigger);
+        } else {
+            setOpen(true);
         }
-        setOpen(true);
 
         if (canSearch) {
             setStatus("loading");
@@ -107,15 +112,15 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
     const updateQuery = useCallback((nextQuery: string) => {
         const nextCanSearch = nextQuery.trim().length >= MIN_QUERY_LENGTH;
 
-        setOpen(true);
         onOpen?.();
         if (coordinatesCatalogOverlay) {
-            const trigger = mobileIconOnly && matchesCompactSearchViewport(variant)
-                ? catalogSearchTriggerRef.current
-                : document.activeElement instanceof HTMLElement
-                    ? document.activeElement
-                    : null;
+            const trigger = getCatalogSearchRestoreTarget(
+                mobileIconOnly && matchesCompactSearchViewport(variant),
+                catalogSearchTriggerRef.current
+            );
             openCatalogOverlay("search", trigger);
+        } else {
+            setOpen(true);
         }
 
         if (nextCanSearch) {
@@ -213,14 +218,18 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
         setValue("query", "", {shouldDirty: true});
         setResults([]);
         setStatus("idle");
-        setOpen(true);
+        if (!coordinatesCatalogOverlay) {
+            setOpen(true);
+        }
         setFocus("query");
     };
 
     const retrySearch = () => {
         setStatus("loading");
         setRetryKey((current) => current + 1);
-        setOpen(true);
+        if (!coordinatesCatalogOverlay) {
+            setOpen(true);
+        }
         setFocus("query");
     };
 
@@ -290,7 +299,9 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
                                     : "rounded-full focus-within:border-text-primary",
                                 variant === "header"
                                     ? "gap-x-2.5 px-4 py-3"
-                                    : "gap-x-4 py-2 pl-5 pr-2",
+                                    : coordinatesCatalogOverlay
+                                        ? cn(CATALOG_TOOLBAR_CONTROL_HEIGHT_CLASS, "gap-x-4 py-0 pl-5 pr-2")
+                                        : "gap-x-4 py-2 pl-5 pr-2",
                                 usesMobileIconTrigger && (coordinatesCatalogOverlay
                                     ? "max-[1439px]:min-h-12 max-[1439px]:justify-center max-[1439px]:gap-0 max-[1439px]:px-0 max-[1439px]:py-0"
                                     : "max-lg:min-h-12 max-lg:justify-center max-lg:gap-0 max-lg:px-0 max-lg:py-0")
@@ -298,7 +309,7 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
                         >
                             {usesInlineSubmit ? (
                                 <>
-                                    {usesMobileIconTrigger ? (
+                                    {mobileIconOnly && usesInlineSubmit ? (
                                          <button
                                              ref={catalogSearchTriggerRef}
                                              type="button"
@@ -306,20 +317,32 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
                                              aria-expanded={isSearchOpen}
                                              className={cn(
                                                  "inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-text-heading-secondary transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40",
-                                                 coordinatesCatalogOverlay ? "min-[1440px]:hidden" : "lg:hidden"
+                                                 coordinatesCatalogOverlay ? "min-[1440px]:hidden" : "lg:hidden",
+                                                 isSearchOpen && "hidden"
                                              )}
                                             onClick={openMobileIconSearch}
                                         >
                                             <Search className="size-5" aria-hidden="true"/>
                                         </button>
                                     ) : null}
-                                    <Search
-                                        className={cn(
-                                            "size-6 shrink-0 text-text-product-muted transition duration-100",
-                                            usesMobileIconTrigger && (coordinatesCatalogOverlay ? "max-[1439px]:hidden" : "max-lg:hidden")
-                                        )}
-                                        aria-hidden="true"
-                                    />
+                                    {coordinatesCatalogOverlay && isSearchOpen ? (
+                                        <button
+                                            type="button"
+                                            aria-label={navT("close")}
+                                            onClick={closeOverlay}
+                                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-text-product-muted transition-vympel-fast hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
+                                        >
+                                            <X className="size-5" aria-hidden="true"/>
+                                        </button>
+                                    ) : (
+                                        <Search
+                                            className={cn(
+                                                "size-6 shrink-0 text-text-product-muted transition duration-100",
+                                                usesMobileIconTrigger && (coordinatesCatalogOverlay ? "max-[1439px]:hidden" : "max-lg:hidden")
+                                            )}
+                                            aria-hidden="true"
+                                        />
+                                    )}
                                 </>
                             ) : (
                                 <button

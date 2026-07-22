@@ -11,7 +11,10 @@ import {
     useState,
 } from "react";
 
-export type CatalogOverlayType = "categories" | "filters" | "sorting" | "search";
+import {
+    type CatalogOverlayType,
+    reduceCatalogOverlay,
+} from "@/components/CatalogPage/CatalogOverlayProvider/state";
 
 type CatalogOverlayContextValue = {
     activeOverlay: CatalogOverlayType | null;
@@ -40,23 +43,25 @@ export function CatalogOverlayProvider({children}: PropsWithChildren) {
 
     const openOverlay = useCallback((overlay: CatalogOverlayType, trigger?: HTMLElement | null) => {
         clearRestoreTimer();
-        activeOverlayRef.current = overlay;
-        if (trigger) {
-            overlayTriggerRef.current = trigger;
-        }
+        const nextOverlay = reduceCatalogOverlay(activeOverlayRef.current, {type: "open", overlay});
+        activeOverlayRef.current = nextOverlay;
+        overlayTriggerRef.current = trigger ?? null;
         setBottomNavigationHidden(true);
-        setActiveOverlay(overlay);
+        setActiveOverlay(nextOverlay);
     }, [clearRestoreTimer]);
 
     const closeOverlay = useCallback((overlay?: CatalogOverlayType) => {
-        if (overlay && activeOverlayRef.current !== overlay) {
+        const currentOverlay = activeOverlayRef.current;
+        const nextOverlay = reduceCatalogOverlay(currentOverlay, {type: "close", overlay});
+
+        if (nextOverlay === currentOverlay) {
             return;
         }
 
         clearRestoreTimer();
         const trigger = overlayTriggerRef.current;
-        activeOverlayRef.current = null;
-        setActiveOverlay(null);
+        activeOverlayRef.current = nextOverlay;
+        setActiveOverlay(nextOverlay);
         restoreNavigationTimerRef.current = window.setTimeout(() => {
             setBottomNavigationHidden(false);
             if (trigger?.isConnected) {
