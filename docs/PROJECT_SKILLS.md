@@ -1849,6 +1849,12 @@
 * **How:** Preserve the backend operation request ID, re-sign every retry with a current timestamp, and let the storefront return success for the same valid request ID/version/page. Reject reuse of that ID for a different page, and keep timestamp-skew/HMAC validation on every delivery.
 * **Why:** A lost response must not turn an already-applied invalidation into a permanent replay failure; the isolated RC rehearsal found this exact boundary.
 
+### Assert concurrent outbox transitions at both edges
+
+* **When to use:** An integration rehearsal observes a durable retry row immediately after the API schedules it while a background worker is polling the same row.
+* **How:** At the immediate boundary, accept the documented queued state or its already-claimed processing state with a positive attempt count. At the terminal boundary, still require `SUCCEEDED`, the minimum retry attempt count, and the externally visible freshness result.
+* **Why:** Requiring the queued state at one instant races the legitimate worker claim. Accepting only documented adjacent states while retaining the terminal attempt/content assertions proves the retry contract without making runner scheduling part of the contract.
+
 ### Fail closed for unrecoverable Liquibase history
 
 * **When to use:** A target database contains an executed changeset whose exact path/body/checksum artifact cannot be recovered.
@@ -1967,4 +1973,4 @@
 
 ## Last Updated
 
-2026-07-26 - Added GHCR publication rules, the exact-owner brace-expansion compatibility pattern, and lessons from audit-only overrides and unquoted Compose argument bundles.
+2026-07-26 - Added GHCR publication/security patterns plus shell-lint and concurrent CMS outbox rehearsal lessons.

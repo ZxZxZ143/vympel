@@ -206,7 +206,7 @@ try {
     $publishTwo = Invoke-Crm Patch "/api/crm/cms/blocks/$($second.id)/publish"
     if ($publishTwo.publicCacheRefresh.status -ne 'FAILED_RETRY_SCHEDULED') { throw "Unavailable storefront did not schedule retry: $($publishTwo.publicCacheRefresh.status)" }
     $retryState = Invoke-Psql "SELECT status || '|' || attempt_count FROM cms_revalidation_job WHERE page_key='home';"
-    if ($retryState -notmatch '^RETRY\|\d+$') { throw "Retry state was not recorded: $retryState" }
+    if ($retryState -notmatch '^(RETRY|PROCESSING)\|([1-9]\d*)$') { throw "Retry job was not recorded or claimed: $retryState" }
     Invoke-Docker @('unpause', $storefront) | Out-Null
     Wait-Http "$script:storefrontUrl/ru" 'resumed storefront' | Out-Null
     $retryComplete = Wait-QueueSucceeded 2
