@@ -1,0 +1,318 @@
+name: "${COMPOSE_PROJECT_NAME:-vympel-oracle-staging}"
+
+x-backend-environment: &backend-environment
+  SPRING_PROFILES_ACTIVE: staging
+  SERVER_PORT: "8080"
+  APP_LOG_DIR: /app/logs
+  JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--XX:InitialRAMPercentage=25.0 -XX:MaxRAMPercentage=70.0 -XX:+ExitOnOutOfMemoryError}"
+  VYMPEL_DB_URL: "${VYMPEL_DB_URL:?set VYMPEL_DB_URL}"
+  VYMPEL_DB_USERNAME: "${VYMPEL_DB_USERNAME:?set VYMPEL_DB_USERNAME}"
+  VYMPEL_DB_PASSWORD: "${VYMPEL_DB_PASSWORD:?set VYMPEL_DB_PASSWORD}"
+  VYMPEL_JWT_SECRET: "${VYMPEL_JWT_SECRET:?set VYMPEL_JWT_SECRET}"
+  VYMPEL_JWT_ACCESS_TTL_MIN: "${VYMPEL_JWT_ACCESS_TTL_MIN:-15}"
+  VYMPEL_JWT_REFRESH_TTL_DAYS: "${VYMPEL_JWT_REFRESH_TTL_DAYS:-14}"
+  VYMPEL_RATE_LIMIT_HMAC_SECRET: "${VYMPEL_RATE_LIMIT_HMAC_SECRET:?set VYMPEL_RATE_LIMIT_HMAC_SECRET}"
+  VYMPEL_RATE_LIMIT_STORAGE: redis
+  VYMPEL_REDIS_URL: "${VYMPEL_REDIS_URL:?set VYMPEL_REDIS_URL}"
+  VYMPEL_TRUSTED_PROXY_CIDRS: "${VYMPEL_TRUSTED_PROXY_CIDRS:?set VYMPEL_TRUSTED_PROXY_CIDRS}"
+  VYMPEL_S3_BUCKET: "${VYMPEL_S3_BUCKET:?set VYMPEL_S3_BUCKET}"
+  VYMPEL_S3_REGION: "${VYMPEL_S3_REGION:-us-east-1}"
+  VYMPEL_S3_ENDPOINT: "http://minio:9000"
+  VYMPEL_S3_PUBLIC_ENDPOINT: "${VYMPEL_S3_PUBLIC_ENDPOINT:?set VYMPEL_S3_PUBLIC_ENDPOINT}"
+  VYMPEL_S3_ACCESS_KEY: "${VYMPEL_S3_ACCESS_KEY:?set VYMPEL_S3_ACCESS_KEY}"
+  VYMPEL_S3_SECRET_KEY: "${VYMPEL_S3_SECRET_KEY:?set VYMPEL_S3_SECRET_KEY}"
+  VYMPEL_S3_PATH_STYLE: "true"
+  VYMPEL_CORS_ALLOWED_ORIGINS: "${VYMPEL_CORS_ALLOWED_ORIGINS:?set VYMPEL_CORS_ALLOWED_ORIGINS}"
+  VYMPEL_CRM_REFRESH_COOKIE_SECURE: "true"
+  VYMPEL_CRM_REFRESH_COOKIE_SAME_SITE: "${VYMPEL_CRM_REFRESH_COOKIE_SAME_SITE:-Lax}"
+  VYMPEL_ALLOW_LOCALHOST_SERVICES: "false"
+  VYMPEL_ALLOW_INSECURE_SERVICE_TRANSPORT: "true"
+  VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED: "${VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED:-true}"
+  VYMPEL_CMS_REVALIDATE_REQUIRED: "${VYMPEL_CMS_REVALIDATE_REQUIRED:-true}"
+  VYMPEL_CMS_PUBLIC_REVALIDATE_URL: "http://storefront:3000/api/revalidate"
+  VYMPEL_CMS_REVALIDATE_SECRET: "${VYMPEL_CMS_REVALIDATE_SECRET:?set VYMPEL_CMS_REVALIDATE_SECRET}"
+  VYMPEL_CMS_MEDIA_CLEANUP_ENABLED: "${VYMPEL_CMS_MEDIA_CLEANUP_ENABLED:-false}"
+  VYMPEL_ANALYTICS_CLEANUP_ENABLED: "${VYMPEL_ANALYTICS_CLEANUP_ENABLED:-true}"
+  VYMPEL_ANALYTICS_CLEANUP_DRY_RUN: "${VYMPEL_ANALYTICS_CLEANUP_DRY_RUN:-true}"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "${VYMPEL_DB_NAME:?set VYMPEL_DB_NAME}"
+      POSTGRES_USER: "${VYMPEL_DB_USERNAME:?set VYMPEL_DB_USERNAME}"
+      POSTGRES_PASSWORD: "${VYMPEL_DB_PASSWORD:?set VYMPEL_DB_PASSWORD}"
+    volumes:
+      - oracle-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    init: true
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "0.40", memory: 1792M, pids: 256}
+        reservations: {cpus: "0.10", memory: 512M}
+    networks: [data]
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${VYMPEL_REDIS_PASSWORD:?set VYMPEL_REDIS_PASSWORD}"]
+    environment:
+      VYMPEL_REDIS_PASSWORD: "${VYMPEL_REDIS_PASSWORD:?set VYMPEL_REDIS_PASSWORD}"
+    volumes:
+      - oracle-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$${VYMPEL_REDIS_PASSWORD}\" redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    init: true
+    pids_limit: 128
+    deploy:
+      resources:
+        limits: {cpus: "0.10", memory: 384M, pids: 128}
+        reservations: {cpus: "0.05", memory: 128M}
+    networks: [data]
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "${VYMPEL_S3_ACCESS_KEY:?set VYMPEL_S3_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${VYMPEL_S3_SECRET_KEY:?set VYMPEL_S3_SECRET_KEY}"
+    volumes:
+      - oracle-minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    init: true
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "0.20", memory: 768M, pids: 256}
+        reservations: {cpus: "0.05", memory: 256M}
+    networks: [data]
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: "${VYMPEL_S3_ACCESS_KEY:?set VYMPEL_S3_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${VYMPEL_S3_SECRET_KEY:?set VYMPEL_S3_SECRET_KEY}"
+      VYMPEL_S3_BUCKET: "${VYMPEL_S3_BUCKET:?set VYMPEL_S3_BUCKET}"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
+        mc mb --ignore-existing "local/$${VYMPEL_S3_BUCKET}"
+        mc anonymous set download "local/$${VYMPEL_S3_BUCKET}"
+    restart: "no"
+    pids_limit: 128
+    networks: [data]
+
+  backend-logs-init:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["chown -R 10001:10001 /app/logs"]
+    volumes:
+      - oracle-backend-logs:/app/logs
+    restart: "no"
+    pids_limit: 64
+    networks: [application]
+
+  migrate:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      <<: *backend-environment
+      SPRING_LIQUIBASE_ENABLED: "true"
+      VYMPEL_MIGRATION_ONLY: "true"
+      VYMPEL_BOOTSTRAP_ADMIN_ENABLED: "false"
+    command: ["--spring.task.scheduling.enabled=false"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      minio: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+      backend-logs-init: {condition: service_completed_successfully}
+    volumes:
+      - oracle-backend-logs:/app/logs
+    restart: "no"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=10001,gid=10001,mode=1770
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "0.80", memory: 1536M, pids: 256}
+    networks: [application, data]
+
+  backend:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      <<: *backend-environment
+      SPRING_LIQUIBASE_ENABLED: "false"
+      VYMPEL_BOOTSTRAP_ADMIN_ENABLED: "${VYMPEL_BOOTSTRAP_ADMIN_ENABLED:-false}"
+      VYMPEL_BOOTSTRAP_ADMIN_EMAIL: "${VYMPEL_BOOTSTRAP_ADMIN_EMAIL:-}"
+      VYMPEL_BOOTSTRAP_ADMIN_PASSWORD: "${VYMPEL_BOOTSTRAP_ADMIN_PASSWORD:-}"
+      VYMPEL_BOOTSTRAP_ADMIN_NAME: "${VYMPEL_BOOTSTRAP_ADMIN_NAME:-}"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - oracle-backend-logs:/app/logs
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      minio: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+      migrate: {condition: service_completed_successfully}
+      backend-logs-init: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=1770
+    pids_limit: 512
+    deploy:
+      resources:
+        limits: {cpus: "0.80", memory: 2560M, pids: 512}
+        reservations: {cpus: "0.20", memory: 1024M}
+    networks: [application, data]
+
+  storefront:
+    image: "${REGISTRY:?set REGISTRY}/vympel-storefront:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+      BASE_API_PUBLIC: "http://backend:8080/api/public"
+      NEXT_PUBLIC_BASE_API_PUBLIC: "${NEXT_PUBLIC_BASE_API_PUBLIC:?must match the published image contract}"
+      NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:?must match the published image contract}"
+      NEXT_PUBLIC_SITE_URL: "${NEXT_PUBLIC_SITE_URL:?must match the published image contract}"
+      NEXT_PUBLIC_APP_ENV: staging
+      NEXT_PUBLIC_APP_RELEASE: "${RELEASE_TAG:?set RELEASE_TAG}"
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+      TELEMETRY_ENABLED: "false"
+      CMS_REVALIDATE_SECRET: "${VYMPEL_CMS_REVALIDATE_SECRET:?set VYMPEL_CMS_REVALIDATE_SECRET}"
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ru').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1000,gid=1000,mode=1770
+      - /app/.next/cache:rw,noexec,nosuid,size=256m,uid=1000,gid=1000,mode=0770
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "0.25", memory: 640M, pids: 256}
+        reservations: {cpus: "0.05", memory: 192M}
+    networks: [application]
+
+  crm:
+    image: "${REGISTRY:?set REGISTRY}/vympel-crm:${RELEASE_TAG:?set RELEASE_TAG}"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_CRM_API_BASE: "${NEXT_PUBLIC_CRM_API_BASE:?must match the published image contract}"
+      NEXT_PUBLIC_MEDIA_ORIGINS: "${NEXT_PUBLIC_MEDIA_ORIGINS:?must match the published image contract}"
+      NEXT_PUBLIC_APP_ENV: staging
+      NEXT_PUBLIC_APP_RELEASE: "${RELEASE_TAG:?set RELEASE_TAG}"
+      NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+      TELEMETRY_ENABLED: "false"
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1000,gid=1000,mode=1770
+      - /app/.next/cache:rw,noexec,nosuid,size=128m,uid=1000,gid=1000,mode=0770
+    pids_limit: 256
+    deploy:
+      resources:
+        limits: {cpus: "0.25", memory: 640M, pids: 256}
+        reservations: {cpus: "0.05", memory: 192M}
+    networks: [application]
+
+  media-gateway:
+    image: nginx:1.28-alpine
+    ports:
+      - "127.0.0.1:9002:8080"
+    volumes:
+      - ../reverse-proxy/minio-gateway.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      minio: {condition: service_healthy}
+      minio-init: {condition: service_completed_successfully}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=16m
+      - /var/run:rw,noexec,nosuid,size=4m
+      - /tmp:rw,noexec,nosuid,size=8m
+    pids_limit: 64
+    deploy:
+      resources:
+        limits: {cpus: "0.05", memory: 64M, pids: 64}
+        reservations: {memory: 16M}
+    networks: [data]
+
+volumes:
+  oracle-postgres-data:
+  oracle-redis-data:
+  oracle-minio-data:
+  oracle-backend-logs:
+
+networks:
+  application:
+    name: "${COMPOSE_PROJECT_NAME:-vympel-oracle-staging}-application"
+    internal: true
+  data:
+    name: "${COMPOSE_PROJECT_NAME:-vympel-oracle-staging}-data"
+    internal: true

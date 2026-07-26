@@ -1,11 +1,24 @@
 # Remote CI Verification
 
-Date: 2026-07-26
+Date: 2026-07-27
 Repository: `ZxZxZ143/vympel`
 Branch: `main`
 Verified release-candidate commit: `633db42643d42ee6448919b5f6b6b16a7da1ca17`
 Release-candidate tag: `v1.0.0-rc.2`
 Preserved earlier candidate: `v1.0.0-rc.1` -> `954e8a3a659371ba0203369aec9d2fef968fab5b`
+
+## Pending ARM64 and Oracle staging verification
+
+The working tree now prepares the next immutable RC with:
+
+- one `linux/amd64` + `linux/arm64` OCI index per image/tag;
+- exact per-platform child-digest metadata;
+- isolated amd64 and QEMU-backed ARM64 runtime jobs;
+- ARM64 Liquibase/backend readiness, Java/Node architecture, sharp transforms, and storefront `/_next/image` proof;
+- explicit build-time frontend public configuration recorded in the release manifest;
+- a validated Oracle single-VM Compose/env/HTTP-first Nginx/systemd bundle.
+
+Remote run IDs, exact commit/tag, registry digests, and final status are intentionally pending until the implementation is committed, pushed normally, all required GitHub Actions runs pass, and the trusted manual publication completes. RC.2 remains the verified amd64-only baseline and is not moved.
 
 ## GHCR publication enablement
 

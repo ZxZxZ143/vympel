@@ -48,6 +48,8 @@ jobs:
         run: for script in deployment/scripts/*.sh; do sh -n "$script"; done
       - name: Test Liquibase history compatibility gate
         run: sh deployment/rehearsals/liquibase-history-compatibility.sh
+      - name: Test published multi-architecture manifest contract
+        run: sh deployment/rehearsals/published-manifest-contract.sh
       - name: Validate Prometheus and alert examples
         run: >-
           docker run --rm --entrypoint=/bin/promtool
@@ -60,6 +62,11 @@ jobs:
         run: docker compose --env-file infrastructure/env/staging.env.example -f infrastructure/compose/compose.staging.yml config --quiet
       - name: Validate production Compose
         run: docker compose --env-file infrastructure/env/production.env.example -f infrastructure/compose/compose.production.yml config --quiet
+      - name: Validate Oracle staging Compose contract
+        run: >-
+          sh deployment/scripts/verify-oracle-staging.sh
+          infrastructure/compose/compose.oracle-staging.yml
+          infrastructure/env/oracle-staging.env.example
       - name: Reject mutable application image tags
         run: |
           images=$(docker compose --env-file infrastructure/env/production.env.example -f infrastructure/compose/compose.production.yml config --images)
@@ -86,6 +93,19 @@ jobs:
             -v "$PWD/infrastructure/reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro" \
             -v "$PWD/infrastructure/reverse-proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro" \
             -v "$temp_dir/tls:/etc/nginx/tls:ro" \
+            nginx:1.28-alpine nginx -t
+      - name: Validate Oracle HTTP-first Nginx templates
+        run: |
+          docker run --rm \
+            -e STOREFRONT_DOMAIN=shop.ci.invalid \
+            -e CRM_DOMAIN=crm.ci.invalid \
+            -e API_DOMAIN=api.ci.invalid \
+            -v "$PWD/infrastructure/reverse-proxy/oracle-staging.conf.template:/tmp/oracle-staging.conf.template:ro" \
+            nginx:1.28-alpine \
+            /bin/sh -c "envsubst '\${STOREFRONT_DOMAIN} \${CRM_DOMAIN} \${API_DOMAIN}' < /tmp/oracle-staging.conf.template > /etc/nginx/conf.d/default.conf && nginx -t"
+          docker run --rm \
+            --add-host minio:127.0.0.1 \
+            -v "$PWD/infrastructure/reverse-proxy/minio-gateway.conf:/etc/nginx/conf.d/default.conf:ro" \
             nginx:1.28-alpine nginx -t
       - name: Rehearse reverse proxy routing and policy
         shell: pwsh

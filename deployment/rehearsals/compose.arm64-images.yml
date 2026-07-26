@@ -1,0 +1,34 @@
+services:
+  postgres:
+    platform: linux/arm64
+  redis:
+    platform: linux/arm64
+    # Redis intentionally refuses to run under the Docker Desktop/GitHub
+    # binfmt kernel signature because it cannot prove the historical ARM64
+    # copy-on-write bug is absent. This override is limited to disposable QEMU
+    # verification; native Oracle staging keeps Redis's fail-closed default.
+    command: ["redis-server", "--appendonly", "yes", "--ignore-warnings", "ARM64-COW-BUG"]
+  minio:
+    platform: linux/arm64
+  minio-init:
+    platform: linux/arm64
+  backend-logs-init:
+    platform: linux/arm64
+  backend:
+    platform: linux/arm64
+    # A cold Spring Boot start plus all Liquibase changesets takes about six
+    # minutes under QEMU on an amd64 runner. Native ARM64 staging keeps the
+    # tighter production health policy from its own Compose file.
+    healthcheck:
+      start_period: 420s
+      interval: 10s
+      timeout: 10s
+      retries: 30
+  public:
+    platform: linux/arm64
+    healthcheck:
+      start_period: 90s
+  crm:
+    platform: linux/arm64
+    healthcheck:
+      start_period: 90s

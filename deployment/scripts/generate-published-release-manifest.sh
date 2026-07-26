@@ -20,22 +20,31 @@ case "$run_url" in
   *) echo "Release run URL is invalid" >&2; exit 1 ;;
 esac
 
-read_digest() {
+read_metadata() {
   image=$1
   path=$metadata_dir/$image.json
   [ -f "$path" ] || {
     echo "Missing published metadata for $image" >&2
     exit 1
   }
-  digest=$(jq -er \
+  jq -er \
     --arg commit "$commit_sha" \
     --arg repository "ghcr.io/zxzxz143/$image" \
     'select(
       .pushed == true and
       .commit == $commit and
       .tag == $commit and
-      .repository == $repository
-    ) | .digest' "$path")
+      .repository == $repository and
+      (.digest | test("^sha256:[0-9a-f]{64}$")) and
+      (.platforms["linux/amd64"] | test("^sha256:[0-9a-f]{64}$")) and
+      (.platforms["linux/arm64"] | test("^sha256:[0-9a-f]{64}$"))
+    )' "$path"
+}
+
+read_digest() {
+  image=$1
+  path=$metadata_dir/$image.json
+  digest=$(read_metadata "$image" | jq -er '.digest')
   if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
     echo "Invalid published digest for $image" >&2
     exit 1
@@ -46,6 +55,24 @@ read_digest() {
 backend_digest=$(read_digest vympel-backend)
 storefront_digest=$(read_digest vympel-storefront)
 crm_digest=$(read_digest vympel-crm)
+backend_amd64_digest=$(read_metadata vympel-backend | jq -er '.platforms["linux/amd64"]')
+backend_arm64_digest=$(read_metadata vympel-backend | jq -er '.platforms["linux/arm64"]')
+storefront_amd64_digest=$(read_metadata vympel-storefront | jq -er '.platforms["linux/amd64"]')
+storefront_arm64_digest=$(read_metadata vympel-storefront | jq -er '.platforms["linux/arm64"]')
+crm_amd64_digest=$(read_metadata vympel-crm | jq -er '.platforms["linux/amd64"]')
+crm_arm64_digest=$(read_metadata vympel-crm | jq -er '.platforms["linux/arm64"]')
+public_config=$(read_metadata vympel-storefront | jq -ec '.publicBuildConfiguration')
+crm_public_config=$(read_metadata vympel-crm | jq -ec '.publicBuildConfiguration')
+if [ "$public_config" != "$crm_public_config" ]; then
+  echo "Frontend images do not carry the same public build configuration contract" >&2
+  exit 1
+fi
+storefront_api_base=$(printf '%s\n' "$public_config" | jq -er '.storefrontApiBase')
+crm_api_base=$(printf '%s\n' "$public_config" | jq -er '.crmApiBase')
+media_origins=$(printf '%s\n' "$public_config" | jq -er '.mediaOrigins')
+storefront_site_url=$(printf '%s\n' "$public_config" | jq -er '.storefrontSiteUrl')
+deployment_environment=$(printf '%s\n' "$public_config" | jq -er '.deploymentEnvironment')
+placeholder_acknowledged=$(printf '%s\n' "$public_config" | jq -er '.placeholderAcknowledged')
 generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 git_tag_value=null
 if [ -n "$release_tag" ]; then
@@ -64,19 +91,49 @@ images:
     repository: ghcr.io/zxzxz143/vympel-backend
     tag: "$commit_sha"
     digest: "$backend_digest"
+    platforms:
+      linux/amd64: "$backend_amd64_digest"
+      linux/arm64: "$backend_arm64_digest"
   storefront:
     repository: ghcr.io/zxzxz143/vympel-storefront
     tag: "$commit_sha"
     digest: "$storefront_digest"
+    platforms:
+      linux/amd64: "$storefront_amd64_digest"
+      linux/arm64: "$storefront_arm64_digest"
   crm:
     repository: ghcr.io/zxzxz143/vympel-crm
     tag: "$commit_sha"
     digest: "$crm_digest"
+    platforms:
+      linux/amd64: "$crm_amd64_digest"
+      linux/arm64: "$crm_arm64_digest"
+public_build_configuration:
+  strategy: build-time-release-contract
+  storefront_api_base: "$storefront_api_base"
+  crm_api_base: "$crm_api_base"
+  media_origins: "$media_origins"
+  storefront_site_url: "$storefront_site_url"
+  deployment_environment: "$deployment_environment"
+  release: "$commit_sha"
+  placeholder_acknowledged: $placeholder_acknowledged
+database:
+  changelog: classpath:db/changelog/db.changelog-master.xml
+  expected_latest_change: 2026-07-19-02-update-public-image-paths-to-webp
+  migration_mode: one-time-job
 verification:
   workflow_run: "$run_url"
-  registry_pull: passed
-  isolated_runtime: passed
+  registry_manifest: passed
+  linux_amd64_runtime: passed
+  linux_arm64_runtime: passed
   deployment_performed: false
+remaining_oracle_decisions:
+  - Oracle tenancy, compartment, region, VCN, and subnet
+  - final DNS names and public build configuration
+  - Ampere A1 VM shape allocation and boot volume size
+  - SSH ingress source CIDRs
+  - backup destination and retention policy
+  - alert routing
 EOF
 
 if grep -Eq 'PENDING|0000000000000000000000000000000000000000' "$output_path"; then

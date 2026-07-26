@@ -26,7 +26,7 @@ cd vympel_crm && npm ci && npm run lint && npm run typecheck && npm test && npm 
 docker compose -f compose.yml config --quiet
 ```
 
-The CI workflows repeat these checks and build three images tagged with the full commit SHA. GHCR publication is manual: `release-images.yml` logs in only for `workflow_dispatch` with `publish_images=true`, only after the same-commit Full Release Gate passes, and uses the repository-provided `GITHUB_TOKEN`.
+The CI workflows repeat these checks and build three images tagged with the full commit SHA. GHCR publication is manual: `release-images.yml` logs in only for `workflow_dispatch` with `publish_images=true`, only after the same-commit Full Release Gate passes, and uses the repository-provided `GITHUB_TOKEN`. A guarded publication creates one OCI index per tag with both `linux/amd64` and `linux/arm64`; separate runtime jobs prove both platforms before the published manifest is emitted.
 
 Canonical packages:
 
@@ -34,17 +34,18 @@ Canonical packages:
 - `ghcr.io/zxzxz143/vympel-storefront`
 - `ghcr.io/zxzxz143/vympel-crm`
 
-Every published set includes the full SHA tag. An optional existing release tag must point to the same commit; `latest` is never published as a deployment tag. The workflow adds OCI traceability labels, provenance/SBOM attestations, captures registry digests, pulls and inspects the SHA references, runs an isolated published-image Compose health check, and emits a consolidated release-manifest artifact. See [GHCR publication](docs/deployment/GHCR_PUBLICATION.md) for the guarded first-publication, visibility, authentication, rollback, and retention procedures.
+Every published set includes the full SHA tag. An optional existing release tag must point to the same commit; `latest` is never published as a deployment tag. The workflow adds OCI traceability labels, provenance/SBOM attestations, captures the index plus amd64/ARM64 child digests, pulls and inspects the SHA references, runs isolated amd64 and emulated ARM64 Compose health checks, and emits a consolidated release-manifest artifact. See [GHCR publication](docs/deployment/GHCR_PUBLICATION.md) and [multi-architecture verification](docs/deployment/MULTI_ARCH_IMAGE_VERIFICATION.md).
 
 ## Deployment model
 
 - Local: `compose.yml`, buildable source images, local data services.
 - Staging: `infrastructure/compose/compose.staging.yml`, immutable prebuilt images, external secrets and data services.
 - Production: `infrastructure/compose/compose.production.yml`, immutable prebuilt images, explicit backup/restore and approval gates.
+- Oracle ARM64 staging: `infrastructure/compose/compose.oracle-staging.yml`, a bounded single-VM stack with private PostgreSQL/Redis/MinIO, a finite migration job, and loopback-only application ports behind host Nginx.
 
-Start with [the deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md), populate a non-committed environment file from `infrastructure/env/*.env.example`, set `REGISTRY=ghcr.io/zxzxz143`, and use the full commit SHA as `RELEASE_TAG`. `deployment/release-manifest.example.yml` is the pre-publication template; the verified `v1.0.0-rc.2` publication record is [deployment/releases/v1.0.0-rc.2.yml](deployment/releases/v1.0.0-rc.2.yml).
+Start with [the deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md). For the Ampere A1 target, use the separate [Oracle staging runbook](docs/deployment/ORACLE_STAGING_RUNBOOK.md). Populate a non-committed environment file from `infrastructure/env/*.env.example`, set `REGISTRY=ghcr.io/zxzxz143`, and use a verified immutable RC or full SHA as `RELEASE_TAG`. `deployment/release-manifest.example.yml` is the pre-publication template; the verified `v1.0.0-rc.2` publication record is [deployment/releases/v1.0.0-rc.2.yml](deployment/releases/v1.0.0-rc.2.yml).
 
-`NEXT_PUBLIC_SITE_URL` is the browser-safe canonical storefront origin. It is required at storefront build time because Next.js compiles canonical and language-alternate metadata into output; the same value is retained at runtime for dynamic sitemap and robots responses. Do not substitute a final domain until it is approved.
+`NEXT_PUBLIC_SITE_URL` is the browser-safe canonical storefront origin. It is required at storefront build time because Next.js compiles canonical and language-alternate metadata into output; the same value is retained at runtime for dynamic sitemap and robots responses. The storefront/CRM API and media values are also compiled public configuration. The publication manifest records the exact contract, and an operator must match it at deployment; changing runtime `NEXT_PUBLIC_*` values does not rewrite an existing browser bundle.
 
 ## ADMIN bootstrap
 

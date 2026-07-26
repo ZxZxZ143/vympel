@@ -1,8 +1,29 @@
 # Release Candidate Verification
 
-Date: 2026-07-26
+Date: 2026-07-27
 Candidate: `v1.0.0-rc.2`
 Status: provider-independent local and remote gates passed; three GHCR images published and verified; provider-specific deployment conditions remain open.
+
+## Next candidate: ARM64 and Oracle staging preparation
+
+Status: implementation and local validation in progress; no new tag or registry publication has occurred yet.
+
+The next candidate must not move or republish RC.2. Promotion requires a new annotated tag, preferably `v1.0.0-rc.3`, only after the exact implementation commit passes backend, storefront, CRM, performance, Full Release Gate, and build-only Release Images workflows on `main`.
+
+The release publication is accepted only when:
+
+- backend, storefront, and CRM tags each resolve to one OCI index with `linux/amd64` and `linux/arm64`;
+- RC tag and exact SHA tag have the same index digest;
+- all six platform child digests are recorded;
+- amd64 and ARM64 isolated runtime checks pass;
+- ARM64 backend completes Liquibase and readiness with Java `aarch64`;
+- ARM64 storefront and CRM run Node `arm64` and native sharp transforms;
+- storefront image optimization returns a real optimized image;
+- exact frontend public build configuration and latest Liquibase changeset are recorded;
+- Oracle account/domain decisions remain explicit;
+- deployment remains `false`.
+
+The committed `.invalid` Oracle environment values are deliberate template placeholders. Any release built with reserved placeholders is evidence-only and must carry `placeholder_acknowledged: true`; it cannot be deployed. Final DNS requires a later immutable rebuild with those exact approved public origins.
 
 ## Current RC.2 publication record
 

@@ -1921,6 +1921,48 @@
 * **How:** Keep provenance and SBOM attestations enabled for the guarded registry-push path; disable them for the `--load` path, which uses Docker's single-image exporter.
 * **Why:** Buildx cannot export an attested manifest list through the Docker image loader (`docker exporter does not currently support exporting manifest lists`).
 
+### Prove multi-architecture indexes at the child-manifest boundary
+
+* **When to use:** Publishing one immutable tag for amd64 and ARM64 hosts.
+* **How:** Build one OCI index with `linux/amd64,linux/arm64`, read exactly one child digest for each platform from the registry, pull each child by digest, and record index plus child digests. Run separate exact-image Compose rehearsals; on ARM64 require Liquibase/readiness, `os.arch=aarch64`, `process.arch=arm64`, native sharp transforms, and a real Next image-optimization response.
+* **Why:** An index digest alone can hide a missing architecture, an attestation-only descriptor, or a platform image that pulls but cannot start.
+
+### Cross-build only architecture-neutral build stages
+
+* **When to use:** A target-platform build spends most of its time in an architecture-independent compiler such as Java/Gradle.
+* **How:** Pin only the JAR build stage to `$BUILDPLATFORM` and leave the runtime stage on the implicit target platform. Do not apply this to Next.js dependency/build stages because their standalone output includes target-specific sharp/libvips binaries.
+* **Why:** Native Gradle avoids very slow QEMU compilation while the final Temurin runtime still proves the selected amd64 or ARM64 platform.
+
+### Scope Redis ARM64 kernel-warning suppression to QEMU rehearsals
+
+* **When to use:** Running the official ARM64 Redis image through binfmt/QEMU on an amd64 Docker Desktop or GitHub runner.
+* **How:** Add `--ignore-warnings ARM64-COW-BUG` only in the disposable ARM64 rehearsal override. Never add it to native Oracle Compose; let a real ARM64 host fail closed until its kernel is upgraded.
+* **Why:** Redis sees the emulation host's kernel signature and refuses to start even though no native ARM64 kernel is under test. A global suppression would hide the real data-corruption safeguard on staging.
+
+### Budget cold ARM64 application startup separately under QEMU
+
+* **When to use:** Running the complete Spring Boot and Liquibase stack through binfmt/QEMU on an amd64 runner.
+* **How:** Extend only the disposable ARM64 rehearsal's health-check start period and Compose wait timeout. Keep the native Oracle Compose health policy unchanged.
+* **Why:** The verified cold emulated start applied 77 changesets and took about six minutes; treating emulation latency as a production health requirement would unnecessarily weaken native staging checks.
+
+### Make placeholder public builds explicit and non-deployable
+
+* **When to use:** Final domains are not yet owned or approved but registry/build evidence is still required.
+* **How:** Keep the Next.js build-time public configuration contract, reject localhost and placeholders by default, require an explicit placeholder acknowledgement for evidence-only publication, and record exact API/media/site/environment values in the published manifest. Require a new immutable RC after final domains are chosen.
+* **Why:** Runtime `NEXT_PUBLIC_*` changes cannot repair compiled browser URLs or canonical metadata, while an intentional `.invalid` value is safer and more auditable than an accidental working or loopback host.
+
+### Put a single-VM data plane on private networks behind loopback ingress
+
+* **When to use:** Running Vympel staging on one bounded VM without managed PostgreSQL, Redis, or object storage.
+* **How:** Keep PostgreSQL/Redis/MinIO ports unpublished on an internal data network; bind storefront, CRM, backend, and a read-only media gateway only to `127.0.0.1`; let host Nginx own public ports and forwarded headers. Use named volumes, health checks, finite migration/init jobs, restart policies, and resource limits whose persistent totals leave host headroom.
+* **Why:** Service DNS remains stable and public exposure is minimized without making host Nginx depend on fragile container IP addresses.
+
+### Treat Oracle provisioning as an operator-owned boundary
+
+* **When to use:** Preparing source for an OCI Ampere A1 target without authority to create cloud resources.
+* **How:** Commit provider-specific Compose/env/Nginx/systemd examples and a manual runbook, but leave tenancy, compartment, VCN/NSG, VM, SSH, DNS, Certbot, secrets, backup policies, and deployment explicitly unperformed. Use an ARM64-verified image before any operator starts the stack.
+* **Why:** Reproducible deployment support does not imply authority over the user's cloud account, DNS, credentials, or production state.
+
 ### Gate proxy assertions on upstream readiness
 
 * **When to use:** A disposable reverse-proxy test starts multiple independent upstream containers immediately before routing assertions.
@@ -1991,4 +2033,4 @@
 
 ## Last Updated
 
-2026-07-26 - Added verified GHCR evidence-recording, immutable build-origin, and package-page badge lessons after the successful `v1.0.0-rc.2` publication.
+2026-07-27 - Added multi-architecture child-digest/runtime proof, explicit frontend placeholder contracts, single-VM private-network ingress, and Oracle operator-boundary lessons.

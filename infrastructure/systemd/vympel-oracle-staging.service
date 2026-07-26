@@ -1,0 +1,17 @@
+[Unit]
+Description=Vympel Oracle staging Compose stack
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/vympel
+ExecStart=/usr/bin/docker compose --env-file /etc/vympel/staging.env -f /opt/vympel/infrastructure/compose/compose.oracle-staging.yml up -d --no-build --remove-orphans --wait
+ExecStop=/usr/bin/docker compose --env-file /etc/vympel/staging.env -f /opt/vympel/infrastructure/compose/compose.oracle-staging.yml down
+TimeoutStartSec=900
+TimeoutStopSec=180
+
+[Install]
+WantedBy=multi-user.target

@@ -32,7 +32,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 * Monorepo/workspace tool: One root Git repository with three independently built sibling applications; no package workspace orchestrator.
 * Testing: Public and CRM apps use finite Vitest suites; backend uses JUnit/Spring Boot, Mockito, real HTTP integration tests, and Testcontainers for PostgreSQL/Redis integration checks.
 * Linting/formatting: Frontend uses ESLint through `npm run lint`; backend has no explicit lint/format task discovered.
-* Docker/DevOps: Three multi-stage non-root images, preserved local Compose, immutable-image staging/production Compose, Nginx templates, deployment/rehearsal scripts, Prometheus examples, and component/full-release GitHub Actions workflows. GHCR publication targets three canonical `ghcr.io/zxzxz143/vympel-*` packages and is manually guarded behind the same-commit reusable full release gate, `GITHUB_TOKEN`, immutable-tag collision checks, OCI labels, attestations, digest capture, and published-image runtime verification.
+* Docker/DevOps: Three multi-stage non-root amd64/ARM64 images, preserved local Compose, immutable-image provider and Oracle single-VM Compose, Nginx templates, deployment/rehearsal scripts, Prometheus examples, and component/full-release GitHub Actions workflows. GHCR publication targets three canonical `ghcr.io/zxzxz143/vympel-*` packages and is manually guarded behind the same-commit reusable full release gate, `GITHUB_TOKEN`, immutable-tag collision checks, OCI labels, attestations, OCI-index/child-digest capture, and separate amd64/ARM64 runtime verification.
 
 ## Directory Structure
 
@@ -46,13 +46,14 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 |-- deployment/
 |   |-- release-manifest.example.yml  # immutable release/digest evidence template
 |   |-- releases/                     # digest-complete manifests from verified registry publications
-|   |-- rehearsals/                    # isolated backup, CMS freshness, Liquibase, proxy, and published-image proofs
+|   |-- rehearsals/                    # isolated backup, CMS freshness, Liquibase, proxy, and amd64/ARM64 published-image proofs
 |   `-- scripts/                       # validation, manifest, image inspection, migration, deploy, smoke, rollback helpers
 |-- infrastructure/
-|   |-- compose/                       # prebuilt-image staging and production stacks
-|   |-- env/                           # placeholder-only deployment environment templates
+|   |-- compose/                       # prebuilt-image provider and Oracle single-VM staging/production stacks
+|   |-- env/                           # placeholder-only deployment environment templates, including Oracle staging
 |   |-- observability/                 # provider-neutral Prometheus/rule/signal examples
-|   `-- reverse-proxy/                 # configurable TLS Nginx templates
+|   |-- reverse-proxy/                 # configurable TLS, Oracle HTTP-first, and internal media-gateway Nginx
+|   `-- systemd/                       # optional reviewed Oracle Compose startup unit
 |-- docs/
 |   |-- PROJECT_MAP.md                # project architecture memory
 |   |-- PROJECT_SKILLS.md             # project lessons and working patterns
@@ -784,8 +785,8 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * Test: Backend `.\gradlew.bat test`; public frontend `npm run test`; CRM `npm test`.
 * Docker compatibility entrypoint: `cd vympel_back && docker compose up -d --build --wait` includes the authoritative root stack; service definitions are not duplicated.
 * Docker status/logs: `docker compose ps` and bounded `docker compose logs --no-color --tail 200 <service>`.
-* Deployment validation: use the environment, pull, migration, deploy, smoke, and rollback scripts under `deployment/scripts`; staging/production Compose consumes prebuilt full-SHA tags.
-* CI: `backend-ci.yml`, `storefront-ci.yml`, and `crm-ci.yml` own component checks/image builds and explicitly record the `next`/`sharp` graph plus the high-severity audit; `full-release-gate.yml` is reusable and runs all component/shared infrastructure gates. `release-images.yml` builds immutable SHA-tagged images on relevant `main` changes without login, and publishes only from a manual same-commit full-gate pass. Publication adds OCI labels, BuildKit provenance/SBOM, signed GitHub provenance, registry digest verification, exact-reference pull/inspection, an isolated Compose rehearsal, and a consolidated published manifest. The older `performance-budgets.yml` remains the dedicated combined budget gate.
+* Deployment validation: use the environment, pull, migration, deploy, smoke, and rollback scripts under `deployment/scripts`; staging/production Compose consumes prebuilt immutable tags. Oracle syntax/topology validation is `sh deployment/scripts/verify-oracle-staging.sh infrastructure/compose/compose.oracle-staging.yml infrastructure/env/oracle-staging.env.example`.
+* CI: `backend-ci.yml`, `storefront-ci.yml`, and `crm-ci.yml` own component checks/image builds and explicitly record the `next`/`sharp` graph plus the high-severity audit; `full-release-gate.yml` is reusable and runs all component/shared infrastructure gates, including Oracle Compose and HTTP-first Nginx validation. `release-images.yml` builds immutable SHA-tagged amd64 images on relevant `main` changes without login, and publishes one `linux/amd64` + `linux/arm64` OCI index per tag only from a manual same-commit full-gate pass. Publication adds OCI labels, BuildKit provenance/SBOM, signed GitHub provenance, index and child digest verification, exact-reference pull/inspection, separate amd64 and QEMU-backed ARM64 Compose rehearsals, native Java/Node/sharp checks, and a consolidated published manifest. The older `performance-budgets.yml` remains the dedicated combined budget gate.
 
 ## External Dependencies & Integrations
 
@@ -799,6 +800,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * next-intl: Frontend localization and locale-prefixed routes.
 * React Hook Form: Public storefront and CRM form state. Public custom controls use existing `Controller` wrappers or local Controllers; CRM uses RHF without a schema resolver and preserves localized validation helpers in the components.
 * GitHub Container Registry: Canonical repositories are `ghcr.io/zxzxz143/vympel-backend`, `vympel-storefront`, and `vympel-crm`. GitHub Actions writes with repository `GITHUB_TOKEN`; private deployment pulls require a separate external read-only `read:packages` credential.
+* Oracle Cloud staging: The repository contains a provider-specific operator plan for an Ubuntu Ampere A1 ARM64 VM but never creates cloud resources. `compose.oracle-staging.yml` owns PostgreSQL 16, Redis 7.4, MinIO, the finite migration job, all three prebuilt apps, and an internal media gateway. Host Nginx routes only to loopback ports 3000, 3001, 8080, and 9002; infrastructure ports remain unpublished.
 
 ## Environment Variables
 
@@ -1117,11 +1119,11 @@ The frontend and CRM also scope `brace-expansion@5.0.8` to the legacy `minimatch
 
 ## Deployment Architecture
 
-The workspace is one root Git monorepo with three independent image boundaries: `ghcr.io/zxzxz143/vympel-backend`, `ghcr.io/zxzxz143/vympel-storefront`, and `ghcr.io/zxzxz143/vympel-crm`. `compose.yml` remains the local source-build stack with PostgreSQL 16, Redis 7.4, and MinIO. `infrastructure/compose/compose.staging.yml` and `compose.production.yml` consume immutable `${REGISTRY}/<image>:${RELEASE_TAG}` references and expect PostgreSQL, Redis, S3-compatible storage, TLS, and secrets to be supplied externally.
+The workspace is one root Git monorepo with three independent image boundaries: `ghcr.io/zxzxz143/vympel-backend`, `ghcr.io/zxzxz143/vympel-storefront`, and `ghcr.io/zxzxz143/vympel-crm`. Each manual publication tag is one OCI index containing exactly one Linux amd64 and one Linux arm64 application manifest, plus optional attestation manifests. `compose.yml` remains the local source-build stack with PostgreSQL 16, Redis 7.4, and MinIO. `infrastructure/compose/compose.staging.yml` and `compose.production.yml` consume immutable `${REGISTRY}/<image>:${RELEASE_TAG}` references and expect data services/TLS to be external. `compose.oracle-staging.yml` instead owns bounded persistent PostgreSQL/Redis/MinIO services for one ~2 OCPU/~12 GB ARM64 VM, runs Liquibase through a finite job, keeps infrastructure ports unpublished, and binds apps/media only to loopback behind host Nginx.
 
 Both Next apps use `output: "standalone"` and run as the image's non-root `node` user. The Spring Boot image runs as UID/GID 10001. Deployment starts the finite `migrate` service before backend replicas; normal replicas have Liquibase disabled. Nginx is the sole published service and routes configurable storefront, CRM, and API domains while keeping readiness and protected Actuator endpoints internal.
 
-`deployment/scripts` provides environment validation, fail-closed historical Liquibase compatibility, image pull, published-image inspection, pre-publication and digest-complete manifest generation, migration verification, bounded health polling, smoke checks, deploy, backup evidence checks, and immutable image rollback. Cross-platform PowerShell under `deployment/rehearsals` owns disposable PostgreSQL backup/restore, signed CMS retry/freshness, and Nginx routing proofs; the published-image Compose override proves the exact pulled GHCR images against namespaced disposable local services. Native Docker/curl commands are resolved as applications on both Windows and Ubuntu. The migration container publishes no port, disables scheduling, and closes as soon as the verification runner confirms Liquibase state; it retains the normal web application type because the current security configuration requires `HttpSecurity` during context creation. Database rollback is deliberately absent. The required CI workflows split backend/storefront/CRM checks, reusable full-release verification, non-publishing automatic image evidence, and manually authorized GHCR publication. Full commit SHA is the application image tag; successful publication emits a separate manifest with all three real registry digests and no pending values. `deployment/releases/v1.0.0-rc.2.yml` is the first digest-complete record: public packages at exact source `633db42643d42ee6448919b5f6b6b16a7da1ca17`, with registry pull and isolated runtime verification passed and deployment explicitly false.
+`deployment/scripts` provides environment/public-build validation, Oracle topology validation, fail-closed historical Liquibase compatibility, image pull, multi-platform published-image inspection, pre-publication and digest-complete manifest generation, migration verification, bounded health polling, smoke checks, deploy, backup evidence checks, and immutable image rollback. Cross-platform PowerShell under `deployment/rehearsals` owns disposable PostgreSQL backup/restore, signed CMS retry/freshness, and Nginx routing proofs; published-image overrides prove exact GHCR images as amd64 and ARM64 against namespaced disposable local services. The migration container publishes no port, disables scheduling, and exits after Liquibase completes. Database rollback is deliberately absent. Full commit SHA is always an application image tag; successful publication records all three index digests, six platform child digests, exact frontend public build configuration, latest Liquibase change, and remaining Oracle decisions. `deployment/releases/v1.0.0-rc.2.yml` remains the immutable amd64-only baseline and is never moved.
 
 The CMS retry rehearsal treats the immediate outbox observation as a concurrent transition: after the API reports `FAILED_RETRY_SCHEDULED`, the row may still be `RETRY` or may already be claimed as `PROCESSING`, but it must have at least one attempt. The later assertion still requires terminal `SUCCEEDED` with at least two attempts and fresh storefront HTML.
 
@@ -1131,4 +1133,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-26 - Recorded the verified public GHCR `v1.0.0-rc.2` image set, digest-complete manifest, attestations, and isolated runtime evidence; external deployment remains pending.
+2026-07-27 - Added amd64/ARM64 OCI publication and runtime-proof architecture plus bounded Oracle Ampere A1 staging Compose, env, Nginx, systemd, and operator-runbook contracts; external deployment remains pending.

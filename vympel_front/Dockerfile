@@ -24,7 +24,11 @@ ENV NEXT_PUBLIC_APP_RELEASE=$NEXT_PUBLIC_APP_RELEASE
 ENV NEXT_PUBLIC_TELEMETRY_ENABLED=$NEXT_PUBLIC_TELEMETRY_ENABLED
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN test -n "$BASE_API_PUBLIC" \
+    && test -n "$NEXT_PUBLIC_BASE_API_PUBLIC" \
+    && test -n "$NEXT_PUBLIC_MEDIA_ORIGINS" \
+    && test -n "$NEXT_PUBLIC_SITE_URL" \
+    && npm run build
 
 FROM node:22-alpine AS runtime
 WORKDIR /app

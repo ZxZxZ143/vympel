@@ -1,5 +1,12 @@
 # Deployment Runbook
 
+For the self-contained Oracle Cloud Ampere A1 ARM64 staging target, use
+`docs/deployment/ORACLE_STAGING_RUNBOOK.md` together with
+`infrastructure/compose/compose.oracle-staging.yml`. This general runbook's
+staging/production files assume externally managed data services and a
+containerized TLS proxy; the Oracle variant intentionally owns bounded local
+PostgreSQL, Redis, and MinIO while host Nginx terminates public traffic.
+
 ## Scope and safety
 
 This runbook deploys three independently versioned containers with one full 40-character Git SHA. It does not provision infrastructure, publish images, or roll back database schema. Image publication is a separate manually guarded GitHub Actions operation documented in `GHCR_PUBLICATION.md`. Run deployment commands from the monorepo root on a trusted Linux deployment host with Docker Engine, Compose v2, `curl`, `awk`, `grep`, and `timeout`.
