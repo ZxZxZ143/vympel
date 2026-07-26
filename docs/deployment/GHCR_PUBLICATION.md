@@ -10,6 +10,20 @@ Vympel publishes three independent Linux/amd64 images:
 
 Every set uses the same full 40-character Git commit SHA. `latest` is never a release or deployment tag. An approved Git release tag may be added to the same digest only when that existing Git tag resolves to the exact published commit.
 
+## Published release-candidate evidence
+
+`v1.0.0-rc.2` is an annotated tag on exact source commit `633db42643d42ee6448919b5f6b6b16a7da1ca17`. Manual Release Images run [30208034635](https://github.com/ZxZxZ143/vympel/actions/runs/30208034635) passed its publication policy, reusable Full Release Gate, three image builds, signed provenance, exact-image inspection, isolated Compose runtime, consolidated manifest, and final publication boundary.
+
+| Image | Registry digest | GitHub attestation |
+| --- | --- | --- |
+| `ghcr.io/zxzxz143/vympel-backend` | `sha256:6272e041e0a60747eb647a300b9165c8eeb5dbf784c8a48dc795c132a91f88df` | [37173264](https://github.com/ZxZxZ143/vympel/attestations/37173264) |
+| `ghcr.io/zxzxz143/vympel-storefront` | `sha256:23f99e15cc31027ce6b5618ba01b45c990781047acb9572031c3abc75985b328` | [37173260](https://github.com/ZxZxZ143/vympel/attestations/37173260) |
+| `ghcr.io/zxzxz143/vympel-crm` | `sha256:7de1c4b0967aaf6cfbae7ec13c626685096403b368cb0e4434baf3a98322abef` | [37173168](https://github.com/ZxZxZ143/vympel/attestations/37173168) |
+
+Each digest has both the full-SHA tag and `v1.0.0-rc.2`; no `latest` tag was created. The digest-complete workflow artifact is `published-release-manifest-633db42643d42ee6448919b5f6b6b16a7da1ca17` (ID `8633714297`, artifact digest `sha256:2ffa0c4251c3bdc334da99581460690d6e5cb1eef1251bd6e4628844b3fed51e`) and is preserved at `deployment/releases/v1.0.0-rc.2.yml`.
+
+The publication used loopback storefront/CRM build URLs for a non-deployable registry/runtime rehearsal. Create a new immutable Git tag and image set after final public origins are approved; do not move or overwrite `v1.0.0-rc.2`.
+
 ## Publication authority
 
 `.github/workflows/release-images.yml` is the only image-publication workflow. Relevant `main` changes still build all three images without registry authentication or publication. Registry login and push require all of the following:
@@ -52,6 +66,8 @@ The workflow generates OCI source, revision, version, and title labels; BuildKit
 ## Package visibility
 
 Package visibility remains a manual decision. Do not change repository visibility and do not use an unsupported API workaround to change package visibility.
+
+Current state recorded after run `30208034635`: backend, storefront, and CRM packages are all **Public**. Their visibility was inspected without mutation. GitHub's package page also marks the newest package version as “Latest”; that UI marker is not a `latest` container tag, and the listed release version carries only the full SHA and `v1.0.0-rc.2`.
 
 ### Public packages
 

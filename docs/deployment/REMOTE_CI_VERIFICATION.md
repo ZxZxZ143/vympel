@@ -3,17 +3,42 @@
 Date: 2026-07-26
 Repository: `ZxZxZ143/vympel`
 Branch: `main`
-Verified release-candidate commit: `954e8a3a659371ba0203369aec9d2fef968fab5b`
-Release-candidate tag: `v1.0.0-rc.1`
-Sharp remediation commit: `0fe55f39db7c7b5c495e200e778841584014ce04`
+Verified release-candidate commit: `633db42643d42ee6448919b5f6b6b16a7da1ca17`
+Release-candidate tag: `v1.0.0-rc.2`
+Preserved earlier candidate: `v1.0.0-rc.1` -> `954e8a3a659371ba0203369aec9d2fef968fab5b`
 
 ## GHCR publication enablement
 
-Status as of 2026-07-26: implementation prepared locally; remote gates and first publication are not yet recorded in this section.
+Status as of 2026-07-26: **PASS — three independent GHCR images published, attested, pulled, inspected, and exercised from one immutable RC source. No hosting deployment ran.**
 
-The release workflow now targets `ghcr.io/zxzxz143/vympel-backend`, `ghcr.io/zxzxz143/vympel-storefront`, and `ghcr.io/zxzxz143/vympel-crm`. A publish request is accepted only from `workflow_dispatch` with `publish_images=true`, after the reusable same-commit Full Release Gate passes, and authenticates with the repository `GITHUB_TOKEN`. It rejects existing immutable SHA/release tags, emits OCI labels plus provenance/SBOM attestations, records registry digests, pulls and inspects the exact SHA references, and runs an isolated published-image Compose check. No hosting deployment is part of that workflow.
+Exact source commit `633db42643d42ee6448919b5f6b6b16a7da1ca17` passed all required main-branch evidence before tagging:
 
-Because the sharp fix is later than `v1.0.0-rc.1`, the first verified publication must use a new immutable RC tag after new remote gates pass. This status paragraph must be replaced with exact workflow runs, tag, package visibility, image digests, and runtime results after publication.
+| Workflow | Run | Result |
+| --- | --- | --- |
+| Backend CI | [30207532213](https://github.com/ZxZxZ143/vympel/actions/runs/30207532213) | PASS |
+| Storefront CI | [30207532189](https://github.com/ZxZxZ143/vympel/actions/runs/30207532189) | PASS |
+| CRM CI | [30207532188](https://github.com/ZxZxZ143/vympel/actions/runs/30207532188) | PASS |
+| Performance budgets | [30207532192](https://github.com/ZxZxZ143/vympel/actions/runs/30207532192) | PASS |
+| Full Release Gate | [30207532251](https://github.com/ZxZxZ143/vympel/actions/runs/30207532251) | PASS |
+| Release Images | [30207532316](https://github.com/ZxZxZ143/vympel/actions/runs/30207532316) | PASS, BUILD ONLY |
+
+Annotated tag `v1.0.0-rc.2` resolves to the same commit. Tag-triggered Full Release Gate [30207729407](https://github.com/ZxZxZ143/vympel/actions/runs/30207729407) passed all component, deployment, actionlint, security, and metadata jobs. The older `v1.0.0-rc.1` tag was not moved.
+
+Manual Release Images run [30208034635](https://github.com/ZxZxZ143/vympel/actions/runs/30208034635) was dispatched from `v1.0.0-rc.2` with `publish_images=true` and `release_tag=v1.0.0-rc.2`. It authenticated to GHCR as `github.actor` using only the repository `GITHUB_TOKEN`, rejected pre-existing immutable tags, and passed the same-commit reusable Full Release Gate before any registry write.
+
+| Image | Full-SHA / RC digest | Runtime user | Attestation |
+| --- | --- | --- | --- |
+| `ghcr.io/zxzxz143/vympel-backend` | `sha256:6272e041e0a60747eb647a300b9165c8eeb5dbf784c8a48dc795c132a91f88df` | `vympel` | [37173264](https://github.com/ZxZxZ143/vympel/attestations/37173264) |
+| `ghcr.io/zxzxz143/vympel-storefront` | `sha256:23f99e15cc31027ce6b5618ba01b45c990781047acb9572031c3abc75985b328` | `node` | [37173260](https://github.com/ZxZxZ143/vympel/attestations/37173260) |
+| `ghcr.io/zxzxz143/vympel-crm` | `sha256:7de1c4b0967aaf6cfbae7ec13c626685096403b368cb0e4434baf3a98322abef` | `node` | [37173168](https://github.com/ZxZxZ143/vympel/attestations/37173168) |
+
+The workflow published BuildKit `mode=max` provenance and SBOM attestations plus signed GitHub provenance for each pushed digest. It pulled the exact full-SHA references, confirmed Linux/amd64, non-root users, OCI source/revision labels, digest equality, and absence of secret-bearing image environment metadata. The isolated `vympel-ghcr-30208034635-1` Compose project then reported backend, storefront, and CRM healthy; backend readiness passed, and both Next containers successfully called the backend public ping endpoint. Cleanup removed the disposable containers, network, and volumes.
+
+The digest-complete artifact `published-release-manifest-633db42643d42ee6448919b5f6b6b16a7da1ca17` has ID `8633714297` and artifact digest `sha256:2ffa0c4251c3bdc334da99581460690d6e5cb1eef1251bd6e4628844b3fed51e`. Its exact non-secret content is committed at `deployment/releases/v1.0.0-rc.2.yml`. Backend metadata artifact ID is `8633699268`, storefront `8633698670`, and CRM `8633687537`.
+
+All three packages were observed as **Public** after publication; no visibility setting was changed. Each release version lists only `633db42643d42ee6448919b5f6b6b16a7da1ca17` and `v1.0.0-rc.2`. GitHub's “Latest” page badge identifies the newest package version and does not mean a `latest` tag was published.
+
+The storefront/CRM build inputs were loopback URLs for a non-deployable registry/runtime rehearsal. The resulting images are not approved for an external environment; final public origins require a new immutable tag and build. No staging, production, cloud, or hosting deployment was performed.
 
 ### Prepublication advisory refresh
 
@@ -21,9 +46,9 @@ The first publication-enablement commit `374c5b3d813be9336941125a2ff03269b0ec79f
 
 Both apps now select supported Next.js and `eslint-config-next` 16.2.12 patches, retain `sharp@0.35.3`, and scope patched `brace-expansion@5.0.8` to `minimatch@3.1.5`. Because the secure brace-expansion release exposes a named CommonJS export while minimatch 3 expects a callable export, clean installs run an exact-version, fail-closed compatibility bridge before lint/build. Local clean Windows installs, full and production-only audits, dependency assertions, lint, typecheck, 41 storefront tests, 25 CRM tests, security-header tests, production builds, budgets, and clean Node 22 Alpine image builds pass.
 
-On remediation commit `8d943f9df96b6f49db53b81c4edb24ce3bb21f34`, Storefront CI [30207052278](https://github.com/ZxZxZ143/vympel/actions/runs/30207052278), CRM CI [30207052316](https://github.com/ZxZxZ143/vympel/actions/runs/30207052316), Performance budgets [30207052292](https://github.com/ZxZxZ143/vympel/actions/runs/30207052292), and build-only Release Images [30207052495](https://github.com/ZxZxZ143/vympel/actions/runs/30207052495) passed. Full Release Gate [30207052395](https://github.com/ZxZxZ143/vympel/actions/runs/30207052395) correctly blocked promotion because actionlint reported SC2086 for a scalar holding multiple Compose arguments in the published-image rehearsal. The correction spells out the fixed Compose file arguments; a new exact commit and complete remote result remain pending.
+On remediation commit `8d943f9df96b6f49db53b81c4edb24ce3bb21f34`, Storefront CI [30207052278](https://github.com/ZxZxZ143/vympel/actions/runs/30207052278), CRM CI [30207052316](https://github.com/ZxZxZ143/vympel/actions/runs/30207052316), Performance budgets [30207052292](https://github.com/ZxZxZ143/vympel/actions/runs/30207052292), and build-only Release Images [30207052495](https://github.com/ZxZxZ143/vympel/actions/runs/30207052495) passed. Full Release Gate [30207052395](https://github.com/ZxZxZ143/vympel/actions/runs/30207052395) correctly blocked promotion because actionlint reported SC2086 for a scalar holding multiple Compose arguments in the published-image rehearsal. Commit `acae99b27beeaff1d8761c38c38cdbaf5b578fc1` corrected the shell argument boundary.
 
-Commit `acae99b27beeaff1d8761c38c38cdbaf5b578fc1` proved the actionlint correction: actionlint, YAML, scripts, Compose, proxy, backup/restore, backend, storefront, CRM, Performance budgets [30207222320](https://github.com/ZxZxZ143/vympel/actions/runs/30207222320), and build-only Release Images [30207222476](https://github.com/ZxZxZ143/vympel/actions/runs/30207222476) passed. Full Release Gate [30207222400](https://github.com/ZxZxZ143/vympel/actions/runs/30207222400) then exposed a race in the existing CMS rehearsal: the worker legitimately claimed the retry row as `PROCESSING|1` before the script asserted an instantaneous `RETRY` state. The rehearsal now accepts only the adjacent `RETRY` or `PROCESSING` state with a positive attempt count at that intermediate boundary, while retaining its later `SUCCEEDED` with at least two attempts and fresh public HTML proof. A new exact commit and complete remote result remain pending.
+Commit `acae99b27beeaff1d8761c38c38cdbaf5b578fc1` proved the actionlint correction: actionlint, YAML, scripts, Compose, proxy, backup/restore, backend, storefront, CRM, Performance budgets [30207222320](https://github.com/ZxZxZ143/vympel/actions/runs/30207222320), and build-only Release Images [30207222476](https://github.com/ZxZxZ143/vympel/actions/runs/30207222476) passed. Full Release Gate [30207222400](https://github.com/ZxZxZ143/vympel/actions/runs/30207222400) then exposed a race in the existing CMS rehearsal: the worker legitimately claimed the retry row as `PROCESSING|1` before the script asserted an instantaneous `RETRY` state. The rehearsal now accepts only the adjacent `RETRY` or `PROCESSING` state with a positive attempt count at that intermediate boundary, while retaining its later `SUCCEEDED` with at least two attempts and fresh public HTML proof. Commit `633db42643d42ee6448919b5f6b6b16a7da1ca17` passed the complete gate and became immutable `v1.0.0-rc.2`.
 
 ## Post-RC sharp security remediation
 
@@ -89,7 +114,7 @@ The initial remote runs exposed Linux and orchestration issues that local Window
 | `55bda3657783e591189b03e7f50a8f64601f1c8e` | Deterministic integration fixture and final-postmaster checks |
 | `954e8a3a659371ba0203369aec9d2fef968fab5b` | Validated immutable release-manifest generation |
 
-## Publication and deployment disposition
+## Historical RC.1 publication and deployment disposition
 
 - No Docker registry was configured, no registry credentials were supplied, and no image was pushed.
 - No external staging or production deployment ran.

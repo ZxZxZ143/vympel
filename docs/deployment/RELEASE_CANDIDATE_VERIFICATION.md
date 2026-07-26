@@ -1,8 +1,24 @@
 # Release Candidate Verification
 
-Date: 2026-07-22
-Candidate: `v1.0.0-rc.1`
-Status: provider-independent local and remote CI gates passed; tag published; provider-specific production conditions remain open.
+Date: 2026-07-26
+Candidate: `v1.0.0-rc.2`
+Status: provider-independent local and remote gates passed; three GHCR images published and verified; provider-specific deployment conditions remain open.
+
+## Current RC.2 publication record
+
+Annotated tag `v1.0.0-rc.2` points to exact source commit `633db42643d42ee6448919b5f6b6b16a7da1ca17`. Backend CI `30207532213`, Storefront CI `30207532189`, CRM CI `30207532188`, Performance budgets `30207532192`, Full Release Gate `30207532251`, and build-only Release Images `30207532316` passed for that commit. Tag-triggered Full Release Gate `30207729407` passed again on the same source.
+
+Manual Release Images run [30208034635](https://github.com/ZxZxZ143/vympel/actions/runs/30208034635) passed publication policy and the reusable same-commit gate, then published all three public packages using the repository `GITHUB_TOKEN`:
+
+| Image | Digest | Attestation |
+| --- | --- | --- |
+| Backend | `sha256:6272e041e0a60747eb647a300b9165c8eeb5dbf784c8a48dc795c132a91f88df` | [37173264](https://github.com/ZxZxZ143/vympel/attestations/37173264) |
+| Storefront | `sha256:23f99e15cc31027ce6b5618ba01b45c990781047acb9572031c3abc75985b328` | [37173260](https://github.com/ZxZxZ143/vympel/attestations/37173260) |
+| CRM | `sha256:7de1c4b0967aaf6cfbae7ec13c626685096403b368cb0e4434baf3a98322abef` | [37173168](https://github.com/ZxZxZ143/vympel/attestations/37173168) |
+
+The workflow generated BuildKit provenance/SBOM data and signed GitHub provenance, pulled and inspected the exact SHA references, confirmed amd64/non-root/OCI label/digest/no-secret-metadata requirements, and brought backend, storefront, and CRM to healthy state in an isolated disposable Compose project. The release artifact is preserved at `deployment/releases/v1.0.0-rc.2.yml`. Both the full SHA and RC tag point at each digest; no mutable `latest` tag exists.
+
+This was intentionally a registry/runtime rehearsal with loopback browser-visible build URLs. No external deployment ran, and these frontend images must not be promoted to an external environment. Once final origins are approved, create and publish a new immutable release candidate instead of moving `v1.0.0-rc.2`.
 
 ## Preserved starting state
 
@@ -11,13 +27,13 @@ Status: provider-independent local and remote CI gates passed; tag published; pr
 - Historical Git backup: `E:\vympel_git_backup_20260721_183725`, verified intact and never added to the repository.
 - ADMIN bootstrap implementation and exact four-variable contract are preserved. Full backend tests passed; production remains disabled by default.
 
-## Post-candidate sharp security remediation
+## RC.2 security baseline
 
 Commit `0fe55f39db7c7b5c495e200e778841584014ce04` remediates the high-severity libvips advisories inherited through `next@16.2.10 -> sharp@0.34.5` in both storefront and CRM. A Next-scoped npm override selects stable `sharp@^0.35.0`, currently locked at 0.35.3; no framework/runtime package was downgraded, the high-severity audit gate remains enabled, and a shared CI assertion rejects installed `sharp` versions below 0.35.0. Clean audits, application gates, Linux/amd64 image builds, healthy containers, libvips 8.18.3 WebP/AVIF transforms, and local/remote Next image optimization passed. Storefront CI `29944334362`, CRM CI `29944334256`, Backend CI `29944334263`, Full Release Gate `29944335708`, Release Images `29944334455`, and Performance budgets `29944335576` all passed remotely for the exact commit; the release-image run remained build-only.
 
-This change is intentionally not represented by `v1.0.0-rc.1`, whose immutable target remains `954e8a3a659371ba0203369aec9d2fef968fab5b`. Do not move that tag. If release-candidate packaging is requested, create a new candidate such as `v1.0.0-rc.2` at the approved verified commit and record its exact SHA; this task did not create a new tag.
+This change is intentionally not represented by `v1.0.0-rc.1`, whose immutable target remains `954e8a3a659371ba0203369aec9d2fef968fab5b`. It is included in `v1.0.0-rc.2` at `633db42643d42ee6448919b5f6b6b16a7da1ca17`; neither tag was moved.
 
-## Provider-independent release gates
+## Historical RC.1 provider-independent release gates
 
 | Area | Result | Evidence |
 | --- | --- | --- |
@@ -60,4 +76,4 @@ The image IDs above are local verification images, not registry digests. No imag
 
 ## Remaining provider-specific conditions
 
-Hosting, final domains, registry and image digests, managed PostgreSQL/provider restore, Redis, object storage, secret manager, monitoring/alert delivery, public TLS and trusted proxy CIDRs, and a real staging deployment remain pending. Production is not approved. Any upgrade database containing the unrecoverable historical changeset row also requires accountable external acceptance before migration.
+Hosting, final domains, managed PostgreSQL/provider restore, Redis, object storage, secret manager, monitoring/alert delivery, public TLS and trusted proxy CIDRs, final-origin image rebuild, and a real staging deployment remain pending. Production is not approved. Any upgrade database containing the unrecoverable historical changeset row also requires accountable external acceptance before migration.

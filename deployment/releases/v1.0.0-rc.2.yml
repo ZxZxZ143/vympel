@@ -1,0 +1,23 @@
+apiVersion: deployment.vympel.dev/v1
+kind: PublishedReleaseManifest
+commit_sha: "633db42643d42ee6448919b5f6b6b16a7da1ca17"
+git_tag: "v1.0.0-rc.2"
+generated_at: "2026-07-26T15:30:07Z"
+images:
+  backend:
+    repository: ghcr.io/zxzxz143/vympel-backend
+    tag: "633db42643d42ee6448919b5f6b6b16a7da1ca17"
+    digest: "sha256:6272e041e0a60747eb647a300b9165c8eeb5dbf784c8a48dc795c132a91f88df"
+  storefront:
+    repository: ghcr.io/zxzxz143/vympel-storefront
+    tag: "633db42643d42ee6448919b5f6b6b16a7da1ca17"
+    digest: "sha256:23f99e15cc31027ce6b5618ba01b45c990781047acb9572031c3abc75985b328"
+  crm:
+    repository: ghcr.io/zxzxz143/vympel-crm
+    tag: "633db42643d42ee6448919b5f6b6b16a7da1ca17"
+    digest: "sha256:7de1c4b0967aaf6cfbae7ec13c626685096403b368cb0e4434baf3a98322abef"
+verification:
+  workflow_run: "https://github.com/ZxZxZ143/vympel/actions/runs/30208034635"
+  registry_pull: passed
+  isolated_runtime: passed
+  deployment_performed: false

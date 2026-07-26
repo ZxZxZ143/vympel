@@ -1900,7 +1900,7 @@
 ### Separate image-build evidence from publication authority
 
 * **When to use:** CI must prove immutable release images build before a registry and credentials are approved.
-* **How:** Let relevant `main` changes run the image workflow with non-secret placeholder build URLs and `push=false`; retain registry publication only behind `workflow_dispatch`, an explicit boolean input, a repository variable, and registry credentials.
+* **How:** Let relevant `main` changes run the image workflow with non-secret placeholder build URLs and `push=false`; retain GHCR publication only behind `workflow_dispatch`, an explicit boolean input, the reusable same-commit Full Release Gate, and the repository-provided `GITHUB_TOKEN`.
 * **Why:** This produces real remote build metadata without accidentally granting a push or coupling validation to a hosting provider.
 
 ### Gate GHCR publication on the exact reusable release gate
@@ -1957,6 +1957,24 @@
 * **How:** Record the complete workflow run and artifact evidence first, create an annotated RC tag explicitly on the verified 40-character SHA, verify the tag target locally and remotely, and push normally without force. Keep subsequent documentation-only commits on `main` outside the tagged source snapshot.
 * **Why:** The tag must identify the code and configuration actually exercised by CI, not a later bookkeeping commit that was never subjected to the same component gates.
 
+### Preserve registry-generated release evidence outside the immutable tag
+
+* **When to use:** A manual publication run succeeds after its source commit and RC tag already exist.
+* **How:** Download the consolidated non-secret manifest artifact, verify its commit/tag/run URL and all three `sha256:` values, then commit the exact manifest under `deployment/releases/<tag>.yml` on `main`. Keep the evidence commit outside the existing release tag.
+* **Why:** Registry digests do not exist until publication, but moving the tag afterward would break the binding between the tag and the source that passed the release gate.
+
+### Rebuild immutable frontend images when public origins change
+
+* **When to use:** A registry rehearsal compiles loopback or placeholder public URLs into Next.js output and later needs promotion to a real environment.
+* **How:** Treat the rehearsal image as non-deployable, approve final public API/media/site origins, create a new immutable Git tag, and publish a new three-image set. Do not retag or overwrite the existing RC.
+* **Why:** `NEXT_PUBLIC_*` and canonical site values are build-time inputs. Runtime environment changes cannot reliably correct metadata and browser-visible endpoints already compiled into the image.
+
+### Distinguish GitHub's newest-version badge from a container tag
+
+* **When to use:** Inspecting a GHCR package page after publishing without `latest`.
+* **How:** Verify the tags listed on the version itself. The page may label the newest digest “Latest” even when the only actual tags are a full commit SHA and an RC tag.
+* **Why:** Treating the UI badge as a mutable `latest` tag can produce a false release-policy finding.
+
 ### ❌ Treating a zero-vulnerability install as compatibility proof
 
 * **What happened:** A global `brace-expansion@5.0.8` override cleared the new audit advisory, but ESLint failed because `minimatch@3.1.5` expected the legacy callable CommonJS export.
@@ -1973,4 +1991,4 @@
 
 ## Last Updated
 
-2026-07-26 - Added GHCR publication/security patterns plus shell-lint and concurrent CMS outbox rehearsal lessons.
+2026-07-26 - Added verified GHCR evidence-recording, immutable build-origin, and package-page badge lessons after the successful `v1.0.0-rc.2` publication.
