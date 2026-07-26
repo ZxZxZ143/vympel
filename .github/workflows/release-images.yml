@@ -323,21 +323,35 @@ jobs:
       - name: Run isolated published-image Compose verification
         run: |
           set -eu
-          compose_files="-f compose.yml -f deployment/rehearsals/compose.published-images.yml"
           cleanup() {
-            docker compose $compose_files down --volumes --remove-orphans || true
+            docker compose \
+              -f compose.yml \
+              -f deployment/rehearsals/compose.published-images.yml \
+              down --volumes --remove-orphans || true
           }
           trap cleanup EXIT
 
-          docker compose $compose_files up -d --no-build --wait --wait-timeout 300
+          docker compose \
+            -f compose.yml \
+            -f deployment/rehearsals/compose.published-images.yml \
+            up -d --no-build --wait --wait-timeout 300
           curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness | grep -q '"status":"UP"'
           test "$(curl --fail --silent --show-error http://127.0.0.1:3200/ru | wc -c)" -gt 500
           test "$(curl --fail --silent --show-error http://127.0.0.1:3201/login | wc -c)" -gt 500
-          docker compose $compose_files exec -T public \
+          docker compose \
+            -f compose.yml \
+            -f deployment/rehearsals/compose.published-images.yml \
+            exec -T public \
             node -e "fetch('http://backend:8080/api/public/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-          docker compose $compose_files exec -T crm \
+          docker compose \
+            -f compose.yml \
+            -f deployment/rehearsals/compose.published-images.yml \
+            exec -T crm \
             node -e "fetch('http://backend:8080/api/public/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-          docker compose $compose_files ps
+          docker compose \
+            -f compose.yml \
+            -f deployment/rehearsals/compose.published-images.yml \
+            ps
 
   published_manifest:
     needs: [publication_policy, verify_published_images]

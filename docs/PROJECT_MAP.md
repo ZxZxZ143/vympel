@@ -1128,4 +1128,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-26 - Added guarded GHCR publication architecture and updated both Next apps to 16.2.12 with a fail-closed compatibility bridge for patched brace-expansion 5.0.8.
+2026-07-26 - Added guarded GHCR publication architecture, updated both Next apps to 16.2.12 with a fail-closed brace-expansion compatibility bridge, and made published-image Compose commands shell-lint safe.

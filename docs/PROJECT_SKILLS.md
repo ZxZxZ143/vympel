@@ -1958,6 +1958,13 @@
 * **Fix:** Scope the override to `minimatch@3.1.5`, add the exact-version postinstall compatibility bridge, and verify ESLint plus clean Alpine image builds.
 * **How to avoid:** After every transitive override, run the real owner/tool immediately; `npm audit` and `npm ls` prove resolution, not runtime API compatibility.
 
+### ❌ Passing a Compose option bundle through an unquoted shell scalar
+
+* **What happened:** The build-only image workflow succeeded, but the aggregate Full Release Gate rejected its published-image rehearsal with actionlint/ShellCheck SC2086.
+* **Root cause:** Multiple `docker compose -f ...` arguments were stored in one scalar and intentionally expanded unquoted, which is ambiguous to static analysis and unsafe if the value ever changes.
+* **Fix:** Spell out the fixed Compose file arguments at each invocation, including cleanup, execution, and status checks.
+* **How to avoid:** Do not encode multiple shell arguments in one string. Use explicit arguments or a correctly quoted array in a shell that supports arrays.
+
 ## Last Updated
 
-2026-07-26 - Added the GHCR publication rules plus the exact-owner brace-expansion compatibility pattern and audit-only override failure lesson.
+2026-07-26 - Added GHCR publication rules, the exact-owner brace-expansion compatibility pattern, and lessons from audit-only overrides and unquoted Compose argument bundles.
