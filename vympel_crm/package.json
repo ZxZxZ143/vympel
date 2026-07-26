@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
+    "postinstall": "node scripts/patch-minimatch-brace-expansion.mjs",
     "start": "next start -p 3001",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -16,7 +17,7 @@
     "test:production-headers": "node scripts/test-production-headers.mjs"
   },
   "dependencies": {
-    "next": "16.2.10",
+    "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.80.0"
@@ -26,11 +27,14 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.2.12",
     "typescript": "^5",
     "vitest": "^3.2.7"
   },
   "overrides": {
+    "minimatch@3.1.5": {
+      "brace-expansion": "5.0.8"
+    },
     "next": {
       "postcss": "8.5.20",
       "sharp": "^0.35.0"

@@ -1789,6 +1789,12 @@
 * **How:** Never apply `npm audit fix --force` automatically to a framework application. Inspect `npm ls`/`npm explain`, prefer a supported stable framework update, and use a package-owner-scoped override only when no stable framework release fixes the graph and compatibility is proven. Run clean `npm ci`, the installed-graph assertion, finite tests/build/security gates, `npm audit --omit=dev`, full `npm audit`, and native runtime checks inside the final Linux image. For Next.js `sharp` changes, verify standalone tracing, actual local and allowed-remote `/_next/image` responses, container health, and the configured glibc/musl plus amd64/arm64 package coverage. Document why every transitive override exists and keep Next and `eslint-config-next` aligned.
 * **Why:** Production-only auditing can miss advisory-bearing dev/transitive packages, forced fixes can downgrade the framework, and a lockfile-only native-module change can pass on the host while failing in the release container.
 
+### Bridge a security-patched transitive only at its incompatible owner
+
+* **When to use:** A newly patched transitive release is required by the audit gate but changes the export shape expected by an older, still-supported package owner.
+* **How:** Scope the npm override to the exact owner/version, keep the secure transitive exact, and run a fail-closed postinstall bridge that verifies both reviewed versions, patches only the known import, and executes a representative API assertion. Copy that bridge into the Docker dependency stage before `npm ci`, then prove clean host and Linux/Alpine installs, lint, tests, builds, and full/production audits.
+* **Why:** A global override can make the audit green while silently breaking unrelated consumers. Exact owner/version checks keep the temporary compatibility boundary narrow and force a deliberate review when upstream packages change.
+
 ### Run accessibility scans against configured real data
 
 * **When to use:** Release accessibility verification for catalog/product/admin views.
@@ -1945,6 +1951,13 @@
 * **How:** Record the complete workflow run and artifact evidence first, create an annotated RC tag explicitly on the verified 40-character SHA, verify the tag target locally and remotely, and push normally without force. Keep subsequent documentation-only commits on `main` outside the tagged source snapshot.
 * **Why:** The tag must identify the code and configuration actually exercised by CI, not a later bookkeeping commit that was never subjected to the same component gates.
 
+### ❌ Treating a zero-vulnerability install as compatibility proof
+
+* **What happened:** A global `brace-expansion@5.0.8` override cleared the new audit advisory, but ESLint failed because `minimatch@3.1.5` expected the legacy callable CommonJS export.
+* **Root cause:** The security release changed its CommonJS export to a named `expand` function, and the initial check stopped at package resolution instead of invoking the owning tool.
+* **Fix:** Scope the override to `minimatch@3.1.5`, add the exact-version postinstall compatibility bridge, and verify ESLint plus clean Alpine image builds.
+* **How to avoid:** After every transitive override, run the real owner/tool immediately; `npm audit` and `npm ls` prove resolution, not runtime API compatibility.
+
 ## Last Updated
 
-2026-07-26 - Added the reusable full-gate GHCR publication rule, immutable tag/digest/runtime proof, and separate Actions-write versus deployment-read credential pattern.
+2026-07-26 - Added the GHCR publication rules plus the exact-owner brace-expansion compatibility pattern and audit-only override failure lesson.

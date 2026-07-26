@@ -2,6 +2,7 @@ FROM node:22-alpine AS dependencies
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
+COPY scripts/patch-minimatch-brace-expansion.mjs ./scripts/
 RUN npm ci --no-audit --no-fund
 
 FROM node:22-alpine AS build

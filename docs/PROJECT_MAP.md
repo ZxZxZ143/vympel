@@ -9,7 +9,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 ### Frontend
 
 * Language/Runtime: TypeScript on Node.js.
-* Framework: Next.js 16.2.10 App Router with React 19 for the public storefront and the separate CRM app.
+* Framework: Next.js 16.2.12 App Router with React 19 for the public storefront and the separate CRM app.
 * UI libraries: shadcn-compatible structure, Radix UI (`radix-ui` package), lucide-react, sonner, Embla Carousel, NProgress.
 * State management: Redux Toolkit configured in `src/store/store.ts`, currently with no reducers; local React state, URL search params, and the SSR-safe `localProductStorage` localStorage service are used for catalog, favorites, and cart interactions.
 * Styling: Public storefront uses Tailwind CSS 4 through `src/app/globals.css`, CSS variables, and custom shared components; CRM uses plain global CSS tokens in `vympel_crm/src/app/globals.css`.
@@ -1104,7 +1104,9 @@ Public RU/KZ/EN message files include `nav`, `pagination`, `bannerCarousel`, `ph
 
 ### Verified frontend dependency baseline
 
-Both Next applications use Next.js 16.2.10 and `eslint-config-next` 16.2.10. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.20 under Next, and public also pins the affected watcher `picomatch` transitive. Both apps narrowly override Next's optional `sharp` dependency to the stable `^0.35.0` line, currently locked at `0.35.3`: Next 16.2.10 declares `^0.34.5`, the latest stable Next 16.2.11 still declares that range, and the former lockfiles resolved vulnerable `sharp@0.34.5`. `scripts/check-sharp-security.mjs` prints the installed `next`/`sharp` graph and fails unless every installed `sharp` is a stable version at least `0.35.0`; Storefront CI, CRM CI, and the aggregate gate include that regression boundary without weakening `npm audit --audit-level=high`.
+Both Next applications use Next.js 16.2.12 and `eslint-config-next` 16.2.12. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.20 under Next, and public also pins the affected watcher `picomatch` transitive. Both apps narrowly override Next's optional `sharp` dependency to the stable `^0.35.0` line, currently locked at `0.35.3`; `scripts/check-sharp-security.mjs` prints the installed `next`/`sharp` graph and fails unless every installed `sharp` is a stable version at least `0.35.0`.
+
+The frontend and CRM also scope `brace-expansion@5.0.8` to the legacy `minimatch@3.1.5` owner. That security release changed its CommonJS export shape, so each application owns a fail-closed `scripts/patch-minimatch-brace-expansion.mjs` postinstall bridge that accepts only the reviewed minimatch and brace-expansion versions, patches the legacy import, and runs a finite matching assertion. Both Docker dependency stages copy the bridge before `npm ci`; clean Windows and Linux/Alpine installs therefore exercise the same path. Storefront CI, CRM CI, and the aggregate gate retain the unmodified `npm audit --audit-level=high` threshold.
 
 ### Final release evidence
 
@@ -1126,4 +1128,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-26 - Added guarded GHCR publication architecture, canonical package names, exact-SHA/runtime verification, provenance/digest manifests, and deployment registry defaults.
+2026-07-26 - Added guarded GHCR publication architecture and updated both Next apps to 16.2.12 with a fail-closed compatibility bridge for patched brace-expansion 5.0.8.

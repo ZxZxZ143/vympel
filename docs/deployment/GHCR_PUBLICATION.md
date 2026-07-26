@@ -28,13 +28,17 @@ The workflow authenticates to `ghcr.io` as `${{ github.actor }}` with the reposi
 
    ```text
    cd vympel_front
+   npm ci
    npm ls next sharp
    npm audit --audit-level=high
 
    cd ../vympel_crm
+   npm ci
    npm ls next sharp
    npm audit --audit-level=high
    ```
+
+   The clean installs must print the fail-closed `minimatch 3.1.5` / `brace-expansion 5.0.8` compatibility verification. A zero-vulnerability audit without a working lint/build owner is not sufficient.
 
 2. Push the publication changes normally and wait for Backend CI, Storefront CI, CRM CI, Full Release Gate, and the non-publishing Release Images run to pass on one exact commit.
 3. Because `v1.0.0-rc.1` predates the sharp remediation, do not move it. Create a new annotated RC tag, such as `v1.0.0-rc.2`, on the exact verified commit and push the tag normally.

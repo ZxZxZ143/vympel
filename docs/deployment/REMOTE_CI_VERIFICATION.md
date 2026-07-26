@@ -1,6 +1,6 @@
 # Remote CI Verification
 
-Date: 2026-07-22
+Date: 2026-07-26
 Repository: `ZxZxZ143/vympel`
 Branch: `main`
 Verified release-candidate commit: `954e8a3a659371ba0203369aec9d2fef968fab5b`
@@ -14,6 +14,12 @@ Status as of 2026-07-26: implementation prepared locally; remote gates and first
 The release workflow now targets `ghcr.io/zxzxz143/vympel-backend`, `ghcr.io/zxzxz143/vympel-storefront`, and `ghcr.io/zxzxz143/vympel-crm`. A publish request is accepted only from `workflow_dispatch` with `publish_images=true`, after the reusable same-commit Full Release Gate passes, and authenticates with the repository `GITHUB_TOKEN`. It rejects existing immutable SHA/release tags, emits OCI labels plus provenance/SBOM attestations, records registry digests, pulls and inspects the exact SHA references, and runs an isolated published-image Compose check. No hosting deployment is part of that workflow.
 
 Because the sharp fix is later than `v1.0.0-rc.1`, the first verified publication must use a new immutable RC tag after new remote gates pass. This status paragraph must be replaced with exact workflow runs, tag, package visibility, image digests, and runtime results after publication.
+
+### Prepublication advisory refresh
+
+The first publication-enablement commit `374c5b3d813be9336941125a2ff03269b0ec79f9` was not eligible for release. Storefront CI run [30206114789](https://github.com/ZxZxZ143/vympel/actions/runs/30206114789) failed the unchanged `npm audit --audit-level=high` step after the npm advisory database began reporting newly disclosed Next.js 16.2.10 and `brace-expansion <=5.0.7` issues. Publication was stopped before any tag or registry write.
+
+Both apps now select supported Next.js and `eslint-config-next` 16.2.12 patches, retain `sharp@0.35.3`, and scope patched `brace-expansion@5.0.8` to `minimatch@3.1.5`. Because the secure brace-expansion release exposes a named CommonJS export while minimatch 3 expects a callable export, clean installs run an exact-version, fail-closed compatibility bridge before lint/build. Local clean Windows installs, full and production-only audits, dependency assertions, lint, typecheck, 41 storefront tests, 25 CRM tests, security-header tests, production builds, budgets, and clean Node 22 Alpine image builds pass. Exact remediated commit and remote runs remain pending until the normal push and all required gates complete.
 
 ## Post-RC sharp security remediation
 
