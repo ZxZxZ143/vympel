@@ -1,18 +1,20 @@
 apiVersion: deployment.vympel.dev/v1
 kind: ReleaseManifest
 metadata:
-  releaseName: Vympel 1.0.0 Release Candidate 1
-  releaseTag: v1.0.0-rc.1
+  releaseName: Vympel immutable release
+  releaseTag: RELEASE_TAG_OR_UNRELEASED
   gitCommit: 0000000000000000000000000000000000000000
   generatedAt: GENERATED_AT_UTC
-  status: release-candidate
+  status: RELEASE_STATUS
+commit_sha: 0000000000000000000000000000000000000000
+git_tag: RELEASE_TAG_OR_UNRELEASED
 images:
   backend:
-    repository: REGISTRY_PENDING/vympel-backend
+    repository: ghcr.io/zxzxz143/vympel-backend
     tag: 0000000000000000000000000000000000000000
     digest: PENDING_REGISTRY_PUBLICATION
   storefront:
-    repository: REGISTRY_PENDING/vympel-storefront
+    repository: ghcr.io/zxzxz143/vympel-storefront
     tag: 0000000000000000000000000000000000000000
     digest: PENDING_REGISTRY_PUBLICATION
     buildPublicConfiguration:
@@ -20,7 +22,7 @@ images:
       apiBase: DOMAIN_PENDING/api/public
       mediaOrigins: OBJECT_STORAGE_ORIGIN_PENDING
   crm:
-    repository: REGISTRY_PENDING/vympel-crm
+    repository: ghcr.io/zxzxz143/vympel-crm
     tag: 0000000000000000000000000000000000000000
     digest: PENDING_REGISTRY_PUBLICATION
     buildPublicConfiguration:
@@ -49,7 +51,6 @@ approvals:
 unresolvedProviderSpecific:
   - hosting
   - final-domains
-  - container-registry
   - managed-postgresql
   - redis
   - object-storage

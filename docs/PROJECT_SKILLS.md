@@ -1891,6 +1891,18 @@
 * **How:** Let relevant `main` changes run the image workflow with non-secret placeholder build URLs and `push=false`; retain registry publication only behind `workflow_dispatch`, an explicit boolean input, a repository variable, and registry credentials.
 * **Why:** This produces real remote build metadata without accidentally granting a push or coupling validation to a hosting provider.
 
+### Gate GHCR publication on the exact reusable release gate
+
+* **When to use:** Publishing any backend, storefront, or CRM image to the canonical GitHub Container Registry packages.
+* **How:** Keep ordinary `main` runs build-only. Accept publication only from `workflow_dispatch` with `publish_images=true` in the canonical repository; run the reusable Full Release Gate first; authenticate to `ghcr.io` with repository `GITHUB_TOKEN`; reject any existing SHA or release tag; apply repository-owned OCI labels; attest the pushed digest; then pull, inspect, and run the exact SHA references before emitting a digest-complete manifest. If a release tag is supplied, require the workflow ref and tag target to match the exact commit. Never move `v1.0.0-rc.1`, publish `latest`, or rely on a custom Actions write token.
+* **Why:** Manual intent alone is not proof that the source passed security/component/deployment gates. Binding authorization, Git ref, image tag, registry digest, attestation, and runtime evidence prevents an unverified or silently retagged image from becoming release input.
+
+### Separate package write and deployment read credentials
+
+* **When to use:** GHCR packages remain private and a deployment host must pull them.
+* **How:** GitHub Actions publishes with its short-lived repository `GITHUB_TOKEN`. Deployment hosts use a dedicated external credential with only `read:packages`, passed to `docker login --password-stdin` outside Git/Compose/logs. Public packages require no pull credential but expose image layers to anyone.
+* **Why:** A long-lived write token on a server turns a read-only deployment boundary into package-mutation authority and increases credential impact.
+
 ### Couple Buildx attestations to registry export
 
 * **When to use:** One image workflow supports both CI-only local loading and later registry publication.
@@ -1935,4 +1947,4 @@
 
 ## Last Updated
 
-2026-07-22 - Added and remotely verified the durable native dependency rule: no forced audit fixes, narrowly scoped overrides with compatibility evidence, and final Linux `sharp` image-runtime proof.
+2026-07-26 - Added the reusable full-gate GHCR publication rule, immutable tag/digest/runtime proof, and separate Actions-write versus deployment-read credential pattern.

@@ -1,0 +1,13 @@
+services:
+  backend-logs-init:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+  backend:
+    image: "${REGISTRY:?set REGISTRY}/vympel-backend:${RELEASE_TAG:?set RELEASE_TAG}"
+  public:
+    image: "${REGISTRY:?set REGISTRY}/vympel-storefront:${RELEASE_TAG:?set RELEASE_TAG}"
+  crm:
+    image: "${REGISTRY:?set REGISTRY}/vympel-crm:${RELEASE_TAG:?set RELEASE_TAG}"
+
+networks:
+  vympel-local:
+    name: "${COMPOSE_PROJECT_NAME:?set COMPOSE_PROJECT_NAME}-network"

@@ -7,15 +7,14 @@ on:
       - "vympel_back/**"
       - "vympel_front/**"
       - "vympel_crm/**"
+      - "compose.yml"
+      - "deployment/**"
+      - "infrastructure/**"
+      - "scripts/check-sharp-security.mjs"
       - ".github/workflows/full-release-gate.yml"
       - ".github/workflows/release-images.yml"
   workflow_dispatch:
     inputs:
-      registry:
-        description: Registry namespace, for example ghcr.io/owner
-        required: true
-        default: registry.example.invalid/vympel
-        type: string
       storefront_api_base:
         description: Browser-visible storefront API URL compiled into the image
         required: true
@@ -42,22 +41,103 @@ on:
         default: staging
         type: choice
         options: [staging, production]
-      push_images:
-        description: Push only after registry selection, credentials, and VYMPEL_REGISTRY_PUSH_ENABLED=true
+      publish_images:
+        description: Publish all three immutable images to GHCR after every release gate passes
         required: true
         default: false
         type: boolean
+      release_tag:
+        description: Optional existing Git release tag that points to the dispatched commit
+        required: false
+        type: string
 
 permissions:
   contents: read
   packages: write
+  attestations: write
+  id-token: write
 
 concurrency:
   group: release-images-${{ github.sha }}
   cancel-in-progress: false
 
+env:
+  REGISTRY: ghcr.io
+  REGISTRY_NAMESPACE: ghcr.io/zxzxz143
+  OCI_SOURCE: https://github.com/ZxZxZ143/vympel
+
 jobs:
+  publication_policy:
+    runs-on: ubuntu-24.04
+    outputs:
+      publish_enabled: ${{ steps.policy.outputs.publish_enabled }}
+      image_version: ${{ steps.policy.outputs.image_version }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Validate immutable publication request
+        id: policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IS_FORK: ${{ github.event.repository.fork }}
+          PUBLISH_REQUESTED: ${{ inputs.publish_images }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -eu
+          checked_out_sha=$(git rev-parse HEAD)
+          if [ "$checked_out_sha" != "$GITHUB_SHA" ] || ! printf '%s\n' "$GITHUB_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "The checked-out source does not match the required full commit SHA." >&2
+            exit 1
+          fi
+
+          publish_enabled=false
+          image_version=$GITHUB_SHA
+          if [ "$PUBLISH_REQUESTED" = "true" ]; then
+            if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+              echo "Image publication is allowed only through workflow_dispatch." >&2
+              exit 1
+            fi
+            if [ "$GITHUB_REPOSITORY" != "ZxZxZ143/vympel" ] || [ "$IS_FORK" = "true" ]; then
+              echo "Image publication is not allowed from a fork or another repository." >&2
+              exit 1
+            fi
+            if [ -n "$RELEASE_TAG" ]; then
+              if ! printf '%s\n' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'; then
+                echo "Release tag must use a version such as v1.0.0-rc.2." >&2
+                exit 1
+              fi
+              if [ "$GITHUB_REF" != "refs/tags/$RELEASE_TAG" ]; then
+                echo "Dispatch the workflow from the exact release tag ref." >&2
+                exit 1
+              fi
+              tag_commit=$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")
+              if [ "$tag_commit" != "$GITHUB_SHA" ]; then
+                echo "Release tag does not resolve to the dispatched commit." >&2
+                exit 1
+              fi
+              image_version=$RELEASE_TAG
+            fi
+            publish_enabled=true
+          elif [ -n "$RELEASE_TAG" ]; then
+            echo "release_tag is accepted only when publish_images is true." >&2
+            exit 1
+          fi
+
+          echo "publish_enabled=$publish_enabled" >> "$GITHUB_OUTPUT"
+          echo "image_version=$image_version" >> "$GITHUB_OUTPUT"
+
+  publication_gate:
+    needs: publication_policy
+    if: needs.publication_policy.outputs.publish_enabled == 'true'
+    uses: ./.github/workflows/full-release-gate.yml
+
   build:
+    needs: [publication_policy, publication_gate]
+    if: >-
+      always() &&
+      needs.publication_policy.result == 'success' &&
+      (needs.publication_gate.result == 'success' || needs.publication_gate.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
@@ -89,62 +169,228 @@ jobs:
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false
     env:
-      PUSH_ENABLED: ${{ inputs.push_images && vars.VYMPEL_REGISTRY_PUSH_ENABLED == 'true' }}
-      REGISTRY_USERNAME: ${{ secrets.VYMPEL_REGISTRY_USERNAME }}
-      REGISTRY_TOKEN: ${{ secrets.VYMPEL_REGISTRY_TOKEN }}
+      IMAGE_REPOSITORY: ghcr.io/zxzxz143/${{ matrix.image }}
+      PUBLISH_ENABLED: ${{ needs.publication_policy.outputs.publish_enabled }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: docker/setup-buildx-action@v3.11.1
-      - name: Log in to selected registry
-        if: env.PUSH_ENABLED == 'true'
-        uses: docker/login-action@v3.4.0
+      - name: Generate immutable tags and OCI labels
+        id: metadata
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          registry: ${{ inputs.registry || 'registry.example.invalid/vympel' }}
-          username: ${{ env.REGISTRY_USERNAME }}
-          password: ${{ env.REGISTRY_TOKEN }}
+          images: ${{ env.IMAGE_REPOSITORY }}
+          flavor: latest=false
+          tags: |
+            type=raw,value=${{ github.sha }},priority=1000
+            type=raw,value=${{ inputs.release_tag }},enable=${{ inputs.release_tag != '' }},priority=900
+          labels: |
+            org.opencontainers.image.source=${{ env.OCI_SOURCE }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.publication_policy.outputs.image_version }}
+            org.opencontainers.image.title=${{ matrix.image }}
+      - name: Log in to GitHub Container Registry
+        if: env.PUBLISH_ENABLED == 'true'
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Reject existing immutable tags
+        if: env.PUBLISH_ENABLED == 'true'
+        run: |
+          set -eu
+          tags=$GITHUB_SHA
+          if [ -n "$RELEASE_TAG" ]; then
+            tags="$tags $RELEASE_TAG"
+          fi
+          for tag in $tags; do
+            error_file=$(mktemp)
+            if docker buildx imagetools inspect "$IMAGE_REPOSITORY:$tag" > /dev/null 2>"$error_file"; then
+              echo "Refusing to overwrite existing immutable image tag: $IMAGE_REPOSITORY:$tag" >&2
+              rm -f "$error_file"
+              exit 1
+            fi
+            if ! grep -Eiq 'not found|manifest unknown|no such manifest' "$error_file"; then
+              echo "Could not prove that immutable image tag is absent: $IMAGE_REPOSITORY:$tag" >&2
+              sed -E 's/(token|password|authorization)[^ ]*/[REDACTED]/Ig' "$error_file" >&2
+              rm -f "$error_file"
+              exit 1
+            fi
+            rm -f "$error_file"
+          done
       - name: Build immutable image
         id: image
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           build-args: ${{ matrix.build_args }}
+          platforms: linux/amd64
           pull: true
-          push: ${{ env.PUSH_ENABLED == 'true' }}
-          load: ${{ env.PUSH_ENABLED != 'true' }}
-          tags: ${{ inputs.registry || 'registry.example.invalid/vympel' }}/${{ matrix.image }}:${{ github.sha }}
-          provenance: ${{ env.PUSH_ENABLED == 'true' }}
-          sbom: ${{ env.PUSH_ENABLED == 'true' }}
+          push: ${{ env.PUBLISH_ENABLED == 'true' }}
+          load: ${{ env.PUBLISH_ENABLED != 'true' }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          provenance: ${{ env.PUBLISH_ENABLED == 'true' && 'mode=max' || 'false' }}
+          sbom: ${{ env.PUBLISH_ENABLED == 'true' }}
+      - name: Generate signed build provenance
+        id: attestation
+        if: env.PUBLISH_ENABLED == 'true'
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26
+        with:
+          subject-name: ${{ env.IMAGE_REPOSITORY }}
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
+      - name: Verify registry digest
+        if: env.PUBLISH_ENABLED == 'true'
+        env:
+          EXPECTED_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -eu
+          remote_digest=$(docker buildx imagetools inspect "$IMAGE_REPOSITORY:$GITHUB_SHA" | awk '$1 == "Digest:" { print $2; exit }')
+          if [ "$remote_digest" != "$EXPECTED_DIGEST" ]; then
+            echo "SHA-tag digest does not match the pushed image digest." >&2
+            exit 1
+          fi
+          if [ -n "$RELEASE_TAG" ]; then
+            release_digest=$(docker buildx imagetools inspect "$IMAGE_REPOSITORY:$RELEASE_TAG" | awk '$1 == "Digest:" { print $2; exit }')
+            if [ "$release_digest" != "$EXPECTED_DIGEST" ]; then
+              echo "Release-tag digest does not match the SHA-tag digest." >&2
+              exit 1
+            fi
+          fi
       - name: Record image metadata
         env:
           IMAGE_NAME: ${{ matrix.image }}
-          IMAGE_REF: ${{ inputs.registry || 'registry.example.invalid/vympel' }}/${{ matrix.image }}:${{ github.sha }}
           IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+          ATTESTATION_URL: ${{ steps.attestation.outputs['attestation-url'] }}
         run: |
+          set -eu
           mkdir -p release-metadata
           jq -n \
             --arg image "$IMAGE_NAME" \
-            --arg ref "$IMAGE_REF" \
+            --arg repository "$IMAGE_REPOSITORY" \
+            --arg tag "$GITHUB_SHA" \
+            --arg releaseTag "$RELEASE_TAG" \
             --arg digest "$IMAGE_DIGEST" \
             --arg commit "$GITHUB_SHA" \
-            --arg pushed "$PUSH_ENABLED" \
-            '{image: $image, ref: $ref, digest: $digest, commit: $commit, pushed: ($pushed == "true")}' \
-            > "release-metadata/${IMAGE_NAME}.json"
+            --arg pushed "$PUBLISH_ENABLED" \
+            --arg attestationUrl "$ATTESTATION_URL" \
+            '{
+              image: $image,
+              repository: $repository,
+              tag: $tag,
+              releaseTag: (if $releaseTag == "" then null else $releaseTag end),
+              digest: $digest,
+              commit: $commit,
+              pushed: ($pushed == "true"),
+              attestationUrl: (if $attestationUrl == "" then null else $attestationUrl end)
+            }' > "release-metadata/${IMAGE_NAME}.json"
       - uses: actions/upload-artifact@v4.6.2
         with:
           name: image-metadata-${{ matrix.image }}-${{ github.sha }}
           path: release-metadata/*.json
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
 
-  push-policy:
+  verify_published_images:
+    needs: [publication_policy, publication_gate, build]
+    if: needs.publication_policy.outputs.publish_enabled == 'true'
     runs-on: ubuntu-24.04
-    needs: build
+    timeout-minutes: 20
+    env:
+      REGISTRY: ghcr.io/zxzxz143
+      RELEASE_TAG: ${{ github.sha }}
+      COMPOSE_PROJECT_NAME: vympel-ghcr-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: Report push policy
+      - uses: actions/checkout@v4.2.2
+      - uses: docker/setup-buildx-action@v3.11.1
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4.3.0
+        with:
+          pattern: image-metadata-*-${{ github.sha }}
+          path: release-metadata
+          merge-multiple: true
+      - name: Pull and inspect exact SHA-tagged images
+        run: sh deployment/scripts/verify-published-images.sh release-metadata "$GITHUB_SHA"
+      - name: Run isolated published-image Compose verification
         run: |
-          if [ "${{ inputs.push_images }}" = "true" ] && [ "${{ vars.VYMPEL_REGISTRY_PUSH_ENABLED }}" != "true" ]; then
-            echo "Image builds passed, but push remained disabled because VYMPEL_REGISTRY_PUSH_ENABLED is not true."
+          set -eu
+          compose_files="-f compose.yml -f deployment/rehearsals/compose.published-images.yml"
+          cleanup() {
+            docker compose $compose_files down --volumes --remove-orphans || true
+          }
+          trap cleanup EXIT
+
+          docker compose $compose_files up -d --no-build --wait --wait-timeout 300
+          curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness | grep -q '"status":"UP"'
+          test "$(curl --fail --silent --show-error http://127.0.0.1:3200/ru | wc -c)" -gt 500
+          test "$(curl --fail --silent --show-error http://127.0.0.1:3201/login | wc -c)" -gt 500
+          docker compose $compose_files exec -T public \
+            node -e "fetch('http://backend:8080/api/public/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+          docker compose $compose_files exec -T crm \
+            node -e "fetch('http://backend:8080/api/public/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+          docker compose $compose_files ps
+
+  published_manifest:
+    needs: [publication_policy, verify_published_images]
+    if: needs.publication_policy.outputs.publish_enabled == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/download-artifact@v4.3.0
+        with:
+          pattern: image-metadata-*-${{ github.sha }}
+          path: release-metadata
+          merge-multiple: true
+      - name: Generate digest-pinned release manifest
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          sh deployment/scripts/generate-published-release-manifest.sh \
+            release-metadata \
+            release-metadata/published-release.yml \
+            "$GITHUB_SHA" \
+            "$RELEASE_TAG" \
+            "$RELEASE_RUN_URL"
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: published-release-manifest-${{ github.sha }}
+          path: release-metadata/published-release.yml
+          if-no-files-found: error
+          retention-days: 180
+
+  publication_result:
+    needs: [publication_policy, build, verify_published_images, published_manifest]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Report release boundary result
+        env:
+          PUBLISH_ENABLED: ${{ needs.publication_policy.outputs.publish_enabled }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          VERIFY_RESULT: ${{ needs.verify_published_images.result }}
+          MANIFEST_RESULT: ${{ needs.published_manifest.result }}
+        run: |
+          set -eu
+          if [ "$BUILD_RESULT" != "success" ]; then
+            echo "Image build failed or was blocked by a required release gate." >&2
+            exit 1
+          fi
+          if [ "$PUBLISH_ENABLED" = "true" ]; then
+            if [ "$VERIFY_RESULT" != "success" ] || [ "$MANIFEST_RESULT" != "success" ]; then
+              echo "Published image verification or digest-manifest generation failed." >&2
+              exit 1
+            fi
+            echo "All three GHCR images were published and verified. No deployment was performed."
           else
-            echo "Image release policy completed. No deployment is part of this workflow."
+            echo "All three images built without registry login or publication."
           fi

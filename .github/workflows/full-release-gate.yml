@@ -16,6 +16,7 @@ on:
       - ".env.docker.example"
       - ".github/workflows/**"
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -109,11 +110,19 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Create immutable release metadata
         run: |
+          release_tag=UNRELEASED
+          release_status=verified-build
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            release_tag=$GITHUB_REF_NAME
+            release_status=release-candidate
+          fi
           sh deployment/scripts/generate-release-manifest.sh \
             deployment/release-manifest.example.yml \
-            release-metadata/v1.0.0-rc.1.yml \
+            release-metadata/release-manifest.yml \
             "$GITHUB_SHA" \
-            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            "$release_tag" \
+            "$release_status"
           jq -n \
             --arg commit "$GITHUB_SHA" \
             --arg ref "$GITHUB_REF" \
@@ -125,6 +134,6 @@ jobs:
           name: full-release-gate-${{ github.sha }}
           path: |
             release-metadata/full-release-gate.json
-            release-metadata/v1.0.0-rc.1.yml
+            release-metadata/release-manifest.yml
           if-no-files-found: error
           retention-days: 30

@@ -32,7 +32,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 * Monorepo/workspace tool: One root Git repository with three independently built sibling applications; no package workspace orchestrator.
 * Testing: Public and CRM apps use finite Vitest suites; backend uses JUnit/Spring Boot, Mockito, real HTTP integration tests, and Testcontainers for PostgreSQL/Redis integration checks.
 * Linting/formatting: Frontend uses ESLint through `npm run lint`; backend has no explicit lint/format task discovered.
-* Docker/DevOps: Three multi-stage non-root images, preserved local Compose, immutable-image staging/production Compose, Nginx templates, deployment/rehearsal scripts, Prometheus examples, and component/full-release GitHub Actions workflows. Release candidate `v1.0.0-rc.1` identifies exact remotely verified commit `954e8a3a659371ba0203369aec9d2fef968fab5b`; registry digests remain pending.
+* Docker/DevOps: Three multi-stage non-root images, preserved local Compose, immutable-image staging/production Compose, Nginx templates, deployment/rehearsal scripts, Prometheus examples, and component/full-release GitHub Actions workflows. GHCR publication targets three canonical `ghcr.io/zxzxz143/vympel-*` packages and is manually guarded behind the same-commit reusable full release gate, `GITHUB_TOKEN`, immutable-tag collision checks, OCI labels, attestations, digest capture, and published-image runtime verification.
 
 ## Directory Structure
 
@@ -45,8 +45,8 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 |-- .github/workflows/                # component CI, image release, and full release gates
 |-- deployment/
 |   |-- release-manifest.example.yml  # immutable release/digest evidence template
-|   |-- rehearsals/                    # isolated backup, CMS freshness, Liquibase, and proxy proofs
-|   `-- scripts/                       # validation, migration, deploy, smoke, rollback helpers
+|   |-- rehearsals/                    # isolated backup, CMS freshness, Liquibase, proxy, and published-image proofs
+|   `-- scripts/                       # validation, manifest, image inspection, migration, deploy, smoke, rollback helpers
 |-- infrastructure/
 |   |-- compose/                       # prebuilt-image staging and production stacks
 |   |-- env/                           # placeholder-only deployment environment templates
@@ -55,7 +55,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 |-- docs/
 |   |-- PROJECT_MAP.md                # project architecture memory
 |   |-- PROJECT_SKILLS.md             # project lessons and working patterns
-|   |-- deployment/                   # provider-neutral runbooks and release checklists
+|   |-- deployment/                   # provider-neutral runbooks, GHCR publication, and release checklists
 |   `-- tasks/
 |       |-- prepare_vympel_ui_polish_audit.md
 |       |-- vympel_ui_polish_audit/   # audit spec, screenshot index, and responsive evidence
@@ -784,7 +784,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * Docker compatibility entrypoint: `cd vympel_back && docker compose up -d --build --wait` includes the authoritative root stack; service definitions are not duplicated.
 * Docker status/logs: `docker compose ps` and bounded `docker compose logs --no-color --tail 200 <service>`.
 * Deployment validation: use the environment, pull, migration, deploy, smoke, and rollback scripts under `deployment/scripts`; staging/production Compose consumes prebuilt full-SHA tags.
-* CI: `backend-ci.yml`, `storefront-ci.yml`, and `crm-ci.yml` own component checks/image builds; `release-images.yml` builds immutable SHA-tagged images on relevant `main` changes and permits a doubly guarded registry push only from an explicit manual run; `full-release-gate.yml` runs all component and shared infrastructure gates. The older `performance-budgets.yml` remains the dedicated combined budget gate.
+* CI: `backend-ci.yml`, `storefront-ci.yml`, and `crm-ci.yml` own component checks/image builds and explicitly record the `next`/`sharp` graph plus the high-severity audit; `full-release-gate.yml` is reusable and runs all component/shared infrastructure gates. `release-images.yml` builds immutable SHA-tagged images on relevant `main` changes without login, and publishes only from a manual same-commit full-gate pass. Publication adds OCI labels, BuildKit provenance/SBOM, signed GitHub provenance, registry digest verification, exact-reference pull/inspection, an isolated Compose rehearsal, and a consolidated published manifest. The older `performance-budgets.yml` remains the dedicated combined budget gate.
 
 ## External Dependencies & Integrations
 
@@ -797,6 +797,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 * OpenAPI/Swagger: `springdoc-openapi-starter-webmvc-ui` is included, but endpoint availability was not verified.
 * next-intl: Frontend localization and locale-prefixed routes.
 * React Hook Form: Public storefront and CRM form state. Public custom controls use existing `Controller` wrappers or local Controllers; CRM uses RHF without a schema resolver and preserves localized validation helpers in the components.
+* GitHub Container Registry: Canonical repositories are `ghcr.io/zxzxz143/vympel-backend`, `vympel-storefront`, and `vympel-crm`. GitHub Actions writes with repository `GITHUB_TOKEN`; private deployment pulls require a separate external read-only `read:packages` credential.
 
 ## Environment Variables
 
@@ -906,7 +907,7 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 
 | Variable | Required | Description |
 | -------- | -------- | ----------- |
-| `REGISTRY` | staging/production | Registry namespace only; Compose appends the exact `vympel-backend`, `vympel-storefront`, and `vympel-crm` image names. |
+| `REGISTRY` | staging/production | Canonical value `ghcr.io/zxzxz143`; Compose appends the exact `vympel-backend`, `vympel-storefront`, and `vympel-crm` image names. |
 | `RELEASE_TAG` | staging/production | Full lowercase 40-character Git commit SHA; all three application images use the same immutable tag. |
 | `STOREFRONT_DOMAIN` / `CRM_DOMAIN` / `API_DOMAIN` | staging/production | Final ingress domains supplied externally; examples use `.example.invalid`. |
 | `TLS_CERT_DIR` | staging/production | Absolute host directory containing readable `fullchain.pem` and `privkey.pem`; key material is ignored and never committed. |
@@ -1113,11 +1114,11 @@ Both Next applications use Next.js 16.2.10 and `eslint-config-next` 16.2.10. Pub
 
 ## Deployment Architecture
 
-The workspace is one root Git monorepo with three independent image boundaries: `vympel-backend`, `vympel-storefront`, and `vympel-crm`. `compose.yml` remains the local source-build stack with PostgreSQL 16, Redis 7.4, and MinIO. `infrastructure/compose/compose.staging.yml` and `compose.production.yml` consume immutable `${REGISTRY}/<image>:${RELEASE_TAG}` references and expect PostgreSQL, Redis, S3-compatible storage, TLS, and secrets to be supplied externally.
+The workspace is one root Git monorepo with three independent image boundaries: `ghcr.io/zxzxz143/vympel-backend`, `ghcr.io/zxzxz143/vympel-storefront`, and `ghcr.io/zxzxz143/vympel-crm`. `compose.yml` remains the local source-build stack with PostgreSQL 16, Redis 7.4, and MinIO. `infrastructure/compose/compose.staging.yml` and `compose.production.yml` consume immutable `${REGISTRY}/<image>:${RELEASE_TAG}` references and expect PostgreSQL, Redis, S3-compatible storage, TLS, and secrets to be supplied externally.
 
 Both Next apps use `output: "standalone"` and run as the image's non-root `node` user. The Spring Boot image runs as UID/GID 10001. Deployment starts the finite `migrate` service before backend replicas; normal replicas have Liquibase disabled. Nginx is the sole published service and routes configurable storefront, CRM, and API domains while keeping readiness and protected Actuator endpoints internal.
 
-`deployment/scripts` provides environment validation, fail-closed historical Liquibase compatibility, image pull, migration verification, bounded health polling, smoke checks, deploy, backup evidence checks, validated immutable-manifest generation, and immutable image rollback. Cross-platform PowerShell under `deployment/rehearsals` owns disposable PostgreSQL backup/restore, signed CMS retry/freshness, and Nginx routing proofs; the Liquibase compatibility fixture is POSIX shell. Native Docker/curl commands are resolved as applications on both Windows and Ubuntu. The migration container publishes no port, disables scheduling, and closes as soon as the verification runner confirms Liquibase state; it retains the normal web application type because the current security configuration requires `HttpSecurity` during context creation. Database rollback is deliberately absent. The five required CI workflows split backend/storefront/CRM checks, non-publishing automatic image evidence with a separately guarded manual push path, and the full release gate; the existing performance-budget workflow remains separate. Component concurrency keys include the workflow name so standalone push evidence and reusable full-gate jobs do not cancel one another. Full commit SHA is the application image tag and the release gate emits a commit-specific manifest artifact with registry digests pending until publication.
+`deployment/scripts` provides environment validation, fail-closed historical Liquibase compatibility, image pull, published-image inspection, pre-publication and digest-complete manifest generation, migration verification, bounded health polling, smoke checks, deploy, backup evidence checks, and immutable image rollback. Cross-platform PowerShell under `deployment/rehearsals` owns disposable PostgreSQL backup/restore, signed CMS retry/freshness, and Nginx routing proofs; the published-image Compose override proves the exact pulled GHCR images against namespaced disposable local services. Native Docker/curl commands are resolved as applications on both Windows and Ubuntu. The migration container publishes no port, disables scheduling, and closes as soon as the verification runner confirms Liquibase state; it retains the normal web application type because the current security configuration requires `HttpSecurity` during context creation. Database rollback is deliberately absent. The required CI workflows split backend/storefront/CRM checks, reusable full-release verification, non-publishing automatic image evidence, and manually authorized GHCR publication. Full commit SHA is the application image tag; successful publication emits a separate manifest with all three real registry digests and no pending values.
 
 ADMIN bootstrap is configured by the exact `VYMPEL_BOOTSTRAP_ADMIN_*` variables. It is disabled by default in every environment; local and a controlled one-time staging/production setup may enable it. The canonical active state is `User.enabled=true` because this model has no separate `UserStatus` field. Existing ADMIN accounts are unchanged, non-admin accounts are never promoted, and uniqueness conflict handling makes repeated/concurrent startup safe.
 
@@ -1125,4 +1126,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-07-22 - Recorded the Next-scoped `sharp@0.35.3` security baseline, shared dependency assertion, unchanged high-severity audit gate, and successful exact-SHA remote release verification.
+2026-07-26 - Added guarded GHCR publication architecture, canonical package names, exact-SHA/runtime verification, provenance/digest manifests, and deployment registry defaults.

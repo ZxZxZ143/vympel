@@ -2,12 +2,12 @@
 
 ## Scope and safety
 
-This runbook deploys three independently versioned containers with one full 40-character Git SHA. It does not provision infrastructure, push images, or roll back database schema. Run from the monorepo root on a trusted Linux deployment host with Docker Engine, Compose v2, `curl`, `awk`, `grep`, and `timeout`.
+This runbook deploys three independently versioned containers with one full 40-character Git SHA. It does not provision infrastructure, publish images, or roll back database schema. Image publication is a separate manually guarded GitHub Actions operation documented in `GHCR_PUBLICATION.md`. Run deployment commands from the monorepo root on a trusted Linux deployment host with Docker Engine, Compose v2, `curl`, `awk`, `grep`, and `timeout`.
 
 ## Prerequisites
 
-1. Select a registry and build all images for the exact browser-visible API/media origins.
-2. Record image references and digests in a private copy of `deployment/release-manifest.example.yml`.
+1. Use the canonical `ghcr.io/zxzxz143` registry and publish all images for the exact browser-visible API/media origins through the guarded release workflow.
+2. Download the successful `published-release-manifest-<sha>` artifact and verify all three registry digests are real `sha256:` values. The committed example manifest is only a pre-publication template.
 3. Copy the relevant `infrastructure/env/*.env.example` to an ignored `.env` file and replace every placeholder.
 4. Store TLS certificates outside Git; set `TLS_CERT_DIR` to an absolute directory containing `fullchain.pem` and `privkey.pem`.
 5. Provision private PostgreSQL, Redis, and S3-compatible storage. Complete the backup and restore prerequisites.
@@ -15,7 +15,17 @@ This runbook deploys three independently versioned containers with one full 40-c
 
 ## Release-candidate evidence
 
-`v1.0.0-rc.1` points to remotely verified commit `954e8a3a659371ba0203369aec9d2fef968fab5b`. The authoritative CI runs and artifact digests are recorded in `REMOTE_CI_VERIFICATION.md`. The generated manifest intentionally uses registry placeholders and marks image digests pending; do not deploy it until a registry is approved, all three full-SHA images are published, their registry digests are recorded, and the target-environment conditions below are proven.
+`v1.0.0-rc.1` points to remotely verified commit `954e8a3a659371ba0203369aec9d2fef968fab5b`, but it predates the sharp remediation and must never be moved. The authoritative historical CI runs are recorded in `REMOTE_CI_VERIFICATION.md`. Publish a new RC only after its exact commit passes the required component and full release gates. Do not deploy a build-only manifest: deployment requires all three full-SHA GHCR images, real registry digests, and the target-environment conditions below.
+
+## GHCR pull access
+
+Set `REGISTRY=ghcr.io/zxzxz143` and `RELEASE_TAG` to the exact full commit SHA. Public packages require no registry login. Private packages require a deployment-only credential with `read:packages`:
+
+```sh
+printf '%s' "$GHCR_READ_TOKEN" | docker login ghcr.io --username DEPLOY_ACCOUNT --password-stdin
+```
+
+Do not use an account password, a write token, or a credential stored in Compose/Git. Package visibility is a manual decision; see `GHCR_PUBLICATION.md`.
 
 ## Validate and deploy
 
@@ -52,6 +62,8 @@ deployment/scripts/rollback.sh infrastructure/compose/compose.production.yml /se
 ```
 
 This changes only the three application images and runs health/smoke checks. It does not reverse Liquibase changes. If a new schema is incompatible, stop rollout and ship a forward-fix changeset or restore into a separately approved recovery database according to the database and backup runbooks.
+
+Retain the current SHA/digests, the known-good rollback SHA/digests, and every approved manifest. Delete only unreferenced GHCR versions after checking all manifests and environments; never move an RC tag or use `latest` as a cleanup/deployment shortcut.
 
 ## Stop conditions
 

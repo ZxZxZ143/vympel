@@ -26,7 +26,15 @@ cd vympel_crm && npm ci && npm run lint && npm run typecheck && npm test && npm 
 docker compose -f compose.yml config --quiet
 ```
 
-The CI workflows repeat these checks and build three images tagged with the full commit SHA. Registry push is manual and remains doubly disabled until a registry, credentials, and the repository variable `VYMPEL_REGISTRY_PUSH_ENABLED=true` are configured.
+The CI workflows repeat these checks and build three images tagged with the full commit SHA. GHCR publication is manual: `release-images.yml` logs in only for `workflow_dispatch` with `publish_images=true`, only after the same-commit Full Release Gate passes, and uses the repository-provided `GITHUB_TOKEN`.
+
+Canonical packages:
+
+- `ghcr.io/zxzxz143/vympel-backend`
+- `ghcr.io/zxzxz143/vympel-storefront`
+- `ghcr.io/zxzxz143/vympel-crm`
+
+Every published set includes the full SHA tag. An optional existing release tag must point to the same commit; `latest` is never published as a deployment tag. The workflow adds OCI traceability labels, provenance/SBOM attestations, captures registry digests, pulls and inspects the SHA references, runs an isolated published-image Compose health check, and emits a consolidated release-manifest artifact. See [GHCR publication](docs/deployment/GHCR_PUBLICATION.md) for the guarded first-publication, visibility, authentication, rollback, and retention procedures.
 
 ## Deployment model
 
@@ -34,7 +42,7 @@ The CI workflows repeat these checks and build three images tagged with the full
 - Staging: `infrastructure/compose/compose.staging.yml`, immutable prebuilt images, external secrets and data services.
 - Production: `infrastructure/compose/compose.production.yml`, immutable prebuilt images, explicit backup/restore and approval gates.
 
-Start with [the deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md), populate a non-committed environment file from `infrastructure/env/*.env.example`, and use `deployment/release-manifest.example.yml` for the exact full Git SHA and immutable image references. The full release gate also emits a commit-specific manifest artifact; digests remain pending until a registry is selected and images are published.
+Start with [the deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md), populate a non-committed environment file from `infrastructure/env/*.env.example`, set `REGISTRY=ghcr.io/zxzxz143`, and use the full commit SHA as `RELEASE_TAG`. `deployment/release-manifest.example.yml` is the pre-publication template; a successful publishing run emits a separate manifest whose three registry digests must contain no pending values.
 
 `NEXT_PUBLIC_SITE_URL` is the browser-safe canonical storefront origin. It is required at storefront build time because Next.js compiles canonical and language-alternate metadata into output; the same value is retained at runtime for dynamic sitemap and robots responses. Do not substitute a final domain until it is approved.
 
@@ -47,5 +55,7 @@ Do not commit working environment files, credentials, TLS private keys, database
 ## Release status
 
 Release candidate `v1.0.0-rc.1` points to exact commit `954e8a3a659371ba0203369aec9d2fef968fab5b`. That commit passed the required real GitHub backend, storefront, CRM, full-release, performance, and non-publishing three-image workflows; see [remote CI verification](docs/deployment/REMOTE_CI_VERIFICATION.md). No image was published and no external deployment ran.
+
+The later sharp remediation must not be represented by moving `v1.0.0-rc.1`. Its first GHCR release requires a new remotely verified RC tag such as `v1.0.0-rc.2`.
 
 The provider-independent baseline includes SEO, local PostgreSQL backup/restore proof, real signed CMS revalidation/retry proof, validated Prometheus examples, and an isolated reverse-proxy rehearsal. Production remains **NOT READY** until the historical Liquibase condition is accountably accepted for any target database that contains it and the provider, final domains, registry and image digests, managed data services, secret manager, public TLS/trusted proxies, monitoring/alerts, and real staging deployment are selected and proven.

@@ -7,6 +7,14 @@ Verified release-candidate commit: `954e8a3a659371ba0203369aec9d2fef968fab5b`
 Release-candidate tag: `v1.0.0-rc.1`
 Sharp remediation commit: `0fe55f39db7c7b5c495e200e778841584014ce04`
 
+## GHCR publication enablement
+
+Status as of 2026-07-26: implementation prepared locally; remote gates and first publication are not yet recorded in this section.
+
+The release workflow now targets `ghcr.io/zxzxz143/vympel-backend`, `ghcr.io/zxzxz143/vympel-storefront`, and `ghcr.io/zxzxz143/vympel-crm`. A publish request is accepted only from `workflow_dispatch` with `publish_images=true`, after the reusable same-commit Full Release Gate passes, and authenticates with the repository `GITHUB_TOKEN`. It rejects existing immutable SHA/release tags, emits OCI labels plus provenance/SBOM attestations, records registry digests, pulls and inspects the exact SHA references, and runs an isolated published-image Compose check. No hosting deployment is part of that workflow.
+
+Because the sharp fix is later than `v1.0.0-rc.1`, the first verified publication must use a new immutable RC tag after new remote gates pass. This status paragraph must be replaced with exact workflow runs, tag, package visibility, image digests, and runtime results after publication.
+
 ## Post-RC sharp security remediation
 
 Status: local and remote GitHub Actions verification passed for the exact sharp remediation commit.

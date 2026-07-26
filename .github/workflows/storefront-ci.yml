@@ -59,6 +59,7 @@ jobs:
           cache: npm
           cache-dependency-path: vympel_front/package-lock.json
       - run: npm ci
+      - run: npm ls next sharp
       - run: npm run test:sharp-security
       - run: npm run lint
       - run: npm run typecheck
