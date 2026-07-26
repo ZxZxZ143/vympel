@@ -1945,6 +1945,12 @@
 * **How:** Extend only the disposable ARM64 rehearsal's health-check start period and Compose wait timeout. Keep the native Oracle Compose health policy unchanged.
 * **Why:** The verified cold emulated start applied 77 changesets and took about six minutes; treating emulation latency as a production health requirement would unnecessarily weaken native staging checks.
 
+### Supply public build inputs to every production Next.js build path
+
+* **When to use:** Adding a fail-fast requirement for a browser-visible build-time variable.
+* **How:** Search component CI, combined budgets, release builds, Docker builds, and local production-build commands; supply the same safe non-secret environment contract in each production context.
+* **Why:** Next.js can evaluate API-client modules during prerendering, so an indirect build such as the combined budget workflow must receive required public values even when the Dockerfile is not involved.
+
 ### Make placeholder public builds explicit and non-deployable
 
 * **When to use:** Final domains are not yet owned or approved but registry/build evidence is still required.
@@ -2033,4 +2039,4 @@
 
 ## Last Updated
 
-2026-07-27 - Added multi-architecture child-digest/runtime proof, explicit frontend placeholder contracts, single-VM private-network ingress, and Oracle operator-boundary lessons.
+2026-07-27 - Added multi-architecture child-digest/runtime proof, explicit frontend contracts across all production CI build paths, single-VM private-network ingress, and Oracle operator-boundary lessons.
