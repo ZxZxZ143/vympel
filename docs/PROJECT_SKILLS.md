@@ -1951,6 +1951,12 @@
 * **How:** Set `file: ./Dockerfile` because the reusable workflow constructs a Git context whose root is already the requested subdirectory. Keep `COPY` paths relative to that same component root.
 * **Why:** RC.4 passed every source gate but both native storefront jobs searched for `./vympel_front/Dockerfile` inside the `vympel_front` Git context and stopped before any registry write.
 
+### Keep Dockerfile frontends compatible with Git-checksum contexts
+
+* **When to use:** A pinned distributed builder sends a repository subdirectory as a BuildKit Git context with an exact checksum.
+* **How:** Do not retain an obsolete `# syntax=docker/dockerfile:<version>` directive when the Dockerfile uses no external-frontend-only feature. Let the pinned builder select its bundled compatible frontend, or pin a newer frontend only after proving its advertised capabilities in the same reusable workflow.
+* **Why:** RC.5's backend selected Dockerfile frontend 1.7.1, which rejected BuildKit 0.31.1's `source.git.checksum` capability before either native architecture build could execute. Storefront and CRM, which used the bundled frontend, built and published successfully.
+
 ### Scope Redis ARM64 kernel-warning suppression to QEMU rehearsals
 
 * **When to use:** Running the official ARM64 Redis image through binfmt/QEMU on an amd64 Docker Desktop or GitHub runner.
@@ -2063,4 +2069,4 @@
 
 ## Last Updated
 
-2026-07-27 - Added native ARM64 publication, immutable RC failure handling, reusable-builder context-path rules, and bounded Nginx startup-reset recovery.
+2026-07-27 - Recorded RC.5's immutable partial publication and added the distributed-builder Dockerfile-frontend compatibility rule.

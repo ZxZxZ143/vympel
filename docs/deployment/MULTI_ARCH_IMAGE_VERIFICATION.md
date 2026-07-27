@@ -122,40 +122,80 @@ record and must not be moved or retried. The corrected reusable calls use
 `file: ./Dockerfile` relative to each component Git context; publication moves
 to RC.5.
 
+## RC.5 backend Dockerfile-frontend failure
+
+Annotated tag `v1.0.0-rc.5` remains immutable at
+`8bc963babe17b7c4e5177fa19831a8eb310880cf`. Performance Budgets run
+[30228959296](https://github.com/ZxZxZ143/vympel/actions/runs/30228959296),
+build-only Release Images run
+[30228959606](https://github.com/ZxZxZ143/vympel/actions/runs/30228959606),
+Full Release Gate run
+[30228959409](https://github.com/ZxZxZ143/vympel/actions/runs/30228959409),
+and tag-triggered Full Release Gate run
+[30229201663](https://github.com/ZxZxZ143/vympel/actions/runs/30229201663)
+passed.
+
+Trusted publication run
+[30229413801](https://github.com/ZxZxZ143/vympel/actions/runs/30229413801)
+then proved native storefront and CRM publication on both architectures. The
+backend's explicit `# syntax=docker/dockerfile:1.7` selected Dockerfile frontend
+1.7.1, which does not advertise the `source.git.checksum` capability required
+by the pinned reusable builder's BuildKit 0.31.1 Git context. Both backend
+architecture jobs failed before Dockerfile execution with `unknown API
+capability source.git.checksum`.
+
+The failure occurred after storefront and CRM indexes were written:
+
+| Image | RC.5 result | OCI index | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- | --- |
+| Backend | Missing; no RC.5 or full-SHA tag | — | — | — |
+| Storefront | Partial publication only | `sha256:5454772a05d035c796925ea8d519b291b50d92f31c22663e977180921a1919d7` | `sha256:ca40e13234d0bf8f77b5ac6676c8b1440188753f42129298bc202136292f8f30` | `sha256:5e8a1d61f2d0e6635400d01e085cffa5332c566e92c12aabf0394d50d1b67768` |
+| CRM | Partial publication only | `sha256:fe43df4d0ae5dd8b053ccc61a8a135e20d79d3e17b7430e83dea04ebf64f6abe` | `sha256:aae9c0bff59a85d2da4f3b3946c33a13e9b4d84e25a3df16b828fc90bcf66519` | `sha256:0fa82ded8506d59bcc6cf71ec9b8bec790cae84a0f8e6b49dd8450ee5b36a478` |
+
+Independent inspection confirmed each successful RC.5 tag and exact
+`8bc963babe17b7c4e5177fa19831a8eb310880cf` tag resolve to the same index.
+Index attestation, published-image runtime verification, and consolidated
+release-manifest jobs were skipped because the three-image boundary was
+incomplete. RC.5 must never be deployed, overwritten, or retried. The backend
+Dockerfile does not require an external frontend feature, so the correction
+removes the obsolete syntax directive and lets the pinned builder use its
+compatible bundled frontend. Publication moves to RC.6 after exact-source gates
+pass.
+
 ## Independent registry inspection
 
 Run these commands for the RC tag and then repeat them for the exact full SHA:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.5
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.5
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.6
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.6
 ```
 
 Machine-readable inspection:
 
 ```bash
 docker buildx imagetools inspect \
-  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5 \
+  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6 \
   --raw | jq '.manifests[] | {digest, platform}'
 ```
 
 Explicit platform pulls:
 
 ```bash
-docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5
-docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5
+docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6
+docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6
 ```
 
 Repeat both pulls for storefront and CRM. Compare the output to
-`deployment/releases/v1.0.0-rc.5.yml`; do not copy only the index digest when a
+`deployment/releases/v1.0.0-rc.6.yml`; do not copy only the index digest when a
 child digest is required.
 
 ## Current next-RC evidence
 
-Status: pending the context-relative Dockerfile correction commit, remote CI,
-immutable RC.5 tag, and trusted publication run. RC.3 is permanently partial;
-RC.4 is permanently unpublished.
+Status: pending the backend Dockerfile-frontend correction commit, remote CI,
+immutable RC.6 tag, and trusted publication run. RC.3 and RC.5 are permanently
+partial; RC.4 is permanently unpublished.
 
 The completed evidence section must record:
 

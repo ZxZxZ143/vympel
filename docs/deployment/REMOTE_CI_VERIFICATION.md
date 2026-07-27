@@ -92,6 +92,31 @@ and independent registry inspection confirmed all three RC.4 and full-SHA tags
 are absent. RC.4 is retained as an immutable no-publication failure. RC.5 will
 use `file: ./Dockerfile` relative to each component context.
 
+Context-path correction commit `8bc963babe17b7c4e5177fa19831a8eb310880cf`
+passed Performance Budgets run
+[30228959296](https://github.com/ZxZxZ143/vympel/actions/runs/30228959296),
+build-only Release Images run
+[30228959606](https://github.com/ZxZxZ143/vympel/actions/runs/30228959606),
+and Full Release Gate run
+[30228959409](https://github.com/ZxZxZ143/vympel/actions/runs/30228959409).
+Annotated tag `v1.0.0-rc.5` points to that exact commit, and tag-triggered Full
+Release Gate run
+[30229201663](https://github.com/ZxZxZ143/vympel/actions/runs/30229201663)
+passed.
+
+Trusted RC.5 publication run
+[30229413801](https://github.com/ZxZxZ143/vympel/actions/runs/30229413801)
+published native amd64/ARM64 storefront and CRM indexes and their exact
+full-SHA aliases. Both backend architecture jobs failed before Dockerfile
+execution: its explicit Dockerfile frontend 1.7.1 did not advertise
+`source.git.checksum`, which the pinned BuildKit 0.31.1 Git context requires.
+Backend RC.5/full-SHA tags are absent. The workflow correctly failed the
+three-repository boundary and skipped index attestation, runtime checks, and
+consolidated-manifest generation. RC.5 remains immutable, partial, and
+non-deployable; RC.6 will remove the obsolete backend frontend pin while
+retaining the Dockerfile's existing architecture-neutral Gradle and
+target-platform Temurin runtime stages.
+
 ## GHCR publication enablement
 
 Status as of 2026-07-26: **PASS — three independent GHCR images published, attested, pulled, inspected, and exercised from one immutable RC source. No hosting deployment ran.**

@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 # The Spring Boot JAR is architecture-neutral, so compile it on the native
 # builder platform. The runtime stage still resolves for the requested target
 # platform (amd64 or arm64).

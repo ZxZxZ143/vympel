@@ -6,8 +6,8 @@ Status: provider-independent local and remote gates passed; three GHCR images pu
 
 ## Next candidate: ARM64 and Oracle staging preparation
 
-Status: RC.3 is immutable and partial; RC.4 is immutable and unpublished; the
-context-relative Dockerfile correction for RC.5 is in progress.
+Status: RC.3 and RC.5 are immutable and partial; RC.4 is immutable and
+unpublished; the backend Dockerfile-frontend correction for RC.6 is in progress.
 
 Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
 and CRM performance-build correction
@@ -26,9 +26,20 @@ source gates, but publication run
 failed before registry writes because its Dockerfile paths were not relative to
 the component Git contexts. RC.4 also must not be moved or retried.
 
-The next candidate is `v1.0.0-rc.5`; it may be tagged only after the exact
-context-path correction passes backend, storefront, CRM, performance, Full
-Release Gate, and build-only Release Images workflows on `main`.
+RC.5 at `8bc963babe17b7c4e5177fa19831a8eb310880cf` passed its main and
+tag-triggered source gates. Trusted publication run
+[30229413801](https://github.com/ZxZxZ143/vympel/actions/runs/30229413801)
+published native amd64/ARM64 storefront and CRM indexes, then failed both
+backend build jobs before Dockerfile execution. The backend's pinned Dockerfile
+frontend 1.7.1 did not support the reusable builder's Git-context
+`source.git.checksum` capability. Backend RC.5/full-SHA tags are absent;
+storefront and CRM tags are retained as partial failure evidence. Attestation,
+runtime verification, and consolidated release-manifest jobs did not run.
+
+RC.5 must not be moved, overwritten, retried, or deployed. The next candidate
+is `v1.0.0-rc.6`; it may be tagged only after the exact Dockerfile-frontend
+correction passes backend, storefront, CRM, performance, Full Release Gate, and
+build-only Release Images workflows on `main`.
 
 The release publication is accepted only when:
 
