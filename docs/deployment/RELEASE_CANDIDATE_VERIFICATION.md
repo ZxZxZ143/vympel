@@ -7,7 +7,8 @@ Status: provider-independent local and remote gates passed; three GHCR images pu
 ## Next candidate: ARM64 and Oracle staging preparation
 
 Status: RC.3 and RC.5 are immutable and partial; RC.4 is immutable and
-unpublished; the backend Dockerfile-frontend correction for RC.6 is in progress.
+unpublished; RC.6 has complete indexes but failed its downstream attestation
+gate; the final-index registry-login correction for RC.7 is in progress.
 
 Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
 and CRM performance-build correction
@@ -36,10 +37,21 @@ frontend 1.7.1 did not support the reusable builder's Git-context
 storefront and CRM tags are retained as partial failure evidence. Attestation,
 runtime verification, and consolidated release-manifest jobs did not run.
 
-RC.5 must not be moved, overwritten, retried, or deployed. The next candidate
-is `v1.0.0-rc.6`; it may be tagged only after the exact Dockerfile-frontend
-correction passes backend, storefront, CRM, performance, Full Release Gate, and
-build-only Release Images workflows on `main`.
+RC.5 must not be moved, overwritten, retried, or deployed.
+
+RC.6 at `d422e38e233f00f55e2c96a37d8600c5b316fef9` passed its main and
+tag-triggered source gates. Trusted publication run
+[30230602721](https://github.com/ZxZxZ143/vympel/actions/runs/30230602721)
+passed all six native architecture builds and created all three amd64/ARM64
+indexes under matching RC and full-SHA tags. Its final-index attestation matrix
+then failed because `actions/attest` had no registry credentials in that
+separate job. Release metadata, runtime verification, and consolidated manifest
+generation were skipped.
+
+RC.6 must not be moved, overwritten, retried, or deployed. The next candidate
+is `v1.0.0-rc.7`; it may be tagged only after the exact attestation-job login
+correction passes performance, Full Release Gate, and build-only Release Images
+workflows on `main`.
 
 The release publication is accepted only when:
 

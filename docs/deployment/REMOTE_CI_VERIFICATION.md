@@ -117,6 +117,29 @@ non-deployable; RC.6 will remove the obsolete backend frontend pin while
 retaining the Dockerfile's existing architecture-neutral Gradle and
 target-platform Temurin runtime stages.
 
+Dockerfile-frontend correction commit
+`d422e38e233f00f55e2c96a37d8600c5b316fef9` passed Backend CI
+[30230221671](https://github.com/ZxZxZ143/vympel/actions/runs/30230221671),
+Performance Budgets
+[30230221696](https://github.com/ZxZxZ143/vympel/actions/runs/30230221696),
+build-only Release Images
+[30230221857](https://github.com/ZxZxZ143/vympel/actions/runs/30230221857),
+and Full Release Gate
+[30230221709](https://github.com/ZxZxZ143/vympel/actions/runs/30230221709).
+Annotated `v1.0.0-rc.6` points to that exact commit; tag-triggered Full Release
+Gate [30230421073](https://github.com/ZxZxZ143/vympel/actions/runs/30230421073)
+also passed.
+
+Trusted RC.6 publication run
+[30230602721](https://github.com/ZxZxZ143/vympel/actions/runs/30230602721)
+passed all six native builds and created all three matching RC/full-SHA
+multi-platform indexes. The final-index `actions/attest` jobs all failed with
+`No credentials found for registry ghcr.io` because login state does not cross
+GitHub Actions job boundaries. Metadata, amd64/ARM64 runtime verification, and
+the consolidated release manifest were skipped. RC.6 is immutable and
+non-deployable. RC.7 adds an explicit GHCR login using only the short-lived
+repository `GITHUB_TOKEN` in each attestation matrix job.
+
 ## GHCR publication enablement
 
 Status as of 2026-07-26: **PASS — three independent GHCR images published, attested, pulled, inspected, and exercised from one immutable RC source. No hosting deployment ran.**

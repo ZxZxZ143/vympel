@@ -1957,6 +1957,12 @@
 * **How:** Do not retain an obsolete `# syntax=docker/dockerfile:<version>` directive when the Dockerfile uses no external-frontend-only feature. Let the pinned builder select its bundled compatible frontend, or pin a newer frontend only after proving its advertised capabilities in the same reusable workflow.
 * **Why:** RC.5's backend selected Dockerfile frontend 1.7.1, which rejected BuildKit 0.31.1's `source.git.checksum` capability before either native architecture build could execute. Storefront and CRM, which used the bundled frontend, built and published successfully.
 
+### Authenticate every registry-writing job independently
+
+* **When to use:** A multi-job GitHub Actions release performs registry writes after the image-builder jobs, such as attaching provenance to a final OCI index.
+* **How:** Give the exact job `packages: write`, log into GHCR with `github.actor` and that job's short-lived `GITHUB_TOKEN`, then run the pinned registry-writing action. Never assume a prior job's Docker credential store is shared.
+* **Why:** RC.6 built and finalized all three indexes, but every final-index `actions/attest` job failed with `No credentials found for registry ghcr.io`; GitHub-hosted jobs use isolated filesystems and authentication state.
+
 ### Scope Redis ARM64 kernel-warning suppression to QEMU rehearsals
 
 * **When to use:** Running the official ARM64 Redis image through binfmt/QEMU on an amd64 Docker Desktop or GitHub runner.
@@ -2069,4 +2075,4 @@
 
 ## Last Updated
 
-2026-07-27 - Recorded RC.5's immutable partial publication and added the distributed-builder Dockerfile-frontend compatibility rule.
+2026-07-27 - Recorded RC.6's post-publication attestation failure and added the per-job registry-authentication rule.

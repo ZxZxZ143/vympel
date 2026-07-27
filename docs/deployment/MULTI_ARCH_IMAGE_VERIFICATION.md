@@ -162,40 +162,78 @@ removes the obsolete syntax directive and lets the pinned builder use its
 compatible bundled frontend. Publication moves to RC.6 after exact-source gates
 pass.
 
+## RC.6 final-index attestation authentication failure
+
+Annotated tag `v1.0.0-rc.6` remains immutable at
+`d422e38e233f00f55e2c96a37d8600c5b316fef9`. Backend CI run
+[30230221671](https://github.com/ZxZxZ143/vympel/actions/runs/30230221671),
+Performance Budgets run
+[30230221696](https://github.com/ZxZxZ143/vympel/actions/runs/30230221696),
+build-only Release Images run
+[30230221857](https://github.com/ZxZxZ143/vympel/actions/runs/30230221857),
+Full Release Gate run
+[30230221709](https://github.com/ZxZxZ143/vympel/actions/runs/30230221709),
+and tag-triggered Full Release Gate run
+[30230421073](https://github.com/ZxZxZ143/vympel/actions/runs/30230421073)
+passed.
+
+Trusted publication run
+[30230602721](https://github.com/ZxZxZ143/vympel/actions/runs/30230602721)
+proved the Dockerfile-frontend correction: all six native architecture jobs
+passed, and all three RC/full-SHA OCI indexes were created:
+
+| Image | RC.6 result | OCI index | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- | --- |
+| Backend | Complete index; downstream gate failed | `sha256:a0d45030df70c9e878fc8873dca3871b7e5e48efb84fa0bc7803fca093f50b8c` | `sha256:da02f12e06a7b53a65b5ed4c68d582adb85e625f6f254ef2a126a5dd032fbcdf` | `sha256:b9d4409d8412a42ce93dffb8f37a872037eade1d8119e1c215c9080024283012` |
+| Storefront | Complete index; downstream gate failed | `sha256:6b24f7b55c4dc3758e24cda431b91a4ff78d9a9c65055877ac26e5d515078ae5` | `sha256:06bfd196cfe39171bff1702c98e2bce1e81f343b126957536541d3d0d93034ff` | `sha256:2f7dfbe13d9594081be615d22329315e9c9e6655ab98d38be52767c9050abafa` |
+| CRM | Complete index; downstream gate failed | `sha256:8e9c3f05f974153b3d58f5646c844461184601cec8b7ed7975118f1bb4624762` | `sha256:e6d4ce3e16fbc23c2982872b4ec4e43d24acd61e5855c91eaec47d85a2bbd68e` | `sha256:ac265c037946227bf63ae970e8090271b4a8d3ab3ca228dfedab9d8e111ae1a0` |
+
+Independent inspection confirmed each exact full-SHA tag resolves to the same
+index as its RC.6 tag. The final-index `actions/attest` matrix then failed with
+`No credentials found for registry ghcr.io`: registry login state is scoped to
+each GitHub Actions job, and the attestation job had not authenticated. The
+workflow consequently skipped release metadata, amd64/ARM64 runtime
+verification, and consolidated manifest generation. RC.6 is complete at the
+index level but remains non-deployable and must never be overwritten or retried.
+The correction logs into GHCR with the job's short-lived repository
+`GITHUB_TOKEN` immediately before the pinned attestation action. Publication
+moves to RC.7 after fresh exact-source gates pass.
+
 ## Independent registry inspection
 
 Run these commands for the RC tag and then repeat them for the exact full SHA:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.6
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.6
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.7
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.7
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.7
 ```
 
 Machine-readable inspection:
 
 ```bash
 docker buildx imagetools inspect \
-  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6 \
+  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.7 \
   --raw | jq '.manifests[] | {digest, platform}'
 ```
 
 Explicit platform pulls:
 
 ```bash
-docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6
-docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.6
+docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.7
+docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.7
 ```
 
 Repeat both pulls for storefront and CRM. Compare the output to
-`deployment/releases/v1.0.0-rc.6.yml`; do not copy only the index digest when a
+`deployment/releases/v1.0.0-rc.7.yml`; do not copy only the index digest when a
 child digest is required.
 
 ## Current next-RC evidence
 
-Status: pending the backend Dockerfile-frontend correction commit, remote CI,
-immutable RC.6 tag, and trusted publication run. RC.3 and RC.5 are permanently
-partial; RC.4 is permanently unpublished.
+Status: pending the final-index attestation-login correction commit, remote CI,
+immutable RC.7 tag, and trusted publication run. RC.3 and RC.5 are permanently
+partial, RC.4 is permanently unpublished, and RC.6 is permanently
+post-publication-incomplete.
 
 The completed evidence section must record:
 

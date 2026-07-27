@@ -425,6 +425,12 @@ jobs:
           - image: vympel-crm
             digest: ${{ needs.publish_crm.outputs.digest }}
     steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate signed GitHub provenance for the final OCI index
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26
         with:
