@@ -284,7 +284,7 @@ jobs:
         default=ubuntu-24.04
         linux/arm64=ubuntu-24.04-arm
       context: ./vympel_back
-      file: ./vympel_back/Dockerfile
+      file: ./Dockerfile
       cache: true
       cache-mode: max
       cache-scope: vympel-backend
@@ -326,7 +326,7 @@ jobs:
         default=ubuntu-24.04
         linux/arm64=ubuntu-24.04-arm
       context: ./vympel_front
-      file: ./vympel_front/Dockerfile
+      file: ./Dockerfile
       build-args: |
         BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
         NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base }}
@@ -380,7 +380,7 @@ jobs:
         default=ubuntu-24.04
         linux/arm64=ubuntu-24.04-arm
       context: ./vympel_crm
-      file: ./vympel_crm/Dockerfile
+      file: ./Dockerfile
       build-args: |
         NEXT_PUBLIC_CRM_API_BASE=${{ inputs.crm_api_base }}
         NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins }}

@@ -65,6 +65,33 @@ transient TCP reset. The health loop now treats refusal/reset as not-ready withi
 the existing 90-second deadline; routing assertions after readiness remain
 fail-fast. Promotion waits for this correction's new exact-source gate.
 
+Readiness correction commit `ac924fae45e94911c65c95a18f10e8c53a587c3a`
+then passed Backend CI
+[30228150297](https://github.com/ZxZxZ143/vympel/actions/runs/30228150297),
+Storefront CI
+[30228150284](https://github.com/ZxZxZ143/vympel/actions/runs/30228150284),
+CRM CI
+[30228150278](https://github.com/ZxZxZ143/vympel/actions/runs/30228150278),
+Performance Budgets
+[30228150276](https://github.com/ZxZxZ143/vympel/actions/runs/30228150276),
+Full Release Gate
+[30228150392](https://github.com/ZxZxZ143/vympel/actions/runs/30228150392),
+and non-publishing Release Images
+[30228150531](https://github.com/ZxZxZ143/vympel/actions/runs/30228150531).
+Annotated tag `v1.0.0-rc.4` points to that exact commit; tag-triggered Full
+Release Gate [30228362372](https://github.com/ZxZxZ143/vympel/actions/runs/30228362372)
+also passed.
+
+Trusted RC.4 publication run
+[30228582070](https://github.com/ZxZxZ143/vympel/actions/runs/30228582070)
+passed the reusable gate and absence preflight, then assigned storefront builds
+to native amd64 and ARM64 runners. Both failed before Dockerfile execution
+because `file: ./vympel_front/Dockerfile` was resolved relative to Git context
+`./vympel_front`. Backend/CRM remained skipped by the storefront-first boundary,
+and independent registry inspection confirmed all three RC.4 and full-SHA tags
+are absent. RC.4 is retained as an immutable no-publication failure. RC.5 will
+use `file: ./Dockerfile` relative to each component context.
+
 ## GHCR publication enablement
 
 Status as of 2026-07-26: **PASS — three independent GHCR images published, attested, pulled, inspected, and exercised from one immutable RC source. No hosting deployment ran.**

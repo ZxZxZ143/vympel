@@ -1945,6 +1945,12 @@
 * **How:** Preserve every written tag, mark the candidate incomplete and non-deployable, record the missing image and skipped runtime/manifest gates, fix the workflow on a new commit, and use the next RC number. Run an all-repository absence preflight before the next fan-out.
 * **Why:** GHCR cannot atomically commit tags across three repositories. Overwriting or retrying the same RC would destroy the evidence binding between source, publication attempt, and registry content.
 
+### Resolve reusable-builder Dockerfiles from the Git context root
+
+* **When to use:** Calling Docker GitHub Builder with a component subdirectory such as `context: ./vympel_front`.
+* **How:** Set `file: ./Dockerfile` because the reusable workflow constructs a Git context whose root is already the requested subdirectory. Keep `COPY` paths relative to that same component root.
+* **Why:** RC.4 passed every source gate but both native storefront jobs searched for `./vympel_front/Dockerfile` inside the `vympel_front` Git context and stopped before any registry write.
+
 ### Scope Redis ARM64 kernel-warning suppression to QEMU rehearsals
 
 * **When to use:** Running the official ARM64 Redis image through binfmt/QEMU on an amd64 Docker Desktop or GitHub runner.
@@ -2057,4 +2063,4 @@
 
 ## Last Updated
 
-2026-07-27 - Added native ARM64 publication, immutable partial-release handling, and bounded Nginx startup-reset recovery after the RC.3 and remote-gate failures.
+2026-07-27 - Added native ARM64 publication, immutable RC failure handling, reusable-builder context-path rules, and bounded Nginx startup-reset recovery.

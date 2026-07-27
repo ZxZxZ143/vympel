@@ -6,8 +6,8 @@ Status: provider-independent local and remote gates passed; three GHCR images pu
 
 ## Next candidate: ARM64 and Oracle staging preparation
 
-Status: RC.3 is immutable and incomplete; the native-runner correction for RC.4
-is in progress.
+Status: RC.3 is immutable and partial; RC.4 is immutable and unpublished; the
+context-relative Dockerfile correction for RC.5 is in progress.
 
 Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
 and CRM performance-build correction
@@ -20,9 +20,15 @@ signal during storefront ARM64 `npm ci`, backend and CRM indexes had already
 published, storefront never published, and runtime/manifest jobs did not run.
 
 RC.3 and its partial GHCR tags must not be moved, overwritten, retried, or
-deployed. The next candidate is `v1.0.0-rc.4`; it may be tagged only after the
-exact native-runner correction passes backend, storefront, CRM, performance,
-Full Release Gate, and build-only Release Images workflows on `main`.
+deployed. RC.4 at `ac924fae45e94911c65c95a18f10e8c53a587c3a` passed all
+source gates, but publication run
+[30228582070](https://github.com/ZxZxZ143/vympel/actions/runs/30228582070)
+failed before registry writes because its Dockerfile paths were not relative to
+the component Git contexts. RC.4 also must not be moved or retried.
+
+The next candidate is `v1.0.0-rc.5`; it may be tagged only after the exact
+context-path correction passes backend, storefront, CRM, performance, Full
+Release Gate, and build-only Release Images workflows on `main`.
 
 The release publication is accepted only when:
 

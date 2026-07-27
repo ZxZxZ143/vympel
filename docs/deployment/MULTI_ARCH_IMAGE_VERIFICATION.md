@@ -98,39 +98,64 @@ The backend and CRM tags are retained as failure evidence and will not be
 overwritten. RC.3 must never be deployed or retried; the native-runner correction
 requires a later immutable candidate.
 
+## RC.4 native-builder path failure
+
+Annotated tag `v1.0.0-rc.4` remains immutable at
+`ac924fae45e94911c65c95a18f10e8c53a587c3a`. All six main-branch workflows
+and tag-triggered Full Release Gate run
+[30228362372](https://github.com/ZxZxZ143/vympel/actions/runs/30228362372)
+passed. Trusted Release Images run
+[30228582070](https://github.com/ZxZxZ143/vympel/actions/runs/30228582070)
+then passed its complete reusable gate and all-repository absence preflight.
+
+The pinned distributed builder assigned the storefront jobs to native
+`ubuntu-24.04` and `ubuntu-24.04-arm` runners, but both stopped before executing
+the Dockerfile. With Git context `./vympel_front`, the reusable workflow uses
+that component directory as the context root; `file:
+./vympel_front/Dockerfile` was therefore searched beneath the component
+directory and did not exist. Backend and CRM were intentionally ordered after
+storefront and were skipped.
+
+Registry inspection after the run confirmed that no backend, storefront, or CRM
+RC.4/full-SHA tag was written. RC.4 remains an immutable no-publication failure
+record and must not be moved or retried. The corrected reusable calls use
+`file: ./Dockerfile` relative to each component Git context; publication moves
+to RC.5.
+
 ## Independent registry inspection
 
 Run these commands for the RC tag and then repeat them for the exact full SHA:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.4
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.4
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.5
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.5
 ```
 
 Machine-readable inspection:
 
 ```bash
 docker buildx imagetools inspect \
-  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4 \
+  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5 \
   --raw | jq '.manifests[] | {digest, platform}'
 ```
 
 Explicit platform pulls:
 
 ```bash
-docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4
-docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4
+docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5
+docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.5
 ```
 
 Repeat both pulls for storefront and CRM. Compare the output to
-`deployment/releases/v1.0.0-rc.4.yml`; do not copy only the index digest when a
+`deployment/releases/v1.0.0-rc.5.yml`; do not copy only the index digest when a
 child digest is required.
 
 ## Current next-RC evidence
 
-Status: pending the native-runner correction commit, remote CI, immutable RC.4
-tag, and trusted publication run. RC.3 is permanently incomplete.
+Status: pending the context-relative Dockerfile correction commit, remote CI,
+immutable RC.5 tag, and trusted publication run. RC.3 is permanently partial;
+RC.4 is permanently unpublished.
 
 The completed evidence section must record:
 
