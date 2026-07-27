@@ -137,8 +137,14 @@ http.server.ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
     $httpsPort = Get-PublishedPort $proxy '443/tcp'
     $healthPort = Get-PublishedPort $proxy '8080/tcp'
     $deadline = [DateTime]::UtcNow.AddSeconds($StartupTimeoutSeconds)
+    $healthCode = $null
     do {
-        $healthCode = Invoke-Curl @('-sS', '-o', 'NUL', '-w', '%{http_code}', "http://127.0.0.1:$healthPort/healthz")
+        try {
+            $healthCode = Invoke-Curl @('-sS', '-o', 'NUL', '-w', '%{http_code}', "http://127.0.0.1:$healthPort/healthz")
+        }
+        catch {
+            $healthCode = $null
+        }
         if ($healthCode -eq '200') { break }
         Start-Sleep -Milliseconds 500
     } while ([DateTime]::UtcNow -lt $deadline)

@@ -1987,6 +1987,12 @@
 * **How:** Poll each upstream from inside its own container with a finite deadline before starting the proxy; keep the proxy health and route assertions separate.
 * **Why:** Nginx health can be ready before the last upstream accepts connections, producing a transient 502 that tests orchestration timing rather than routing policy.
 
+### Treat reverse-proxy startup connection resets as not-ready
+
+* **When to use:** Polling a newly started disposable Nginx container through a dynamically published host port.
+* **How:** Catch connection refusal/reset only inside the finite health-poll loop, clear the observed health code, wait briefly, and retry until HTTP 200 or the existing deadline. Keep every later routing assertion fail-fast.
+* **Why:** GitHub Actions run 30227958950 reached the Nginx health poll while the listener was still settling and curl returned exit 56. Failing immediately bypassed the intended bounded readiness policy even though configuration syntax and upstream readiness had already passed.
+
 ### Provision PostgreSQL for the complete backend CI suite
 
 * **When to use:** Run the full Gradle test task, which includes Spring context, Liquibase, CRM auth, and CMS media integration tests.
@@ -2051,4 +2057,4 @@
 
 ## Last Updated
 
-2026-07-27 - Added native ARM64 publication guidance and immutable partial-release handling after the RC.3 QEMU storefront failure.
+2026-07-27 - Added native ARM64 publication, immutable partial-release handling, and bounded Nginx startup-reset recovery after the RC.3 and remote-gate failures.

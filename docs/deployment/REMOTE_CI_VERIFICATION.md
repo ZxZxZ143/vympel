@@ -51,6 +51,20 @@ native-runner correction is committed, pushed normally, all required GitHub
 Actions runs pass, and the trusted manual publication completes. RC.2 remains
 the verified amd64-only baseline and is not moved.
 
+Native-builder correction commit `dc74e8d54a18678e058312026170efe1019d463c`
+passed Performance Budgets run
+[30227958829](https://github.com/ZxZxZ143/vympel/actions/runs/30227958829)
+and non-publishing Release Images run
+[30227959010](https://github.com/ZxZxZ143/vympel/actions/runs/30227959010).
+Full Release Gate run
+[30227958950](https://github.com/ZxZxZ143/vympel/actions/runs/30227958950)
+validated workflow YAML/actionlint, scripts, all Compose contracts, Oracle
+topology, Nginx syntax, storefront, CRM, and backend tests, but its shared job
+failed before later rehearsals when the first Nginx health curl received a
+transient TCP reset. The health loop now treats refusal/reset as not-ready within
+the existing 90-second deadline; routing assertions after readiness remain
+fail-fast. Promotion waits for this correction's new exact-source gate.
+
 ## GHCR publication enablement
 
 Status as of 2026-07-26: **PASS — three independent GHCR images published, attested, pulled, inspected, and exercised from one immutable RC source. No hosting deployment ran.**
