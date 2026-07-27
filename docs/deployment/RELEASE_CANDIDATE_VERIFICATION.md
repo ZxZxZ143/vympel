@@ -6,9 +6,23 @@ Status: provider-independent local and remote gates passed; three GHCR images pu
 
 ## Next candidate: ARM64 and Oracle staging preparation
 
-Status: implementation and local validation in progress; no new tag or registry publication has occurred yet.
+Status: RC.3 is immutable and incomplete; the native-runner correction for RC.4
+is in progress.
 
-The next candidate must not move or republish RC.2. Promotion requires a new annotated tag, preferably `v1.0.0-rc.3`, only after the exact implementation commit passes backend, storefront, CRM, performance, Full Release Gate, and build-only Release Images workflows on `main`.
+Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
+and CRM performance-build correction
+`a87c2883023b6ef6d8ed56f33856a242963a0c51` passed the required remote
+gates. Annotated tag `v1.0.0-rc.3` resolves to the latter commit. Trusted
+publication run
+[30223751287](https://github.com/ZxZxZ143/vympel/actions/runs/30223751287)
+failed to produce a complete three-image set: QEMU raised an illegal-instruction
+signal during storefront ARM64 `npm ci`, backend and CRM indexes had already
+published, storefront never published, and runtime/manifest jobs did not run.
+
+RC.3 and its partial GHCR tags must not be moved, overwritten, retried, or
+deployed. The next candidate is `v1.0.0-rc.4`; it may be tagged only after the
+exact native-runner correction passes backend, storefront, CRM, performance,
+Full Release Gate, and build-only Release Images workflows on `main`.
 
 The release publication is accepted only when:
 
@@ -24,6 +38,18 @@ The release publication is accepted only when:
 - deployment remains `false`.
 
 The committed `.invalid` Oracle environment values are deliberate template placeholders. Any release built with reserved placeholders is evidence-only and must carry `placeholder_acknowledged: true`; it cannot be deployed. Final DNS requires a later immutable rebuild with those exact approved public origins.
+
+### Preserved incomplete RC.3 record
+
+| Image | RC.3 status | Index digest | amd64 child | ARM64 child |
+| --- | --- | --- | --- | --- |
+| Backend | Published, partial set only | `sha256:069a4e76b608e2cbebc080efbd385b3cdbbef2ec748aacf8a74230f8c8c237ef` | `sha256:83fbd435ec0c81e81c3ded634634e5af61c60b993c150a5c3b518e086dc85075` | `sha256:ad15c36a11122385e40c6ab3e401e6723e13efb15bdb91073a732b273c7b665b` |
+| Storefront | Missing | — | — | — |
+| CRM | Published, partial set only | `sha256:fde50bc3bb573fd2e9689de762dc204412b10886482782c252da56cbc97e4cad` | `sha256:41bfe673e85356b897113faf08fd8e12e1199ff55fdb11177a231687ff6744fc` | `sha256:bb787fb52d9ec229a377c834968a6489cec7586b631bccd6b29109905669c857` |
+
+These two valid component indexes do not make RC.3 a valid Vympel release.
+Atomic release acceptance requires all three images plus both runtime jobs and
+the consolidated release manifest.
 
 ## Current RC.2 publication record
 

@@ -34,7 +34,7 @@ Canonical packages:
 - `ghcr.io/zxzxz143/vympel-storefront`
 - `ghcr.io/zxzxz143/vympel-crm`
 
-Every published set includes the full SHA tag. An optional existing release tag must point to the same commit; `latest` is never published as a deployment tag. The workflow adds OCI traceability labels, provenance/SBOM attestations, captures the index plus amd64/ARM64 child digests, pulls and inspects the SHA references, runs isolated amd64 and emulated ARM64 Compose health checks, and emits a consolidated release-manifest artifact. See [GHCR publication](docs/deployment/GHCR_PUBLICATION.md) and [multi-architecture verification](docs/deployment/MULTI_ARCH_IMAGE_VERIFICATION.md).
+Every published set includes the full SHA tag. An optional existing release tag must point to the same commit; `latest` is never published as a deployment tag. The workflow builds amd64 and ARM64 image children on native GitHub-hosted runners, assembles one OCI index, adds traceability labels and signed provenance/SBOM attestations, captures both child digests, pulls and inspects the SHA references, runs isolated amd64 and emulated ARM64 Compose health checks, and emits a consolidated release-manifest artifact. See [GHCR publication](docs/deployment/GHCR_PUBLICATION.md) and [multi-architecture verification](docs/deployment/MULTI_ARCH_IMAGE_VERIFICATION.md).
 
 ## Deployment model
 

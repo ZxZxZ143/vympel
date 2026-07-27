@@ -1933,6 +1933,18 @@
 * **How:** Pin only the JAR build stage to `$BUILDPLATFORM` and leave the runtime stage on the implicit target platform. Do not apply this to Next.js dependency/build stages because their standalone output includes target-specific sharp/libvips binaries.
 * **Why:** Native Gradle avoids very slow QEMU compilation while the final Temurin runtime still proves the selected amd64 or ARM64 platform.
 
+### Publish frontend ARM64 images on native runners
+
+* **When to use:** A trusted release builds Next.js/Node images for both amd64 and ARM64.
+* **How:** Pin Docker's reusable GitHub Builder workflow, distribute `linux/amd64` to `ubuntu-24.04` and `linux/arm64` to `ubuntu-24.04-arm`, publish storefront first, then assemble one signed OCI index per image. Keep QEMU only for bounded post-publication runtime proof.
+* **Why:** The RC.3 storefront build ran target-architecture `npm ci` through QEMU, raised target signal 4 (`Illegal instruction`), and hung until cancellation. Native runners exercise the correct npm/sharp packages without relying on CPU emulation during dependency installation.
+
+### Treat a partial multi-repository publication as a failed immutable RC
+
+* **When to use:** Some application repositories receive an RC/SHA image tag before another image fails.
+* **How:** Preserve every written tag, mark the candidate incomplete and non-deployable, record the missing image and skipped runtime/manifest gates, fix the workflow on a new commit, and use the next RC number. Run an all-repository absence preflight before the next fan-out.
+* **Why:** GHCR cannot atomically commit tags across three repositories. Overwriting or retrying the same RC would destroy the evidence binding between source, publication attempt, and registry content.
+
 ### Scope Redis ARM64 kernel-warning suppression to QEMU rehearsals
 
 * **When to use:** Running the official ARM64 Redis image through binfmt/QEMU on an amd64 Docker Desktop or GitHub runner.
@@ -2039,4 +2051,4 @@
 
 ## Last Updated
 
-2026-07-27 - Added multi-architecture child-digest/runtime proof, explicit frontend contracts across all production CI build paths, single-VM private-network ingress, and Oracle operator-boundary lessons.
+2026-07-27 - Added native ARM64 publication guidance and immutable partial-release handling after the RC.3 QEMU storefront failure.

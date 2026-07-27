@@ -7,18 +7,49 @@ Verified release-candidate commit: `633db42643d42ee6448919b5f6b6b16a7da1ca17`
 Release-candidate tag: `v1.0.0-rc.2`
 Preserved earlier candidate: `v1.0.0-rc.1` -> `954e8a3a659371ba0203369aec9d2fef968fab5b`
 
-## Pending ARM64 and Oracle staging verification
+## ARM64 and Oracle staging verification
 
-The working tree now prepares the next immutable RC with:
+Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
+and CRM performance-build correction
+`a87c2883023b6ef6d8ed56f33856a242963a0c51` were pushed normally to
+`main`. Performance Budgets run
+[30223556868](https://github.com/ZxZxZ143/vympel/actions/runs/30223556868)
+and Full Release Gate run
+[30223556910](https://github.com/ZxZxZ143/vympel/actions/runs/30223556910)
+passed on the latter commit. Annotated tag `v1.0.0-rc.3` points to that
+same commit, and tag-triggered Full Release Gate run
+[30223734283](https://github.com/ZxZxZ143/vympel/actions/runs/30223734283)
+passed.
+
+Trusted Release Images run
+[30223751287](https://github.com/ZxZxZ143/vympel/actions/runs/30223751287)
+used explicitly acknowledged `.invalid` public origins for a non-deployable
+evidence release. It did not complete: QEMU raised an illegal-instruction signal
+during storefront ARM64 `npm ci`, the step stopped making progress, and the run
+was cancelled at the 90-minute boundary. Backend and CRM RC.3 indexes were
+already written; the storefront RC.3 tag is absent. Post-publication runtime
+verification and consolidated manifest generation were skipped. RC.3 is
+therefore immutable, incomplete, and prohibited from deployment.
+
+The working tree now prepares RC.4 by replacing QEMU build execution with
+Docker's pinned distributed builder and native `ubuntu-24.04-arm` runners. It
+retains the release boundary:
 
 - one `linux/amd64` + `linux/arm64` OCI index per image/tag;
 - exact per-platform child-digest metadata;
 - isolated amd64 and QEMU-backed ARM64 runtime jobs;
 - ARM64 Liquibase/backend readiness, Java/Node architecture, sharp transforms, and storefront `/_next/image` proof;
 - explicit build-time frontend public configuration recorded in the release manifest;
-- a validated Oracle single-VM Compose/env/HTTP-first Nginx/systemd bundle.
+- a validated Oracle single-VM Compose/env/HTTP-first Nginx/systemd bundle;
+- a preflight that rejects any existing SHA or RC tag across all three
+  repositories before publication; and
+- storefront-first publication so the previously failing dependency stage
+  completes before backend and CRM registry writes begin.
 
-Remote run IDs, exact commit/tag, registry digests, and final status are intentionally pending until the implementation is committed, pushed normally, all required GitHub Actions runs pass, and the trusted manual publication completes. RC.2 remains the verified amd64-only baseline and is not moved.
+The RC.4 commit/tag, registry digests, and final status remain pending until the
+native-runner correction is committed, pushed normally, all required GitHub
+Actions runs pass, and the trusted manual publication completes. RC.2 remains
+the verified amd64-only baseline and is not moved.
 
 ## GHCR publication enablement
 

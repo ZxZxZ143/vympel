@@ -32,64 +32,105 @@ All three Dockerfiles use official architecture-neutral base references:
 - `next -> sharp@0.35.3` is lockfile-controlled and installs the selected platform's musl native package during `npm ci`.
 - Runtime users remain `vympel` for backend and `node` for both Next.js apps.
 
-Manual publication uses Buildx with QEMU and:
+Manual publication calls Docker's reusable GitHub Builder workflow at immutable commit
+`3415a188caae9a0da7fba83bc06985776e0b1790` with:
 
 ```text
 platforms: linux/amd64,linux/arm64
+distribute: true
+default runner: ubuntu-24.04
+linux/arm64 runner: ubuntu-24.04-arm
 ```
 
-Ordinary push CI remains a faster native `linux/amd64` build-only check. The guarded publication job is the multi-platform authority. This follows Docker's [official GitHub Actions multi-platform pattern](https://docs.docker.com/build/ci/github-actions/multi-platform/).
+Each platform is built on its native GitHub-hosted architecture and the reusable
+workflow assembles one final OCI index. QEMU is not used for `npm ci` or image
+publication. Ordinary push CI remains a faster native `linux/amd64` build-only
+check. The guarded publication jobs are the multi-platform authority. This follows
+Docker's [official distributed GitHub Actions pattern](https://docs.docker.com/build/ci/github-actions/multi-platform/).
 
 ## Automated publication proof
 
 For each image, `.github/workflows/release-images.yml`:
 
 1. Runs the reusable Full Release Gate before registry login or writes.
-2. Rejects an existing full-SHA or RC tag.
-3. Builds and pushes one OCI index for `linux/amd64,linux/arm64`.
-4. Adds OCI labels, BuildKit provenance/SBOM, and signed GitHub provenance.
-5. Reads the exact `linux/amd64` and `linux/arm64` child digests from the registry index.
-6. Records the index and both child digests in per-image metadata.
-7. Pulls each child by digest and verifies architecture, non-root user, OCI source/revision labels, and absence of secret-bearing image environment metadata.
-8. Runs the exact SHA-tagged amd64 images in isolated Compose.
-9. Enables QEMU and separately runs the exact SHA-tagged ARM64 images with ARM64 PostgreSQL, Redis, and MinIO.
-10. Requires Liquibase completion, backend readiness, storefront `/ru`, CRM `/login`, a real storefront `/_next/image` transform, ARM64 Java, ARM64 Node, and native `sharp` transforms in both Next containers.
-11. Emits a consolidated release manifest only after both runtime jobs pass.
+2. Rejects every existing full-SHA or RC tag across all three image repositories
+   before publication fans out.
+3. Builds the storefront first on native amd64 and ARM64 runners, then builds
+   backend and CRM on the same native runner mapping. This prioritizes the
+   historically failure-prone frontend dependency stage before the other
+   repositories are written.
+4. Assembles and pushes one OCI index for `linux/amd64,linux/arm64` per image.
+5. Adds OCI labels, BuildKit provenance/SBOM, Docker's signed SLSA attestations,
+   and signed GitHub provenance for the final index.
+6. Reads the exact `linux/amd64` and `linux/arm64` child digests from the registry index.
+7. Records the index and both child digests in per-image metadata.
+8. Pulls each child by digest and verifies architecture, non-root user, OCI source/revision labels, and absence of secret-bearing image environment metadata.
+9. Runs the exact SHA-tagged amd64 images in isolated Compose.
+10. Enables QEMU only for a post-publication runtime rehearsal of the exact
+    ARM64 images with ARM64 PostgreSQL, Redis, and MinIO.
+11. Requires Liquibase completion, backend readiness, storefront `/ru`, CRM `/login`, a real storefront `/_next/image` transform, ARM64 Java, ARM64 Node, and native `sharp` transforms in both Next containers.
+12. Emits a consolidated release manifest only after both runtime jobs pass.
 
 The disposable QEMU override supplies Redis `--ignore-warnings ARM64-COW-BUG` because Redis cannot distinguish the emulation host's kernel signature from the historical native ARM64 copy-on-write defect and otherwise exits before application verification. This exception exists only in `deployment/rehearsals/compose.arm64-images.yml`. The Oracle native ARM64 Compose file does not suppress the warning and therefore keeps Redis's fail-closed kernel check.
 
 The same override gives a cold emulated backend start a longer readiness window. The local proof applied all 77 Liquibase changesets and reached `UP` in about six minutes under QEMU; this is an emulation allowance, not a relaxation of the native Oracle health policy.
+
+## Incomplete RC.3 publication
+
+Annotated tag `v1.0.0-rc.3` remains immutable at
+`a87c2883023b6ef6d8ed56f33856a242963a0c51`. Trusted Release Images run
+[30223751287](https://github.com/ZxZxZ143/vympel/actions/runs/30223751287)
+was cancelled after 90 minutes and is not a release.
+
+The prior single-runner QEMU build reached the storefront ARM64 `npm ci` step,
+where QEMU reported `uncaught target signal 4 (Illegal instruction)` and the
+process stopped making progress. Backend and CRM had already published their
+indexes, while storefront had not published any RC.3 tag:
+
+| Image | RC.3 result | OCI index | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- | --- |
+| Backend | Partial publication only | `sha256:069a4e76b608e2cbebc080efbd385b3cdbbef2ec748aacf8a74230f8c8c237ef` | `sha256:83fbd435ec0c81e81c3ded634634e5af61c60b993c150a5c3b518e086dc85075` | `sha256:ad15c36a11122385e40c6ab3e401e6723e13efb15bdb91073a732b273c7b665b` |
+| Storefront | Missing; no RC.3 tag | — | — | — |
+| CRM | Partial publication only | `sha256:fde50bc3bb573fd2e9689de762dc204412b10886482782c252da56cbc97e4cad` | `sha256:41bfe673e85356b897113faf08fd8e12e1199ff55fdb11177a231687ff6744fc` | `sha256:bb787fb52d9ec229a377c834968a6489cec7586b631bccd6b29109905669c857` |
+
+No published-image runtime verification or consolidated release manifest ran.
+The backend and CRM tags are retained as failure evidence and will not be
+overwritten. RC.3 must never be deployed or retried; the native-runner correction
+requires a later immutable candidate.
 
 ## Independent registry inspection
 
 Run these commands for the RC tag and then repeat them for the exact full SHA:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.3
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.3
-docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.3
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-storefront:v1.0.0-rc.4
+docker buildx imagetools inspect ghcr.io/zxzxz143/vympel-crm:v1.0.0-rc.4
 ```
 
 Machine-readable inspection:
 
 ```bash
 docker buildx imagetools inspect \
-  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.3 \
+  ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4 \
   --raw | jq '.manifests[] | {digest, platform}'
 ```
 
 Explicit platform pulls:
 
 ```bash
-docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.3
-docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.3
+docker pull --platform linux/amd64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4
+docker pull --platform linux/arm64 ghcr.io/zxzxz143/vympel-backend:v1.0.0-rc.4
 ```
 
-Repeat both pulls for storefront and CRM. Compare the output to `deployment/releases/v1.0.0-rc.3.yml`; do not copy only the index digest when a child digest is required.
+Repeat both pulls for storefront and CRM. Compare the output to
+`deployment/releases/v1.0.0-rc.4.yml`; do not copy only the index digest when a
+child digest is required.
 
 ## Current next-RC evidence
 
-Status: pending the implementation commit, remote CI, immutable tag, and trusted publication run.
+Status: pending the native-runner correction commit, remote CI, immutable RC.4
+tag, and trusted publication run. RC.3 is permanently incomplete.
 
 The completed evidence section must record:
 
