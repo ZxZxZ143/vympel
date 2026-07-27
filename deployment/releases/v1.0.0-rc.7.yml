@@ -1,0 +1,53 @@
+apiVersion: deployment.vympel.dev/v1
+kind: PublishedReleaseManifest
+commit_sha: "477d32b36e817bb92b7000e94851e5756a186d9c"
+git_tag: "v1.0.0-rc.7"
+generated_at: "2026-07-27T02:35:32Z"
+images:
+  backend:
+    repository: ghcr.io/zxzxz143/vympel-backend
+    tag: "477d32b36e817bb92b7000e94851e5756a186d9c"
+    digest: "sha256:56e18f59861e51cdaf87721784e1bdc11d8bf39f2073f95ed1c1d65199ae7650"
+    platforms:
+      linux/amd64: "sha256:1616b6841fa7ee2825920164f4369ae0dedc04a575c6d465e949d81330759f5b"
+      linux/arm64: "sha256:0019dfff9649fff1dfdaba5b7d051f38b29c4138b2fda3550b39c3b1b8073c0d"
+  storefront:
+    repository: ghcr.io/zxzxz143/vympel-storefront
+    tag: "477d32b36e817bb92b7000e94851e5756a186d9c"
+    digest: "sha256:19c1aad97804e6bc625a1842e8bad33ee6de1606ee93aa797d330ee208dde7b8"
+    platforms:
+      linux/amd64: "sha256:7aa454cce1cfec03b3e93ba02b32f53fd87024ac6e68589db80d433067f5fbac"
+      linux/arm64: "sha256:dfc105358113dbd71ee53fa526cd1fd4602914cc0a23101d21aa202653fd89d8"
+  crm:
+    repository: ghcr.io/zxzxz143/vympel-crm
+    tag: "477d32b36e817bb92b7000e94851e5756a186d9c"
+    digest: "sha256:6ca77f9f69399ffa28401323a2a2bef8a5d99af42025e5261e23aaffff2878af"
+    platforms:
+      linux/amd64: "sha256:2ee731cc2ce1bdec930328dbefc338f26cc1e6657020503f655e64bc0d586762"
+      linux/arm64: "sha256:ecbddf8b0f42beb7c0b10c022365e746a513cf1d9065ee80a9dfd6605d870b23"
+public_build_configuration:
+  strategy: build-time-release-contract
+  storefront_api_base: "https://api.oracle-staging.example.invalid/api/public"
+  crm_api_base: "https://api.oracle-staging.example.invalid/api/crm"
+  media_origins: "https://api.oracle-staging.example.invalid"
+  storefront_site_url: "https://shop.oracle-staging.example.invalid"
+  deployment_environment: "staging"
+  release: "477d32b36e817bb92b7000e94851e5756a186d9c"
+  placeholder_acknowledged: true
+database:
+  changelog: classpath:db/changelog/db.changelog-master.xml
+  expected_latest_change: 2026-07-19-02-update-public-image-paths-to-webp
+  migration_mode: one-time-job
+verification:
+  workflow_run: "https://github.com/ZxZxZ143/vympel/actions/runs/30231792115"
+  registry_manifest: passed
+  linux_amd64_runtime: passed
+  linux_arm64_runtime: passed
+  deployment_performed: false
+remaining_oracle_decisions:
+  - Oracle tenancy, compartment, region, VCN, and subnet
+  - final DNS names and public build configuration
+  - Ampere A1 VM shape allocation and boot volume size
+  - SSH ingress source CIDRs
+  - backup destination and retention policy
+  - alert routing

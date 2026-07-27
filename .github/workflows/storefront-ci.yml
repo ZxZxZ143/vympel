@@ -80,3 +80,12 @@ jobs:
           --build-arg NEXT_PUBLIC_APP_RELEASE="${GITHUB_SHA}"
           --tag "vympel-storefront:${GITHUB_SHA}"
           vympel_front
+      - name: Reject localhost URLs in the non-local storefront bundle
+        working-directory: ${{ github.workspace }}
+        run: |
+          if docker run --rm --entrypoint /bin/grep \
+            "vympel-storefront:${GITHUB_SHA}" \
+            -R -a -q -E 'https?://localhost([/:]|$)' /app/.next /app/public; then
+            echo "Non-local storefront bundle contains a localhost URL." >&2
+            exit 1
+          fi

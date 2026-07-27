@@ -3,11 +3,52 @@
 Date: 2026-07-27
 Repository: `ZxZxZ143/vympel`
 Branch: `main`
-Verified release-candidate commit: `633db42643d42ee6448919b5f6b6b16a7da1ca17`
-Release-candidate tag: `v1.0.0-rc.2`
-Preserved earlier candidate: `v1.0.0-rc.1` -> `954e8a3a659371ba0203369aec9d2fef968fab5b`
+Verified release-candidate commit: `477d32b36e817bb92b7000e94851e5756a186d9c`
+Release-candidate tag: `v1.0.0-rc.7`
+Preserved earlier verified amd64-only candidate: `v1.0.0-rc.2` -> `633db42643d42ee6448919b5f6b6b16a7da1ca17`
 
 ## ARM64 and Oracle staging verification
+
+### Completed RC.7 verification
+
+The final-index authentication correction passed Performance Budgets run
+[30231338581](https://github.com/ZxZxZ143/vympel/actions/runs/30231338581),
+build-only Release Images run
+[30231338867](https://github.com/ZxZxZ143/vympel/actions/runs/30231338867),
+Full Release Gate run
+[30231338728](https://github.com/ZxZxZ143/vympel/actions/runs/30231338728),
+and tag-triggered Full Release Gate run
+[30231592708](https://github.com/ZxZxZ143/vympel/actions/runs/30231592708)
+at exact source `477d32b36e817bb92b7000e94851e5756a186d9c`.
+
+Trusted Release Images run
+[30231792115](https://github.com/ZxZxZ143/vympel/actions/runs/30231792115)
+completed successfully. It passed the reusable source gate and all-repository
+absence preflight, built amd64 and ARM64 children on native hosted runners,
+assembled and attested all three OCI indexes, recorded exact index/platform
+digests, ran the exact amd64 images, and ran the exact ARM64 images through the
+bounded QEMU rehearsal. ARM64 proof covered all 77 Liquibase changesets,
+backend readiness and Java `aarch64`, Node `arm64`, native sharp transforms in
+both Next.js apps, storefront image optimization, CRM `/login`, and storefront
+`/ru`.
+
+The consolidated published-manifest artifact is ID `8640548543`, size 1345
+bytes, ZIP digest
+`sha256:2b265b71e26bdc1ebf2854b8bbf6d227768f106e38e92fd8b87b01427ac3271e`.
+The metadata artifact is ID `8640481382`, ZIP digest
+`sha256:6fbd4b0777348e6668a57ec8c9c671f022e9f2de72cc99032f5c14445c2ab2fb`.
+The complete registry record is committed at
+`deployment/releases/v1.0.0-rc.7.yml`.
+
+RC.7 is intentionally evidence-only: it records acknowledged `.invalid`
+browser-visible origins, and a later direct amd64 filesystem scan found the
+then-unconditional `http://localhost` local-media pattern in the storefront
+server chunk. The source correction applies only to future images. No Google
+Cloud/Oracle resource, external deployment, DNS change, or TLS issuance
+occurred. A later immutable RC is required after real staging domains are
+approved.
+
+### Immutable publication history
 
 Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
 and CRM performance-build correction
@@ -31,7 +72,7 @@ already written; the storefront RC.3 tag is absent. Post-publication runtime
 verification and consolidated manifest generation were skipped. RC.3 is
 therefore immutable, incomplete, and prohibited from deployment.
 
-The working tree now prepares RC.4 by replacing QEMU build execution with
+The next attempted correction prepared RC.4 by replacing QEMU build execution with
 Docker's pinned distributed builder and native `ubuntu-24.04-arm` runners. It
 retains the release boundary:
 
@@ -46,10 +87,10 @@ retains the release boundary:
 - storefront-first publication so the previously failing dependency stage
   completes before backend and CRM registry writes begin.
 
-The RC.4 commit/tag, registry digests, and final status remain pending until the
-native-runner correction is committed, pushed normally, all required GitHub
-Actions runs pass, and the trusted manual publication completes. RC.2 remains
-the verified amd64-only baseline and is not moved.
+At that point, the RC.4 commit/tag, registry digests, and final status remained
+pending until the native-runner correction was committed, pushed normally, and
+verified. The later paragraphs preserve that outcome. RC.2 remained the
+verified amd64-only baseline and was not moved.
 
 Native-builder correction commit `dc74e8d54a18678e058312026170efe1019d463c`
 passed Performance Budgets run

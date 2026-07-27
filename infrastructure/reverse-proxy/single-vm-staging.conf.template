@@ -1,0 +1,118 @@
+# Provider-neutral HTTP-first host Nginx template. Render only:
+#   envsubst '$STOREFRONT_DOMAIN $CRM_DOMAIN $API_DOMAIN'
+# Keep this HTTP configuration until DNS resolves and Certbot has completed.
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}
+
+server {
+    listen 80;
+    server_name ${STOREFRONT_DOMAIN};
+    server_tokens off;
+    client_max_body_size 2m;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 60s;
+    }
+}
+
+server {
+    listen 80;
+    server_name ${CRM_DOMAIN};
+    server_tokens off;
+    client_max_body_size 2m;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 60s;
+    }
+}
+
+server {
+    listen 80;
+    server_name ${API_DOMAIN};
+    server_tokens off;
+    client_max_body_size 110m;
+
+    location = /actuator {
+        access_log off;
+        return 404;
+    }
+
+    location ^~ /actuator/ {
+        access_log off;
+        return 404;
+    }
+
+    # The MinIO API and console stay private. This loopback-only gateway permits
+    # GET/HEAD object reads and strips the public /media/ prefix.
+    location /media/ {
+        proxy_pass http://127.0.0.1:9002/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header Connection "";
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 60s;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 120s;
+        proxy_read_timeout 120s;
+    }
+}
+
+# After all three DNS records resolve to the VM, install Certbot and run:
+#   sudo certbot --nginx -d "$STOREFRONT_DOMAIN" -d "$CRM_DOMAIN" -d "$API_DOMAIN"
+# Certbot owns the generated certificate paths and HTTPS server blocks.

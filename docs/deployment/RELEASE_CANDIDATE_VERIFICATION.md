@@ -1,14 +1,44 @@
 # Release Candidate Verification
 
 Date: 2026-07-27
-Candidate: `v1.0.0-rc.2`
-Status: provider-independent local and remote gates passed; three GHCR images published and verified; provider-specific deployment conditions remain open.
+Candidate: `v1.0.0-rc.7`
+Status: amd64/ARM64 publication and runtime gates passed; evidence-only public origins and a retained storefront local-media pattern mean provider deployment remains prohibited.
 
-## Next candidate: ARM64 and Oracle staging preparation
+## ARM64 and Oracle staging candidate
 
-Status: RC.3 and RC.5 are immutable and partial; RC.4 is immutable and
-unpublished; RC.6 has complete indexes but failed its downstream attestation
-gate; the final-index registry-login correction for RC.7 is in progress.
+Status: RC.7 is immutable, completely published, attested, and runtime-verified
+for `linux/amd64` and `linux/arm64`. RC.3 and RC.5 remain immutable and partial;
+RC.4 remains immutable and unpublished; RC.6 remains immutable with complete
+indexes but incomplete downstream evidence.
+
+Exact source commit `477d32b36e817bb92b7000e94851e5756a186d9c`
+passed Performance Budgets run
+[30231338581](https://github.com/ZxZxZ143/vympel/actions/runs/30231338581),
+build-only Release Images run
+[30231338867](https://github.com/ZxZxZ143/vympel/actions/runs/30231338867),
+Full Release Gate run
+[30231338728](https://github.com/ZxZxZ143/vympel/actions/runs/30231338728),
+and tag-triggered Full Release Gate run
+[30231592708](https://github.com/ZxZxZ143/vympel/actions/runs/30231592708).
+Trusted publication run
+[30231792115](https://github.com/ZxZxZ143/vympel/actions/runs/30231792115)
+then passed all six native builds, final index and provenance jobs, registry
+metadata, amd64 runtime, QEMU ARM64 runtime, and consolidated manifest
+generation.
+
+The accepted registry record is:
+
+| Image | Index digest | amd64 child | ARM64 child |
+| --- | --- | --- | --- |
+| Backend | `sha256:56e18f59861e51cdaf87721784e1bdc11d8bf39f2073f95ed1c1d65199ae7650` | `sha256:1616b6841fa7ee2825920164f4369ae0dedc04a575c6d465e949d81330759f5b` | `sha256:0019dfff9649fff1dfdaba5b7d051f38b29c4138b2fda3550b39c3b1b8073c0d` |
+| Storefront | `sha256:19c1aad97804e6bc625a1842e8bad33ee6de1606ee93aa797d330ee208dde7b8` | `sha256:7aa454cce1cfec03b3e93ba02b32f53fd87024ac6e68589db80d433067f5fbac` | `sha256:dfc105358113dbd71ee53fa526cd1fd4602914cc0a23101d21aa202653fd89d8` |
+| CRM | `sha256:6ca77f9f69399ffa28401323a2a2bef8a5d99af42025e5261e23aaffff2878af` | `sha256:2ee731cc2ce1bdec930328dbefc338f26cc1e6657020503f655e64bc0d586762` | `sha256:ecbddf8b0f42beb7c0b10c022365e746a513cf1d9065ee80a9dfd6605d870b23` |
+
+The exact release artifact is committed at
+`deployment/releases/v1.0.0-rc.7.yml`. The tag and full-SHA aliases match for
+every image. Backend Liquibase/readiness/Java ARM64, storefront and CRM native
+ARM64 sharp transforms, storefront image optimization, and both Next.js routes
+passed. No external deployment ran.
 
 Implementation commit `05a14b51bdc0ed2484b1257cfa3265cf8bb98b8d`
 and CRM performance-build correction
@@ -48,10 +78,9 @@ then failed because `actions/attest` had no registry credentials in that
 separate job. Release metadata, runtime verification, and consolidated manifest
 generation were skipped.
 
-RC.6 must not be moved, overwritten, retried, or deployed. The next candidate
-is `v1.0.0-rc.7`; it may be tagged only after the exact attestation-job login
-correction passes performance, Full Release Gate, and build-only Release Images
-workflows on `main`.
+RC.6 must not be moved, overwritten, retried, or deployed. Its per-job registry
+authentication correction was verified only under the later immutable RC.7
+source and publication.
 
 The release publication is accepted only when:
 

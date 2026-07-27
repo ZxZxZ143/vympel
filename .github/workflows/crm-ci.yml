@@ -76,3 +76,12 @@ jobs:
           --build-arg NEXT_PUBLIC_APP_RELEASE="${GITHUB_SHA}"
           --tag "vympel-crm:${GITHUB_SHA}"
           vympel_crm
+      - name: Reject localhost URLs in the non-local CRM bundle
+        working-directory: ${{ github.workspace }}
+        run: |
+          if docker run --rm --entrypoint /bin/grep \
+            "vympel-crm:${GITHUB_SHA}" \
+            -R -a -q -E 'https?://localhost([/:]|$)' /app/.next; then
+            echo "Non-local CRM bundle contains a localhost URL." >&2
+            exit 1
+          fi

@@ -228,20 +228,51 @@ Repeat both pulls for storefront and CRM. Compare the output to
 `deployment/releases/v1.0.0-rc.7.yml`; do not copy only the index digest when a
 child digest is required.
 
-## Current next-RC evidence
+## Verified RC.7 publication
 
-Status: pending the final-index attestation-login correction commit, remote CI,
-immutable RC.7 tag, and trusted publication run. RC.3 and RC.5 are permanently
-partial, RC.4 is permanently unpublished, and RC.6 is permanently
-post-publication-incomplete.
+Annotated tag `v1.0.0-rc.7` is immutable at
+`477d32b36e817bb92b7000e94851e5756a186d9c`. Performance Budgets run
+[30231338581](https://github.com/ZxZxZ143/vympel/actions/runs/30231338581),
+build-only Release Images run
+[30231338867](https://github.com/ZxZxZ143/vympel/actions/runs/30231338867),
+Full Release Gate run
+[30231338728](https://github.com/ZxZxZ143/vympel/actions/runs/30231338728),
+and tag-triggered Full Release Gate run
+[30231592708](https://github.com/ZxZxZ143/vympel/actions/runs/30231592708)
+passed on that exact source.
 
-The completed evidence section must record:
+Trusted Release Images run
+[30231792115](https://github.com/ZxZxZ143/vympel/actions/runs/30231792115)
+then completed successfully. The all-repository absence preflight passed before
+registry fan-out; all six native builds, all three final OCI indexes, all three
+authenticated final-index attestations, metadata capture, exact-image amd64
+Compose rehearsal, exact-image QEMU ARM64 rehearsal, and consolidated manifest
+jobs passed.
 
-- exact source commit and RC tag;
-- release workflow run URL;
-- index and both child digests for all three images;
-- explicit RC-tag and SHA-tag platform inspection;
-- backend ARM64 Liquibase/readiness and `os.arch=aarch64`;
-- storefront/CRM `process.arch=arm64`, `sharp` native transform, and storefront `/_next/image` result;
-- exact public build configuration compiled into the frontend images;
-- confirmation that no cloud deployment ran.
+| Image | OCI index digest | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- |
+| Backend | `sha256:56e18f59861e51cdaf87721784e1bdc11d8bf39f2073f95ed1c1d65199ae7650` | `sha256:1616b6841fa7ee2825920164f4369ae0dedc04a575c6d465e949d81330759f5b` | `sha256:0019dfff9649fff1dfdaba5b7d051f38b29c4138b2fda3550b39c3b1b8073c0d` |
+| Storefront | `sha256:19c1aad97804e6bc625a1842e8bad33ee6de1606ee93aa797d330ee208dde7b8` | `sha256:7aa454cce1cfec03b3e93ba02b32f53fd87024ac6e68589db80d433067f5fbac` | `sha256:dfc105358113dbd71ee53fa526cd1fd4602914cc0a23101d21aa202653fd89d8` |
+| CRM | `sha256:6ca77f9f69399ffa28401323a2a2bef8a5d99af42025e5261e23aaffff2878af` | `sha256:2ee731cc2ce1bdec930328dbefc338f26cc1e6657020503f655e64bc0d586762` | `sha256:ecbddf8b0f42beb7c0b10c022365e746a513cf1d9065ee80a9dfd6605d870b23` |
+
+The RC tag and exact full-SHA tag resolve to the same index for every image.
+The ARM64 rehearsal applied all 77 Liquibase changesets, reached backend
+readiness with Java `os.arch=aarch64`, loaded native ARM64 `sharp` in both
+Next.js images, exercised real transforms, served CRM `/login`, served
+storefront `/ru`, and returned a real storefront `/_next/image` response.
+
+The consolidated artifact
+`published-release-manifest-477d32b36e817bb92b7000e94851e5756a186d9c`
+is artifact ID `8640548543`, ZIP digest
+`sha256:2b265b71e26bdc1ebf2854b8bbf6d227768f106e38e92fd8b87b01427ac3271e`,
+and is preserved in `deployment/releases/v1.0.0-rc.7.yml`.
+
+RC.7 deliberately compiles reserved `.invalid` public origins and records
+`placeholder_acknowledged: true`. A direct amd64 filesystem scan also found the
+then-unconditional `http://localhost` local MinIO image pattern in the
+storefront server chunk; CRM had no local URL match and image metadata had no
+secret-bearing environment entry. The source now limits that pattern to
+`NEXT_PUBLIC_APP_ENV=local`, but immutable RC.7 cannot change. It is a complete
+multi-architecture publication/runtime proof, not a deployable GCP/Oracle
+release. After final domains are approved, publish and rescan a new immutable
+RC with the exact real public build configuration. No cloud deployment ran.

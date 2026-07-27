@@ -1990,8 +1990,26 @@
 ### Put a single-VM data plane on private networks behind loopback ingress
 
 * **When to use:** Running Vympel staging on one bounded VM without managed PostgreSQL, Redis, or object storage.
-* **How:** Keep PostgreSQL/Redis/MinIO ports unpublished on an internal data network; bind storefront, CRM, backend, and a read-only media gateway only to `127.0.0.1`; let host Nginx own public ports and forwarded headers. Use named volumes, health checks, finite migration/init jobs, restart policies, and resource limits whose persistent totals leave host headroom.
+* **How:** Keep PostgreSQL/Redis/MinIO ports unpublished on an internal data network; bind storefront, CRM, backend, and a read-only media gateway only to `127.0.0.1`; let host Nginx own public ports and forwarded headers. Use named volumes, health checks, finite migration/init jobs, restart policies, and resource limits whose persistent totals leave host headroom. On an 8 GiB host, the verified GCP baseline totals 5,440 MiB for long-running containers and leaves 2,752 MiB for Ubuntu, Docker, Nginx, and cache.
 * **Why:** Service DNS remains stable and public exposure is minimized without making host Nginx depend on fragile container IP addresses.
+
+### Size Java heap below the container ceiling
+
+* **When to use:** Running the backend and finite Liquibase job with different bounded container memory limits.
+* **How:** Use percentage-based container-aware heap sizing with `InitialRAMPercentage=20` and `MaxRAMPercentage=60`. The published Temurin 17 image reports an estimated 1.20 GiB maximum heap under the 2,048 MiB backend limit and 891.31 MiB under the 1,536 MiB migration limit; keep the remainder for metaspace, direct buffers, threads, native libraries, and JVM overhead.
+* **Why:** Setting heap equal to the container limit makes the kernel kill a healthy JVM when non-heap/native memory grows.
+
+### Keep local image origins out of deployable Next.js output
+
+* **When to use:** A `next/image` remote pattern is useful only for local MinIO development.
+* **How:** Include the localhost remote pattern only when `NEXT_PUBLIC_APP_ENV=local`; staging/production builds receive only the explicitly approved `NEXT_PUBLIC_MEDIA_ORIGINS`. Scan the final image filesystem as well as image metadata, because server chunks can retain configuration strings that do not appear in `Config.Env`.
+* **Why:** RC.7's storefront image metadata contained no secret/local environment entry, but its server bundle still retained the unconditional `http://localhost` pattern.
+
+### Treat GCP provisioning as an operator-owned boundary
+
+* **When to use:** Preparing a Compute Engine single-VM target without authority to create cloud resources.
+* **How:** Commit provider-neutral Compose/Nginx plus a GCP placeholder env and manual runbook, but leave project, billing, VPC/firewall, static IP, VM, IAM/SSH, DNS, Certbot, secrets, backups, monitoring, and deployment explicitly unperformed.
+* **Why:** A validated deployment contract does not grant authority to mutate Google Cloud, DNS, credentials, or external runtime state.
 
 ### Treat Oracle provisioning as an operator-owned boundary
 
@@ -2047,6 +2065,12 @@
 * **How:** Download the consolidated non-secret manifest artifact, verify its commit/tag/run URL and all three `sha256:` values, then commit the exact manifest under `deployment/releases/<tag>.yml` on `main`. Keep the evidence commit outside the existing release tag.
 * **Why:** Registry digests do not exist until publication, but moving the tag afterward would break the binding between the tag and the source that passed the release gate.
 
+### Accept a multi-architecture release only after exact-image runtime jobs
+
+* **When to use:** Native platform builders and final OCI indexes have succeeded, but the release still needs deployable evidence.
+* **How:** Require authenticated final-index provenance, registry-derived child digests, exact full-SHA pulls, isolated amd64 Compose, and bounded ARM64 Liquibase/Java/Node/sharp/image-optimization checks before generating the consolidated manifest. Preserve the successful artifact under `deployment/releases/<tag>.yml` without moving the tag.
+* **Why:** RC.7 demonstrated that successful native builds and index creation are intermediate states; the release boundary is complete only when final references, metadata, both runtimes, and the digest record all pass together.
+
 ### Rebuild immutable frontend images when public origins change
 
 * **When to use:** A registry rehearsal compiles loopback or placeholder public URLs into Next.js output and later needs promotion to a real environment.
@@ -2075,4 +2099,4 @@
 
 ## Last Updated
 
-2026-07-27 - Recorded RC.6's post-publication attestation failure and added the per-job registry-authentication rule.
+2026-07-27 - Added the reusable 8 GB single-VM/GCP pattern, safe JVM percentage budget, final-image localhost scan lesson, and explicit external-provisioning boundary.
