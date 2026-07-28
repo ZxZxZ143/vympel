@@ -43,10 +43,10 @@ jobs:
       run:
         working-directory: vympel_front
     env:
-      BASE_API_PUBLIC: http://127.0.0.1:65535/api/public
-      NEXT_PUBLIC_BASE_API_PUBLIC: https://api.example.invalid/api/public
-      NEXT_PUBLIC_MEDIA_ORIGINS: https://media.example.invalid
-      NEXT_PUBLIC_SITE_URL: https://shop.example.invalid
+      BASE_API_PUBLIC: https://api.example.com/api/public
+      NEXT_PUBLIC_BASE_API_PUBLIC: https://api.example.com/api/public
+      NEXT_PUBLIC_MEDIA_ORIGINS: https://media.example.com
+      NEXT_PUBLIC_SITE_URL: https://shop.example.com
       NEXT_PUBLIC_APP_ENV: ci
       NEXT_PUBLIC_APP_RELEASE: ${{ github.sha }}
       NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
@@ -72,20 +72,19 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: >-
           docker build --pull
-          --build-arg BASE_API_PUBLIC=http://127.0.0.1:65535/api/public
-          --build-arg NEXT_PUBLIC_BASE_API_PUBLIC=https://api.example.invalid/api/public
-          --build-arg NEXT_PUBLIC_MEDIA_ORIGINS=https://media.example.invalid
-          --build-arg NEXT_PUBLIC_SITE_URL=https://shop.example.invalid
+          --build-arg BASE_API_PUBLIC=https://api.example.com/api/public
+          --build-arg NEXT_PUBLIC_BASE_API_PUBLIC=https://api.example.com/api/public
+          --build-arg NEXT_PUBLIC_MEDIA_ORIGINS=https://media.example.com
+          --build-arg NEXT_PUBLIC_SITE_URL=https://shop.example.com
           --build-arg NEXT_PUBLIC_APP_ENV=ci
           --build-arg NEXT_PUBLIC_APP_RELEASE="${GITHUB_SHA}"
           --tag "vympel-storefront:${GITHUB_SHA}"
           vympel_front
-      - name: Reject localhost URLs in the non-local storefront bundle
+      - name: Verify non-local storefront bundle URLs
         working-directory: ${{ github.workspace }}
         run: |
-          if docker run --rm --entrypoint /bin/grep \
+          docker run --rm \
+            --entrypoint /bin/sh \
+            --volume "${GITHUB_WORKSPACE}/deployment/scripts/verify-frontend-bundle-urls.sh:/tmp/verify-frontend-bundle-urls.sh:ro" \
             "vympel-storefront:${GITHUB_SHA}" \
-            -R -a -q -E 'https?://localhost([/:]|$)' /app/.next /app/public; then
-            echo "Non-local storefront bundle contains a localhost URL." >&2
-            exit 1
-          fi
+            /tmp/verify-frontend-bundle-urls.sh /app/.next /app/public

@@ -18,22 +18,22 @@ on:
       storefront_api_base:
         description: Browser-visible storefront API URL compiled into the image
         required: true
-        default: https://api.example.invalid/api/public
+        default: https://api.example.com/api/public
         type: string
       crm_api_base:
         description: Browser-visible CRM API URL compiled into the image
         required: true
-        default: https://api.example.invalid/api/crm
+        default: https://api.example.com/api/crm
         type: string
       media_origins:
         description: Comma-separated browser-visible media origins
         required: true
-        default: https://media.example.invalid
+        default: https://media.example.com
         type: string
       storefront_site_url:
         description: Browser-visible canonical storefront origin compiled into the image
         required: true
-        default: https://shop.example.invalid
+        default: https://shop.example.com
         type: string
       deployment_environment:
         description: Public environment label compiled into frontend images
@@ -168,10 +168,10 @@ jobs:
             context: vympel_front
             dockerfile: vympel_front/Dockerfile
             build_args: |
-              BASE_API_PUBLIC=${{ inputs.storefront_api_base || 'https://api.example.invalid/api/public' }}
-              NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base || 'https://api.example.invalid/api/public' }}
-              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins || 'https://media.example.invalid' }}
-              NEXT_PUBLIC_SITE_URL=${{ inputs.storefront_site_url || 'https://shop.example.invalid' }}
+              BASE_API_PUBLIC=${{ inputs.storefront_api_base || 'https://api.example.com/api/public' }}
+              NEXT_PUBLIC_BASE_API_PUBLIC=${{ inputs.storefront_api_base || 'https://api.example.com/api/public' }}
+              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins || 'https://media.example.com' }}
+              NEXT_PUBLIC_SITE_URL=${{ inputs.storefront_site_url || 'https://shop.example.com' }}
               NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment || 'ci' }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false
@@ -179,8 +179,8 @@ jobs:
             context: vympel_crm
             dockerfile: vympel_crm/Dockerfile
             build_args: |
-              NEXT_PUBLIC_CRM_API_BASE=${{ inputs.crm_api_base || 'https://api.example.invalid/api/crm' }}
-              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins || 'https://media.example.invalid' }}
+              NEXT_PUBLIC_CRM_API_BASE=${{ inputs.crm_api_base || 'https://api.example.com/api/crm' }}
+              NEXT_PUBLIC_MEDIA_ORIGINS=${{ inputs.media_origins || 'https://media.example.com' }}
               NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment || 'ci' }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false

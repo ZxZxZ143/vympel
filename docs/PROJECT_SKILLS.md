@@ -2002,7 +2002,7 @@
 ### Keep local image origins out of deployable Next.js output
 
 * **When to use:** A `next/image` remote pattern is useful only for local MinIO development.
-* **How:** Include the localhost remote pattern only when `NEXT_PUBLIC_APP_ENV=local`; staging/production builds receive only the explicitly approved `NEXT_PUBLIC_MEDIA_ORIGINS`. Avoid placeholder origins even in parsing helpers, and require browser API bases instead of compiling local fallbacks. Scan the flattened `.next` filesystem of every published platform child for reserved `.invalid` URLs and fixed localhost/IPv4/IPv6 loopback destinations as well as checking image metadata. Ignore only Next.js's own templated internal `http://localhost:${...}` machinery, which is not a concrete application destination.
+* **How:** Include the localhost remote pattern only when `NEXT_PUBLIC_APP_ENV=local`; staging/production builds receive only the explicitly approved `NEXT_PUBLIC_MEDIA_ORIGINS`. Avoid placeholder origins even in parsing helpers, and require browser API bases instead of compiling local fallbacks. Use the same `verify-frontend-bundle-urls.sh` contract in frontend CI and on the flattened `.next` filesystem of every published platform child to reject reserved `.invalid` URLs and fixed localhost/IPv4/IPv6 loopback destinations. Ignore only Next.js's own templated internal `http://localhost:${...}` machinery, which is not a concrete application destination.
 * **Why:** RC.7's storefront image metadata contained no secret/local environment entry, but its server bundle still retained the unconditional `http://localhost` pattern.
 
 ### Record public build values by their exact environment names
