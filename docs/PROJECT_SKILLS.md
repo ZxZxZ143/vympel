@@ -2014,7 +2014,7 @@
 ### Treat GCP provisioning as an operator-owned boundary
 
 * **When to use:** Preparing a Compute Engine single-VM target without authority to create cloud resources.
-* **How:** Commit provider-neutral Compose/Nginx plus a GCP placeholder env and manual runbook, but leave project, billing, VPC/firewall, static IP, VM, IAM/SSH, DNS, Certbot, secrets, backups, monitoring, and deployment explicitly unperformed.
+* **How:** Commit provider-neutral Compose/Nginx plus a secret-free GCP env template and manual runbook, but leave project, billing, VPC/firewall, static IP, VM, IAM/SSH, DNS, Certbot, secrets, backups, monitoring, and deployment explicitly unperformed. After publication, pin only the non-secret release SHA and approved public routing values in the template.
 * **Why:** A validated deployment contract does not grant authority to mutate Google Cloud, DNS, credentials, or external runtime state.
 
 ### Treat Oracle provisioning as an operator-owned boundary
@@ -2071,6 +2071,12 @@
 * **How:** Download the consolidated non-secret manifest artifact, verify its commit/tag/run URL and all three `sha256:` values, then commit the exact manifest under `deployment/releases/<tag>.yml` on `main`. Keep the evidence commit outside the existing release tag.
 * **Why:** Registry digests do not exist until publication, but moving the tag afterward would break the binding between the tag and the source that passed the release gate.
 
+### Cross-check release artifacts against the public registry
+
+* **When to use:** A publication workflow has emitted a digest-complete manifest and the release needs a durable deployable record.
+* **How:** Independently inspect every RC-tagged OCI index, confirm its `linux/amd64` child, confirm the full-SHA alias resolves to the same index digest, and compare all values with the downloaded manifest before committing it. Reinspect the prior RC tags to prove they were not moved.
+* **Why:** RC.8 demonstrated that workflow success and artifact generation can be corroborated without trusting either record alone, while preserving the immutability guarantee of earlier candidates.
+
 ### Accept a multi-architecture release only after exact-image runtime jobs
 
 * **When to use:** Native platform builders and final OCI indexes have succeeded, but the release still needs deployable evidence.
@@ -2105,4 +2111,4 @@
 
 ## Last Updated
 
-2026-07-29 - Added the exact temporary GCP sslip.io release contract, exact-name public-build manifest evidence, and flattened multi-platform bundle URL scanning.
+2026-07-29 - Recorded the immutable RC.8 publication workflow, independent registry cross-check, exact manifest preservation, and pinned non-secret GCP staging selector.

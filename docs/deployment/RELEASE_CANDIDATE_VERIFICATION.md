@@ -1,10 +1,49 @@
 # Release Candidate Verification
 
-Date: 2026-07-27
-Candidate: `v1.0.0-rc.7`
-Status: amd64/ARM64 publication and runtime gates passed; evidence-only public origins and a retained storefront local-media pattern mean provider deployment remains prohibited.
+Date: 2026-07-29
+Candidate: `v1.0.0-rc.8`
+Status: immutable amd64/ARM64 publication and runtime gates passed with the exact temporary public GCP staging build contract; external deployment was not performed.
 
-## ARM64 and Oracle staging candidate
+## Temporary public GCP staging candidate
+
+`v1.0.0-rc.8` is immutable at exact release commit
+`aadfabfd23a4196bc385ae41a0f3b8719172ffbc`. The source passed Performance
+Budgets run
+[30399583227](https://github.com/ZxZxZ143/vympel/actions/runs/30399583227),
+Storefront CI run
+[30399583382](https://github.com/ZxZxZ143/vympel/actions/runs/30399583382),
+CRM CI run
+[30399583388](https://github.com/ZxZxZ143/vympel/actions/runs/30399583388),
+Full Release Gate run
+[30399583534](https://github.com/ZxZxZ143/vympel/actions/runs/30399583534),
+build-only Release Images run
+[30399583742](https://github.com/ZxZxZ143/vympel/actions/runs/30399583742),
+and tag-triggered Full Release Gate run
+[30399967023](https://github.com/ZxZxZ143/vympel/actions/runs/30399967023).
+
+Trusted publication run
+[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979)
+then passed the publication policy, reusable full gate, six native builds,
+signed final indexes, registry metadata, exact-image amd64 and ARM64 runtime
+rehearsals, migrations/readiness, native sharp checks, frontend bundle scans,
+and manifest generation.
+
+| Image | Index digest | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- |
+| Backend | `sha256:47dcad868b3804fac91b58e23f5fdb6d2c914d39016bd5d0ca727672bb60a6d7` | `sha256:2dff06fc116f4472033f2e7e9af1a4bccb4dc08facc7a76fa07084a78539e69e` | `sha256:9784b3415a4b5901e5947af7ad737a8852072db57ff614a1bd2ac32dcd765a3d` |
+| Storefront | `sha256:42a6e04c243772efc98a021998338e25a1b532cccfb073db645768c3dd2db389` | `sha256:869c5e4c32bafd60a02f7473940e662f661086fe2df74775b95787f40023d453` | `sha256:efb14f0ad663e7cf75d442ca6d0645192487bcb01062bf928bf07f45011d492c` |
+| CRM | `sha256:7755917ba4ace3ab2602b2126ad6aeea88993e66b70702f6707008db6516aec6` | `sha256:78c2efb3b9187a02293e7757647c33705cfeba58b55e2dedcfe633bf788aa961` | `sha256:55708c82e0f623ddfd057ee7ab0e45a3b0906a2b5359b06fe8aef92b968ff660` |
+
+The exact public build values and registry record are committed at
+`deployment/releases/v1.0.0-rc.8.yml`. The manifest artifact is ID
+`8704956171` with ZIP digest
+`sha256:f5a4536ab7e7c89033ed76753f30499f61ef5feb6f0983a28973d81d823a6e6f`.
+Independent registry inspection confirmed the RC and full-SHA aliases. The
+published frontend scans reject concrete `.invalid`, localhost, IPv4 loopback,
+and IPv6 loopback destinations; both platform children passed. RC.7 retains its
+original digests. No Google Cloud resource or external deployment was created.
+
+## Preserved RC.7 ARM64 and Oracle staging evidence
 
 Status: RC.7 is immutable, completely published, attested, and runtime-verified
 for `linux/amd64` and `linux/arm64`. RC.3 and RC.5 remain immutable and partial;

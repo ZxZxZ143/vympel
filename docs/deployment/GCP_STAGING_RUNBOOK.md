@@ -15,11 +15,16 @@ running Ubuntu 24.04 LTS on `linux/amd64`. Use:
 - `infrastructure/env/gcp-staging.env.example`
 - `infrastructure/reverse-proxy/single-vm-staging.conf.template`
 
-`v1.0.0-rc.7` remains immutable and evidence-only. The next candidate uses
-`shop.34.18.200.58.sslip.io`, `crm.34.18.200.58.sslip.io`, and
-`api.34.18.200.58.sslip.io`; it may be selected only after all three published
-indexes, their `linux/amd64` children, exact bundle URL scans, runtime checks,
-and the digest-complete release manifest pass.
+`v1.0.0-rc.7` remains immutable and evidence-only. `v1.0.0-rc.8` is the
+deployable image candidate for this temporary public routing contract. It is
+immutable at `aadfabfd23a4196bc385ae41a0f3b8719172ffbc`; all three OCI
+indexes, their `linux/amd64` children, exact frontend bundle URL scans, amd64
+and ARM64 runtime checks, and the digest-complete manifest passed in Release
+Images run
+[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979).
+The exact registry and public-build record is
+`deployment/releases/v1.0.0-rc.8.yml`. No Google Cloud resource or external
+deployment was created.
 
 ## Architecture and ports
 
@@ -326,8 +331,9 @@ estimated 891.31 MiB heap under the 1,536 MiB migration limit.
 
 - Approve Google Cloud project/region/zone, VPC/subnet, billing, IAM/OS Login,
   SSH source, static IP, VM, disk, deletion protection, and firewall rules.
-- Select the successfully published immutable candidate whose manifest records
-  the exact temporary sslip.io origins and whose platform bundle scans passed.
+- Use the already pinned RC.8 full SHA from
+  `infrastructure/env/gcp-staging.env.example`; confirm it against
+  `deployment/releases/v1.0.0-rc.8.yml` before the first authorized startup.
 - Generate/store real secrets outside Git and decide backup/restore retention.
 - Create the VM, DNS, Nginx/Certbot configuration, monitoring, and alerts.
 - Perform the first authorized deployment, ADMIN bootstrap, external smoke

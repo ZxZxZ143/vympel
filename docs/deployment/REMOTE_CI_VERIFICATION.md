@@ -1,11 +1,46 @@
 # Remote CI Verification
 
-Date: 2026-07-27
+Date: 2026-07-29
 Repository: `ZxZxZ143/vympel`
 Branch: `main`
-Verified release-candidate commit: `477d32b36e817bb92b7000e94851e5756a186d9c`
-Release-candidate tag: `v1.0.0-rc.7`
+Verified release-candidate commit: `aadfabfd23a4196bc385ae41a0f3b8719172ffbc`
+Release-candidate tag: `v1.0.0-rc.8`
 Preserved earlier verified amd64-only candidate: `v1.0.0-rc.2` -> `633db42643d42ee6448919b5f6b6b16a7da1ca17`
+
+## GCP staging RC.8 verification
+
+Exact source `aadfabfd23a4196bc385ae41a0f3b8719172ffbc` passed Performance
+Budgets run
+[30399583227](https://github.com/ZxZxZ143/vympel/actions/runs/30399583227),
+Storefront CI run
+[30399583382](https://github.com/ZxZxZ143/vympel/actions/runs/30399583382),
+CRM CI run
+[30399583388](https://github.com/ZxZxZ143/vympel/actions/runs/30399583388),
+Full Release Gate run
+[30399583534](https://github.com/ZxZxZ143/vympel/actions/runs/30399583534),
+and build-only Release Images run
+[30399583742](https://github.com/ZxZxZ143/vympel/actions/runs/30399583742).
+Annotated tag `v1.0.0-rc.8` resolves to the same exact commit; its
+tag-triggered Full Release Gate run
+[30399967023](https://github.com/ZxZxZ143/vympel/actions/runs/30399967023)
+also passed.
+
+Trusted Release Images run
+[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979)
+completed successfully with the exact temporary public GCP build values. It
+passed all six native architecture builds, final-index attestations, registry
+metadata, finite Liquibase/readiness checks, exact-image amd64 and ARM64
+runtime rehearsals, native sharp transforms, frontend bundle scans, and
+consolidated manifest generation.
+
+The manifest artifact
+`published-release-manifest-aadfabfd23a4196bc385ae41a0f3b8719172ffbc`
+is ID `8704956171`, size 1473 bytes, ZIP digest
+`sha256:f5a4536ab7e7c89033ed76753f30499f61ef5feb6f0983a28973d81d823a6e6f`,
+and is preserved at `deployment/releases/v1.0.0-rc.8.yml`. Independent GHCR
+inspection confirmed the RC and full-SHA tags resolve to the recorded indexes,
+including all three `linux/amd64` children. RC.7 remains unchanged. No Google
+Cloud resource, external deployment, DNS change, or TLS issuance occurred.
 
 ## ARM64 and Oracle staging verification
 

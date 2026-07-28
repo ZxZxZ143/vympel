@@ -10,6 +10,27 @@ The authoritative images remain separate:
 - `ghcr.io/zxzxz143/vympel-storefront`
 - `ghcr.io/zxzxz143/vympel-crm`
 
+## Verified RC.8 publication
+
+Annotated tag `v1.0.0-rc.8` is immutable at
+`aadfabfd23a4196bc385ae41a0f3b8719172ffbc`. Release Images run
+[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979)
+passed all native builds, final-index attestations, registry metadata,
+exact-image amd64 and ARM64 runtime rehearsals, frontend bundle URL scans, and
+consolidated manifest generation.
+
+| Image | OCI index digest | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- |
+| Backend | `sha256:47dcad868b3804fac91b58e23f5fdb6d2c914d39016bd5d0ca727672bb60a6d7` | `sha256:2dff06fc116f4472033f2e7e9af1a4bccb4dc08facc7a76fa07084a78539e69e` | `sha256:9784b3415a4b5901e5947af7ad737a8852072db57ff614a1bd2ac32dcd765a3d` |
+| Storefront | `sha256:42a6e04c243772efc98a021998338e25a1b532cccfb073db645768c3dd2db389` | `sha256:869c5e4c32bafd60a02f7473940e662f661086fe2df74775b95787f40023d453` | `sha256:efb14f0ad663e7cf75d442ca6d0645192487bcb01062bf928bf07f45011d492c` |
+| CRM | `sha256:7755917ba4ace3ab2602b2126ad6aeea88993e66b70702f6707008db6516aec6` | `sha256:78c2efb3b9187a02293e7757647c33705cfeba58b55e2dedcfe633bf788aa961` | `sha256:55708c82e0f623ddfd057ee7ab0e45a3b0906a2b5359b06fe8aef92b968ff660` |
+
+Independent `docker buildx imagetools inspect` calls confirmed the RC tag and
+full-SHA alias resolve to those same indexes. The exact record is
+`deployment/releases/v1.0.0-rc.8.yml`. Its storefront and CRM bundles contain
+the approved temporary public sslip.io values and no concrete `.invalid`,
+localhost, or loopback destination. No cloud deployment ran.
+
 ## RC.2 baseline
 
 `v1.0.0-rc.2` is immutable at commit `633db42643d42ee6448919b5f6b6b16a7da1ca17`. Registry inspection on 2026-07-27 found only `linux/amd64` application children:

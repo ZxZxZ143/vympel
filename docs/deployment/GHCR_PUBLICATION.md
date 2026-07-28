@@ -2,7 +2,8 @@
 
 ## Canonical packages
 
-Vympel publishes three independent Linux/amd64 images:
+Vympel publishes three independent OCI indexes with `linux/amd64` and
+`linux/arm64` application manifests:
 
 - `ghcr.io/zxzxz143/vympel-backend`
 - `ghcr.io/zxzxz143/vympel-storefront`
@@ -11,6 +12,33 @@ Vympel publishes three independent Linux/amd64 images:
 Every set uses the same full 40-character Git commit SHA. `latest` is never a release or deployment tag. An approved Git release tag may be added to the same digest only when that existing Git tag resolves to the exact published commit.
 
 ## Published release-candidate evidence
+
+### RC.8 temporary public GCP candidate
+
+`v1.0.0-rc.8` is an annotated, immutable tag on exact source commit
+`aadfabfd23a4196bc385ae41a0f3b8719172ffbc`. Trusted Release Images run
+[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979)
+passed the reusable source gate, six native platform builds, final-index
+attestations, metadata, exact-image amd64 and ARM64 runtime rehearsals,
+frontend bundle URL scans, and consolidated manifest generation.
+
+| Image | OCI index digest | linux/amd64 child |
+| --- | --- | --- |
+| Backend | `sha256:47dcad868b3804fac91b58e23f5fdb6d2c914d39016bd5d0ca727672bb60a6d7` | `sha256:2dff06fc116f4472033f2e7e9af1a4bccb4dc08facc7a76fa07084a78539e69e` |
+| Storefront | `sha256:42a6e04c243772efc98a021998338e25a1b532cccfb073db645768c3dd2db389` | `sha256:869c5e4c32bafd60a02f7473940e662f661086fe2df74775b95787f40023d453` |
+| CRM | `sha256:7755917ba4ace3ab2602b2126ad6aeea88993e66b70702f6707008db6516aec6` | `sha256:78c2efb3b9187a02293e7757647c33705cfeba58b55e2dedcfe633bf788aa961` |
+
+The digest-complete artifact
+`published-release-manifest-aadfabfd23a4196bc385ae41a0f3b8719172ffbc`
+is artifact ID `8704956171`, ZIP digest
+`sha256:f5a4536ab7e7c89033ed76753f30499f61ef5feb6f0983a28973d81d823a6e6f`,
+and is preserved exactly at `deployment/releases/v1.0.0-rc.8.yml`. It records
+the approved `34.18.200.58.sslip.io` public build values, disabled telemetry,
+and `placeholder_acknowledged: false`. Independent registry inspection
+confirmed that the RC and full-SHA tags resolve to the same indexes. RC.7
+retains its original digests. No cloud deployment ran.
+
+### RC.2 amd64-only baseline
 
 `v1.0.0-rc.2` is an annotated tag on exact source commit `633db42643d42ee6448919b5f6b6b16a7da1ca17`. Manual Release Images run [30208034635](https://github.com/ZxZxZ143/vympel/actions/runs/30208034635) passed its publication policy, reusable Full Release Gate, three image builds, signed provenance, exact-image inspection, isolated Compose runtime, consolidated manifest, and final publication boundary.
 
