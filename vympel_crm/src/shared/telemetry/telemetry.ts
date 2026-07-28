@@ -57,11 +57,14 @@ export function createTelemetryDeduper(limit = 100) {
 
 export function normalizeTelemetryRoute(value: unknown): string {
   if (typeof value !== "string" || !value.trim()) return "/unknown";
-  let pathname = value;
+  const normalizedValue = value.trim();
+  let pathname = normalizedValue;
   try {
-    pathname = new URL(value, "https://telemetry.invalid").pathname;
+    pathname = /^[a-z][a-z0-9+.-]*:\/\//i.test(normalizedValue)
+      ? new URL(normalizedValue).pathname
+      : normalizedValue.split(/[?#]/, 1)[0];
   } catch {
-    pathname = value.split(/[?#]/, 1)[0];
+    pathname = normalizedValue.split(/[?#]/, 1)[0];
   }
   const segments = pathname.split("/").filter(Boolean).map((segment) => {
     if (/^\d+$/.test(segment) || UUID_SEGMENT.test(segment)) return ":id";

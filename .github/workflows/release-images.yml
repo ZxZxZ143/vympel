@@ -462,6 +462,7 @@ jobs:
       PUBLIC_MEDIA_ORIGINS: ${{ inputs.media_origins }}
       PUBLIC_STOREFRONT_SITE_URL: ${{ inputs.storefront_site_url }}
       PUBLIC_DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
+      PUBLIC_TELEMETRY_ENABLED: "false"
       PLACEHOLDER_ACKNOWLEDGED: ${{ inputs.acknowledge_placeholder_public_config }}
     steps:
       - uses: docker/setup-buildx-action@v3.11.1
@@ -530,6 +531,7 @@ jobs:
               --arg mediaOrigins "$PUBLIC_MEDIA_ORIGINS" \
               --arg storefrontSiteUrl "$PUBLIC_STOREFRONT_SITE_URL" \
               --arg deploymentEnvironment "$PUBLIC_DEPLOYMENT_ENVIRONMENT" \
+              --arg telemetryEnabled "$PUBLIC_TELEMETRY_ENABLED" \
               --arg placeholderAcknowledged "$PLACEHOLDER_ACKNOWLEDGED" \
               '{
                 image: $image,
@@ -552,6 +554,7 @@ jobs:
                   storefrontSiteUrl: $storefrontSiteUrl,
                   deploymentEnvironment: $deploymentEnvironment,
                   release: $commit,
+                  telemetryEnabled: ($telemetryEnabled == "true"),
                   placeholderAcknowledged: ($placeholderAcknowledged == "true")
                 }
               }' > "release-metadata/$image.json"

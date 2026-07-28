@@ -72,7 +72,20 @@ crm_api_base=$(printf '%s\n' "$public_config" | jq -er '.crmApiBase')
 media_origins=$(printf '%s\n' "$public_config" | jq -er '.mediaOrigins')
 storefront_site_url=$(printf '%s\n' "$public_config" | jq -er '.storefrontSiteUrl')
 deployment_environment=$(printf '%s\n' "$public_config" | jq -er '.deploymentEnvironment')
-placeholder_acknowledged=$(printf '%s\n' "$public_config" | jq -er '.placeholderAcknowledged')
+telemetry_enabled=$(printf '%s\n' "$public_config" | jq -r '
+  if (.telemetryEnabled | type) == "boolean"
+  then (.telemetryEnabled | tostring)
+  else error("telemetryEnabled must be boolean")
+  end')
+placeholder_acknowledged=$(printf '%s\n' "$public_config" | jq -r '
+  if (.placeholderAcknowledged | type) == "boolean"
+  then (.placeholderAcknowledged | tostring)
+  else error("placeholderAcknowledged must be boolean")
+  end')
+case "$telemetry_enabled" in
+  true|false) ;;
+  *) echo "Published metadata contains an invalid telemetry flag" >&2; exit 1 ;;
+esac
 generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 git_tag_value=null
 if [ -n "$release_tag" ]; then
@@ -110,12 +123,21 @@ images:
       linux/arm64: "$crm_arm64_digest"
 public_build_configuration:
   strategy: build-time-release-contract
+  variables:
+    NEXT_PUBLIC_BASE_API_PUBLIC: "$storefront_api_base"
+    NEXT_PUBLIC_CRM_API_BASE: "$crm_api_base"
+    NEXT_PUBLIC_MEDIA_ORIGINS: "$media_origins"
+    NEXT_PUBLIC_SITE_URL: "$storefront_site_url"
+    NEXT_PUBLIC_APP_ENV: "$deployment_environment"
+    NEXT_PUBLIC_APP_RELEASE: "$commit_sha"
+    NEXT_PUBLIC_TELEMETRY_ENABLED: $telemetry_enabled
   storefront_api_base: "$storefront_api_base"
   crm_api_base: "$crm_api_base"
   media_origins: "$media_origins"
   storefront_site_url: "$storefront_site_url"
   deployment_environment: "$deployment_environment"
   release: "$commit_sha"
+  telemetry_enabled: $telemetry_enabled
   placeholder_acknowledged: $placeholder_acknowledged
 database:
   changelog: classpath:db/changelog/db.changelog-master.xml

@@ -3,6 +3,7 @@ set -eu
 
 metadata_dir=${1:?Usage: verify-published-images.sh METADATA_DIR COMMIT_SHA}
 commit_sha=${2:?Usage: verify-published-images.sh METADATA_DIR COMMIT_SHA}
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 registry_namespace=ghcr.io/zxzxz143
 source_url=https://github.com/ZxZxZ143/vympel
 
@@ -78,6 +79,36 @@ for image in vympel-backend vympel-storefront vympel-crm; do
       echo "Secret-bearing environment metadata detected in $image on linux/$architecture" >&2
       exit 1
     fi
+
+    case "$image" in
+      vympel-storefront|vympel-crm)
+        scan_container="vympel-bundle-scan-${image#vympel-}-$architecture-$$"
+        scan_dir=$(mktemp -d)
+        cleanup_bundle_scan() {
+          docker rm -f "$scan_container" >/dev/null 2>&1 || true
+          rm -rf "$scan_dir"
+        }
+        trap cleanup_bundle_scan EXIT HUP INT TERM
+
+        docker create \
+          --platform "linux/$architecture" \
+          --name "$scan_container" \
+          "$child_ref" >/dev/null
+        docker export "$scan_container" |
+          tar -x -C "$scan_dir" app/.next app/server.js
+
+        if ! sh "$script_dir/verify-frontend-bundle-urls.sh" \
+          "$scan_dir/app/.next" "$scan_dir/app/server.js"; then
+          echo "Frontend bundle URL verification failed for $image on linux/$architecture" >&2
+          cleanup_bundle_scan
+          trap - EXIT HUP INT TERM
+          exit 1
+        fi
+
+        cleanup_bundle_scan
+        trap - EXIT HUP INT TERM
+        ;;
+    esac
 
     printf '%s %s %s %s\n' "$child_ref" "$child_digest" "$actual_architecture" "$runtime_user"
   done

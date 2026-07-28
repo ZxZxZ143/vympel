@@ -65,13 +65,10 @@ export class CrmApiError extends Error {
 }
 
 function requireCrmApiBase(value = process.env.NEXT_PUBLIC_CRM_API_BASE): string {
-  if (value?.trim()) {
-    return value.trim().replace(/\/+$/, "");
+  if (!value?.trim()) {
+    throw new Error("NEXT_PUBLIC_CRM_API_BASE is required");
   }
-  if (process.env.NODE_ENV !== "production") {
-    return "http://localhost:8080/api/crm";
-  }
-  throw new Error("NEXT_PUBLIC_CRM_API_BASE is required for a production CRM build");
+  return value.trim().replace(/\/+$/, "");
 }
 
 export const crmApiBase = requireCrmApiBase();

@@ -1670,7 +1670,7 @@
 * The frontend public API base URL currently points to `http://localhost:8080/api/public`.
 * Immediate public CMS refresh requires both sides: backend `VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED=true`, `VYMPEL_CMS_PUBLIC_REVALIDATE_URL`, and `VYMPEL_CMS_REVALIDATE_SECRET`, plus public frontend server-only `CMS_REVALIDATE_SECRET` with the same value. Non-local startup fails closed when this contract is disabled/missing/weak; local hybrid mode targets the public app on localhost, while tests disable delivery unless they opt in. Do not use a `NEXT_PUBLIC_*` secret. The durable job handles transient failures and the short tagged cache window remains a safety net.
 * CMS media cleanup defaults to a 24-hour grace period, a bounded daily batch, and bounded storage timeouts/backoff. Local/test disable the schedule; use the ADMIN dry-run before any explicit cleanup. A dry-run candidate is evidence of zero DB references at that instant, not permission to delete without environment-specific object/public/CRM confirmation.
-* The CRM API base URL defaults to `http://localhost:8080/api/crm` through `NEXT_PUBLIC_CRM_API_BASE`.
+* The CRM API base URL is always required through `NEXT_PUBLIC_CRM_API_BASE`; local development supplies it in ignored `vympel_crm/.env`, because even a development-only source fallback can be retained in a production client bundle.
 * CRM dev server runs on `http://localhost:3001`; backend CORS must include that origin.
 * CRM refresh cookies default to `SameSite=Lax`, path `/api/crm/auth`, and `Secure=true` in base configuration. Local HTTP must explicitly activate Spring profile `local`, whose host-development fallbacks include `Secure=false`. Production must never activate `local`, must use HTTPS, preserve a same-site CRM/API deployment, and use exact non-wildcard CORS origins.
 * Non-local abuse control requires `VYMPEL_RATE_LIMIT_STORAGE=redis`, a protected `rediss://` `VYMPEL_REDIS_URL`, an independent strong `VYMPEL_RATE_LIMIT_HMAC_SECRET`, and the exact ingress ranges in `VYMPEL_TRUSTED_PROXY_CIDRS`. Memory mode is local/test only.
@@ -2002,8 +2002,14 @@
 ### Keep local image origins out of deployable Next.js output
 
 * **When to use:** A `next/image` remote pattern is useful only for local MinIO development.
-* **How:** Include the localhost remote pattern only when `NEXT_PUBLIC_APP_ENV=local`; staging/production builds receive only the explicitly approved `NEXT_PUBLIC_MEDIA_ORIGINS`. Scan the final image filesystem as well as image metadata, because server chunks can retain configuration strings that do not appear in `Config.Env`.
+* **How:** Include the localhost remote pattern only when `NEXT_PUBLIC_APP_ENV=local`; staging/production builds receive only the explicitly approved `NEXT_PUBLIC_MEDIA_ORIGINS`. Avoid placeholder origins even in parsing helpers, and require browser API bases instead of compiling local fallbacks. Scan the flattened `.next` filesystem of every published platform child for reserved `.invalid` URLs and fixed localhost/IPv4/IPv6 loopback destinations as well as checking image metadata. Ignore only Next.js's own templated internal `http://localhost:${...}` machinery, which is not a concrete application destination.
 * **Why:** RC.7's storefront image metadata contained no secret/local environment entry, but its server bundle still retained the unconditional `http://localhost` pattern.
+
+### Record public build values by their exact environment names
+
+* **When to use:** Generating the digest-complete manifest for independently built storefront and CRM images.
+* **How:** Record the exact `NEXT_PUBLIC_BASE_API_PUBLIC`, `NEXT_PUBLIC_CRM_API_BASE`, `NEXT_PUBLIC_MEDIA_ORIGINS`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_APP_RELEASE`, and `NEXT_PUBLIC_TELEMETRY_ENABLED` values alongside index and child digests; require both frontend metadata records to match before manifest generation.
+* **Why:** Friendly aliases can omit a build input or obscure whether a boolean such as telemetry was compiled as requested.
 
 ### Treat GCP provisioning as an operator-owned boundary
 
@@ -2099,4 +2105,4 @@
 
 ## Last Updated
 
-2026-07-27 - Added the reusable 8 GB single-VM/GCP pattern, safe JVM percentage budget, final-image localhost scan lesson, and explicit external-provisioning boundary.
+2026-07-29 - Added the exact temporary GCP sslip.io release contract, exact-name public-build manifest evidence, and flattened multi-platform bundle URL scanning.

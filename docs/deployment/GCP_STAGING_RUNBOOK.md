@@ -2,9 +2,11 @@
 
 ## Status and deployment boundary
 
-Repository preparation only is authorized. Do not create a Google Cloud
-project, address, firewall rule, VM, DNS record, certificate, secret, backup, or
-running external stack from this runbook without separate approval.
+Image publication for the exact temporary `34.18.200.58.sslip.io` routing
+contract is authorized. Google Cloud resource creation and external deployment
+remain unauthorized: do not create a project, address, firewall rule, VM, DNS
+record, certificate, secret, backup, or running stack from this runbook without
+separate approval.
 
 The recommended target is one `e2-standard-2` Compute Engine VM (2 vCPU, 8 GB)
 running Ubuntu 24.04 LTS on `linux/amd64`. Use:
@@ -13,13 +15,11 @@ running Ubuntu 24.04 LTS on `linux/amd64`. Use:
 - `infrastructure/env/gcp-staging.env.example`
 - `infrastructure/reverse-proxy/single-vm-staging.conf.template`
 
-`v1.0.0-rc.7` contains `linux/amd64` for backend, storefront, and CRM, but it is
-**evidence-only and must not be deployed externally**. Its published frontend
-contract contains reserved `.invalid` origins, and the storefront image also
-contains the prior local-development `http://localhost` media pattern. The
-source now excludes that pattern from non-local builds, but immutable RC.7
-cannot change. Approve real domains and publish a later immutable candidate
-before starting this stack.
+`v1.0.0-rc.7` remains immutable and evidence-only. The next candidate uses
+`shop.34.18.200.58.sslip.io`, `crm.34.18.200.58.sslip.io`, and
+`api.34.18.200.58.sslip.io`; it may be selected only after all three published
+indexes, their `linux/amd64` children, exact bundle URL scans, runtime checks,
+and the digest-complete release manifest pass.
 
 ## Architecture and ports
 
@@ -163,8 +163,9 @@ sudo chmod 0600 /etc/vympel/gcp-staging.env
 sudoedit /etc/vympel/gcp-staging.env
 ```
 
-Replace every `REPLACE_ME` and `.invalid` value. Use the exact release tag/SHA
-and public values recorded by the selected digest-complete published manifest:
+Replace every `REPLACE_ME` value. The checked-in temporary sslip.io routing
+values already match the requested staging contract. Use the exact release
+SHA and public values recorded by the selected digest-complete manifest:
 
 | Variable class | Variables | Rule |
 | --- | --- | --- |
@@ -174,8 +175,8 @@ and public values recorded by the selected digest-complete published manifest:
 | Runtime internal | `VYMPEL_DB_URL`, `VYMPEL_REDIS_URL` | Must use `postgres` and `redis` service names; Compose fixes MinIO and CMS revalidation to `minio` and `storefront`. |
 | Runtime secrets | database/Redis/MinIO credentials, JWT/rate-limit/CMS secrets, optional bootstrap password | Server-only; never `NEXT_PUBLIC_*` and never image build arguments. |
 
-Set `PUBLIC_BUILD_PLACEHOLDERS_ACKNOWLEDGED=false` for a deployable release. The
-Redis password in `VYMPEL_REDIS_URL` must equal `VYMPEL_REDIS_PASSWORD`.
+Keep `PUBLIC_BUILD_PLACEHOLDERS_ACKNOWLEDGED=false`. The Redis password in
+`VYMPEL_REDIS_URL` must equal `VYMPEL_REDIS_PASSWORD`.
 
 ## 5. Validate before startup
 
@@ -325,8 +326,8 @@ estimated 891.31 MiB heap under the 1,536 MiB migration limit.
 
 - Approve Google Cloud project/region/zone, VPC/subnet, billing, IAM/OS Login,
   SSH source, static IP, VM, disk, deletion protection, and firewall rules.
-- Approve final domains and publish a new immutable frontend image set with
-  those exact origins and no local URLs.
+- Select the successfully published immutable candidate whose manifest records
+  the exact temporary sslip.io origins and whose platform bundle scans passed.
 - Generate/store real secrets outside Git and decide backup/restore retention.
 - Create the VM, DNS, Nginx/Certbot configuration, monitoring, and alerts.
 - Perform the first authorized deployment, ADMIN bootstrap, external smoke

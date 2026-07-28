@@ -6,6 +6,29 @@ repository_root=$(CDPATH= cd -- "$script_dir/../.." && pwd)
 temp_dir=$(mktemp -d)
 trap 'rm -rf "$temp_dir"' EXIT HUP INT TERM
 
+bundle_url_verifier=$repository_root/deployment/scripts/verify-frontend-bundle-urls.sh
+good_bundle=$temp_dir/good-bundle.js
+bad_bundle=$temp_dir/bad-bundle.js
+
+printf '%s\n' \
+  'https://api.34.18.200.58.sslip.io/api/public' \
+  'https://shop.34.18.200.58.sslip.io' \
+  'http://localhost:${process.env.PORT||3000}' > "$good_bundle"
+sh "$bundle_url_verifier" "$good_bundle"
+
+for forbidden_url in \
+  https://telemetry.invalid/path \
+  http://localhost:8080/api/crm \
+  http://127.0.0.1:3000 \
+  'http://[::1]:3000'
+do
+  printf '%s\n' "$forbidden_url" > "$bad_bundle"
+  if sh "$bundle_url_verifier" "$bad_bundle" >/dev/null 2>&1; then
+    echo "Frontend bundle URL verifier accepted forbidden value: $forbidden_url" >&2
+    exit 1
+  fi
+done
+
 commit_sha=1111111111111111111111111111111111111111
 release_tag=v1.0.0-rc.3
 index_digest=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -35,13 +58,14 @@ for image in vympel-backend vympel-storefront vympel-crm; do
       },
       publicBuildConfiguration: {
         strategy: "build-time-release-contract",
-        storefrontApiBase: "https://api.oracle-staging.example.invalid/api/public",
-        crmApiBase: "https://api.oracle-staging.example.invalid/api/crm",
-        mediaOrigins: "https://api.oracle-staging.example.invalid",
-        storefrontSiteUrl: "https://shop.oracle-staging.example.invalid",
+        storefrontApiBase: "https://api.34.18.200.58.sslip.io/api/public",
+        crmApiBase: "https://api.34.18.200.58.sslip.io/api/crm",
+        mediaOrigins: "https://api.34.18.200.58.sslip.io",
+        storefrontSiteUrl: "https://shop.34.18.200.58.sslip.io",
         deploymentEnvironment: "staging",
         release: $commit,
-        placeholderAcknowledged: true
+        telemetryEnabled: false,
+        placeholderAcknowledged: false
       }
     }' > "$temp_dir/$image.json"
 done
@@ -56,7 +80,10 @@ sh "$repository_root/deployment/scripts/generate-published-release-manifest.sh" 
 
 grep -q 'linux/amd64:' "$output_path"
 grep -q 'linux/arm64:' "$output_path"
-grep -q 'placeholder_acknowledged: true' "$output_path"
+grep -q 'NEXT_PUBLIC_TELEMETRY_ENABLED: false' "$output_path"
+grep -q 'NEXT_PUBLIC_APP_RELEASE: "1111111111111111111111111111111111111111"' "$output_path"
+grep -q 'NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.34.18.200.58.sslip.io/api/public"' "$output_path"
+grep -q 'placeholder_acknowledged: false' "$output_path"
 grep -q 'expected_latest_change: 2026-07-19-02-update-public-image-paths-to-webp' "$output_path"
 grep -q 'linux_arm64_runtime: passed' "$output_path"
 if grep -Eq 'PENDING|0000000000000000000000000000000000000000' "$output_path"; then
