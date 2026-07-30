@@ -1,8 +1,10 @@
 import BrandPage from "@/screens/BrandPage";
 import {LocaleEnum} from "@/i18n/routing";
 import {getBrandPageData} from "@/config/brandPages";
-import {notFound} from "next/navigation";
+import {notFound, permanentRedirect} from "next/navigation";
 import {publicSeoMetadata} from "@/lib/seo";
+import {findLegacyBrandRedirect} from "@/config/brandRoutes";
+import {routes} from "@/config/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +24,17 @@ export async function generateMetadata({params}: Props) {
 
 export default async function Page({params}: Props) {
     const {locale, brandSlug} = await params;
+    const redirectSlug = findLegacyBrandRedirect(brandSlug);
+
+    if (redirectSlug) {
+        permanentRedirect(routes.withLocale(locale, routes.brand(redirectSlug)));
+    }
+
     const brand = getBrandPageData(brandSlug, locale);
 
     if (!brand) {
         notFound();
     }
 
-    return <BrandPage locale={locale} brandSlug={brandSlug} initialBrand={brand}/>;
+    return <BrandPage locale={locale} brandSlug={brand.slug} initialBrand={brand}/>;
 }

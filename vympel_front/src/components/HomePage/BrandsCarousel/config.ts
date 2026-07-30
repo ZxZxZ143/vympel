@@ -9,7 +9,7 @@ export const BrandsCarouselConfig = (): Array<BrandCarouselCardProps> => {
     const conf = PUBLIC_BRANDS.slice(0, -1)
 
     return conf.map((brand) => ({
-        img: "/" + brand.slug + ".webp",
+        img: brand.slug === "rhythm" ? "/rhythm.png" : "/" + brand.slug + ".webp",
         name: brand.breadcrumbName,
         description: t(brand.slug),
         link: routes.brand(brand.slug),

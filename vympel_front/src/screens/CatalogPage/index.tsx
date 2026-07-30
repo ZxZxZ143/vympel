@@ -40,7 +40,7 @@ const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory}) =
     const heroFallback = catalogHeroFallback(categoryCode);
     const heroImages = cmsImageSources(heroBlock, locale, heroFallback);
     const contactBlock = findCmsBlock(cmsBlocks, "catalog.contactBanner");
-    const contactImages = cmsImageSources(contactBlock, locale, "/contact-banner-catalog.webp");
+    const contactImages = cmsImageSources(contactBlock, locale, "/contact-banner-catalog.png");
 
     return (
         <main>

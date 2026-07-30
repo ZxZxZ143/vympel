@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-30-02-rename-apella-brand-to-appella" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="brand"/>
+            <columnExists tableName="brand" columnName="id"/>
+            <columnExists tableName="brand" columnName="code"/>
+            <columnExists tableName="brand" columnName="name"/>
+            <sqlCheck expectedResult="0"><![CDATA[
+                SELECT COUNT(*)
+                FROM brand legacy
+                WHERE legacy.code = 'apella'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM brand canonical
+                      WHERE canonical.code = 'appella'
+                        AND canonical.id <> legacy.id
+                  )
+            ]]></sqlCheck>
+        </preConditions>
+        <sql><![CDATA[
+            UPDATE brand
+            SET code = 'appella',
+                name = 'Appella'
+            WHERE code = 'apella';
+
+            UPDATE brand
+            SET name = 'Appella'
+            WHERE code = 'appella'
+              AND name IS DISTINCT FROM 'Appella';
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="2026-07-30-02-update-appella-cms-references" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="cms_block"/>
+            <tableExists tableName="cms_block_translation"/>
+            <tableExists tableName="cms_banner"/>
+            <sqlCheck expectedResult="0"><![CDATA[
+                SELECT COUNT(*)
+                FROM cms_block legacy
+                WHERE legacy.block_key = 'brands.apella.heroBanner'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM cms_block canonical
+                      WHERE canonical.block_key = 'brands.appella.heroBanner'
+                        AND canonical.id <> legacy.id
+                  )
+            ]]></sqlCheck>
+        </preConditions>
+        <sql><![CDATA[
+            UPDATE cms_block
+            SET block_key = 'brands.appella.heroBanner',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE block_key = 'brands.apella.heroBanner';
+
+            UPDATE cms_block
+            SET link_target = replace(link_target, '/brands/apella', '/brands/appella'),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE link_target LIKE '%/brands/apella%';
+
+            UPDATE cms_banner
+            SET link_url = replace(link_url, '/brands/apella', '/brands/appella')
+            WHERE link_url LIKE '%/brands/apella%';
+
+            UPDATE cms_block_translation AS translation
+            SET title = replace(replace(replace(title, 'Apella', 'Appella'), 'APELLA', 'APPELLA'), 'apella', 'appella'),
+                subtitle = replace(replace(replace(subtitle, 'Apella', 'Appella'), 'APELLA', 'APPELLA'), 'apella', 'appella'),
+                description = replace(replace(replace(description, 'Apella', 'Appella'), 'APELLA', 'APPELLA'), 'apella', 'appella'),
+                button_text = replace(replace(replace(button_text, 'Apella', 'Appella'), 'APELLA', 'APPELLA'), 'apella', 'appella'),
+                alt_text = replace(replace(replace(alt_text, 'Apella', 'Appella'), 'APELLA', 'APPELLA'), 'apella', 'appella')
+            FROM cms_block block
+            WHERE translation.block_id = block.id
+              AND block.block_key = 'brands.appella.heroBanner';
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="2026-07-30-02-restore-rhythm-png-media" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="cms_media"/>
+            <columnExists tableName="cms_media" columnName="public_url"/>
+            <columnExists tableName="cms_media" columnName="original_filename"/>
+            <columnExists tableName="cms_media" columnName="content_type"/>
+        </preConditions>
+        <sql><![CDATA[
+            UPDATE cms_media
+            SET public_url = '/rhythm.png',
+                original_filename = 'rhythm.png',
+                content_type = 'image/png'
+            WHERE storage_type = 'PUBLIC_PATH'
+              AND public_url = '/rhythm.webp';
+        ]]></sql>
+    </changeSet>
+
+    <changeSet id="2026-07-30-02-update-contact-banner-media" author="codex" dbms="postgresql">
+        <preConditions onFail="HALT" onError="HALT">
+            <tableExists tableName="cms_media"/>
+            <tableExists tableName="cms_block"/>
+            <columnExists tableName="cms_block" columnName="media_id"/>
+            <columnExists tableName="cms_block" columnName="media_kz_id"/>
+            <columnExists tableName="cms_block" columnName="media_en_id"/>
+            <columnExists tableName="cms_block" columnName="mobile_media_id"/>
+            <columnExists tableName="cms_block" columnName="mobile_media_kz_id"/>
+            <columnExists tableName="cms_block" columnName="mobile_media_en_id"/>
+        </preConditions>
+        <sql><![CDATA[
+            INSERT INTO cms_media (storage_type, public_url, original_filename, content_type, size_bytes)
+            SELECT 'PUBLIC_PATH', seed.public_url, seed.original_filename, 'image/png', 0
+            FROM (VALUES
+                ('/contact-banner-catalog.png', 'contact-banner-catalog.png'),
+                ('/contact-banner-about-page.png', 'contact-banner-about-page.png')
+            ) AS seed(public_url, original_filename)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM cms_media media
+                WHERE media.storage_type = 'PUBLIC_PATH'
+                  AND media.public_url = seed.public_url
+            );
+
+            WITH media AS (
+                SELECT id
+                FROM cms_media
+                WHERE storage_type = 'PUBLIC_PATH'
+                  AND public_url = '/contact-banner-catalog.png'
+                ORDER BY id
+                LIMIT 1
+            )
+            UPDATE cms_block
+            SET media_id = media.id,
+                media_kz_id = media.id,
+                media_en_id = media.id,
+                mobile_media_id = media.id,
+                mobile_media_kz_id = media.id,
+                mobile_media_en_id = media.id,
+                updated_at = CURRENT_TIMESTAMP
+            FROM media
+            WHERE cms_block.block_key = 'catalog.contactBanner';
+
+            WITH media AS (
+                SELECT id
+                FROM cms_media
+                WHERE storage_type = 'PUBLIC_PATH'
+                  AND public_url = '/contact-banner-about-page.png'
+                ORDER BY id
+                LIMIT 1
+            )
+            UPDATE cms_block
+            SET media_id = media.id,
+                media_kz_id = media.id,
+                media_en_id = media.id,
+                mobile_media_id = media.id,
+                mobile_media_kz_id = media.id,
+                mobile_media_en_id = media.id,
+                updated_at = CURRENT_TIMESTAMP
+            FROM media
+            WHERE cms_block.block_key = 'about.cooperationBanner';
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

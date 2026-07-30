@@ -206,6 +206,12 @@
 * **How:** Use `.goods-carousel-banner` as the controlled visual banner layer and `.goods-carousel-track` for the product rail. Hide the banner below the desktop breakpoint when it becomes a tiny strip or background noise; on desktop, any card overlap must be intentional with the track above the banner layer. Carousel arrows should be hidden on phones or placed in reserved side lanes so they never cover product cards or controls.
 * **Why:** The previous pattern let arrows and background imagery intrude into product cards, which made both desktop and mobile rails look broken.
 
+### Category-backed home product rails
+
+* **When to use:** When adding New Arrivals, Accessories, or another real product rail to the public home page.
+* **How:** Use `HomePage/ProductCarouselSection` with a title, canonical `catalogLinks` destination, `PUBLIC_CATEGORY_CODES` value, section id, and banner sources. It must call the existing `PublicApiController.getProductsList` by category with `NEWEST`, map results to `routes.product`, return no section for a successful empty page, and delegate cards, banner layering, swipe, responsive slide sizing, arrows, availability UI, and accessible labels to `GoodsCarouselWithImage`.
+* **Why:** One server-side data path preserves backend category membership and availability-first ordering while avoiding copied carousel implementations or hardcoded product IDs.
+
 ### Public empty and error states
 
 * **When to use:** When catalog, favorites, cart, product detail, related products, or unknown public routes need a friendly no-data or failed-load state.
@@ -417,8 +423,14 @@
 ### Liquibase-first schema changes
 
 * **When to use:** Any time a table, column, constraint, seed, or relationship changes.
-* **How:** Add a new changelog file under `src/main/resources/db/changelog`, include it in `db.changelog-master.xml`, and keep JPA `ddl-auto: validate`.
-* **Why:** Hibernate validates the schema instead of creating it, so database changes must be migration-backed.
+* **How:** Add a new changelog file under `src/main/resources/db/changelog`, include it in `db.changelog-master.xml`, and keep JPA `ddl-auto: validate`. For identity spelling/slug corrections, update the existing row in place, HALT on a conflicting canonical row, update only proven localized/denormalized references, and test that no delete/reinsert or product FK rewrite occurs. Check the full prior schema history before adding table preconditions: `brand_i18n` was removed by `2026-02-08-01`, so current brand corrections must use the canonical `brand` row and active CMS translation tables rather than referencing that historical table.
+* **Why:** Hibernate validates the schema instead of creating it, so database changes must be migration-backed; primary-key-preserving corrections keep every product association stable.
+
+### Canonical public brand spelling and legacy redirects
+
+* **When to use:** When a public brand display name, database code, or slug is corrected.
+* **How:** Update `PUBLIC_BRANDS`, brand-page copy/assets, sitemap/internal-link consumers, backend persistent data through a new migration, localized brand rows, CMS references, tests, and project docs together. Keep only a narrowly scoped `LEGACY_BRAND_REDIRECTS` entry for the old slug and call `permanentRedirect` with `routes.withLocale`; do not retain the misspelling as a visible matching name or canonical metadata value.
+* **Why:** Storefront, CRM, API facets/search, and SEO all derive from either `PUBLIC_BRANDS` or the persistent brand row, while the explicit redirect protects old bookmarks without preserving bad canonical data.
 
 ### Constraint migrations with production-copy rehearsal
 
@@ -907,6 +919,13 @@
 * **Root cause:** Navigation, localized copy, CMS external targets, and persisted product URLs were not governed by one explicit two-marketplace policy.
 * **Fix:** Keep the approved Kaspi/Wildberries destinations in frontend `MARKETPLACE_LINKS` and backend `MarketplaceUrlPolicy`, normalize persisted/CMS values with a forward-only migration, reject Ozon CMS writes, and test both public CMS resolution and backend URL policy.
 * **How to avoid:** For any marketplace change, search source/config/locales/CMS/data migrations together; never add a marketplace anchor outside the central config or nest a button/link anchor inside the clickable card.
+
+### Changing only a static CMS fallback when the database owns the active image
+
+* **What happened:** Page components had correct local fallback filenames, but published CMS blocks could continue selecting an older media row before the fallback was considered.
+* **Root cause:** `cmsImageSources` deliberately prioritizes locale-specific CMS media over source-code fallbacks.
+* **Fix:** Change the page fallback and add a forward-only migration that seeds the new `PUBLIC_PATH` media and assigns every relevant desktop/mobile locale slot on the exact CMS block.
+* **How to avoid:** For CMS-backed asset replacement, inspect both the component fallback and the active `cms_block.media*` data flow; never assume changing one string guarantees the deployed image.
 
 ### Letting Java negotiate h2c with the local Next.js revalidation webhook
 
@@ -2124,4 +2143,4 @@
 
 ## Last Updated
 
-2026-07-30 - Added the canonical two-marketplace link policy, safe CMS/product navigation pattern, responsive two-card layout, and the Ozon-removal lesson.
+2026-07-30 - Added the shared category-backed home carousel pattern, CMS/static banner replacement rule, primary-key-preserving Appella correction workflow, locale-aware legacy brand redirect, and the `brand_i18n` historical-schema precondition gotcha.

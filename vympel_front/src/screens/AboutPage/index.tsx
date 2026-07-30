@@ -28,7 +28,7 @@ export default async function AboutPage({locale}: Props) {
     const cooperationBanner = findCmsBlock(blocks, "about.cooperationBanner");
     const cooperationLink = cmsLink(cooperationBanner);
     const heroImages = cmsImageSources(heroBanner, locale, "/about-us-banner.webp");
-    const cooperationImages = cmsImageSources(cooperationBanner, locale, "/contact_banner.png");
+    const cooperationImages = cmsImageSources(cooperationBanner, locale, "/contact-banner-about-page.png");
     const cooperationButtonHref = cooperationBanner
         ? cooperationLink?.href ?? null
         : undefined;

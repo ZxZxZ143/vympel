@@ -151,11 +151,11 @@ class ProductServiceImplTest {
     void crmSearchCombinesTextAndStatusFilters() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Product> page = new PageImpl<>(List.of(), pageable, 0);
-        when(productRepository.searchForCrmByStatus("APELLA", "ACTIVE", pageable)).thenReturn(page);
+        when(productRepository.searchForCrmByStatus("APPELLA", "ACTIVE", pageable)).thenReturn(page);
 
-        productService.getAllForCrm(pageable, Language.RU, " APELLA ", "active");
+        productService.getAllForCrm(pageable, Language.RU, " APPELLA ", "active");
 
-        verify(productRepository).searchForCrmByStatus("APELLA", "ACTIVE", pageable);
+        verify(productRepository).searchForCrmByStatus("APPELLA", "ACTIVE", pageable);
     }
 
     @Test

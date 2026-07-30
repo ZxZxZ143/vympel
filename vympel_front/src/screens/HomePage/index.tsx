@@ -8,10 +8,10 @@ import Categories from "@/components/HomePage/Categories";
 import Philosophy from "@/components/HomePage/Philosophy";
 import MarketPlaces from "@/components/MarketPlaces";
 import {LocaleEnum} from "@/i18n/routing";
-import NewGoods from "@/components/HomePage/NewGoods";
 import {catalogLinks, PUBLIC_CATEGORY_CODES} from "@/config/routes";
 import {PublicApiController} from "@/api/controllers/PublicController";
 import {findCmsBlock, findCmsBlocksByType, cmsImageSources, cmsLink, cmsText} from "@/utils/cmsContent";
+import ProductCarouselSection from "@/components/HomePage/ProductCarouselSection";
 
 type Props = {
     titles: {
@@ -58,16 +58,17 @@ async function HomePage({titles, locale}: Props) {
             <div className="responsive-page-x w-full">
                 <BannerCarousel items={heroSlides}/>
                 <Benefits/>
-                <SectionWithTitle title={titles.new} link={catalogLinks.wristWatches} >
-                    <NewGoods
-                        locale={locale}
-                        categoryCode={PUBLIC_CATEGORY_CODES.wrist}
-                        bannerImage={newGoodsImages.desktop}
-                        bannerMobileImage={newGoodsImages.mobile}
-                        bannerFallbackImage={newGoodsImages.fallback}
-                        bannerAlt={newGoodsBanner?.translation?.altText ?? undefined}
-                    />
-                </SectionWithTitle>
+                <ProductCarouselSection
+                    title={titles.new}
+                    destinationLink={catalogLinks.wristWatches}
+                    locale={locale}
+                    categoryCode={PUBLIC_CATEGORY_CODES.wrist}
+                    bannerImage={newGoodsImages.desktop}
+                    bannerMobileImage={newGoodsImages.mobile}
+                    bannerFallbackImage={newGoodsImages.fallback}
+                    bannerAlt={newGoodsBanner?.translation?.altText ?? undefined}
+                    sectionId="new-arrivals"
+                />
                 <SectionWithTitle title={titles.brands}>
                     <BrandsCarousel />
                 </SectionWithTitle>
@@ -75,6 +76,16 @@ async function HomePage({titles, locale}: Props) {
                 <SectionWithTitle title={titles.categories}>
                     <Categories />
                 </SectionWithTitle>
+
+                <ProductCarouselSection
+                    title={titles.accessories}
+                    destinationLink={catalogLinks.accessories}
+                    locale={locale}
+                    categoryCode={PUBLIC_CATEGORY_CODES.accessories}
+                    bannerImage="/accessories-banner.png"
+                    bannerFallbackImage="/accessories-banner.png"
+                    sectionId="accessories"
+                />
 
                 <SectionWithTitle title={titles.philosophy} titleClassName="mb-7 sm:mb-9 lg:mb-34">
                     <Philosophy />
