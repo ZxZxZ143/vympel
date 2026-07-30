@@ -37,10 +37,33 @@ export const CONTACT_LINKS = {
 } as const;
 
 export const MARKETPLACE_LINKS = {
-    kaspi: "https://kaspi.kz/shop/",
-    ozon: "https://www.ozon.ru/",
-    wildberries: "https://www.wildberries.ru/",
+    kaspi: "https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome",
+    wildberries: "https://global.wildberries.ru/seller/4398117",
 } as const;
+
+export type MarketplaceKey = keyof typeof MARKETPLACE_LINKS;
+
+function isHostWithinDomain(hostname: string, domain: string) {
+    return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
+export function resolveMarketplaceHref(url: URL): string | null | undefined {
+    const hostname = url.hostname.toLowerCase();
+
+    if (isHostWithinDomain(hostname, "kaspi.kz")) {
+        return MARKETPLACE_LINKS.kaspi;
+    }
+
+    if (isHostWithinDomain(hostname, "wildberries.ru")) {
+        return MARKETPLACE_LINKS.wildberries;
+    }
+
+    if (isHostWithinDomain(hostname, "ozon.ru") || isHostWithinDomain(hostname, "ozon.kz")) {
+        return null;
+    }
+
+    return undefined;
+}
 
 export type CatalogRouteParams = {
     categoryCode?: string | null;

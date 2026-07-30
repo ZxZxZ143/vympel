@@ -19,7 +19,7 @@ type Props = {
     page: InfoPageKind;
 };
 
-const marketplaceKeys = ["kaspi", "wildberries", "ozon"] as const;
+const marketplaceKeys = ["kaspi", "wildberries"] as const;
 const warrantyServiceKeys = ["deliveryToService", "diagnostics", "returnDelivery"] as const;
 const paymentMethodKeys = ["cash", "cards", "transfer"] as const;
 

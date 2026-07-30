@@ -11,6 +11,7 @@ import com.shop.vympel.dtos.cms.*;
 import com.shop.vympel.enums.*;
 import com.shop.vympel.exceptions.BusinessRuleViolationException;
 import com.shop.vympel.exceptions.ResourceNotFoundException;
+import com.shop.vympel.services.marketplace.MarketplaceUrlPolicy;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -229,6 +230,12 @@ public class CmsServiceImpl implements CmsService {
         Map<String, CmsTranslationRequest> translations = normalizeTranslations(request.translations());
 
         validateLink(linkType, linkTarget);
+        if (linkType == CmsLinkType.EXTERNAL_URL) {
+            linkTarget = MarketplaceUrlPolicy.canonicalizeCmsExternalUrl(linkTarget);
+            if (MarketplaceUrlPolicy.isCanonicalMarketplaceUrl(linkTarget)) {
+                linkOpenBehavior = CmsLinkOpenBehavior.NEW_TAB;
+            }
+        }
         validateTranslations(block, schema, translations, request.mediaId());
 
         block.setPage(page);

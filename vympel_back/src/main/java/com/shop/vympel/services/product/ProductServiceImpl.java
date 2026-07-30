@@ -17,6 +17,7 @@ import com.shop.vympel.mappers.product.ProductMapper;
 import com.shop.vympel.services.categoryProduct.CategoryProductService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
+import com.shop.vympel.services.marketplace.MarketplaceUrlPolicy;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
 import com.shop.vympel.services.productDescription.ProductDescriptionService;
 import com.shop.vympel.services.productName.ProductNameService;
@@ -29,8 +30,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
@@ -70,8 +69,8 @@ public class ProductServiceImpl implements ProductService {
 
         if (product != null) throw new IllegalArgumentException("Product already exists");
 
-        req.setKaspiUrl(normalizeOptionalHttpUrl(req.getKaspiUrl(), "kaspiUrl"));
-        req.setWildberriesUrl(normalizeOptionalHttpUrl(req.getWildberriesUrl(), "wildberriesUrl"));
+        req.setKaspiUrl(MarketplaceUrlPolicy.canonicalizeKaspi(req.getKaspiUrl()));
+        req.setWildberriesUrl(MarketplaceUrlPolicy.canonicalizeWildberries(req.getWildberriesUrl()));
         if (req.getStockQuantity() == null) {
             req.setStockQuantity(0);
         }
@@ -137,11 +136,11 @@ public class ProductServiceImpl implements ProductService {
         ensureStatusCanBePersisted(product.getId(), product.getStatus());
 
         if (kaspiUrl != null) {
-            product.setKaspiUrl(normalizeOptionalHttpUrl(kaspiUrl, "kaspiUrl"));
+            product.setKaspiUrl(MarketplaceUrlPolicy.canonicalizeKaspi(kaspiUrl));
         }
 
         if (wildberriesUrl != null) {
-            product.setWildberriesUrl(normalizeOptionalHttpUrl(wildberriesUrl, "wildberriesUrl"));
+            product.setWildberriesUrl(MarketplaceUrlPolicy.canonicalizeWildberries(wildberriesUrl));
         }
 
         Product savedProduct = productRepository.save(product);
@@ -351,8 +350,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        product.setKaspiUrl(normalizeOptionalHttpUrl(kaspiUrl, "kaspiUrl"));
-        product.setWildberriesUrl(normalizeOptionalHttpUrl(wildberriesUrl, "wildberriesUrl"));
+        product.setKaspiUrl(MarketplaceUrlPolicy.canonicalizeKaspi(kaspiUrl));
+        product.setWildberriesUrl(MarketplaceUrlPolicy.canonicalizeWildberries(wildberriesUrl));
 
         productRepository.save(product);
 
@@ -387,36 +386,6 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse archive(Long id, Language language) {
         return updateStatus(id, "ARCHIVED", language);
-    }
-
-    private String normalizeOptionalHttpUrl(String url, String fieldName) {
-        if (url == null) {
-            return null;
-        }
-
-        String trimmed = url.trim();
-        if (trimmed.isBlank()) {
-            return null;
-        }
-
-        try {
-            URI uri = new URI(trimmed);
-            String scheme = uri.getScheme();
-            String host = uri.getHost();
-
-            if (scheme == null || host == null || host.isBlank()) {
-                throw new IllegalArgumentException(fieldName + " must be a valid URL");
-            }
-
-            String normalizedScheme = scheme.toLowerCase();
-            if (!normalizedScheme.equals("http") && !normalizedScheme.equals("https")) {
-                throw new IllegalArgumentException(fieldName + " must use http or https");
-            }
-
-            return uri.toString();
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException(fieldName + " must be a valid URL");
-        }
     }
 
     private ProductPromotionMode parsePromotionMode(String promotionMode) {

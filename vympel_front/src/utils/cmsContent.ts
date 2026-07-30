@@ -1,5 +1,5 @@
 import {ICmsBlock} from "@/api/types/CmsTypes";
-import {routes} from "@/config/routes";
+import {resolveMarketplaceHref, routes} from "@/config/routes";
 import {LocaleEnum} from "@/i18n/routing";
 
 export function findCmsBlock(blocks: ICmsBlock[] | undefined, blockKey: string) {
@@ -99,10 +99,15 @@ export function cmsLink(block: ICmsBlock | null | undefined) {
                 return null;
             }
 
+            const marketplaceHref = resolveMarketplaceHref(url);
+            if (marketplaceHref === null) {
+                return null;
+            }
+
             return {
-                href: target,
+                href: marketplaceHref ?? target,
                 external: true,
-                newTab: block.linkOpenBehavior === "NEW_TAB",
+                newTab: marketplaceHref !== undefined || block.linkOpenBehavior === "NEW_TAB",
             };
         } catch {
             return null;

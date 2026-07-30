@@ -107,8 +107,8 @@
 ### Centralized public route helpers
 
 * **When to use:** When adding or changing public header, footer, breadcrumb, product-card, brand, search, cart, favorites, category, contact, marketplace, or CTA links.
-* **How:** Use `vympel_front/src/config/routes.ts` (`routes`, `catalogLinks`, `PUBLIC_CATEGORY_CODES`, `CONTACT_LINKS`, `MARKETPLACE_LINKS`) instead of hand-building href strings. Category links must use `categoryCode` and `page=1`; semantic filter links must use backend filter keys/values such as `gender=1`; `WATCH_KIDS` uses `catalogLinks.kidsWatches`; brand pages use `routes.brand(slug)`; the footer `Бренды` destination must use `routes.brands()` for the all-brands page; catalog brand filters should use a backend-resolved brand option value.
-* **Why:** The app has mandatory locale prefixes and backend-owned catalog filters. Centralizing href construction prevents `#`, `/`, stale path-style catalog URLs, and filter values that do not match the current backend contract.
+* **How:** Use `vympel_front/src/config/routes.ts` (`routes`, `catalogLinks`, `PUBLIC_CATEGORY_CODES`, `CONTACT_LINKS`, `MARKETPLACE_LINKS`) instead of hand-building href strings. `MARKETPLACE_LINKS` contains only the canonical Kaspi and Wildberries destinations; known CMS marketplace hosts must pass through `resolveMarketplaceHref`, and rendered marketplace anchors must use `target="_blank"` plus `rel="noopener noreferrer"`. Category links must use `categoryCode` and `page=1`; semantic filter links must use backend filter keys/values such as `gender=1`; `WATCH_KIDS` uses `catalogLinks.kidsWatches`; brand pages use `routes.brand(slug)`; the footer `Бренды` destination must use `routes.brands()` for the all-brands page; catalog brand filters should use a backend-resolved brand option value.
+* **Why:** The app has mandatory locale prefixes, backend-owned catalog filters, and one approved destination per marketplace. Centralizing href construction prevents `#`, `/`, stale marketplace/store URLs, stale path-style catalog URLs, and filter values that do not match the current backend contract.
 
 ### Backend-driven catalog filter UI
 
@@ -725,8 +725,8 @@
 ### Product marketplace links contract
 
 * **When to use:** Whenever product DTOs, forms, or product data displays change.
-* **How:** Treat `kaspiUrl` and `wildberriesUrl` as first-class optional product fields. Persist them in `product.kaspi_url` and `product.wildberries_url`, return them in public and CRM product DTOs, mirror them in frontend TypeScript types, and validate optional values as http/https URLs on both frontend and backend.
-* **Why:** Marketplace links are now part of the product contract and must not disappear between backend, CRM, and public storefront data.
+* **How:** Treat `kaspiUrl` and `wildberriesUrl` as first-class optional product fields, but canonicalize every nonblank write through backend `services/marketplace/MarketplaceUrlPolicy` and enforce nullable canonical values in the database. Return them in public and CRM product DTOs and mirror them in frontend TypeScript types. Public product CTA rendering must use frontend `MARKETPLACE_LINKS` directly and send the existing `MARKETPLACE_CLICK` analytics event, so stale payload values can never become customer navigation.
+* **Why:** Marketplace links remain part of the product contract, while customer transitions must always use the two approved store destinations across backend data, CMS, CRM, and storefront rendering.
 
 ### CRM bulk creation contract
 
@@ -832,6 +832,12 @@
 * **How:** Reuse `globals.css` tokens, existing shared components, public assets, and custom icon components before inventing new visual language.
 * **Why:** The current catalog UI is already built around a restrained neutral palette, large product imagery, and reusable section/card primitives.
 
+### Two-card marketplace layout
+
+* **When to use:** When rendering the public Kaspi/Wildberries marketplace section on Home, Catalog, About, or another shared surface.
+* **How:** Keep one full-width column by default and switch to `md:grid-cols-2` with `md:auto-rows-fr`; anchors and cards need `h-full w-full min-w-0`, identical responsive heights, safe focus rings, and logos rendered through `next/image` with `object-contain`. The whole card is the single link; the visual CTA stays inside it as non-nested content.
+* **Why:** The two remaining cards fill the container evenly on desktop, stack cleanly on phones, preserve keyboard access, and cannot retain a blank third-card slot or create horizontal overflow.
+
 ### Public brand page layout
 
 * **When to use:** When changing `/brands/[brandSlug]`, `BrandPage`, brand navigation, or brand banner/product sections.
@@ -894,6 +900,13 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### Scattering marketplace destinations and dormant marketplace copy
+
+* **What happened:** Store URLs were duplicated as broad marketplace homepages, while Ozon remained in a card, benefit text, info-page lists, product tab copy, and all three public locale files.
+* **Root cause:** Navigation, localized copy, CMS external targets, and persisted product URLs were not governed by one explicit two-marketplace policy.
+* **Fix:** Keep the approved Kaspi/Wildberries destinations in frontend `MARKETPLACE_LINKS` and backend `MarketplaceUrlPolicy`, normalize persisted/CMS values with a forward-only migration, reject Ozon CMS writes, and test both public CMS resolution and backend URL policy.
+* **How to avoid:** For any marketplace change, search source/config/locales/CMS/data migrations together; never add a marketplace anchor outside the central config or nest a button/link anchor inside the clickable card.
 
 ### Letting Java negotiate h2c with the local Next.js revalidation webhook
 
@@ -2111,4 +2124,4 @@
 
 ## Last Updated
 
-2026-07-29 - Recorded the immutable RC.8 publication workflow, independent registry cross-check, exact manifest preservation, and pinned non-secret GCP staging selector.
+2026-07-30 - Added the canonical two-marketplace link policy, safe CMS/product navigation pattern, responsive two-card layout, and the Ozon-removal lesson.

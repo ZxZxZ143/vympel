@@ -252,7 +252,8 @@
     "end": "Our approach is rooted in respect for tradition and a стремление to modernity. We believe that a watch is not just a device for measuring time, but a reflection of personality, taste, and state of mind. In a world of technology, where everything becomes virtual, mechanical watches remain the last physical embodiment of time — an object you can feel, hear, pass on. They live by their own laws and remind us: the present is not on a screen, but in the movement of gears reflecting our rhythm."
   },
   "marketplaces": {
-    "go": "Go to"
+    "go": "Go to",
+    "openAria": "Open the {marketplace} store in a new tab"
   },
   "footer": {
     "wristWatches": "Wrist Watches",
@@ -278,8 +279,7 @@
   "infoPages": {
     "marketplaces": {
       "kaspi": "Kaspi",
-      "wildberries": "Wildberries",
-      "ozon": "Ozon"
+      "wildberries": "Wildberries"
     },
     "store": {
       "imageAlt": "Vympel store in TD TSUM",
@@ -553,6 +553,8 @@
       "outOfStockBody": "This model is currently out of stock. However, it may become available soon. If you would like to be notified when it becomes available, please leave your email in the form below.",
       "askQuestion": "Ask a question about this model",
       "kaspiPaymentAria": "Pay with Kaspi",
+      "buyOnMarketplace": "Buy on {marketplace}",
+      "openMarketplaceAria": "Open the {marketplace} store in a new tab",
       "halykPaymentAria": "Pay with Halyk",
       "emailLabel": "Your e-mail",
       "emailPlaceholder": "example@gmail.com",
@@ -639,12 +641,12 @@
         "description": "If the product fails during the warranty period, our company covers all expenses related to warranty service, including delivery of the product to the service center, repair work, and return delivery of the repaired product to the recipient."
       },
       "deliveryInfo": {
-        "paragraph1": "Orders are delivered by <strong>marketplace services</strong> where our products are available: <strong>Kaspi, Wildberries, Ozon.</strong>",
+        "paragraph1": "Orders are delivered by <strong>marketplace services</strong> where our products are available: <strong>Kaspi and Wildberries.</strong>",
         "paragraph2": "Delivery times and costs are set by the marketplace and shown during checkout.",
         "paragraph3": "Free pickup from the store is also available.\nThe address and working hours are shown on the site."
       },
       "paymentInfo": {
-        "paragraph1": "Orders are paid <strong>through marketplaces</strong> when purchasing on their platforms: <strong>Kaspi, Wildberries, Ozon</strong>.",
+        "paragraph1": "Orders are paid <strong>through marketplaces</strong> when purchasing on their platforms: <strong>Kaspi and Wildberries</strong>.",
         "paragraph2": "For pickup from the store, payment is available by:",
         "methods": {
           "cash": "cash;",

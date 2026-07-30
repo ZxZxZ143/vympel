@@ -16,7 +16,6 @@ export const getBenefitsConfig = (t: T): (BenefitsItemProps & { id: number })[] 
         subtext: (
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-4">
                 <Text colors="placeholder" size="bodyXs">Kaspi.kz</Text>
-                <Text colors="placeholder" size="bodyXs">Ozon</Text>
                 <Text colors="placeholder" size="bodyXs">Wildberries</Text>
             </div>
         ),

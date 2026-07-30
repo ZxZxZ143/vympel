@@ -43,7 +43,7 @@ function shouldTrackView(productId: number) {
 
 export function trackProductEvent(
     productId: number,
-    eventType: "VIEW" | "FAVORITE" | "UNFAVORITE" | "ADD_TO_CART" | "REMOVE_FROM_CART"
+    eventType: "VIEW" | "FAVORITE" | "UNFAVORITE" | "ADD_TO_CART" | "REMOVE_FROM_CART" | "MARKETPLACE_CLICK"
 ) {
     void PublicApiController.trackProductEvent({
         productId,

@@ -5,7 +5,7 @@ import Image from "next/image";
 import {useForm} from "react-hook-form";
 import {useLocale, useTranslations} from "use-intl";
 
-import Button from "@/components/ui/shared/Button";
+import Button, {variants as buttonVariants} from "@/components/ui/shared/Button";
 import {Heading} from "@/components/ui/shared/text/Heading";
 import {Text} from "@/components/ui/shared/text";
 import Favorite from "@/assets/icons/Favorite";
@@ -23,6 +23,7 @@ import {
 import {useProductActionToasts} from "@/hooks/useProductActionToasts";
 import RatingStars from "@/components/ProductRating/RatingStars";
 import CustomerRequestButton from "@/components/CustomerRequestDialog/CustomerRequestButton";
+import {MARKETPLACE_LINKS} from "@/config/routes";
 
 type Props = {
     product: IProductDetails;
@@ -32,6 +33,11 @@ type StockNotifyFormValues = {
     email: string;
     phone: string;
 };
+
+const productMarketplaceLinks = [
+    {id: "kaspi", name: "Kaspi", href: MARKETPLACE_LINKS.kaspi},
+    {id: "wildberries", name: "Wildberries", href: MARKETPLACE_LINKS.wildberries},
+] as const;
 
 const ProductSummary = ({product}: Props) => {
     const t = useTranslations("product");
@@ -169,6 +175,27 @@ const ProductSummary = ({product}: Props) => {
             <Text size="h5" colors="primary" className="leading-10">
                 {formattedPrice}
             </Text>
+
+            <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                {productMarketplaceLinks.map((marketplace) => (
+                    <a
+                        key={marketplace.id}
+                        href={marketplace.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t("summary.openMarketplaceAria", {marketplace: marketplace.name})}
+                        onClick={() => trackProductEvent(product.id, "MARKETPLACE_CLICK")}
+                        className={cn(
+                            buttonVariants({variant: "default", size: "md"}),
+                            "min-h-12 w-full min-w-0 px-5 text-center"
+                        )}
+                    >
+                        <Text as="span" size="bodySm" weight="medium" className="leading-tight">
+                            {t("summary.buyOnMarketplace", {marketplace: marketplace.name})}
+                        </Text>
+                    </a>
+                ))}
+            </div>
 
             {isAvailable ? (
                 <>

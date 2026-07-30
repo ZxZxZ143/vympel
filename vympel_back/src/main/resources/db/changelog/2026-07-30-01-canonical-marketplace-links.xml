@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-07-30-01-canonical-marketplace-links" author="codex">
+        <sql><![CDATA[
+            UPDATE product
+            SET kaspi_url = NULL
+            WHERE kaspi_url IS NOT NULL
+              AND btrim(kaspi_url) = '';
+
+            UPDATE product
+            SET wildberries_url = NULL
+            WHERE wildberries_url IS NOT NULL
+              AND btrim(wildberries_url) = '';
+
+            UPDATE product
+            SET kaspi_url = 'https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome'
+            WHERE kaspi_url IS NOT NULL;
+
+            UPDATE product
+            SET wildberries_url = 'https://global.wildberries.ru/seller/4398117'
+            WHERE wildberries_url IS NOT NULL;
+
+            ALTER TABLE product
+                ADD CONSTRAINT chk_product_kaspi_url_canonical
+                    CHECK (
+                        kaspi_url IS NULL
+                        OR kaspi_url = 'https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome'
+                    ),
+                ADD CONSTRAINT chk_product_wildberries_url_canonical
+                    CHECK (
+                        wildberries_url IS NULL
+                        OR wildberries_url = 'https://global.wildberries.ru/seller/4398117'
+                    );
+
+            UPDATE cms_block
+            SET link_target = 'https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome',
+                link_open_behavior = 'NEW_TAB',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE link_type = 'EXTERNAL_URL'
+              AND lower(link_target) ~ '^https?://([a-z0-9-]+\.)*kaspi\.kz([/:?#]|$)';
+
+            UPDATE cms_block
+            SET link_target = 'https://global.wildberries.ru/seller/4398117',
+                link_open_behavior = 'NEW_TAB',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE link_type = 'EXTERNAL_URL'
+              AND lower(link_target) ~ '^https?://([a-z0-9-]+\.)*wildberries\.ru([/:?#]|$)';
+
+            UPDATE cms_block
+            SET status = 'DRAFT',
+                link_type = 'NONE',
+                link_target = NULL,
+                link_open_behavior = 'SAME_TAB',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE link_target IS NOT NULL
+              AND (
+                  lower(link_target) ~ '^https?://([a-z0-9-]+\.)*ozon\.ru([/:?#]|$)'
+                  OR lower(link_target) ~ '^https?://([a-z0-9-]+\.)*ozon\.kz([/:?#]|$)'
+              );
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>
