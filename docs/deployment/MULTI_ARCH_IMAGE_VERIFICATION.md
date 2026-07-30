@@ -10,26 +10,31 @@ The authoritative images remain separate:
 - `ghcr.io/zxzxz143/vympel-storefront`
 - `ghcr.io/zxzxz143/vympel-crm`
 
-## Verified RC.8 publication
+## Verified RC.9 publication
 
-Annotated tag `v1.0.0-rc.8` is immutable at
-`aadfabfd23a4196bc385ae41a0f3b8719172ffbc`. Release Images run
-[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979)
+Annotated tag `v1.0.0-rc.9` is immutable at
+`7167aa31618d6c090c8c5b04394c04ab03866dc4`. Release Images run
+[30557528961](https://github.com/ZxZxZ143/vympel/actions/runs/30557528961)
 passed all native builds, final-index attestations, registry metadata,
 exact-image amd64 and ARM64 runtime rehearsals, frontend bundle URL scans, and
-consolidated manifest generation.
+consolidated manifest generation after one failed-jobs retry recovered a
+transient backend amd64 BuildKit signing cancellation.
 
 | Image | OCI index digest | linux/amd64 child | linux/arm64 child |
 | --- | --- | --- | --- |
-| Backend | `sha256:47dcad868b3804fac91b58e23f5fdb6d2c914d39016bd5d0ca727672bb60a6d7` | `sha256:2dff06fc116f4472033f2e7e9af1a4bccb4dc08facc7a76fa07084a78539e69e` | `sha256:9784b3415a4b5901e5947af7ad737a8852072db57ff614a1bd2ac32dcd765a3d` |
-| Storefront | `sha256:42a6e04c243772efc98a021998338e25a1b532cccfb073db645768c3dd2db389` | `sha256:869c5e4c32bafd60a02f7473940e662f661086fe2df74775b95787f40023d453` | `sha256:efb14f0ad663e7cf75d442ca6d0645192487bcb01062bf928bf07f45011d492c` |
-| CRM | `sha256:7755917ba4ace3ab2602b2126ad6aeea88993e66b70702f6707008db6516aec6` | `sha256:78c2efb3b9187a02293e7757647c33705cfeba58b55e2dedcfe633bf788aa961` | `sha256:55708c82e0f623ddfd057ee7ab0e45a3b0906a2b5359b06fe8aef92b968ff660` |
+| Backend | `sha256:fbc8bb2cc560ff11433e8e31b07d2c15878fe532db33f67ad1ee0d48c3eb05e5` | `sha256:43e221b9db04cab0f8145316c6a277d7a0a144f5bf9161b2094a158285aeeaba` | `sha256:6c3b2b0746829ed53356063f4f50283d48c8f33d21808b626542660bb7e6e00d` |
+| Storefront | `sha256:6a2784e65525557ecc43bbe66a0b8d4cdc429b5f01a0a4948b4506e036debcaa` | `sha256:9644cc6ca2473d98ba503ea572c157deba25b083297bec00ac3bd4cd41e7092b` | `sha256:44fd6f392f7723955cf91bd5f5899b3718182d872f81c6833c49b0fb8a81ea1c` |
+| CRM | `sha256:92f63711232821274c94992be4d757585b0b56dd5d41340b367fedb41d678f2f` | `sha256:cf6438b9edddeb59ff0825a05de65e91dff1522e70b8f37b67c36e9062f1fa60` | `sha256:f08302c38d4adb60dffadd559c54fe3b777f4ddaa89f0e31ee468f24bcfbf342` |
 
 Independent `docker buildx imagetools inspect` calls confirmed the RC tag and
 full-SHA alias resolve to those same indexes. The exact record is
-`deployment/releases/v1.0.0-rc.8.yml`. Its storefront and CRM bundles contain
+`deployment/releases/v1.0.0-rc.9.yml`. Its storefront and CRM bundles contain
 the approved temporary public sslip.io values and no concrete `.invalid`,
-localhost, or loopback destination. No cloud deployment ran.
+localhost, or loopback destination. Both application-platform configs identify
+the exact source commit through OCI labels. The committed record uses actual
+latest Liquibase changeset `2026-07-30-02-update-contact-banner-media`, replacing
+the stale RC.8 constant present in the generated artifact. No cloud deployment
+ran.
 
 ## RC.2 baseline
 

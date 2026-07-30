@@ -13,6 +13,36 @@ Every set uses the same full 40-character Git commit SHA. `latest` is never a re
 
 ## Published release-candidate evidence
 
+### RC.9 application update candidate
+
+`v1.0.0-rc.9` is an annotated, immutable tag on exact source commit
+`7167aa31618d6c090c8c5b04394c04ab03866dc4`. Trusted Release Images run
+[30557528961](https://github.com/ZxZxZ143/vympel/actions/runs/30557528961)
+passed the reusable source gate, six native platform builds, final-index
+attestations, metadata, exact-image amd64 and ARM64 runtime rehearsals,
+frontend bundle URL scans, and consolidated manifest generation. A single
+failed-jobs rerun recovered the backend amd64 signing step after BuildKit
+returned a transient `context canceled`; no duplicate dispatch or tag was
+created.
+
+| Image | OCI index digest | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- |
+| Backend | `sha256:fbc8bb2cc560ff11433e8e31b07d2c15878fe532db33f67ad1ee0d48c3eb05e5` | `sha256:43e221b9db04cab0f8145316c6a277d7a0a144f5bf9161b2094a158285aeeaba` | `sha256:6c3b2b0746829ed53356063f4f50283d48c8f33d21808b626542660bb7e6e00d` |
+| Storefront | `sha256:6a2784e65525557ecc43bbe66a0b8d4cdc429b5f01a0a4948b4506e036debcaa` | `sha256:9644cc6ca2473d98ba503ea572c157deba25b083297bec00ac3bd4cd41e7092b` | `sha256:44fd6f392f7723955cf91bd5f5899b3718182d872f81c6833c49b0fb8a81ea1c` |
+| CRM | `sha256:92f63711232821274c94992be4d757585b0b56dd5d41340b367fedb41d678f2f` | `sha256:cf6438b9edddeb59ff0825a05de65e91dff1522e70b8f37b67c36e9062f1fa60` | `sha256:f08302c38d4adb60dffadd559c54fe3b777f4ddaa89f0e31ee468f24bcfbf342` |
+
+The digest-complete artifact
+`published-release-manifest-7167aa31618d6c090c8c5b04394c04ab03866dc4`
+is artifact ID `8766245749` with ZIP digest
+`sha256:c37aaa1d61630f8b201cd9cfa627f0d6aa4b051260339a9c7e457eb0da4bc89d`.
+The durable record is `deployment/releases/v1.0.0-rc.9.yml`; its registry and
+public-build data match the artifact, while `database.expected_latest_change`
+was corrected from the generator's stale RC.8 constant to the actual final
+committed changeset `2026-07-30-02-update-contact-banner-media`. Independent
+registry inspection confirmed matching RC/full-SHA indexes and correct
+source/revision/version labels on both application platforms. No cloud
+deployment ran.
+
 ### RC.8 temporary public GCP candidate
 
 `v1.0.0-rc.8` is an annotated, immutable tag on exact source commit

@@ -1,46 +1,38 @@
 # Release Candidate Verification
 
-Date: 2026-07-29
-Candidate: `v1.0.0-rc.8`
+Date: 2026-07-30
+Candidate: `v1.0.0-rc.9`
 Status: immutable amd64/ARM64 publication and runtime gates passed with the exact temporary public GCP staging build contract; external deployment was not performed.
 
-## Temporary public GCP staging candidate
+## Published application update candidate
 
-`v1.0.0-rc.8` is immutable at exact release commit
-`aadfabfd23a4196bc385ae41a0f3b8719172ffbc`. The source passed Performance
-Budgets run
-[30399583227](https://github.com/ZxZxZ143/vympel/actions/runs/30399583227),
-Storefront CI run
-[30399583382](https://github.com/ZxZxZ143/vympel/actions/runs/30399583382),
-CRM CI run
-[30399583388](https://github.com/ZxZxZ143/vympel/actions/runs/30399583388),
-Full Release Gate run
-[30399583534](https://github.com/ZxZxZ143/vympel/actions/runs/30399583534),
-build-only Release Images run
-[30399583742](https://github.com/ZxZxZ143/vympel/actions/runs/30399583742),
-and tag-triggered Full Release Gate run
-[30399967023](https://github.com/ZxZxZ143/vympel/actions/runs/30399967023).
-
-Trusted publication run
-[30400324979](https://github.com/ZxZxZ143/vympel/actions/runs/30400324979)
-then passed the publication policy, reusable full gate, six native builds,
-signed final indexes, registry metadata, exact-image amd64 and ARM64 runtime
+`v1.0.0-rc.9` is immutable at exact release commit
+`7167aa31618d6c090c8c5b04394c04ab03866dc4`. Trusted publication run
+[30557528961](https://github.com/ZxZxZ143/vympel/actions/runs/30557528961)
+passed the publication policy, reusable full gate, six native builds, signed
+final indexes, registry metadata, exact-image amd64 and ARM64 runtime
 rehearsals, migrations/readiness, native sharp checks, frontend bundle scans,
-and manifest generation.
+and manifest generation. The initial backend amd64 signing finalization was
+cancelled by transient BuildKit infrastructure; the one permitted failed-jobs
+rerun succeeded without creating another workflow dispatch or moving the tag.
 
 | Image | Index digest | linux/amd64 child | linux/arm64 child |
 | --- | --- | --- | --- |
-| Backend | `sha256:47dcad868b3804fac91b58e23f5fdb6d2c914d39016bd5d0ca727672bb60a6d7` | `sha256:2dff06fc116f4472033f2e7e9af1a4bccb4dc08facc7a76fa07084a78539e69e` | `sha256:9784b3415a4b5901e5947af7ad737a8852072db57ff614a1bd2ac32dcd765a3d` |
-| Storefront | `sha256:42a6e04c243772efc98a021998338e25a1b532cccfb073db645768c3dd2db389` | `sha256:869c5e4c32bafd60a02f7473940e662f661086fe2df74775b95787f40023d453` | `sha256:efb14f0ad663e7cf75d442ca6d0645192487bcb01062bf928bf07f45011d492c` |
-| CRM | `sha256:7755917ba4ace3ab2602b2126ad6aeea88993e66b70702f6707008db6516aec6` | `sha256:78c2efb3b9187a02293e7757647c33705cfeba58b55e2dedcfe633bf788aa961` | `sha256:55708c82e0f623ddfd057ee7ab0e45a3b0906a2b5359b06fe8aef92b968ff660` |
+| Backend | `sha256:fbc8bb2cc560ff11433e8e31b07d2c15878fe532db33f67ad1ee0d48c3eb05e5` | `sha256:43e221b9db04cab0f8145316c6a277d7a0a144f5bf9161b2094a158285aeeaba` | `sha256:6c3b2b0746829ed53356063f4f50283d48c8f33d21808b626542660bb7e6e00d` |
+| Storefront | `sha256:6a2784e65525557ecc43bbe66a0b8d4cdc429b5f01a0a4948b4506e036debcaa` | `sha256:9644cc6ca2473d98ba503ea572c157deba25b083297bec00ac3bd4cd41e7092b` | `sha256:44fd6f392f7723955cf91bd5f5899b3718182d872f81c6833c49b0fb8a81ea1c` |
+| CRM | `sha256:92f63711232821274c94992be4d757585b0b56dd5d41340b367fedb41d678f2f` | `sha256:cf6438b9edddeb59ff0825a05de65e91dff1522e70b8f37b67c36e9062f1fa60` | `sha256:f08302c38d4adb60dffadd559c54fe3b777f4ddaa89f0e31ee468f24bcfbf342` |
 
 The exact public build values and registry record are committed at
-`deployment/releases/v1.0.0-rc.8.yml`. The manifest artifact is ID
-`8704956171` with ZIP digest
-`sha256:f5a4536ab7e7c89033ed76753f30499f61ef5feb6f0983a28973d81d823a6e6f`.
-Independent registry inspection confirmed the RC and full-SHA aliases. The
+`deployment/releases/v1.0.0-rc.9.yml`. The manifest artifact is ID
+`8766245749` with ZIP digest
+`sha256:c37aaa1d61630f8b201cd9cfa627f0d6aa4b051260339a9c7e457eb0da4bc89d`.
+Independent registry inspection confirmed the RC and full-SHA aliases and the
+correct source/revision/version OCI labels on both platform children. The
 published frontend scans reject concrete `.invalid`, localhost, IPv4 loopback,
-and IPv6 loopback destinations; both platform children passed. RC.7 retains its
+and IPv6 loopback destinations; both platform children passed. The durable
+record corrects the generated artifact's stale RC.8
+`database.expected_latest_change` value to actual final changeset
+`2026-07-30-02-update-contact-banner-media`. Earlier RC tags retain their
 original digests. No Google Cloud resource or external deployment was created.
 
 ## Preserved RC.7 ARM64 and Oracle staging evidence

@@ -2100,14 +2100,20 @@
 ### Preserve registry-generated release evidence outside the immutable tag
 
 * **When to use:** A manual publication run succeeds after its source commit and RC tag already exist.
-* **How:** Download the consolidated non-secret manifest artifact, verify its commit/tag/run URL and all three `sha256:` values, then commit the exact manifest under `deployment/releases/<tag>.yml` on `main`. Keep the evidence commit outside the existing release tag.
+* **How:** Download the consolidated non-secret manifest artifact, verify its commit/tag/run URL, all three index digests, all six platform digests, public build contract, and latest committed Liquibase changeset, then commit the verified manifest under `deployment/releases/<tag>.yml` on `main`. Keep the evidence commit outside the existing release tag. If a generated descriptive field is stale, preserve registry-derived values exactly and correct only the field proven directly from the tagged source, documenting the discrepancy.
 * **Why:** Registry digests do not exist until publication, but moving the tag afterward would break the binding between the tag and the source that passed the release gate.
+
+### Derive release evidence from the tagged changelog, not the previous RC
+
+* **When to use:** Generating or preserving a release manifest after the tagged source added Liquibase changes.
+* **How:** Read `db.changelog-master.xml` at the tagged commit, follow the included changelog order, and record the final `changeSet` id. Compare it with `database.expected_latest_change` in the workflow artifact before committing durable evidence.
+* **Why:** RC.9's publication artifact retained RC.8's hardcoded `2026-07-19-02-update-public-image-paths-to-webp` value even though the tagged source ended at `2026-07-30-02-update-contact-banner-media`; registry/runtime success does not prove descriptive release metadata is current.
 
 ### Cross-check release artifacts against the public registry
 
 * **When to use:** A publication workflow has emitted a digest-complete manifest and the release needs a durable deployable record.
-* **How:** Independently inspect every RC-tagged OCI index, confirm its `linux/amd64` child, confirm the full-SHA alias resolves to the same index digest, and compare all values with the downloaded manifest before committing it. Reinspect the prior RC tags to prove they were not moved.
-* **Why:** RC.8 demonstrated that workflow success and artifact generation can be corroborated without trusting either record alone, while preserving the immutability guarantee of earlier candidates.
+* **How:** Independently inspect every RC-tagged OCI index, confirm its `linux/amd64` and `linux/arm64` children, confirm the full-SHA alias resolves to the same index digest, inspect both platform configs for exact OCI source/revision/version labels, and compare all values with the downloaded manifest before committing it. Reinspect the prior RC tags when required to prove they were not moved.
+* **Why:** RC.8 and RC.9 demonstrated that workflow success and artifact generation can be corroborated without trusting either record alone, while preserving the immutability guarantee of earlier candidates.
 
 ### Accept a multi-architecture release only after exact-image runtime jobs
 
@@ -2143,4 +2149,4 @@
 
 ## Last Updated
 
-2026-07-30 - Added the shared category-backed home carousel pattern, CMS/static banner replacement rule, primary-key-preserving Appella correction workflow, locale-aware legacy brand redirect, and the `brand_i18n` historical-schema precondition gotcha.
+2026-07-30 - Added the RC.9 release-evidence procedure: verify both platform digests and OCI labels, cross-check the actual tagged Liquibase tail, and correct only a proven stale descriptive artifact field while preserving registry-derived values.
