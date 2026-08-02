@@ -13,6 +13,36 @@ Every set uses the same full 40-character Git commit SHA. `latest` is never a re
 
 ## Published release-candidate evidence
 
+### RC.11 supported catalog-domain candidate
+
+`v1.0.0-rc.11` is an annotated, immutable tag on exact source commit
+`d6cc31e0ed7d9d1a08337f7fd2633ad8f461e3ff`. Trusted Release Images run
+[30762647549](https://github.com/ZxZxZ143/vympel/actions/runs/30762647549)
+passed the reusable source gate, registry non-overwrite preflight, six native
+platform builds, final-index attestations, exact-image amd64 and ARM64 runtime
+and migration rehearsals, bundle URL scans, and consolidated manifest
+generation without a retry.
+
+| Image | OCI index digest | linux/amd64 child | linux/arm64 child |
+| --- | --- | --- | --- |
+| Backend | `sha256:17420941c75a209c5cda98720d9063dd399a9d9f25f773ab518cc38d65a13c9c` | `sha256:b2ce99e9fecfddc8519e12f165f5d959c7cd8b5bce0fae0dcc4e37dad011b1a9` | `sha256:d8228ce10be216b3d3413a9d9a39323acfb44d93da1919549e60a77433d41087` |
+| Storefront | `sha256:22ea0df8cb26338f538bedf574691ce3644730ac2b56b9862111e6acf94d6e55` | `sha256:64fd538287d3843f4dfe09cea02129c1c271e913ace4d0a60564e103ae30a1e5` | `sha256:9f331883a6aa6229c4f6f6184bd790a6b2027821409afcb5e5e574ebb1bf6b4b` |
+| CRM | `sha256:838df2acd92e879ddd00a592e620d12403c798636d90cca89ff50b186e6b0e5c` | `sha256:2e9864605492795aa0129ffd6569d60be42e2a52b2005077ac62b60d0a69fa60` | `sha256:a4eefd66ed686b2dfeb13e3ca3f8082ffd3273f12cb01cf6cbb9c05d00151932` |
+
+The digest-complete artifact
+`published-release-manifest-d6cc31e0ed7d9d1a08337f7fd2633ad8f461e3ff`
+is artifact ID `8838158146` with ZIP digest
+`sha256:d0ec9205985a345c2239f958098638b9370785205f45a0160cf7e09b1a3767d2`
+and is preserved at
+`deployment/releases/v1.0.0-rc.11.yml`. Its registry-derived values and exact
+RC.10 sslip staging public-build contract match independent registry/source
+inspection. `database.expected_latest_change` was corrected from the
+generator's stale `2026-07-19-02-update-public-image-paths-to-webp` value to
+the tagged source's actual final changeset
+`2026-08-02-01-supported-brand-country-domain`. Both RC/full-SHA tags resolve
+to the same indexes, all three `latest` refs remain absent, RC.10's tag and
+recorded image digests are unchanged, and no cloud deployment ran.
+
 ### RC.9 application update candidate
 
 `v1.0.0-rc.9` is an annotated, immutable tag on exact source commit
