@@ -104,6 +104,12 @@
 * **How:** Reuse `--duration-vympel-fast`, `--duration-vympel-base`, `--duration-vympel-slow`, `--ease-vympel`, and `transition-vympel*` utilities from `globals.css`. Keep motion subtle and scoped to interactive state changes; rely on the global `prefers-reduced-motion` override instead of hand-writing separate reduced-motion code everywhere. Catalog/filter/category hover should use `.catalog-hover-trigger` + `.catalog-hover-label` underline motion, not translate-on-hover or hover-only font-weight changes that shift layout.
 * **Why:** Motion should feel consistent with VYMPEL and must not become a patchwork of arbitrary durations/easings.
 
+### Public storefront navigation progress
+
+* **When to use:** When adding or changing a public storefront link, locale switch, query-param control, or imperative App Router navigation that may wait for a route commit.
+* **How:** Import localized `Link` from `@/i18n/navigation`; its shared click wrapper starts NProgress only for same-origin path/query navigation after consumer `onClick` handlers run. Use `useProgressRouter` for raw `next/navigation` mutations and `useProgressIntlRouter` for ordinary `next-intl` mutations. Locale selection is the layout-remount exception: start synchronously before the transition, call the base localized router, and let provider teardown reset NProgress. Keep the global provider in the localized public layout, complete on path/query changes, listen for history/error cleanup, retain the finite failsafe, and preserve the solid black 4px/no-spinner/no-glow CSS plus reduced-motion configuration.
+* **Why:** One lifecycle covers ordinary links, localized/query routes, programmatic navigation, and browser history without false starts for external, new-tab, download, modified, non-left, hash-only, current-URL, or user-cancelled clicks.
+
 ### Centralized public route helpers
 
 * **When to use:** When adding or changing public header, footer, breadcrumb, product-card, brand, search, cart, favorites, category, contact, marketplace, or CTA links.
@@ -912,6 +918,13 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### ❌ Removing the NProgress node without clearing its status
+
+* **What happened:** A locale switch tore down the localized layout and removed `#nprogress`, but a pending NProgress trickle callback recreated the bar and left it stuck near completion.
+* **Root cause:** `NProgress.remove()` removes DOM only; NProgress 0.2.0 keeps its numeric `status`, so already-scheduled trickle work remains active.
+* **Fix:** The navigation controller clears `NProgress.status` before `remove()` during teardown and also cancels project-owned timers.
+* **How to avoid:** Route all teardown through `resetNavigationProgress()` and keep the controller regression test that advances pending timers; never call bare `NProgress.remove()` as lifecycle cleanup.
 
 ### Scattering marketplace destinations and dormant marketplace copy
 
@@ -2149,4 +2162,4 @@
 
 ## Last Updated
 
-2026-07-30 - Added the RC.9 release-evidence procedure: verify both platform digests and OCI labels, cross-check the actual tagged Liquibase tail, and correct only a proven stale descriptive artifact field while preserving registry-derived values.
+2026-08-02 - Documented the centralized public navigation-progress pattern, ignored-click contract, locale-layout exception, reduced-motion/finite cleanup rules, and the NProgress status-reset gotcha that otherwise recreates a stuck bar.

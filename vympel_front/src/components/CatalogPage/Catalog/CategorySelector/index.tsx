@@ -8,8 +8,8 @@ import {useTranslations} from "use-intl";
 import {ICategory} from "@/api/types/CategoryTypes";
 import {PublicApiController} from "@/api/controllers/PublicController";
 import {LocaleEnum} from "@/i18n/routing";
-import {useRouter} from "@/i18n/navigation";
 import {Text} from "@/components/ui/shared/text";
+import {useProgressIntlRouter} from "@/hooks/useProgressRouter";
 import {cn} from "@/lib/utils";
 import {routes} from "@/config/routes";
 import {buildCategoryTree, CategoryNode, normalizeCategoryCode} from "@/utils/categoryTree";
@@ -25,7 +25,7 @@ const CategorySelector: FC<Props> = ({locale, categoryCode}) => {
     const rootRef = useRef<HTMLDivElement | null>(null);
     const hoverIntentRef = useRef<number | null>(null);
     const t = useTranslations("catalog.categories");
-    const router = useRouter();
+    const router = useProgressIntlRouter();
     const searchParams = useSearchParams();
     const {activeOverlay, closeOverlay, openOverlay} = useCatalogOverlay();
     const [categories, setCategories] = useState<ICategory[]>([]);

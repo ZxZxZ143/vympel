@@ -1,8 +1,14 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import NProgress from "nprogress";
+import {Suspense, useEffect} from "react";
+import {usePathname, useSearchParams} from "next/navigation";
+
+import {
+    configureNavigationProgress,
+    finishNavigationProgress,
+    resetNavigationProgress,
+    startNavigationProgress,
+} from "@/components/Providers/navigationProgressController";
 
 type Props = {
     children: React.ReactNode;
@@ -11,24 +17,30 @@ type Props = {
 function NProgressEvents() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const firstRenderRef = useRef(true);
+    const search = searchParams.toString();
 
     useEffect(() => {
-        NProgress.configure({
-            showSpinner: false,
-            minimum: 0.08,
-            trickleSpeed: 120,
-        });
+        const cleanupConfiguration = configureNavigationProgress();
+
+        const handlePopState = () => startNavigationProgress();
+        const handleNavigationFailure = () => finishNavigationProgress();
+
+        window.addEventListener("popstate", handlePopState);
+        window.addEventListener("error", handleNavigationFailure);
+        window.addEventListener("unhandledrejection", handleNavigationFailure);
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+            window.removeEventListener("error", handleNavigationFailure);
+            window.removeEventListener("unhandledrejection", handleNavigationFailure);
+            cleanupConfiguration();
+            resetNavigationProgress();
+        };
     }, []);
 
     useEffect(() => {
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
-            return;
-        }
-
-        NProgress.done();
-    }, [pathname, searchParams]);
+        finishNavigationProgress();
+    }, [pathname, search]);
 
     return null;
 }

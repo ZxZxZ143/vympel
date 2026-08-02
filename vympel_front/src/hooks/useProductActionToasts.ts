@@ -3,15 +3,15 @@
 import {toast} from "sonner";
 import {useTranslations} from "use-intl";
 
-import {useRouter} from "@/i18n/navigation";
 import {routes} from "@/config/routes";
+import {useProgressIntlRouter} from "@/hooks/useProgressRouter";
 import {addFavoriteProduct, ProductSnapshot} from "@/services/localProductStorage";
 
 const TOAST_DURATION = 4500;
 
 export function useProductActionToasts() {
     const t = useTranslations("toasts");
-    const router = useRouter();
+    const router = useProgressIntlRouter();
 
     const goToFavorites = () => router.push(routes.favorites());
     const goToCart = () => router.push(routes.cart());

@@ -9,6 +9,7 @@ import {cn} from "@/lib/utils";
 import {useLocale, useTranslations} from "use-intl";
 import {usePathname, useRouter, Link} from "@/i18n/navigation";
 import {LocaleEnum, locales} from "@/i18n/routing";
+import {startNavigationProgress} from "@/components/Providers/navigationProgressController";
 import Phone from "@/assets/icons/Phone";
 import Message from "@/assets/icons/Message";
 import Earth from "@/assets/icons/Earth";
@@ -33,6 +34,13 @@ const Header = () => {
     const isBannerOverlayPage = pathname.startsWith("/product/") || pathname.startsWith("/catalog");
 
     const handleSelectLang = (next: LocaleEnum) => {
+        if (next === locale) {
+            setIsLangOpen(false);
+            return;
+        }
+
+        startNavigationProgress();
+        setIsLangOpen(false);
         startTransition(() => {
             router.replace(pathname, {locale: next});
         })

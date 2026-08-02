@@ -299,24 +299,9 @@
     --input: var(--white-200);
     --ring: var(--gray-200);
 
-    --progress-track-color: rgba(255, 255, 255, 0.04);
-
-    --progress-bar-start: var(--gray-400);
-    --progress-bar-middle: var(--gray-200);
-    --progress-bar-end: var(--black-50);
-
-    --progress-glow-soft: rgba(61, 61, 61, 0.18);
-    --progress-glow-wide: rgba(0, 0, 0, 0.12);
-
-    --progress-peg-glow-strong: rgba(61, 61, 61, 0.28);
-    --progress-peg-glow-soft: rgba(0, 0, 0, 0.18);
-
-    --progress-height: 3px;
-    --progress-radius: 2px;
-    --progress-peg-width: 120px;
-
+    --progress-bar-color: var(--black-50);
+    --progress-height: 4px;
     --progress-z-index: 9999;
-    --progress-track-z-index: 9998;
 
     --spacing-responsive-page-x: clamp(16px, 5.3vw, 68px);
     --spacing-responsive-section-y: 120px;
@@ -1939,48 +1924,16 @@
     width: 100%;
     height: var(--progress-height);
 
-    background: linear-gradient(
-            90deg,
-            var(--progress-bar-start) 0%,
-            var(--progress-bar-middle) 45%,
-            var(--progress-bar-end) 100%
-    );
-
-    box-shadow:
-            0 0 10px var(--progress-glow-soft),
-            0 0 22px var(--progress-glow-wide);
-
-    border-radius: 0 var(--progress-radius) var(--progress-radius) 0;
+    background: var(--progress-bar-color);
+    will-change: transform;
 }
 
 #nprogress .peg {
-    display: block;
-    position: absolute;
-    right: 0;
-    width: var(--progress-peg-width);
-    height: 100%;
-    opacity: 1;
-    transform: rotate(2deg) translateY(-1px);
-
-    box-shadow:
-            0 0 10px var(--progress-peg-glow-strong),
-            0 0 18px var(--progress-peg-glow-soft);
+    display: none;
 }
 
 #nprogress .spinner {
     display: none;
-}
-
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: var(--progress-track-z-index);
-    width: 100%;
-    height: 1px;
-    background: var(--progress-track-color);
-    pointer-events: none;
 }
 
 input[type="search"]::-webkit-search-cancel-button,

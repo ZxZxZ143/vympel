@@ -2,9 +2,10 @@
 
 import {FC, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {X} from "lucide-react";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {usePathname, useSearchParams} from "next/navigation";
 import {Controller, useForm} from "react-hook-form";
 import {useTranslations} from "use-intl";
+import {useProgressRouter} from "@/hooks/useProgressRouter";
 
 import FilterIcon from "@/assets/icons/FilterIcon";
 import {PublicApiController} from "@/api/controllers/PublicController";
@@ -39,7 +40,7 @@ type CatalogFilterFormValues = {
 const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
     const rootRef = useRef<HTMLDivElement | null>(null);
     const t = useTranslations("catalog.filters");
-    const router = useRouter();
+    const router = useProgressRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const {activeOverlay, closeOverlay, openOverlay} = useCatalogOverlay();

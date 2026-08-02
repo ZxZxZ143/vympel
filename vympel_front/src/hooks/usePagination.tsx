@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+
+import {useProgressRouter} from "@/hooks/useProgressRouter";
 
 const PAGE_SIZE = 9;
 
@@ -40,7 +42,7 @@ export function usePagination(
         scrollTargetId,
     } = options;
 
-    const router = useRouter();
+    const router = useProgressRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 

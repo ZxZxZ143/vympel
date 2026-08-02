@@ -8,8 +8,9 @@ import {useLocale, useTranslations} from "use-intl";
 
 import {IQuickSearchProduct} from "@/api/types/ProductTypes";
 import {LocaleEnum} from "@/i18n/routing";
-import {Link, useRouter} from "@/i18n/navigation";
+import {Link} from "@/i18n/navigation";
 import {PublicApiController} from "@/api/controllers/PublicController";
+import {useProgressIntlRouter} from "@/hooks/useProgressRouter";
 import {ApiError} from "@/api/types/ApiError";
 import Button from "@/components/ui/shared/Button";
 import {Text} from "@/components/ui/shared/text";
@@ -44,7 +45,7 @@ type SmartSearchFormValues = {
 };
 
 const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "header"}: SmartSearchProps) => {
-    const router = useRouter();
+    const router = useProgressIntlRouter();
     const locale = useLocale();
     const panelId = useId();
     const navT = useTranslations("nav.search");

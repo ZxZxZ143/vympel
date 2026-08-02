@@ -1,7 +1,6 @@
 "use client";
 
 import type {ComponentProps, ReactNode} from "react";
-import NProgress from "nprogress";
 
 import {Link} from "@/i18n/navigation";
 
@@ -17,12 +16,7 @@ export default function ProgressLink({
     return (
         <Link
             {...props}
-            onClick={(e) => {
-                onClick?.(e);
-                if (!e.defaultPrevented) {
-                    NProgress.start();
-                }
-            }}
+            onClick={onClick}
         >
             {children}
         </Link>

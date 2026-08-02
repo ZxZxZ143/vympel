@@ -4,8 +4,8 @@ import {FC} from "react";
 import {useSearchParams} from "next/navigation";
 import {useTranslations} from "use-intl";
 
-import {useRouter} from "@/i18n/navigation";
 import {SEEDED_FILTER_VALUES, routes} from "@/config/routes";
+import {useProgressIntlRouter} from "@/hooks/useProgressRouter";
 import {Text} from "@/components/ui/shared/text";
 import {cn} from "@/lib/utils";
 import {normalizeCatalogQueryValue, normalizeCatalogQueryValues} from "@/utils/catalogFilterParams";
@@ -31,7 +31,7 @@ const ACCESSORY_GENDER_FILTERS = [
 
 const AccessorySplitControls: FC<Props> = ({categoryCode}) => {
     const t = useTranslations("categories");
-    const router = useRouter();
+    const router = useProgressIntlRouter();
     const searchParams = useSearchParams();
     const selectedGenderValues = normalizeCatalogQueryValues(searchParams?.getAll("gender") ?? []);
     const activeGender = ACCESSORY_GENDER_FILTERS.find(

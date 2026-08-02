@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+
+import {useProgressRouter} from "@/hooks/useProgressRouter";
 
 type UseSortOptions<TSort extends string> = {
     defaultSort: TSort;
@@ -34,7 +36,7 @@ export function useSort<TSort extends string>(
         pageParamName = "page",
     } = options;
 
-    const router = useRouter();
+    const router = useProgressRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
