@@ -3,8 +3,10 @@ package com.shop.vympel.services.product;
 import com.shop.vympel.db.repositories.product.ProductRepository;
 import com.shop.vympel.db.entity.product.Product;
 import com.shop.vympel.dtos.product.ProductCreateRequest;
+import com.shop.vympel.dtos.product.ProductUpdateRequest;
 import com.shop.vympel.dtos.product.description.DescriptionCreateRequest;
 import com.shop.vympel.dtos.product.description.ProductNameCreateRequest;
+import com.shop.vympel.dtos.product.details.InteriorClockDetailUpdateRequest;
 import com.shop.vympel.enums.Language;
 import com.shop.vympel.exceptions.BusinessRuleViolationException;
 import com.shop.vympel.exceptions.ResourceNotFoundException;
@@ -13,6 +15,8 @@ import com.shop.vympel.mappers.product.ProductMapper;
 import com.shop.vympel.services.categoryProduct.CategoryProductService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
+import com.shop.vympel.services.catalog.SupportedBrandCountry;
+import com.shop.vympel.services.catalog.SupportedCatalogDomainService;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
 import com.shop.vympel.services.productDescription.ProductDescriptionService;
 import com.shop.vympel.services.productName.ProductNameService;
@@ -59,6 +63,8 @@ class ProductServiceImplTest {
     @Mock
     private CatalogCategoryProfileService catalogCategoryProfileService;
     @Mock
+    private SupportedCatalogDomainService supportedCatalogDomainService;
+    @Mock
     private ProductDescriptionService productDescriptionService;
     @Mock
     private ProductNameService productNameService;
@@ -81,6 +87,7 @@ class ProductServiceImplTest {
                 watchDetailService,
                 interiorClockDetailService,
                 catalogCategoryProfileService,
+                supportedCatalogDomainService,
                 productDescriptionService,
                 productNameService,
                 categoryProductService,
@@ -174,7 +181,14 @@ class ProductServiceImplTest {
 
         Product product = new Product();
         product.setId(42L);
+        com.shop.vympel.db.entity.features.Brand brand = new com.shop.vympel.db.entity.features.Brand();
+        brand.setId(1L);
+        com.shop.vympel.db.entity.features.Country country = new com.shop.vympel.db.entity.features.Country();
+        country.setId(2L);
         when(catalogCategoryProfileService.profileForCategoryId(2L)).thenReturn(CatalogCategoryProfile.GENERIC);
+        when(supportedCatalogDomainService.requireAssignment(1L, null)).thenReturn(
+                new SupportedCatalogDomainService.Assignment(SupportedBrandCountry.ROMANSON, brand, country)
+        );
         when(skuService.skuGen(request)).thenReturn("SKU-TEST");
         when(productRepository.findProductBySku("SKU-TEST")).thenReturn(Optional.empty());
         when(productMapper.toEntity(request, entityReferenceMapper)).thenReturn(product);
@@ -184,7 +198,7 @@ class ProductServiceImplTest {
 
         assertEquals(42L, id);
         verify(watchDetailService, never()).create(any(), any());
-        verify(interiorClockDetailService, never()).create(any(), any());
+        verify(interiorClockDetailService, never()).create(any(), any(), any());
         verify(productNameService).createProductName(product, Language.RU, "Тестовые часы");
         verify(productNameService).createProductName(product, Language.EN, "Тестовые часы");
         verify(productNameService).createProductName(product, Language.KZ, "Тестовые часы");
@@ -192,6 +206,38 @@ class ProductServiceImplTest {
         ArgumentCaptor<DescriptionCreateRequest> descriptions = ArgumentCaptor.forClass(DescriptionCreateRequest.class);
         verify(productDescriptionService, times(3)).addProductDescription(eq(product), any(Language.class), descriptions.capture());
         descriptions.getAllValues().forEach(description -> assertEquals("", description.getDesc()));
+    }
+
+    @Test
+    void productUpdateRejectsACountryThatDoesNotMatchTheTargetBrand() {
+        Product product = new Product();
+        product.setId(42L);
+        com.shop.vympel.db.entity.features.Brand currentBrand = new com.shop.vympel.db.entity.features.Brand();
+        currentBrand.setId(1L);
+        product.setBrand(currentBrand);
+        when(productRepository.findByIdForUpdate(42L)).thenReturn(Optional.of(product));
+
+        ProductUpdateRequest request = new ProductUpdateRequest();
+        request.setBrandId(2L);
+        InteriorClockDetailUpdateRequest details = new InteriorClockDetailUpdateRequest();
+        details.setProductionCountryId(99L);
+        request.setInteriorClockDetails(details);
+
+        when(supportedCatalogDomainService.requireAssignment(2L, 99L)).thenThrow(
+                new BusinessRuleViolationException(
+                        "BRAND_COUNTRY_MISMATCH",
+                        "Production country must match the selected brand."
+                )
+        );
+
+        BusinessRuleViolationException exception = assertThrows(
+                BusinessRuleViolationException.class,
+                () -> productService.update(42L, request, Language.RU)
+        );
+
+        assertEquals("BRAND_COUNTRY_MISMATCH", exception.getCode());
+        verify(productMapper, never()).updateEntity(any(), any(), any());
+        verify(productRepository, never()).save(product);
     }
 
     @Test

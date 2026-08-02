@@ -18,6 +18,7 @@ import { Heading } from "@/shared/ui/Heading";
 import { Text } from "@/shared/ui/Text";
 import { getCategoryProfile, productTypeForCategory } from "@/features/products/productCategoryProfile";
 import { notifyProductListChanged } from "@/features/products/productListRefresh";
+import { brandCountryFor } from "@/features/products/brandCountry";
 
 const statuses: ProductStatus[] = ["ACTIVE", "DRAFT", "ARCHIVED"];
 const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_CLOCK", "FLOOR_CLOCK"];
@@ -49,7 +50,6 @@ type ProductFormState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
-  productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
   interiorStyleId: string;
@@ -95,7 +95,6 @@ const emptyForm: ProductFormState = {
   caseSizeMm: "",
   waterResistance: "",
   stoneInlayId: "",
-  productionCountryId: "",
   interiorCaseMaterialId: "",
   interiorColorId: "",
   interiorStyleId: "",
@@ -309,7 +308,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   };
 
   const submit = async (values: ProductFormState) => {
-    if (saving || photoUploading || photoAction) {
+    if (!references || saving || photoUploading || photoAction) {
       return;
     }
 
@@ -333,7 +332,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     try {
       const deferActivation = wantsActivation && !hasPersistedMainImage;
       const payload = {
-        ...toPayload(values, references?.categories ?? []),
+        ...toPayload(values, references),
         status: deferActivation ? "DRAFT" as const : values.status,
       };
       let savedProduct: Product;
@@ -587,6 +586,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     return String(collection.brandId) === form.brandId;
   });
   const categoryProfile = getCategoryProfile(references.categories, form.categoryId);
+  const selectedBrandCountry = brandCountryFor(references.brands, form.brandId);
   const isWristwatchCategory = categoryProfile === "wristwatch";
   const isInteriorClockCategory = categoryProfile === "interior";
   const showNoCategorySpecsHint = categoryProfile === "accessory" || categoryProfile === "generic";
@@ -705,7 +705,7 @@ export function ProductForm({ productId }: ProductFormProps) {
 
           {isInteriorClockCategory && (
             <div className="crm-grid crm-grid--form">
-              <ReferenceSelect id="productionCountryId" label={t("products.productionCountry")} value={form.productionCountryId} options={references.countries} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("productionCountryId", value)} />
+              <ReadOnlyField id="productionCountry" label={t("products.productionCountry")} value={selectedBrandCountry?.countryName ?? ""} placeholder={t("common.selectPlaceholder")} />
               <ReferenceSelect id="interiorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={form.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
               <ReferenceSelect id="interiorColorId" label={t("products.interiorColor")} value={form.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorColorId", value)} />
               <ReferenceSelect id="interiorStyleId" label={t("products.interiorStyle")} value={form.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorStyleId", value)} optional />
@@ -970,6 +970,14 @@ function TextField({ id, label, value, maxLength, onChange }: { id: string; labe
   );
 }
 
+function ReadOnlyField({ id, label, value, placeholder }: { id: string; label: string; value: string; placeholder: string }) {
+  return (
+    <Field htmlFor={id} label={label}>
+      <input id={id} className="crm-input" value={value} placeholder={placeholder} readOnly aria-readonly="true" />
+    </Field>
+  );
+}
+
 function TextAreaField({ id, label, value, maxLength, onChange }: { id: string; label: string; value: string; maxLength?: number; onChange: (value: string) => void }) {
   return (
     <Field htmlFor={id} label={label}>
@@ -1146,8 +1154,9 @@ function isValidOptionalUrl(value: string) {
   }
 }
 
-function toPayload(form: ProductFormState, categories: References["categories"]): ProductPayload {
-  const categoryProfile = getCategoryProfile(categories, form.categoryId);
+function toPayload(form: ProductFormState, references: References): ProductPayload {
+  const categoryProfile = getCategoryProfile(references.categories, form.categoryId);
+  const selectedBrandCountry = brandCountryFor(references.brands, form.brandId);
   const payload: ProductPayload = {
     productName: {
       name_ru: form.nameRu.trim(),
@@ -1199,7 +1208,6 @@ function toPayload(form: ProductFormState, categories: References["categories"])
 
   if (categoryProfile === "interior") {
     const hasInteriorDetails = [
-      form.productionCountryId,
       form.interiorCaseMaterialId,
       form.interiorColorId,
       form.interiorStyleId,
@@ -1208,10 +1216,10 @@ function toPayload(form: ProductFormState, categories: References["categories"])
       form.dimensions,
       form.weightGrams,
       form.warrantyMonths,
-    ].some((value) => value.trim());
+    ].some((value) => value.trim()) || selectedBrandCountry !== null;
     if (hasInteriorDetails) {
       payload.interiorClockDetails = {
-        productionCountryId: optionalNumber(form.productionCountryId),
+        productionCountryId: selectedBrandCountry?.countryId ?? null,
         caseMaterialId: optionalNumber(form.interiorCaseMaterialId),
         colorId: optionalNumber(form.interiorColorId),
         styleId: optionalNumber(form.interiorStyleId),
@@ -1287,7 +1295,6 @@ function clearCategoryDetailFields(form: ProductFormState): ProductFormState {
   form.caseSizeMm = "";
   form.waterResistance = "";
   form.stoneInlayId = "";
-  form.productionCountryId = "";
   form.interiorCaseMaterialId = "";
   form.interiorColorId = "";
   form.interiorStyleId = "";
@@ -1325,7 +1332,6 @@ function productToForm(product: Product): ProductFormState {
     caseSizeMm: product.watchDetails?.caseSizeMm ? String(product.watchDetails.caseSizeMm) : "",
     waterResistance: product.watchDetails?.waterResistance ?? "",
     stoneInlayId: product.watchDetails?.stoneInlay?.id ? String(product.watchDetails.stoneInlay.id) : "",
-    productionCountryId: product.interiorClockDetails?.productionCountry?.id ? String(product.interiorClockDetails.productionCountry.id) : "",
     interiorCaseMaterialId: product.interiorClockDetails?.caseMaterial?.id ? String(product.interiorClockDetails.caseMaterial.id) : "",
     interiorColorId: product.interiorClockDetails?.color?.id ? String(product.interiorClockDetails.color.id) : "",
     interiorStyleId: product.interiorClockDetails?.style?.id ? String(product.interiorClockDetails.style.id) : "",

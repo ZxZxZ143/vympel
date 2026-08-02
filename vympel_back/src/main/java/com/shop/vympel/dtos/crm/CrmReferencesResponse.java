@@ -6,7 +6,7 @@ import java.util.List;
 
 public record CrmReferencesResponse(
         List<CategoryResponse> categories,
-        List<CrmReferenceOptionResponse> brands,
+        List<CrmBrandReferenceOptionResponse> brands,
         List<CrmReferenceOptionResponse> collections,
         List<CrmReferenceOptionResponse> mechanisms,
         List<CrmReferenceOptionResponse> genders,

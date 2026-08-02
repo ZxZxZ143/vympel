@@ -52,6 +52,7 @@ class ProductCatalogServiceTest {
     @Mock ProductReviewService productReviewService;
     @Mock CatalogFacetRepository facetRepository;
     @Mock PublicProductSummaryRepository summaryRepository;
+    @Mock SupportedCatalogDomainService supportedCatalogDomainService;
 
     private ProductCatalogService service;
 
@@ -64,6 +65,7 @@ class ProductCatalogServiceTest {
                 genderI18nRepository, materialI18nRepository, glassTypeI18nRepository,
                 stoneInlayI18nRepository, countryI18nRepository, interiorFeatureI18nRepository,
                 collectionI18nRepository, productReviewService, facetRepository, summaryRepository,
+                supportedCatalogDomainService,
                 new SimpleMeterRegistry()
         );
     }

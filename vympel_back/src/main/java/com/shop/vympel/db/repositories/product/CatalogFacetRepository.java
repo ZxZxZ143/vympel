@@ -32,6 +32,7 @@ public class CatalogFacetRepository {
             select 'brand', b.id::text, coalesce(nullif(trim(b.name), ''), b.code),
                    count(s.id)::bigint, null::numeric, null::numeric
             from brand b left join scoped s on s.brand_id = b.id
+            where b.active = true
             group by b.id, b.name, b.code
             union all
             select 'country', c.id::text,

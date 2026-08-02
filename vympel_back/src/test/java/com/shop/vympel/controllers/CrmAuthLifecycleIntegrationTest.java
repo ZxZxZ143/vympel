@@ -73,7 +73,6 @@ class CrmAuthLifecycleIntegrationTest {
     private User admin;
     private User manager;
     private Product analyticsProduct;
-    private Brand analyticsBrand;
 
     @BeforeEach
     void createTestUsers() {
@@ -93,9 +92,6 @@ class CrmAuthLifecycleIntegrationTest {
         }
         if (analyticsProduct != null && productRepository.existsById(analyticsProduct.getId())) {
             productRepository.deleteById(analyticsProduct.getId());
-        }
-        if (analyticsBrand != null && brandRepository.existsById(analyticsBrand.getId())) {
-            brandRepository.deleteById(analyticsBrand.getId());
         }
         if (manager != null && userRepository.existsById(manager.getId())) {
             userRepository.deleteById(manager.getId());
@@ -344,11 +340,9 @@ class CrmAuthLifecycleIntegrationTest {
             return analyticsProduct;
         }
         String suffix = UUID.randomUUID().toString();
-        analyticsBrand = new Brand();
-        analyticsBrand.setCode("TEST-ANALYTICS-" + suffix);
-        analyticsBrand.setName("Test analytics brand");
-        analyticsBrand.setActive(true);
-        analyticsBrand = brandRepository.saveAndFlush(analyticsBrand);
+        Brand analyticsBrand = brandRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Supported analytics test brand is missing"));
 
         analyticsProduct = new Product();
         analyticsProduct.setModel("Test analytics product");

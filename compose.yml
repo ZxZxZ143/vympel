@@ -23,7 +23,7 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes", "--ignore-warnings", "ARM64-COW-BUG"]
     ports:
       - "${VYMPEL_REDIS_HOST_PORT:-6379}:6379"
     volumes:

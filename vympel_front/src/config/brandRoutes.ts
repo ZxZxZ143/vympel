@@ -12,11 +12,6 @@ export type PublicBrand = {
     breadcrumbName: string;
     databaseCode: string;
     matchingNames: string[];
-    aliases?: string[];
-};
-
-export const LEGACY_BRAND_REDIRECTS: Readonly<Record<string, BrandSlug>> = {
-    apella: "appella",
 };
 
 export const PUBLIC_BRANDS: PublicBrand[] = [
@@ -45,9 +40,8 @@ export const PUBLIC_BRANDS: PublicBrand[] = [
         slug: "pierre-ricaud",
         displayName: "PIERRE RICAUD",
         breadcrumbName: "Pierre Ricaud",
-        databaseCode: "pierre-ricaude",
-        matchingNames: ["Pierre Ricaud", "Pierre Ricaude", "pierre-ricaud", "pierre-ricaude"],
-        aliases: ["pierre-ricaude"],
+        databaseCode: "pierre-ricaud",
+        matchingNames: ["Pierre Ricaud", "pierre-ricaud"],
     },
     {
         slug: "rhythm",
@@ -68,14 +62,7 @@ export const PUBLIC_BRANDS: PublicBrand[] = [
 export function findPublicBrandBySlug(slug: string): PublicBrand | undefined {
     const normalizedSlug = normalizeBrandLookup(slug);
 
-    return PUBLIC_BRANDS.find((brand) => (
-        normalizeBrandLookup(brand.slug) === normalizedSlug ||
-        brand.aliases?.some((alias) => normalizeBrandLookup(alias) === normalizedSlug)
-    ));
-}
-
-export function findLegacyBrandRedirect(slug: string): BrandSlug | undefined {
-    return LEGACY_BRAND_REDIRECTS[slug.trim().toLowerCase()];
+    return PUBLIC_BRANDS.find((brand) => normalizeBrandLookup(brand.slug) === normalizedSlug);
 }
 
 export function normalizeBrandLookup(value: string): string {

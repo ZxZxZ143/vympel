@@ -21,6 +21,7 @@ import { Field } from "@/shared/ui/Field";
 import { Heading } from "@/shared/ui/Heading";
 import { Text } from "@/shared/ui/Text";
 import { getCategoryProfile, productTypeForCategory } from "@/features/products/productCategoryProfile";
+import { brandCountryFor } from "@/features/products/brandCountry";
 
 const statuses: ProductStatus[] = ["DRAFT", "ARCHIVED"];
 const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_CLOCK", "FLOOR_CLOCK"];
@@ -42,7 +43,6 @@ type CommonFormState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
-  productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
   interiorStyleId: string;
@@ -78,7 +78,6 @@ type BulkRowState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
-  productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
   interiorStyleId: string;
@@ -112,7 +111,6 @@ const emptyCommon: CommonFormState = {
   caseSizeMm: "",
   waterResistance: "",
   stoneInlayId: "",
-  productionCountryId: "",
   interiorCaseMaterialId: "",
   interiorColorId: "",
   interiorStyleId: "",
@@ -149,7 +147,6 @@ function createEmptyRow(): BulkRowState {
     caseSizeMm: "",
     waterResistance: "",
     stoneInlayId: "",
-    productionCountryId: "",
     interiorCaseMaterialId: "",
     interiorColorId: "",
     interiorStyleId: "",
@@ -203,6 +200,7 @@ export function BulkProductCreateView() {
   }, [locale, t]);
 
   const categoryProfile = references ? getCategoryProfile(references.categories, categoryId) : "generic";
+  const commonBrandCountry = references ? brandCountryFor(references.brands, common.brandId) : null;
   const isWristwatchCategory = categoryProfile === "wristwatch";
   const isInteriorClockCategory = categoryProfile === "interior";
   const showNoCategorySpecsHint = categoryProfile === "accessory" || categoryProfile === "generic";
@@ -308,7 +306,10 @@ export function BulkProductCreateView() {
     setResult(null);
 
     try {
-      const nextResult = await crmApi.createProductsBulk(toBulkPayload(categoryId, values.common, values.rows, categoryProfile), locale);
+      const nextResult = await crmApi.createProductsBulk(
+        toBulkPayload(categoryId, values.common, values.rows, categoryProfile, references),
+        locale
+      );
       setResult(nextResult);
       setRowErrors(groupRowErrors(nextResult));
 
@@ -413,7 +414,7 @@ export function BulkProductCreateView() {
 
           {isInteriorClockCategory && (
             <div className="crm-grid crm-grid--form">
-              <ReferenceSelect id="bulkProductionCountryId" label={t("products.productionCountry")} value={common.productionCountryId} options={references.countries} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("productionCountryId", value)} />
+              <ReadOnlyField id="bulkProductionCountry" label={t("products.productionCountry")} value={commonBrandCountry?.countryName ?? ""} placeholder={t("common.selectPlaceholder")} />
               <ReferenceSelect id="bulkInteriorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={common.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
               <ReferenceSelect id="bulkInteriorColorId" label={t("products.interiorColor")} value={common.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorColorId", value)} />
               <ReferenceSelect id="bulkInteriorStyleId" label={t("products.interiorStyle")} value={common.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorStyleId", value)} optional />
@@ -456,6 +457,7 @@ export function BulkProductCreateView() {
                 <tbody>
                   {rows.map((row, index) => {
                     const rowBrandId = row.brandId || common.brandId;
+                    const rowBrandCountry = brandCountryFor(references.brands, rowBrandId);
                     const rowCollections = references.collections.filter((collection) => {
                       if (!rowBrandId || collection.brandId === undefined || collection.brandId === null) {
                         return true;
@@ -524,7 +526,7 @@ export function BulkProductCreateView() {
 
                               {isInteriorClockCategory && (
                                 <div className="crm-grid crm-grid--form">
-                                  <ReferenceSelect id={`rowProductionCountryId-${row.key}`} label={t("products.productionCountry")} value={row.productionCountryId} options={references.countries} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "productionCountryId", value)} optional />
+                                  <ReadOnlyField id={`rowProductionCountry-${row.key}`} label={t("products.productionCountry")} value={rowBrandCountry?.countryName ?? ""} placeholder={t("products.bulkUseCommonDefault")} />
                                   <ReferenceSelect id={`rowInteriorCaseMaterialId-${row.key}`} label={t("products.interiorCaseMaterial")} value={row.interiorCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
                                   <ReferenceSelect id={`rowInteriorColorId-${row.key}`} label={t("products.interiorColor")} value={row.interiorColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorColorId", value)} optional />
                                   <ReferenceSelect id={`rowInteriorStyleId-${row.key}`} label={t("products.interiorStyle")} value={row.interiorStyleId} options={references.interiorStyles} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorStyleId", value)} optional />
@@ -603,6 +605,14 @@ function TextField({ id, label, value, onChange }: { id: string; label: string; 
   return (
     <Field htmlFor={id} label={label}>
       <input id={id} className="crm-input" value={value} onChange={(event) => onChange(event.target.value)} />
+    </Field>
+  );
+}
+
+function ReadOnlyField({ id, label, value, placeholder }: { id: string; label: string; value: string; placeholder: string }) {
+  return (
+    <Field htmlFor={id} label={label}>
+      <input id={id} className="crm-input" value={value} placeholder={placeholder} readOnly aria-readonly="true" />
     </Field>
   );
 }
@@ -714,8 +724,10 @@ function toBulkPayload(
   categoryId: string,
   common: CommonFormState,
   rows: BulkRowState[],
-  categoryProfile: ReturnType<typeof getCategoryProfile>
+  categoryProfile: ReturnType<typeof getCategoryProfile>,
+  references: References
 ): ProductBulkCreatePayload {
+  const commonBrandCountry = brandCountryFor(references.brands, common.brandId);
   const payload: ProductBulkCreatePayload = {
     categoryId: Number(categoryId),
     common: {
@@ -726,7 +738,7 @@ function toBulkPayload(
       kaspiUrl: common.kaspiUrl.trim() || null,
       wildberriesUrl: common.wildberriesUrl.trim() || null,
     },
-    rows: rows.map((row) => rowToPayload(row, common, categoryProfile)),
+    rows: rows.map((row) => rowToPayload(row, common, categoryProfile, references)),
   };
 
   if ([common.descriptionRu, common.descriptionEn, common.descriptionKz].some((value) => value.trim())) {
@@ -746,9 +758,9 @@ function toBulkPayload(
     };
   }
 
-  if (categoryProfile === "interior" && hasInteriorDetails(common)) {
+  if (categoryProfile === "interior" && (hasInteriorDetails(common) || commonBrandCountry !== null)) {
     payload.common.interiorClockDetails = {
-      productionCountryId: optionalNumber(common.productionCountryId),
+      productionCountryId: commonBrandCountry?.countryId,
       caseMaterialId: optionalNumber(common.interiorCaseMaterialId),
       colorId: optionalNumber(common.interiorColorId),
       styleId: optionalNumber(common.interiorStyleId),
@@ -766,8 +778,11 @@ function toBulkPayload(
 function rowToPayload(
   row: BulkRowState,
   common: CommonFormState,
-  categoryProfile: ReturnType<typeof getCategoryProfile>
+  categoryProfile: ReturnType<typeof getCategoryProfile>,
+  references: References
 ): ProductBulkCreatePayload["rows"][number] {
+  const effectiveBrandId = row.brandId || common.brandId;
+  const rowBrandCountry = brandCountryFor(references.brands, effectiveBrandId);
   const payload: ProductBulkCreatePayload["rows"][number] = {
     productName: {
       name_ru: row.nameRu.trim(),
@@ -807,9 +822,9 @@ function rowToPayload(
     };
   }
 
-  if (categoryProfile === "interior" && hasResolvedInteriorDetails(row, common)) {
+  if (categoryProfile === "interior" && (hasResolvedInteriorDetails(row, common) || rowBrandCountry !== null)) {
     payload.interiorClockDetails = {
-      productionCountryId: optionalNumber(firstNonBlank(row.productionCountryId, common.productionCountryId)),
+      productionCountryId: rowBrandCountry?.countryId,
       caseMaterialId: optionalNumber(firstNonBlank(row.interiorCaseMaterialId, common.interiorCaseMaterialId)),
       colorId: optionalNumber(firstNonBlank(row.interiorColorId, common.interiorColorId)),
       styleId: optionalNumber(firstNonBlank(row.interiorStyleId, common.interiorStyleId)),
@@ -858,7 +873,6 @@ function hasWatchDetails(common: CommonFormState) {
 
 function hasInteriorDetails(common: CommonFormState) {
   return [
-    common.productionCountryId,
     common.interiorCaseMaterialId,
     common.interiorColorId,
     common.interiorMechanismTypeId,
@@ -885,7 +899,6 @@ function hasResolvedWatchDetails(row: BulkRowState, common: CommonFormState) {
 
 function hasResolvedInteriorDetails(row: BulkRowState, common: CommonFormState) {
   return [
-    firstNonBlank(row.productionCountryId, common.productionCountryId),
     firstNonBlank(row.interiorCaseMaterialId, common.interiorCaseMaterialId),
     firstNonBlank(row.interiorColorId, common.interiorColorId),
     firstNonBlank(row.interiorStyleId, common.interiorStyleId),

@@ -11,7 +11,6 @@ import com.shop.vympel.db.entity.i18n.MaterialI18n;
 import com.shop.vympel.db.entity.i18n.MaterialI18nId;
 import com.shop.vympel.db.entity.product.InteriorClockDetail;
 import com.shop.vympel.db.entity.product.Product;
-import com.shop.vympel.db.repositories.CountryRepository;
 import com.shop.vympel.db.repositories.product.features.CountryI18nRepository;
 import com.shop.vympel.db.repositories.product.features.InteriorFeatureI18nRepository;
 import com.shop.vympel.db.repositories.product.features.InteriorFeatureRepository;
@@ -32,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class InteriorClockDetailServiceImpl {
     private final InteriorClockDetailRepository interiorClockDetailRepository;
-    private final CountryRepository countryRepository;
     private final MaterialRepository materialRepository;
     private final InteriorFeatureRepository interiorFeatureRepository;
     private final CountryI18nRepository countryI18nRepository;
@@ -47,22 +45,27 @@ public class InteriorClockDetailServiceImpl {
     }
 
     @Transactional
-    public InteriorClockDetail create(InteriorClockDetailCreateRequest request, Product product) {
+    public InteriorClockDetail create(InteriorClockDetailCreateRequest request, Product product, Country requiredCountry) {
         if (request == null) {
             throw new IllegalArgumentException("interiorClockDetails is required for interior clock categories");
         }
 
         InteriorClockDetail detail = new InteriorClockDetail();
         detail.setProduct(product);
-        applyCreate(detail, request);
+        validateSubmittedCountry(request.getProductionCountryId(), requiredCountry);
+        applyCreate(detail, request, requiredCountry);
         return interiorClockDetailRepository.save(detail);
     }
 
     @Transactional
-    public InteriorClockDetail update(InteriorClockDetailUpdateRequest request, Product product) {
+    public InteriorClockDetail update(InteriorClockDetailUpdateRequest request, Product product, Country requiredCountry) {
         if (request == null) {
-            return interiorClockDetailRepository.findByProduct_Id(product.getId()).orElse(null);
+            return interiorClockDetailRepository.findByProduct_Id(product.getId())
+                    .map(detail -> alignCountry(detail, requiredCountry))
+                    .orElseGet(() -> create(new InteriorClockDetailCreateRequest(), product, requiredCountry));
         }
+
+        validateSubmittedCountry(request.getProductionCountryId(), requiredCountry);
 
         InteriorClockDetail detail = interiorClockDetailRepository.findByProduct_Id(product.getId())
                 .orElseGet(() -> {
@@ -71,12 +74,12 @@ public class InteriorClockDetailServiceImpl {
                     return newDetail;
                 });
 
-        applyUpdate(detail, request);
+        applyUpdate(detail, request, requiredCountry);
         return interiorClockDetailRepository.save(detail);
     }
 
-    private void applyCreate(InteriorClockDetail detail, InteriorClockDetailCreateRequest request) {
-        detail.setProductionCountry(countryOrNull(request.getProductionCountryId()));
+    private void applyCreate(InteriorClockDetail detail, InteriorClockDetailCreateRequest request, Country requiredCountry) {
+        detail.setProductionCountry(requiredCountry);
         detail.setCaseMaterial(materialOrNull(request.getCaseMaterialId()));
         detail.setColor(interiorFeatureOrNull(request.getColorId()));
         detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
@@ -87,8 +90,8 @@ public class InteriorClockDetailServiceImpl {
         detail.setWarrantyMonths(request.getWarrantyMonths());
     }
 
-    private void applyUpdate(InteriorClockDetail detail, InteriorClockDetailUpdateRequest request) {
-        if (request.getProductionCountryId() != null) detail.setProductionCountry(country(request.getProductionCountryId()));
+    private void applyUpdate(InteriorClockDetail detail, InteriorClockDetailUpdateRequest request, Country requiredCountry) {
+        detail.setProductionCountry(requiredCountry);
         if (request.getCaseMaterialId() != null) detail.setCaseMaterial(material(request.getCaseMaterialId()));
         if (request.getColorId() != null) detail.setColor(interiorFeature(request.getColorId()));
         if (request.getStyleId() != null) detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
@@ -97,6 +100,21 @@ public class InteriorClockDetailServiceImpl {
         if (request.getDimensions() != null) detail.setDimensions(trimToNull(request.getDimensions()));
         if (request.getWeightGrams() != null) detail.setWeightGrams(request.getWeightGrams());
         if (request.getWarrantyMonths() != null) detail.setWarrantyMonths(request.getWarrantyMonths());
+    }
+
+    private InteriorClockDetail alignCountry(InteriorClockDetail detail, Country requiredCountry) {
+        if (detail.getProductionCountry() != null
+                && detail.getProductionCountry().getId().equals(requiredCountry.getId())) {
+            return detail;
+        }
+        detail.setProductionCountry(requiredCountry);
+        return interiorClockDetailRepository.save(detail);
+    }
+
+    private void validateSubmittedCountry(Long submittedCountryId, Country requiredCountry) {
+        if (submittedCountryId != null && !requiredCountry.getId().equals(submittedCountryId)) {
+            throw new IllegalArgumentException("Production country must match the selected brand.");
+        }
     }
 
     private InteriorClockDetailResponse toResponse(InteriorClockDetail detail, Language lang) {
@@ -112,15 +130,6 @@ public class InteriorClockDetailServiceImpl {
                 detail.getWeightGrams(),
                 detail.getWarrantyMonths()
         );
-    }
-
-    private Country country(Long id) {
-        return countryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Country not found: " + id));
-    }
-
-    private Country countryOrNull(Long id) {
-        return id == null ? null : country(id);
     }
 
     private Material material(Long id) {

@@ -96,6 +96,7 @@ public class ProductCatalogService {
     private final ProductReviewService productReviewService;
     private final CatalogFacetRepository catalogFacetRepository;
     private final PublicProductSummaryRepository publicProductSummaryRepository;
+    private final SupportedCatalogDomainService supportedCatalogDomainService;
     private final MeterRegistry meterRegistry;
     @Value("${app.performance.slow-operation-threshold-ms:500}")
     private long slowOperationThresholdMs = 500;
@@ -408,7 +409,15 @@ public class ProductCatalogService {
     private Specification<Product> filtersSpecification(Map<String, List<String>> filters, CatalogCategoryProfile profile) {
         Specification<Product> specification = (root, criteriaQuery, cb) -> cb.conjunction();
 
-        specification = andLongFilter(specification, filters, "brand", value -> productFieldFilter("brand", value));
+        if (filters.containsKey("brand")) {
+            specification = andSupportedLongFilter(
+                    specification,
+                    filters,
+                    "brand",
+                    supportedCatalogDomainService.supportedBrandIds(),
+                    value -> productFieldFilter("brand", value)
+            );
+        }
 
         if (profile == CatalogCategoryProfile.WRISTWATCH) {
             for (Map.Entry<String, String> entry : WRISTWATCH_DETAIL_FILTER_FIELDS.entrySet()) {
@@ -433,7 +442,15 @@ public class ProductCatalogService {
             }
         }
 
-        specification = andLongFilter(specification, filters, COUNTRY_FILTER_KEY, this::brandCountryFilter);
+        if (filters.containsKey(COUNTRY_FILTER_KEY)) {
+            specification = andSupportedLongFilter(
+                    specification,
+                    filters,
+                    COUNTRY_FILTER_KEY,
+                    supportedCatalogDomainService.supportedCountryIds(),
+                    this::brandCountryFilter
+            );
+        }
 
         return specification;
     }
@@ -445,6 +462,19 @@ public class ProductCatalogService {
             Function<List<Long>, Specification<Product>> filterFactory
     ) {
         List<Long> values = parseLongValues(filters.get(key));
+        return values.isEmpty() ? specification : specification.and(filterFactory.apply(values));
+    }
+
+    private Specification<Product> andSupportedLongFilter(
+            Specification<Product> specification,
+            Map<String, List<String>> filters,
+            String key,
+            Set<Long> supportedIds,
+            Function<List<Long>, Specification<Product>> filterFactory
+    ) {
+        List<Long> values = parseLongValues(filters.get(key)).stream()
+                .filter(supportedIds::contains)
+                .toList();
         return values.isEmpty() ? specification : specification.and(filterFactory.apply(values));
     }
 

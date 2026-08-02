@@ -19,7 +19,7 @@ $backupPath = Join-Path $tempRoot 'vympel-rc.dump'
 $dbName = 'vympel_rc'
 $dbUser = 'vympel_rc_user'
 $dbPassword = "RcOnly_$([guid]::NewGuid().ToString('N'))!"
-$countryCode = "RC$($suffix.Substring(0, 6).ToUpperInvariant())"
+$configKey = "rc.backup.$suffix"
 $pageKey = "rc_backup_$suffix"
 $userEmail = "rc-backup-$suffix@example.invalid"
 $containers = @($backend, $restore, $source)
@@ -87,8 +87,7 @@ function DatabaseSummary([string]$Container) {
 SELECT
   (SELECT COUNT(*) FROM databasechangelog),
   (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'),
-  (SELECT COUNT(*) FROM country WHERE code='$countryCode'),
-  (SELECT COUNT(*) FROM country_i18n ci JOIN country c ON c.id=ci.country_id WHERE c.code='$countryCode' AND ci.lang='en'),
+  (SELECT COUNT(*) FROM cms_config WHERE key='$configKey' AND value='RC backup restore proof $suffix'),
   (SELECT COUNT(*) FROM cms_page WHERE page_key='$pageKey' AND status='INACTIVE'),
   (SELECT COUNT(*) FROM users WHERE email='$userEmail' AND enabled=false),
   (SELECT COUNT(*) FROM pg_constraint WHERE NOT convalidated),
@@ -116,11 +115,7 @@ try {
 
     $insertSql = @"
 BEGIN;
-WITH inserted_country AS (
-  INSERT INTO country(code, iso2, active) VALUES ('$countryCode', NULL, false) RETURNING id
-)
-INSERT INTO country_i18n(country_id, lang, name)
-SELECT id, 'en', 'RC backup restore proof $suffix' FROM inserted_country;
+INSERT INTO cms_config(key, value) VALUES ('$configKey', 'RC backup restore proof $suffix');
 INSERT INTO cms_page(page_key, title, status) VALUES ('$pageKey', 'RC backup restore proof', 'INACTIVE');
 INSERT INTO users(email, password_hash, first_name, enabled)
 VALUES ('$userEmail', 'NOT_A_REAL_CREDENTIAL', 'RC Backup Proof', false);

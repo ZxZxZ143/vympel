@@ -2,13 +2,14 @@ package com.shop.vympel.services.crm;
 
 import com.shop.vympel.db.entity.features.*;
 import com.shop.vympel.db.entity.i18n.*;
-import com.shop.vympel.db.repositories.CountryRepository;
 import com.shop.vympel.db.repositories.product.features.*;
 import com.shop.vympel.db.repositories.product.watchDetail.WatchMechanismRepository;
+import com.shop.vympel.dtos.crm.CrmBrandReferenceOptionResponse;
 import com.shop.vympel.dtos.crm.CrmReferenceOptionResponse;
 import com.shop.vympel.dtos.crm.CrmReferencesResponse;
 import com.shop.vympel.enums.Language;
 import com.shop.vympel.services.category.CategoryService;
+import com.shop.vympel.services.catalog.SupportedCatalogDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -22,14 +23,13 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class CrmReferenceService {
     private final CategoryService categoryService;
-    private final BrandRepository brandRepository;
+    private final SupportedCatalogDomainService supportedCatalogDomainService;
     private final CollectionRepository collectionRepository;
     private final WatchMechanismRepository watchMechanismRepository;
     private final GenderRepository genderRepository;
     private final MaterialRepository materialRepository;
     private final GlassTypeRepository glassTypeRepository;
     private final StoneInlayRepository stoneInlayRepository;
-    private final CountryRepository countryRepository;
     private final InteriorFeatureRepository interiorFeatureRepository;
     private final CollectionI18nRepository collectionI18nRepository;
     private final MechanismI18nRepository mechanismI18nRepository;
@@ -44,10 +44,17 @@ public class CrmReferenceService {
     public CrmReferencesResponse getReferences(Language language) {
         return new CrmReferencesResponse(
                 categoryService.getAll(language),
-                brandRepository.findAll()
+                supportedCatalogDomainService.assignments()
                         .stream()
-                        .map(brand -> option(brand.getId(), fallbackName(brand.getName(), brand.getCode()), brand.getCode()))
-                        .sorted(Comparator.comparing(CrmReferenceOptionResponse::name))
+                        .map(assignment -> new CrmBrandReferenceOptionResponse(
+                                assignment.brand().getId(),
+                                assignment.definition().brandName(),
+                                assignment.definition().brandCode(),
+                                assignment.country().getId(),
+                                assignment.country().getCode(),
+                                countryName(assignment.country(), language)
+                        ))
+                        .sorted(Comparator.comparing(CrmBrandReferenceOptionResponse::name))
                         .toList(),
                 collectionRepository.findAll()
                         .stream()
@@ -64,7 +71,7 @@ public class CrmReferenceService {
                 mapCodedOptions(materialRepository.findAll(), Material::getId, Material::getCode, this::materialName),
                 mapCodedOptions(glassTypeRepository.findAll(), GlassType::getId, GlassType::getCode, this::glassTypeName),
                 mapCodedOptions(stoneInlayRepository.findAll(), StoneInlay::getId, StoneInlay::getCode, this::stoneInlayName),
-                mapCodedOptions(countryRepository.findAll(), Country::getId, Country::getCode, country -> countryName(country, language)),
+                mapCodedOptions(supportedCatalogDomainService.countries(), Country::getId, Country::getCode, country -> countryName(country, language)),
                 mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("COLOR"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language)),
                 mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("STYLE"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language)),
                 mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("MECHANISM"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language)),

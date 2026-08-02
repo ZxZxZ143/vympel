@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-08-02-01-supported-brand-country-domain" author="codex" dbms="postgresql">
+        <comment>Normalize the supported catalog domain and enforce the immutable six-brand/five-country mapping.</comment>
+        <sql splitStatements="false"><![CDATA[
+            CREATE TEMP TABLE rc11_country_definition (
+                code VARCHAR(100) PRIMARY KEY,
+                iso2 VARCHAR(2) NOT NULL UNIQUE,
+                name_ru VARCHAR(255) NOT NULL,
+                name_en VARCHAR(255) NOT NULL,
+                name_kk VARCHAR(255) NOT NULL
+            ) ON COMMIT DROP;
+
+            INSERT INTO rc11_country_definition (code, iso2, name_ru, name_en, name_kk)
+            VALUES
+                ('england', 'GB', 'Англия', 'England', 'Англия'),
+                ('south-korea', 'KR', 'Южная Корея', 'South Korea', 'Оңтүстік Корея'),
+                ('germany', 'DE', 'Германия', 'Germany', 'Германия'),
+                ('switzerland', 'CH', 'Швейцария', 'Switzerland', 'Швейцария'),
+                ('japan', 'JP', 'Япония', 'Japan', 'Жапония');
+
+            CREATE TEMP TABLE rc11_country_candidate ON COMMIT DROP AS
+            SELECT c.id AS country_id, d.code, d.iso2
+            FROM country c
+            JOIN rc11_country_definition d
+              ON upper(coalesce(c.iso2, '')) = d.iso2
+              OR lower(regexp_replace(coalesce(c.code, ''), '[^a-z0-9]+', '', 'g')) = ANY (
+                    CASE d.iso2
+                        WHEN 'GB' THEN ARRAY['england']
+                        WHEN 'KR' THEN ARRAY['southkorea', 'republicofkorea']
+                        WHEN 'DE' THEN ARRAY['germany']
+                        WHEN 'CH' THEN ARRAY['switzerland']
+                        WHEN 'JP' THEN ARRAY['japan']
+                    END
+                 )
+              OR EXISTS (
+                    SELECT 1
+                    FROM country_i18n ci
+                    WHERE ci.country_id = c.id
+                      AND lower(regexp_replace(coalesce(ci.name, ''), '[^a-z0-9]+', '', 'g')) = ANY (
+                            CASE d.iso2
+                                WHEN 'GB' THEN ARRAY['england']
+                                WHEN 'KR' THEN ARRAY['southkorea', 'republicofkorea']
+                                WHEN 'DE' THEN ARRAY['germany']
+                                WHEN 'CH' THEN ARRAY['switzerland']
+                                WHEN 'JP' THEN ARRAY['japan']
+                            END
+                      )
+                 );
+
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT country_id
+                    FROM rc11_country_candidate
+                    GROUP BY country_id
+                    HAVING count(DISTINCT iso2) > 1
+                ) THEN
+                    RAISE EXCEPTION 'Ambiguous country identity cannot be normalized automatically';
+                END IF;
+            END;
+            $$;
+
+            INSERT INTO country (code, iso2, active)
+            SELECT d.code, d.iso2, true
+            FROM rc11_country_definition d
+            WHERE NOT EXISTS (SELECT 1 FROM rc11_country_candidate c WHERE c.iso2 = d.iso2);
+
+            INSERT INTO rc11_country_candidate (country_id, code, iso2)
+            SELECT c.id, d.code, d.iso2
+            FROM country c
+            JOIN rc11_country_definition d ON c.code = d.code AND c.iso2 = d.iso2
+            WHERE NOT EXISTS (SELECT 1 FROM rc11_country_candidate candidate WHERE candidate.country_id = c.id);
+
+            CREATE TEMP TABLE rc11_country_survivor ON COMMIT DROP AS
+            SELECT DISTINCT ON (candidate.iso2)
+                   candidate.iso2,
+                   candidate.code,
+                   candidate.country_id
+            FROM rc11_country_candidate candidate
+            JOIN country c ON c.id = candidate.country_id
+            ORDER BY candidate.iso2,
+                     (upper(coalesce(c.iso2, '')) = candidate.iso2) DESC,
+                     (c.code = candidate.code) DESC,
+                     candidate.country_id;
+
+            CREATE TEMP TABLE rc11_brand_alias (
+                canonical_code VARCHAR(100) NOT NULL,
+                canonical_name VARCHAR(255) NOT NULL,
+                country_iso2 VARCHAR(2) NOT NULL,
+                alias_normalized VARCHAR(100) PRIMARY KEY
+            ) ON COMMIT DROP;
+
+            INSERT INTO rc11_brand_alias (canonical_code, canonical_name, country_iso2, alias_normalized)
+            VALUES
+                ('royal-london', 'Royal London', 'GB', 'royallondon'),
+                ('romanson', 'Romanson', 'KR', 'romanson'),
+                ('pierre-ricaud', 'Pierre Ricaud', 'DE', 'pierrericaud'),
+                ('pierre-ricaud', 'Pierre Ricaud', 'DE', 'pierrericaude'),
+                ('pierre-ricaud', 'Pierre Ricaud', 'DE', 'rierrericaud'),
+                ('appella', 'Appella', 'CH', 'appella'),
+                ('appella', 'Appella', 'CH', 'apella'),
+                ('adriatica', 'Adriatica', 'CH', 'adriatica'),
+                ('adriatica', 'Adriatica', 'CH', 'adriaica'),
+                ('rhythm', 'Rhythm', 'JP', 'rhythm'),
+                ('rhythm', 'Rhythm', 'JP', 'rythm');
+
+            CREATE TEMP TABLE rc11_brand_candidate ON COMMIT DROP AS
+            SELECT DISTINCT b.id AS brand_id, alias.canonical_code, alias.canonical_name, alias.country_iso2
+            FROM brand b
+            JOIN rc11_brand_alias alias
+              ON alias.alias_normalized = lower(regexp_replace(coalesce(b.code, ''), '[^a-z0-9]+', '', 'g'))
+              OR alias.alias_normalized = lower(regexp_replace(coalesce(b.name, ''), '[^a-z0-9]+', '', 'g'));
+
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT brand_id
+                    FROM rc11_brand_candidate
+                    GROUP BY brand_id
+                    HAVING count(DISTINCT canonical_code) > 1
+                ) THEN
+                    RAISE EXCEPTION 'Ambiguous brand identity cannot be normalized automatically';
+                END IF;
+            END;
+            $$;
+
+            INSERT INTO brand (code, name, active)
+            SELECT definition.canonical_code, definition.canonical_name, true
+            FROM (
+                SELECT DISTINCT canonical_code, canonical_name
+                FROM rc11_brand_alias
+            ) definition
+            WHERE NOT EXISTS (
+                SELECT 1 FROM rc11_brand_candidate candidate
+                WHERE candidate.canonical_code = definition.canonical_code
+            );
+
+            INSERT INTO rc11_brand_candidate (brand_id, canonical_code, canonical_name, country_iso2)
+            SELECT b.id, definition.canonical_code, definition.canonical_name, definition.country_iso2
+            FROM brand b
+            JOIN (
+                SELECT DISTINCT canonical_code, canonical_name, country_iso2
+                FROM rc11_brand_alias
+            ) definition ON b.code = definition.canonical_code
+            WHERE NOT EXISTS (SELECT 1 FROM rc11_brand_candidate candidate WHERE candidate.brand_id = b.id);
+
+            CREATE TEMP TABLE rc11_brand_survivor ON COMMIT DROP AS
+            SELECT DISTINCT ON (candidate.canonical_code)
+                   candidate.canonical_code,
+                   candidate.canonical_name,
+                   candidate.country_iso2,
+                   candidate.brand_id
+            FROM rc11_brand_candidate candidate
+            JOIN brand b ON b.id = candidate.brand_id
+            ORDER BY candidate.canonical_code,
+                     (b.code = candidate.canonical_code) DESC,
+                     candidate.brand_id;
+
+            CREATE TEMP TABLE rc11_brand_redirect ON COMMIT DROP AS
+            SELECT candidate.brand_id AS source_brand_id,
+                   survivor.brand_id AS target_brand_id,
+                   candidate.canonical_code
+            FROM rc11_brand_candidate candidate
+            JOIN rc11_brand_survivor survivor USING (canonical_code);
+
+            -- Unsupported product roots are deleted first; every product-owned dependent has ON DELETE CASCADE.
+            DELETE FROM product p
+            WHERE NOT EXISTS (
+                SELECT 1 FROM rc11_brand_redirect redirect WHERE redirect.source_brand_id = p.brand_id
+            );
+
+            CREATE TEMP TABLE rc11_collection_redirect ON COMMIT DROP AS
+            SELECT source_collection_id,
+                   first_value(source_collection_id) OVER (
+                       PARTITION BY target_brand_id, code
+                       ORDER BY already_on_target DESC, source_collection_id
+                   ) AS target_collection_id,
+                   target_brand_id
+            FROM (
+                SELECT c.id AS source_collection_id,
+                       c.code,
+                       redirect.target_brand_id,
+                       (c.brand_id = redirect.target_brand_id) AS already_on_target
+                FROM collection c
+                JOIN rc11_brand_redirect redirect ON redirect.source_brand_id = c.brand_id
+            ) collections;
+
+            UPDATE product p
+            SET collection_id = redirect.target_collection_id
+            FROM rc11_collection_redirect redirect
+            WHERE p.collection_id = redirect.source_collection_id
+              AND redirect.source_collection_id <> redirect.target_collection_id;
+
+            DELETE FROM collection c
+            USING rc11_collection_redirect redirect
+            WHERE c.id = redirect.source_collection_id
+              AND redirect.source_collection_id <> redirect.target_collection_id;
+
+            UPDATE collection c
+            SET brand_id = redirect.target_brand_id
+            FROM rc11_brand_redirect redirect
+            WHERE c.brand_id = redirect.source_brand_id
+              AND c.brand_id <> redirect.target_brand_id;
+
+            UPDATE product p
+            SET brand_id = redirect.target_brand_id
+            FROM rc11_brand_redirect redirect
+            WHERE p.brand_id = redirect.source_brand_id
+              AND p.brand_id <> redirect.target_brand_id;
+
+            DELETE FROM brand b
+            WHERE NOT EXISTS (
+                SELECT 1 FROM rc11_brand_survivor survivor WHERE survivor.brand_id = b.id
+            );
+
+            UPDATE brand b
+            SET code = survivor.canonical_code,
+                name = survivor.canonical_name,
+                active = true
+            FROM rc11_brand_survivor survivor
+            WHERE b.id = survivor.brand_id;
+
+            DELETE FROM brand_country;
+
+            INSERT INTO brand_country (brand_id, country_id)
+            SELECT brand.brand_id, country.country_id
+            FROM rc11_brand_survivor brand
+            JOIN rc11_country_survivor country ON country.iso2 = brand.country_iso2;
+
+            INSERT INTO interior_clock_details (product_id, production_country_id)
+            SELECT DISTINCT p.id, mapping.country_id
+            FROM product p
+            JOIN product_category pc ON pc.product_id = p.id
+            JOIN category category ON category.id = pc.category_id
+            JOIN brand_country mapping ON mapping.brand_id = p.brand_id
+            WHERE upper(replace(category.code, '-', '_')) IN ('WATCH_INTERIOR', 'WATCH_WALL', 'WATCH_FLOOR')
+            ON CONFLICT (product_id) DO UPDATE
+                SET production_country_id = EXCLUDED.production_country_id;
+
+            UPDATE interior_clock_details detail
+            SET production_country_id = mapping.country_id
+            FROM product p
+            JOIN brand_country mapping ON mapping.brand_id = p.brand_id
+            WHERE detail.product_id = p.id
+              AND detail.production_country_id IS DISTINCT FROM mapping.country_id;
+
+            DELETE FROM country c
+            WHERE NOT EXISTS (
+                SELECT 1 FROM rc11_country_survivor survivor WHERE survivor.country_id = c.id
+            );
+
+            UPDATE country c
+            SET code = survivor.code,
+                iso2 = survivor.iso2,
+                active = true
+            FROM rc11_country_survivor survivor
+            WHERE c.id = survivor.country_id;
+
+            INSERT INTO country_i18n (country_id, lang, name)
+            SELECT survivor.country_id, translations.lang, translations.name
+            FROM rc11_country_survivor survivor
+            JOIN rc11_country_definition definition ON definition.iso2 = survivor.iso2
+            CROSS JOIN LATERAL (
+                VALUES
+                    ('ru', definition.name_ru),
+                    ('en', definition.name_en),
+                    ('kk', definition.name_kk)
+            ) translations(lang, name)
+            ON CONFLICT (country_id, lang) DO UPDATE SET name = EXCLUDED.name;
+
+            ALTER TABLE brand
+                ADD CONSTRAINT chk_brand_supported_identity CHECK (
+                    active = true AND (
+                        (code = 'royal-london' AND name = 'Royal London') OR
+                        (code = 'romanson' AND name = 'Romanson') OR
+                        (code = 'pierre-ricaud' AND name = 'Pierre Ricaud') OR
+                        (code = 'appella' AND name = 'Appella') OR
+                        (code = 'adriatica' AND name = 'Adriatica') OR
+                        (code = 'rhythm' AND name = 'Rhythm')
+                    )
+                );
+
+            ALTER TABLE country
+                ADD CONSTRAINT chk_country_supported_identity CHECK (
+                    active = true AND (
+                        (code = 'england' AND iso2 = 'GB') OR
+                        (code = 'south-korea' AND iso2 = 'KR') OR
+                        (code = 'germany' AND iso2 = 'DE') OR
+                        (code = 'switzerland' AND iso2 = 'CH') OR
+                        (code = 'japan' AND iso2 = 'JP')
+                    )
+                );
+
+            ALTER TABLE brand_country
+                ADD CONSTRAINT uq_brand_country_brand UNIQUE (brand_id);
+
+            CREATE OR REPLACE FUNCTION assert_supported_catalog_domain()
+            RETURNS trigger
+            LANGUAGE plpgsql
+            AS $$
+            BEGIN
+                IF (SELECT count(*) FROM brand) <> 6
+                   OR (SELECT count(*) FROM country) <> 5
+                   OR (SELECT count(*) FROM brand_country) <> 6
+                   OR EXISTS (
+                        SELECT 1
+                        FROM brand b
+                        LEFT JOIN brand_country bc ON bc.brand_id = b.id
+                        LEFT JOIN country c ON c.id = bc.country_id
+                        WHERE NOT (
+                            (b.code = 'royal-london' AND c.iso2 = 'GB') OR
+                            (b.code = 'romanson' AND c.iso2 = 'KR') OR
+                            (b.code = 'pierre-ricaud' AND c.iso2 = 'DE') OR
+                            (b.code = 'appella' AND c.iso2 = 'CH') OR
+                            (b.code = 'adriatica' AND c.iso2 = 'CH') OR
+                            (b.code = 'rhythm' AND c.iso2 = 'JP')
+                        )
+                   ) THEN
+                    RAISE EXCEPTION 'Supported catalog brand/country domain is immutable'
+                        USING ERRCODE = '23514', CONSTRAINT = 'chk_supported_catalog_domain';
+                END IF;
+                RETURN NULL;
+            END;
+            $$;
+
+            CREATE CONSTRAINT TRIGGER trg_supported_catalog_brand
+                AFTER INSERT OR UPDATE OR DELETE ON brand
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_supported_catalog_domain();
+
+            CREATE CONSTRAINT TRIGGER trg_supported_catalog_country
+                AFTER INSERT OR UPDATE OR DELETE ON country
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_supported_catalog_domain();
+
+            CREATE CONSTRAINT TRIGGER trg_supported_catalog_mapping
+                AFTER INSERT OR UPDATE OR DELETE ON brand_country
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_supported_catalog_domain();
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -161,8 +161,14 @@
 ### Public brand page config
 
 * **When to use:** When adding or changing public brand pages, brand dropdown links, brand banner mappings, or brand copy.
-* **How:** Keep public brand slugs/display names/database codes in `src/config/brandRoutes.ts` and long page copy/assets in `src/config/brandPages.ts`. Preserve the existing `pierre-ricaude` database compatibility alias while displaying `PIERRE RICAUD`. The all-brands `/brands` page should prefer backend brand filter options/counts when available, fall back to `PUBLIC_BRANDS` only if backend filter data is unavailable, and remain the footer `Бренды` target.
-* **Why:** The project does not currently expose public brand content endpoints, so a centralized frontend config avoids duplicated copy, broken navigation slugs, and inconsistent asset fallbacks.
+* **How:** Keep the exact supported brand slugs/display names/database codes in `src/config/brandRoutes.ts` and long page copy/assets in `src/config/brandPages.ts`. Accept and emit only `adriatica`, `appella`, `pierre-ricaud`, `rhythm`, `romanson`, and `royal-london`; legacy spelling normalization belongs in a forward database migration, not a runtime route alias. The all-brands `/brands` page should prefer backend brand filter options/counts when available, fall back to `PUBLIC_BRANDS` only if backend filter data is unavailable, and remain the footer `Бренды` target.
+* **Why:** A closed canonical route registry keeps storefront, API facets, CRM references, database identities, and SEO aligned without allowing misspelled identities to survive indefinitely.
+
+### Derived CRM brand-country fields
+
+* **When to use:** When an interior-clock create/edit/bulk form shows or submits production country.
+* **How:** Resolve the country from the selected `BrandFeature` with `brandCountryFor`, render it as an accessible read-only input, and submit the returned canonical `countryId`. In bulk flows derive both the common country and every effective row country after applying the row brand override. Compute these values during render or payload construction; do not synchronize duplicate country state through effects.
+* **Why:** Country is an invariant of the supported brand, so independent editable form state can only create mismatches and unnecessary rerenders.
 
 ### Brand products through catalog filters
 
@@ -420,6 +426,12 @@
 
 ## Backend Patterns That Work
 
+### Closed supported catalog domain
+
+* **When to use:** Any backend read or write involving brand identity, country identity, brand-country mapping, CRM references, product validation, or public brand/country filters.
+* **How:** Keep the six mappings in `SupportedBrandCountry` and resolve persisted entities through `SupportedCatalogDomainService`. Require one active exact brand, one active exact ISO country, and one mapping; reject unsupported brands and crafted country mismatches before persistence. Let database checks and deferred exact-domain triggers protect direct SQL. Do not query arbitrary brand/country rows into CRM or public options.
+* **Why:** One application mapping plus database enforcement prevents API, CRM, storefront, and direct writes from drifting into different catalogs.
+
 ### Controller-service-repository layering
 
 * **When to use:** For backend feature work and API changes.
@@ -432,11 +444,17 @@
 * **How:** Add a new changelog file under `src/main/resources/db/changelog`, include it in `db.changelog-master.xml`, and keep JPA `ddl-auto: validate`. For identity spelling/slug corrections, update the existing row in place, HALT on a conflicting canonical row, update only proven localized/denormalized references, and test that no delete/reinsert or product FK rewrite occurs. Check the full prior schema history before adding table preconditions: `brand_i18n` was removed by `2026-02-08-01`, so current brand corrections must use the canonical `brand` row and active CMS translation tables rather than referencing that historical table.
 * **Why:** Hibernate validates the schema instead of creating it, so database changes must be migration-backed; primary-key-preserving corrections keep every product association stable.
 
-### Canonical public brand spelling and legacy redirects
+### Forward-only catalog normalization with FK-safe deletion
+
+* **When to use:** Replacing a permissive reference-data catalog with a closed supported domain on databases that may contain aliases, duplicates, and unsupported product graphs.
+* **How:** Define only provably equivalent aliases; choose or insert canonical survivors; count affected brands, countries, collections, products, and dependent rows before mutation; reassign supported alias products and merge duplicate collections; delete unsupported product roots so existing cascades remove dependent graphs; then delete unsupported brands/countries and install exact-domain constraints. Rehearse old release -> representative dirty data -> new release -> second startup on disposable PostgreSQL before release. Never edit already released changesets.
+* **Why:** Product and interior-country foreign keys use different delete actions, so ordering and survivor reassignment are required to preserve valid products while removing unsupported graphs safely.
+
+### Canonical public brand spelling without runtime aliases
 
 * **When to use:** When a public brand display name, database code, or slug is corrected.
-* **How:** Update `PUBLIC_BRANDS`, brand-page copy/assets, sitemap/internal-link consumers, backend persistent data through a new migration, localized brand rows, CMS references, tests, and project docs together. Keep only a narrowly scoped `LEGACY_BRAND_REDIRECTS` entry for the old slug and call `permanentRedirect` with `routes.withLocale`; do not retain the misspelling as a visible matching name or canonical metadata value.
-* **Why:** Storefront, CRM, API facets/search, and SEO all derive from either `PUBLIC_BRANDS` or the persistent brand row, while the explicit redirect protects old bookmarks without preserving bad canonical data.
+* **How:** Update `PUBLIC_BRANDS`, brand-page copy/assets, sitemap/internal-link consumers, backend persistent data through a new forward migration, localized values, CMS references, tests, and project docs together. Normalize only proven aliases during migration and remove compatibility matches/redirects after the closed catalog becomes authoritative.
+* **Why:** Storefront, CRM, API facets/search, and SEO must resolve one canonical identity; runtime aliases keep obsolete values reachable and can hide incomplete database cleanup.
 
 ### Constraint migrations with production-copy rehearsal
 
@@ -698,6 +716,12 @@
 * **How:** Update the backend contract first, then update frontend API client/types/hooks/components.
 * **Why:** Prevents mismatch between request/response shapes.
 
+### Brand-country contract first
+
+* **When to use:** Any change to supported brands, countries, localized labels, product validation, public filter options, or CRM product fields.
+* **How:** Update the forward Liquibase migration and backend `SupportedBrandCountry` contract first; then update CRM reference DTO/types/helpers/forms, storefront canonical route config, filter sanitization, and backend/frontend/migration tests. Verify individual and bulk writes, direct DB rejection, exact RU/KK/EN filters, and safe unsupported query IDs.
+* **Why:** The invariant spans persistent identity, request validation, reference options, URL behavior, localization, and UI state; changing one surface creates silent catalog drift.
+
 ### Safe 429 cooldown contract
 
 * **When to use:** A public or CRM interaction can be rejected by an abuse policy.
@@ -918,6 +942,20 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### Accepting legacy catalog spellings at runtime after normalization
+
+* **What happened:** Historical misspellings such as `pierre-ricaude` and `apella` remained accepted by route/config compatibility even after canonical values existed.
+* **Root cause:** Data migration and runtime compatibility were treated as separate permanent policies instead of one bounded transition.
+* **Fix:** The forward supported-domain migration owns clear alias normalization, while public routes and runtime reference APIs expose only the six canonical brands.
+* **How to avoid:** Search migrations, backend enums/services, CRM reference types, storefront routes, tests, and CMS links together; keep aliases only inside the one forward normalization changeset and its tests.
+
+### Treating brand country as independent product form state
+
+* **What happened:** CRM create/edit/bulk forms allowed country selection separately from brand, permitting crafted or stale mismatched payloads.
+* **Root cause:** The UI modeled a database invariant as two unrelated editable fields.
+* **Fix:** Derive localized country from the selected brand in render/payload helpers and enforce the same mapping in individual/bulk backend writes and deferred DB constraints.
+* **How to avoid:** When one reference functionally determines another, submit the canonical derived ID and validate server-side; do not maintain a second editable or effect-synchronized state variable.
 
 ### ❌ Removing the NProgress node without clearing its status
 
@@ -1460,6 +1498,8 @@
 
 ## Testing Patterns
 
+* **How to verify supported catalog-domain changes:** Run the full Java suite including `SupportedCatalogMigrationTest`, `SupportedCatalogDomainServiceTest`, `InteriorClockDetailServiceImplTest`, and `ProductBulkCreationServiceTest`; run both frontend typecheck/lint/Vitest/build gates; then rehearse old backend -> representative aliases/unsupported graph -> new backend -> second startup on disposable PostgreSQL 16. Browser-check exact EN/RU/KZ filters, linked brand/country availability, CRM create/edit/bulk read-only derivation, and API rejection of unsupported/mismatched individual and bulk payloads.
+
 * **How to run all tests:** No single full-project test command is configured; run backend tests with `cd vympel_back && .\gradlew.bat test`, public frontend tests with `cd vympel_front && npm run test`, and CRM tests with `cd vympel_crm && npm test`.
 * **How to run frontend tests:** `cd vympel_front && npm run test` and `cd vympel_crm && npm test` run finite Vitest suites.
 * **How to verify real public 404 responses:** Run `cd vympel_front && npm run build`, then `npm run test:production-status`. The finite script owns ephemeral mock/Next processes, asserts status and rendered content for valid and missing routes in ru/kz/en, checks a temporary backend 500 is not converted to 404, and verifies both ports close during cleanup.
@@ -1697,6 +1737,8 @@
 * Local CMS revalidation is a two-process contract: Docker root `.env` passes one server-only value to backend and public containers, while hybrid mode pairs the backend local-profile fallback with ignored `vympel_front/.env`. Never rename it to or mirror it through a `NEXT_PUBLIC_*` variable.
 * Local ADMIN bootstrap is opt-in through `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=true` in ignored root `.env`; Compose forwards the four server-only variables only to backend. IntelliJ must receive the same variables explicitly because it does not load root `.env`. Changing the configured password after creation does not rotate or reset the existing account; use the protected CRM user-management flow or an intentional local database action instead.
 * Full Docker startup is `docker compose up -d --build --wait`; ordinary cleanup is `docker compose down`. `docker compose down -v` destroys PostgreSQL/Redis/MinIO/log volumes and must remain an explicit manual reset.
+* Docker Desktop may serve an ARM64-cached `redis:7.4-alpine` image on an amd64 host. For local Compose and the Redis Testcontainers integration test only, pass `--ignore-warnings ARM64-COW-BUG`; keep production/native Redis protection unchanged.
+* While finalizing a brand-new unreleased Liquibase changeset, a long-lived local/test PostgreSQL database may retain an earlier draft checksum. Finalize the file first, then clear only that exact unreleased `databasechangelog` row's checksum so Liquibase records the final value. Never clear or alter checksums for a released/applied history row; released migrations require a new forward changeset.
 * Docker defaults are public `3200`, CRM `3201`, backend `8080`, PostgreSQL host `5433`, Redis `6379`, and MinIO API/console `9100`/`9101`. Conventional hybrid npm ports remain `3000`/`3001`; isolated QA may use `3100`/`3101`, but those listeners and their task-owned working copies must be closed during final cleanup.
 * The backend container receives the explicit `local` Spring profile plus `postgres:5432`, `redis:6379`, `minio:9000`, and `public:3000`. Never use host-published ports for service-to-service calls.
 * Browser-facing API/media values use published localhost ports and public `NEXT_PUBLIC_*` values are compiled during the Next build. CMS/S3/database/JWT/limiter secrets are server-only and must never use `NEXT_PUBLIC_*`.
@@ -2162,4 +2204,4 @@
 
 ## Last Updated
 
-2026-08-02 - Documented the centralized navigation-progress pattern and NProgress cleanup gotcha, plus RC.10's independently cross-checked immutable release evidence and repeated stale generated Liquibase metadata correction.
+2026-08-02 - Documented the closed six-brand/five-country domain, forward-only FK-safe normalization, backend/DB validation, derived CRM country fields, exact storefront routes/filters, migration/browser verification, and the local ARM64 Redis/checksum setup gotchas.

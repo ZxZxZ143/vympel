@@ -8,6 +8,7 @@ import com.shop.vympel.dtos.product.ProductShortResponse;
 import com.shop.vympel.dtos.product.ProductUpdateRequest;
 import com.shop.vympel.dtos.product.description.DescriptionCreateRequest;
 import com.shop.vympel.dtos.product.description.ProductNameCreateRequest;
+import com.shop.vympel.dtos.product.details.InteriorClockDetailCreateRequest;
 import com.shop.vympel.enums.Language;
 import com.shop.vympel.enums.ProductPromotionMode;
 import com.shop.vympel.exceptions.BusinessRuleViolationException;
@@ -17,6 +18,7 @@ import com.shop.vympel.mappers.product.ProductMapper;
 import com.shop.vympel.services.categoryProduct.CategoryProductService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
+import com.shop.vympel.services.catalog.SupportedCatalogDomainService;
 import com.shop.vympel.services.marketplace.MarketplaceUrlPolicy;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
 import com.shop.vympel.services.productDescription.ProductDescriptionService;
@@ -48,6 +50,7 @@ public class ProductServiceImpl implements ProductService {
     private final WatchDetailServiceImpl watchDetailService;
     private final InteriorClockDetailServiceImpl interiorClockDetailService;
     private final CatalogCategoryProfileService catalogCategoryProfileService;
+    private final SupportedCatalogDomainService supportedCatalogDomainService;
     private final ProductDescriptionService productDescriptionService;
     private final ProductNameService productNameService;
     private final CategoryProductService categoryProductService;
@@ -58,6 +61,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public Long create(ProductCreateRequest req) throws IllegalArgumentException {
         CatalogCategoryProfile categoryProfile = catalogCategoryProfileService.profileForCategoryId(req.getCategoryId());
+        SupportedCatalogDomainService.Assignment brandCountry = supportedCatalogDomainService.requireAssignment(
+                req.getBrandId(),
+                req.getInteriorClockDetails() == null ? null : req.getInteriorClockDetails().getProductionCountryId()
+        );
         validateProductNameTranslations(req.getProductName());
         validateCreateDetails(req, categoryProfile);
         normalizeProductNameTranslations(req.getProductName());
@@ -82,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
 
         categoryProductService.linkWithProduct(req.getCategoryId(), newProduct);
 
-        createProfileDetails(req, newProduct, categoryProfile);
+        createProfileDetails(req, newProduct, categoryProfile, brandCountry);
 
         productDescriptionService.addProductDescription(
                 newProduct,
@@ -112,6 +119,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse update(Long id, ProductUpdateRequest req, Language language) {
         Product product = productRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        Long targetBrandId = req.getBrandId() == null ? product.getBrand().getId() : req.getBrandId();
+        SupportedCatalogDomainService.Assignment brandCountry = supportedCatalogDomainService.requireAssignment(
+                targetBrandId,
+                req.getInteriorClockDetails() == null ? null : req.getInteriorClockDetails().getProductionCountryId()
+        );
 
         Long currentCategoryId = currentCategoryId(product.getId(), language);
         Long targetCategoryId = req.getCategoryId() == null ? currentCategoryId : req.getCategoryId();
@@ -149,7 +162,7 @@ public class ProductServiceImpl implements ProductService {
             categoryProductService.relinkWithProduct(req.getCategoryId(), savedProduct);
         }
 
-        updateProfileDetails(req, savedProduct, targetCategoryProfile);
+        updateProfileDetails(req, savedProduct, targetCategoryProfile, brandCountry);
 
         if (req.getDescription() != null) {
             productDescriptionService.addProductDescription(
@@ -472,28 +485,37 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    private void createProfileDetails(ProductCreateRequest req, Product product, CatalogCategoryProfile profile) {
+    private void createProfileDetails(
+            ProductCreateRequest req,
+            Product product,
+            CatalogCategoryProfile profile,
+            SupportedCatalogDomainService.Assignment brandCountry
+    ) {
         if (profile == CatalogCategoryProfile.WRISTWATCH && req.getWatchDetails() != null) {
             watchDetailService.create(req.getWatchDetails(), product);
             return;
         }
 
-        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK && req.getInteriorClockDetails() != null) {
-            interiorClockDetailService.create(req.getInteriorClockDetails(), product);
+        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK) {
+            InteriorClockDetailCreateRequest details = req.getInteriorClockDetails() == null
+                    ? new InteriorClockDetailCreateRequest()
+                    : req.getInteriorClockDetails();
+            interiorClockDetailService.create(details, product, brandCountry.country());
         }
     }
 
     private void updateProfileDetails(
             ProductUpdateRequest req,
             Product product,
-            CatalogCategoryProfile profile
+            CatalogCategoryProfile profile,
+            SupportedCatalogDomainService.Assignment brandCountry
     ) {
         if (profile == CatalogCategoryProfile.WRISTWATCH && req.getWatchDetails() != null) {
             watchDetailService.update(req.getWatchDetails(), product);
         }
 
-        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK && req.getInteriorClockDetails() != null) {
-            interiorClockDetailService.update(req.getInteriorClockDetails(), product);
+        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK) {
+            interiorClockDetailService.update(req.getInteriorClockDetails(), product, brandCountry.country());
         }
     }
 

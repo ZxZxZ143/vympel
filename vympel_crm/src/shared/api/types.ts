@@ -49,6 +49,12 @@ export type Feature = {
   brandId?: number | null;
 };
 
+export type BrandFeature = Feature & {
+  countryId: number;
+  countryCode: string;
+  countryName: string;
+};
+
 export type Category = {
   id: number;
   name: string;
@@ -281,7 +287,7 @@ export type CrmCollection = Feature & {
 
 export type References = {
   categories: Category[];
-  brands: Feature[];
+  brands: BrandFeature[];
   collections: Feature[];
   mechanisms: Feature[];
   genders: Feature[];
