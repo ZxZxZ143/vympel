@@ -2120,13 +2120,13 @@
 
 * **When to use:** Generating or preserving a release manifest after the tagged source added Liquibase changes.
 * **How:** Read `db.changelog-master.xml` at the tagged commit, follow the included changelog order, and record the final `changeSet` id. Compare it with `database.expected_latest_change` in the workflow artifact before committing durable evidence.
-* **Why:** RC.9's publication artifact retained RC.8's hardcoded `2026-07-19-02-update-public-image-paths-to-webp` value even though the tagged source ended at `2026-07-30-02-update-contact-banner-media`; registry/runtime success does not prove descriptive release metadata is current.
+* **Why:** RC.9 and RC.10 publication artifacts retained RC.8's hardcoded `2026-07-19-02-update-public-image-paths-to-webp` value even though both tagged sources ended at `2026-07-30-02-update-contact-banner-media`; registry/runtime success does not prove descriptive release metadata is current.
 
 ### Cross-check release artifacts against the public registry
 
 * **When to use:** A publication workflow has emitted a digest-complete manifest and the release needs a durable deployable record.
 * **How:** Independently inspect every RC-tagged OCI index, confirm its `linux/amd64` and `linux/arm64` children, confirm the full-SHA alias resolves to the same index digest, inspect both platform configs for exact OCI source/revision/version labels, and compare all values with the downloaded manifest before committing it. Reinspect the prior RC tags when required to prove they were not moved.
-* **Why:** RC.8 and RC.9 demonstrated that workflow success and artifact generation can be corroborated without trusting either record alone, while preserving the immutability guarantee of earlier candidates.
+* **Why:** RC.8 through RC.10 demonstrated that workflow success and artifact generation can be corroborated without trusting either record alone, while preserving the immutability guarantee of earlier candidates.
 
 ### Accept a multi-architecture release only after exact-image runtime jobs
 
@@ -2162,4 +2162,4 @@
 
 ## Last Updated
 
-2026-08-02 - Documented the centralized public navigation-progress pattern, ignored-click contract, locale-layout exception, reduced-motion/finite cleanup rules, and the NProgress status-reset gotcha that otherwise recreates a stuck bar.
+2026-08-02 - Documented the centralized navigation-progress pattern and NProgress cleanup gotcha, plus RC.10's independently cross-checked immutable release evidence and repeated stale generated Liquibase metadata correction.

@@ -1,0 +1,62 @@
+apiVersion: deployment.vympel.dev/v1
+kind: PublishedReleaseManifest
+commit_sha: "9a012b4c1258c29ebd6b6c4ff245018f846d1a27"
+git_tag: "v1.0.0-rc.10"
+generated_at: "2026-08-02T15:27:55Z"
+images:
+  backend:
+    repository: ghcr.io/zxzxz143/vympel-backend
+    tag: "9a012b4c1258c29ebd6b6c4ff245018f846d1a27"
+    digest: "sha256:613d170ca91bb20edb0833f70f66ff239a698b672c6caf254f6723fd9e7fe8cf"
+    platforms:
+      linux/amd64: "sha256:0398dbab32e418cc7712be6492af4d6b3d8e19b170c16b197bbd871c43237152"
+      linux/arm64: "sha256:14f6993bafb5298c3edab33ab13b0f01bb0a057c49a38b606a54518088ced4d3"
+  storefront:
+    repository: ghcr.io/zxzxz143/vympel-storefront
+    tag: "9a012b4c1258c29ebd6b6c4ff245018f846d1a27"
+    digest: "sha256:2fd395ca65f396cda5e77d4ff271a42694f30b80d7766a08f9f190b99c1cce95"
+    platforms:
+      linux/amd64: "sha256:4dc1f3570f977d17c06c630a36fcd77aa96df1b4579809b8e9e200c1c53b95fc"
+      linux/arm64: "sha256:03b75524b750af89221798b6c4a313805b3af9111981c5b72aef299bbacb7ae2"
+  crm:
+    repository: ghcr.io/zxzxz143/vympel-crm
+    tag: "9a012b4c1258c29ebd6b6c4ff245018f846d1a27"
+    digest: "sha256:ddbefa3ef49d5776f215b9ce87f669be36aa2bfb1aca724f2cd56aae1c356f24"
+    platforms:
+      linux/amd64: "sha256:3fdf9477dab89db2dd34b5556103e4ff7c43be9920e38713556704ad0891e8ef"
+      linux/arm64: "sha256:5f7635ba97c8da86603d592e7e8ee0dd8068a6dc9cd9655bcbd79fb7db1da1cc"
+public_build_configuration:
+  strategy: build-time-release-contract
+  variables:
+    NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.34.18.200.58.sslip.io/api/public"
+    NEXT_PUBLIC_CRM_API_BASE: "https://api.34.18.200.58.sslip.io/api/crm"
+    NEXT_PUBLIC_MEDIA_ORIGINS: "https://api.34.18.200.58.sslip.io"
+    NEXT_PUBLIC_SITE_URL: "https://shop.34.18.200.58.sslip.io"
+    NEXT_PUBLIC_APP_ENV: "staging"
+    NEXT_PUBLIC_APP_RELEASE: "9a012b4c1258c29ebd6b6c4ff245018f846d1a27"
+    NEXT_PUBLIC_TELEMETRY_ENABLED: false
+  storefront_api_base: "https://api.34.18.200.58.sslip.io/api/public"
+  crm_api_base: "https://api.34.18.200.58.sslip.io/api/crm"
+  media_origins: "https://api.34.18.200.58.sslip.io"
+  storefront_site_url: "https://shop.34.18.200.58.sslip.io"
+  deployment_environment: "staging"
+  release: "9a012b4c1258c29ebd6b6c4ff245018f846d1a27"
+  telemetry_enabled: false
+  placeholder_acknowledged: false
+database:
+  changelog: classpath:db/changelog/db.changelog-master.xml
+  expected_latest_change: 2026-07-30-02-update-contact-banner-media
+  migration_mode: one-time-job
+verification:
+  workflow_run: "https://github.com/ZxZxZ143/vympel/actions/runs/30753618665"
+  registry_manifest: passed
+  linux_amd64_runtime: passed
+  linux_arm64_runtime: passed
+  deployment_performed: false
+remaining_oracle_decisions:
+  - Oracle tenancy, compartment, region, VCN, and subnet
+  - final DNS names and public build configuration
+  - Ampere A1 VM shape allocation and boot volume size
+  - SSH ingress source CIDRs
+  - backup destination and retention policy
+  - alert routing
