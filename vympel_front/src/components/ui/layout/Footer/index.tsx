@@ -27,7 +27,7 @@ const Footer = () => {
                     <div className="flex flex-col items-center justify-center gap-4">
                         <H2 className="text-3xl uppercase" colors="headingSecondary" font="heading">Vympel</H2>
                         <div className="flex justify-center gap-2">
-                            <a
+                            {CONTACT_LINKS.instagram ? <a
                                 href={CONTACT_LINKS.instagram}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -35,7 +35,7 @@ const Footer = () => {
                                 className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-primary-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
                             >
                                 <Insta />
-                            </a>
+                            </a> : <span aria-hidden="true" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-primary-bg"><Insta/></span>}
                             <a
                                 href={CONTACT_LINKS.whatsapp}
                                 target="_blank"
@@ -83,7 +83,7 @@ const Footer = () => {
                 <div className="flex-1">
                     <H2 className="text-3xl uppercase sm:text-4xl" colors="headingSecondary" font="heading">Vympel</H2>
                     <div className="my-4 flex gap-3 sm:my-5.5 sm:gap-4">
-                        <a
+                        {CONTACT_LINKS.instagram ? <a
                             href={CONTACT_LINKS.instagram}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -91,7 +91,7 @@ const Footer = () => {
                             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
                         >
                             <Insta />
-                        </a>
+                        </a> : <span aria-hidden="true" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm"><Insta/></span>}
                         <a
                             href={CONTACT_LINKS.whatsapp}
                             target="_blank"

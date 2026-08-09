@@ -22,6 +22,7 @@
       "modelLabel": "Model {model}",
       "skuLabel": "SKU {sku}",
       "resultAria": "{name} - {price}",
+      "resultCount": "Products found: {count}",
       "unavailable": "Out of stock"
     },
     "home": "Home",
@@ -114,11 +115,24 @@
     "page": "Go to page {page}",
     "items": "Go to items {range}"
   },
+  "carousel": {
+    "region": "Carousel",
+    "roleDescription": "carousel",
+    "slideRoleDescription": "slide",
+    "previous": "Previous slide",
+    "next": "Next slide",
+    "slide": "Slide {index} of {total}",
+    "pagination": "Choose slide",
+    "goToSlide": "Go to slide {index}",
+    "stopRotation": "Stop slide rotation",
+    "startRotation": "Start slide rotation"
+  },
   "bannerCarousel": {
     "aria": "Promotional banners",
     "fallbackAlt": "Romanson promotional banner"
   },
   "benefits": {
+    "title": "Benefits",
     "marketplaces": "Online marketplaces",
     "payment": "Convenient payment",
     "paymentSub": "Pay by card, bank transfer, or cash.",
@@ -161,7 +175,8 @@
     "previousItems": "Previous products",
     "nextItems": "Next products",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "loading": "Loading products"
   },
   "brands": {
     "brand": "Brand",
@@ -222,6 +237,7 @@
       "title": "Our activity on social media",
       "postAlt": "Vympel Instagram post {number}",
       "postAria": "Open Vympel Instagram post {number}",
+      "profileAria": "Open the official Vympel Instagram profile",
       "dotsAria": "Instagram slider pagination",
       "dotAria": "Go to Instagram slide {number}"
     },
@@ -347,6 +363,8 @@
     }
   },
   "catalog": {
+    "loading": "Loading products...",
+    "resultCount": "Products found: {count}",
     "home": "Home",
     "allGoods": "All products",
     "breadcrumbsAria": "Catalog navigation",
@@ -391,6 +409,9 @@
     "empty": "No favorite products yet.",
     "similarTitle": "Similar products",
     "loading": "Loading products...",
+    "resultCount": "Favorite products: {count}",
+    "similarLoading": "Loading similar products...",
+    "similarResultCount": "Similar products found: {count}",
     "similarEmpty": "No similar products found yet.",
     "breadcrumbsAria": "Favorites navigation"
   },
@@ -406,6 +427,7 @@
     "unknownProduct": "Product #{id}",
     "productImage": "Product",
     "loading": "Refreshing products...",
+    "resultCount": "Products in cart: {count}",
     "stockLimitTooltip": "No more stock is available for this product",
     "stockLimitInline": "Only {stockQuantity} pcs. available.",
     "whatsapp": {
@@ -550,7 +572,9 @@
     },
     "summary": {
       "outOfStockTitle": "Out of stock",
-      "outOfStockBody": "This model is currently out of stock. However, it may become available soon. If you would like to be notified when it becomes available, please leave your email in the form below.",
+      "outOfStockBody": "This model is currently out of stock. You can ask a manager about its availability.",
+      "askAvailability": "Ask about availability",
+      "availabilityMessage": "Please tell me whether {product} is available.",
       "askQuestion": "Ask a question about this model",
       "kaspiPaymentAria": "Pay with Kaspi",
       "buyOnMarketplace": "Buy on {marketplace}",

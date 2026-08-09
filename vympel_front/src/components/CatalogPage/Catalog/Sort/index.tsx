@@ -93,7 +93,6 @@ const Sort: FC = () => {
             <button
                 type="button"
                 aria-expanded={isVisible}
-                aria-haspopup="listbox"
                 aria-label={`${t("trigger")}: ${t(activeOption.shortLabelKey)}`}
                 className={cn(
                     "hidden w-fit cursor-pointer items-center justify-start gap-5 border-0 px-0 py-0 transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40 min-[1440px]:flex",

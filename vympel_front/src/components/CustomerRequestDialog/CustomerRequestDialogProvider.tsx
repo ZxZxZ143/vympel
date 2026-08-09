@@ -3,7 +3,7 @@
 import {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import type {ChangeEvent, PropsWithChildren} from "react";
 import {toast} from "sonner";
-import {Controller, useForm} from "react-hook-form";
+import {Controller, useForm, useWatch} from "react-hook-form";
 import {useTranslations} from "use-intl";
 
 import Button from "@/components/ui/shared/Button";
@@ -160,12 +160,20 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
     const {
         formState: {errors, isSubmitting},
         control,
+        clearErrors,
         getValues,
         handleSubmit,
         register,
         reset,
         setError,
     } = useForm<CustomerRequestFormValues>({defaultValues});
+    const watchedEmail = useWatch({control, name: "email"});
+    const watchedPhone = useWatch({control, name: "phone"});
+
+    useEffect(() => {
+        if (emailPattern.test(watchedEmail.trim())) clearErrors("phone");
+        if (normalizeKazakhstanPhone(watchedPhone)) clearErrors("email");
+    }, [clearErrors, watchedEmail, watchedPhone]);
 
     const openCustomerRequest = useCallback((nextOptions: CustomerRequestDialogOptions = {}) => {
         openerRef.current = document.activeElement instanceof HTMLElement
@@ -204,7 +212,7 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
         const phone = normalizeKazakhstanPhone(values.phone);
 
         if (!email && !phone) {
-            setError("email", {type: "validate", message: t("validation.contact")});
+            setError("email", {type: "validate", message: t("validation.contact")}, {shouldFocus: true});
             setError("phone", {type: "validate", message: t("validation.contact")});
             return;
         }
@@ -237,8 +245,6 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                 description: t("error.description"),
             });
         }
-    }, () => {
-        toast.error(t("validation.title"));
     });
 
     return (
@@ -272,6 +278,7 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                 aria-hidden="true"
                             />
                             <RequestField
+                                id="customer-request-name"
                                 label={t("fields.name")}
                                 error={errors.name?.message}
                             >
@@ -279,12 +286,16 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                     {...register("name", {
                                         maxLength: {value: 160, message: t("validation.nameLength")},
                                     })}
+                                    id="customer-request-name"
+                                    aria-invalid={Boolean(errors.name)}
+                                    aria-describedby={errors.name ? "customer-request-name-error" : undefined}
                                     className="customer-request-input"
                                     placeholder={t("placeholders.name")}
                                     autoComplete="name"
                                 />
                             </RequestField>
                             <RequestField
+                                id="customer-request-email"
                                 label={t("fields.email")}
                                 error={errors.email?.message}
                             >
@@ -298,6 +309,9 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                         },
                                         maxLength: {value: 255, message: t("validation.emailLength")},
                                     })}
+                                    id="customer-request-email"
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={errors.email ? "customer-request-email-error" : undefined}
                                     className="customer-request-input"
                                     placeholder={t("placeholders.email")}
                                     autoComplete="email"
@@ -308,6 +322,7 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                 {t("or")}
                             </Text>
                             <RequestField
+                                id="customer-request-phone"
                                 label={t("fields.phone")}
                                 error={errors.phone?.message}
                             >
@@ -325,6 +340,7 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                     }}
                                     render={({field}) => (
                                         <input
+                                            id="customer-request-phone"
                                             ref={field.ref}
                                             name={field.name}
                                             value={field.value}
@@ -334,11 +350,14 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                             placeholder={t("placeholders.phone")}
                                             autoComplete="tel"
                                             inputMode="tel"
+                                            aria-invalid={Boolean(errors.phone)}
+                                            aria-describedby={errors.phone ? "customer-request-phone-error" : undefined}
                                         />
                                     )}
                                 />
                             </RequestField>
                             <RequestField
+                                id="customer-request-message"
                                 label={t("fields.message")}
                                 error={errors.message?.message}
                                 className="customer-request-form__last-field"
@@ -347,6 +366,9 @@ export function CustomerRequestDialogProvider({children}: PropsWithChildren) {
                                     {...register("message", {
                                         maxLength: {value: 2000, message: t("validation.messageLength")},
                                     })}
+                                    id="customer-request-message"
+                                    aria-invalid={Boolean(errors.message)}
+                                    aria-describedby={errors.message ? "customer-request-message-error" : undefined}
                                     className="customer-request-input customer-request-input--textarea"
                                     placeholder={t("placeholders.message")}
                                 />
@@ -387,17 +409,19 @@ function RequestField({
     children,
     className,
     error,
+    id,
     label,
 }: PropsWithChildren<{
     className?: string;
     error?: string;
+    id: string;
     label: string;
 }>) {
     return (
-        <label className={cn("customer-request-field", className)}>
-            <span className="customer-request-label">{label}</span>
+        <div className={cn("customer-request-field", className)}>
+            <label htmlFor={id} className="customer-request-label">{label}</label>
             {children}
-            {error ? <span className="customer-request-error">{error}</span> : null}
-        </label>
+            {error ? <span id={`${id}-error`} role="alert" className="customer-request-error">{error}</span> : null}
+        </div>
     );
 }

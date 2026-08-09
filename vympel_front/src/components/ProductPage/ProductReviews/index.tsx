@@ -17,6 +17,7 @@ import DropdownSelect, {type DropdownSelectOption} from "@/components/ui/shared/
 import {Heading} from "@/components/ui/shared/text/Heading";
 import {Text} from "@/components/ui/shared/text";
 import {LocaleEnum} from "@/i18n/routing";
+import {toFormattingLocale} from "@/i18n/appLocale";
 import {cn} from "@/lib/utils";
 
 export type ProductReviewsProps = {
@@ -94,7 +95,7 @@ const ProductReviews = ({
     });
     const approvedCount = ratingCount ?? 0;
     const dateFormatter = useMemo(() => (
-        new Intl.DateTimeFormat(locale, {
+        new Intl.DateTimeFormat(toFormattingLocale(locale), {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -335,7 +336,12 @@ const ProductReviews = ({
                                 validate: (value) => value >= 1 || t("ratingRequired"),
                             }}
                             render={({field}) => (
-                                <fieldset className="grid gap-3" disabled={isSubmitting}>
+                                <fieldset
+                                    className="grid gap-3"
+                                    disabled={isSubmitting}
+                                    aria-invalid={Boolean(errors.rating)}
+                                    aria-describedby={errors.rating ? "product-review-rating-error" : undefined}
+                                >
                                     <Text as="legend" size="bodySm" weight="medium">
                                         {t("yourRating")}
                                     </Text>
@@ -345,6 +351,7 @@ const ProductReviews = ({
                                             const selected = rating <= field.value;
                                             return (
                                                 <button
+                                                    ref={rating === 1 ? field.ref : undefined}
                                                     key={rating}
                                                     type="button"
                                                     aria-label={t("selectRating", {rating})}
@@ -364,7 +371,7 @@ const ProductReviews = ({
                                         })}
                                     </div>
                                     {errors.rating?.message ? (
-                                        <Text role="alert" size="caption" className="text-error">
+                                        <Text id="product-review-rating-error" role="alert" size="caption" className="text-error">
                                             {errors.rating.message}
                                         </Text>
                                     ) : null}
@@ -386,6 +393,9 @@ const ProductReviews = ({
                                 })}
                                 disabled={isSubmitting}
                                 maxLength={2000}
+                                id="product-review-text"
+                                aria-invalid={Boolean(errors.text)}
+                                aria-describedby={errors.text ? "product-review-text-error" : undefined}
                                 placeholder={t("reviewPlaceholder")}
                                 className={cn(
                                     "min-h-32 w-full resize-y rounded-2xl border border-border-default bg-primary-bg px-5 py-4 text-sm text-text-primary outline-none transition placeholder:text-text-placeholder focus:border-text-heading-secondary",
@@ -393,7 +403,7 @@ const ProductReviews = ({
                                 )}
                             />
                             {errors.text?.message ? (
-                                <Text role="alert" size="caption" className="text-error">
+                                <Text id="product-review-text-error" role="alert" size="caption" className="text-error">
                                     {errors.text.message}
                                 </Text>
                             ) : null}

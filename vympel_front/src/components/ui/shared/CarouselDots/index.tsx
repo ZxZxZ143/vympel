@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { CarouselApi } from "@/components/ui/Carousel";
+import {useTranslations} from "use-intl";
 
 type Props = {
     api?: CarouselApi;
@@ -26,9 +27,10 @@ export default function CarouselDots({
                                          dotClassName,
                                          activeDotClassName,
                                          hideWhenSingle = true,
-                                         ariaLabel = "Carousel pagination",
-                                         getDotAriaLabel = (index) => `Go to slide ${index + 1}`,
+                                         ariaLabel,
+                                         getDotAriaLabel,
                                      }: Props) {
+    const t = useTranslations("carousel");
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
 
@@ -55,8 +57,8 @@ export default function CarouselDots({
 
     return (
         <div
-            role="tablist"
-            aria-label={ariaLabel}
+            role="group"
+            aria-label={ariaLabel ?? t("pagination")}
             className={cn("flex items-center gap-3", className)}
         >
             {Array.from({ length: count }).map((_, i) => {
@@ -66,9 +68,8 @@ export default function CarouselDots({
                     <button
                         key={i}
                         type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-label={getDotAriaLabel(i)}
+                        aria-pressed={isActive}
+                        aria-label={getDotAriaLabel?.(i) ?? t("goToSlide", {index: i + 1})}
                         onClick={() => api.scrollTo(i)}
                         className={cn(
                             "transition-all duration-200 rounded-full",

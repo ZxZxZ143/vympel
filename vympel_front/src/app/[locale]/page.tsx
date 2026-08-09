@@ -2,6 +2,7 @@ import HomePage from "@/screens/HomePage";
 import {LocaleEnum} from "@/i18n/routing";
 import {getTranslations} from "next-intl/server";
 import {publicSeoMetadata} from "@/lib/seo";
+import {staticSeoContent} from "@/lib/seoContent";
 
 export const revalidate = 30;
 
@@ -13,7 +14,7 @@ type Props = {
 
 export async function generateMetadata({params}: Props) {
     const {locale} = await params;
-    return publicSeoMetadata(locale);
+    return publicSeoMetadata(locale, [], staticSeoContent(locale, "home"));
 }
 
 export default async function Home({params}: Props) {

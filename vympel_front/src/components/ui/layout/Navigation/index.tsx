@@ -10,6 +10,7 @@ import {PUBLIC_BRANDS} from "@/config/brandRoutes";
 import {cn} from "@/lib/utils";
 import {catalogLinks, CONTACT_LINKS, routes} from "@/config/routes";
 import SmartSearch from "@/components/ui/shared/SmartSearch";
+import {Dialog as DialogPrimitive} from "radix-ui";
 
 const linkTextClass =
     'relative inline-block pb-1 whitespace-nowrap truncate' +
@@ -25,6 +26,7 @@ const Navigation = () => {
     const [isBrandsOpen, setIsBrandsOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navRef = useRef<HTMLElement | null>(null);
+    const brandsTriggerRef = useRef<HTMLButtonElement | null>(null);
     const isBrandsActive = pathname.startsWith("/brands");
     const primaryLinks = [
         {href: routes.catalog(), label: t("catalog")},
@@ -49,9 +51,9 @@ const Navigation = () => {
         };
 
         const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
+            if (event.key === "Escape" && isBrandsOpen) {
                 setIsBrandsOpen(false);
-                setIsMobileMenuOpen(false);
+                brandsTriggerRef.current?.focus();
             }
         };
 
@@ -62,40 +64,26 @@ const Navigation = () => {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("keydown", handleEscape);
         };
-    }, []);
-
-    useEffect(() => {
-        if (!isMobileMenuOpen) {
-            return;
-        }
-
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.body.style.overflow = previousOverflow;
-        };
-    }, [isMobileMenuOpen]);
+    }, [isBrandsOpen]);
 
     return (
+        <DialogPrimitive.Root open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen} modal>
         <nav
             ref={navRef}
             aria-label={t("primaryNavigation")}
             className="home-search-host relative flex w-full flex-col gap-4 responsive-page-x xl:flex-row xl:items-center xl:justify-between xl:gap-10"
         >
             <div className="home-search-host-mobile relative flex items-center gap-3 xl:hidden">
-                <button
-                    type="button"
-                    aria-label={t("openMenu")}
-                    aria-expanded={isMobileMenuOpen}
-                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border-default bg-primary-bg text-text-heading-primary transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
-                    onClick={() => {
-                        setIsBrandsOpen(false);
-                        setIsMobileMenuOpen(true);
-                    }}
-                >
-                    <Menu className="size-6" aria-hidden="true"/>
-                </button>
+                <DialogPrimitive.Trigger asChild>
+                    <button
+                        type="button"
+                        aria-label={t("openMenu")}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border-default bg-primary-bg text-text-heading-primary transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
+                        onClick={() => setIsBrandsOpen(false)}
+                    >
+                        <Menu className="size-6" aria-hidden="true"/>
+                    </button>
+                </DialogPrimitive.Trigger>
                 <SmartSearch
                     variant="home"
                     className="min-w-0 flex-1"
@@ -119,9 +107,9 @@ const Navigation = () => {
 
                 <li>
                     <button
+                        ref={brandsTriggerRef}
                         type="button"
                         aria-controls={brandsMenuId}
-                        aria-haspopup="menu"
                         aria-expanded={isBrandsOpen}
                         onClick={() => setIsBrandsOpen((current) => !current)}
                         className="inline-flex cursor-pointer items-center gap-1"
@@ -148,68 +136,50 @@ const Navigation = () => {
 
             <SmartSearch variant="home" onOpen={() => setIsBrandsOpen(false)} className="hidden xl:block" />
 
-            <div
-                id={brandsMenuId}
-                role="menu"
-                aria-label={t("brandDropdownAria")}
-                className={cn(
-                    "bg-bg-lang-card/75 absolute w-full left-1/2 -translate-x-1/2 top-full z-50 mt-brand-nav-dropdown-offset hidden rounded-2xl border border-border-default px-20 py-7 xl:block",
-                    "origin-top transition-all duration-200 ease-out",
-                    isBrandsOpen
-                        ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
-                        : "pointer-events-none -translate-y-1 scale-95 opacity-0"
-                )}
-            >
-                <ul className="flex flex-wrap items-center justify-between gap-x-10 gap-y-4">
-                    {PUBLIC_BRANDS.map((brand) => (
-                        <li key={brand.slug}>
-                            <Link
-                                href={routes.brand(brand.slug)}
-                                role="menuitem"
-                                onClick={() => setIsBrandsOpen(false)}
-                                className="inline-flex rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
-                            >
-                                <Text as="span" size="bodyLg">
-                                    {brand.displayName}
-                                </Text>
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {isMobileMenuOpen ? (
-            <div className="fixed inset-0 z-[900] xl:hidden">
-                <button
-                    type="button"
-                    aria-label={t("closeMenu")}
-                    className={cn(
-                        "absolute inset-0 bg-black/30 transition-vympel-fast motion-reduce:transition-none",
-                        isMobileMenuOpen ? "opacity-100" : "opacity-0"
-                    )}
-                    onClick={closeMobileMenu}
-                />
+            {isBrandsOpen ? (
                 <div
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={t("mobileMenu")}
-                    className={cn(
-                        "absolute left-0 top-0 flex h-full w-[min(360px,calc(100vw-20px))] flex-col overflow-y-auto bg-primary-bg px-4 py-4 shadow-state transition-vympel motion-reduce:transition-none sm:px-5 sm:py-5",
-                        isMobileMenuOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
-                    )}
+                    id={brandsMenuId}
+                    aria-label={t("brandDropdownAria")}
+                    className="absolute left-1/2 top-full z-50 mt-brand-nav-dropdown-offset hidden w-full -translate-x-1/2 origin-top rounded-2xl border border-border-default bg-bg-lang-card/75 px-20 py-7 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 xl:block"
+                >
+                    <ul className="flex flex-wrap items-center justify-between gap-x-10 gap-y-4">
+                        {PUBLIC_BRANDS.map((brand) => (
+                            <li key={brand.slug}>
+                                <Link
+                                    href={routes.brand(brand.slug)}
+                                    onClick={() => setIsBrandsOpen(false)}
+                                    className="inline-flex rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
+                                >
+                                    <Text as="span" size="bodyLg">
+                                        {brand.displayName}
+                                    </Text>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+
+            <DialogPrimitive.Portal>
+                <DialogPrimitive.Overlay
+                    className="fixed inset-0 z-[900] bg-black/30 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none xl:hidden"
+                />
+                <DialogPrimitive.Content
+                    className="fixed left-0 top-0 z-[910] flex h-full w-[min(360px,calc(100vw-20px))] flex-col overflow-y-auto bg-primary-bg px-4 py-4 shadow-state outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-left data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-left motion-reduce:animate-none sm:px-5 sm:py-5 xl:hidden"
                 >
                     <div className="flex items-center justify-between gap-4 border-b border-border-default pb-5">
+                        <DialogPrimitive.Title asChild>
                         <Text as="span" size="bodyLg" weight="medium" colors="headingPrimary">
                             {t("mobileMenu")}
                         </Text>
-                        <button
+                        </DialogPrimitive.Title>
+                        <DialogPrimitive.Close
                             type="button"
                             aria-label={t("closeMenu")}
                             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border-default transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
-                            onClick={closeMobileMenu}
                         >
                             <X className="size-6" aria-hidden="true"/>
-                        </button>
+                        </DialogPrimitive.Close>
                     </div>
 
                     <div className="space-y-6 py-6">
@@ -330,10 +300,10 @@ const Navigation = () => {
                             </div>
                         </section>
                     </div>
-                </div>
-            </div>
-            ) : null}
+                </DialogPrimitive.Content>
+            </DialogPrimitive.Portal>
         </nav>
+        </DialogPrimitive.Root>
     );
 };
 

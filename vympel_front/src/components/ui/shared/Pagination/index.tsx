@@ -1,12 +1,14 @@
 "use client";
 
 import {useMemo} from "react";
+import {useSearchParams} from "next/navigation";
 
 import {Page} from "@/api/types/PageType";
 import {Text} from "@/components/ui/shared/text";
 import {usePagination} from "@/hooks/usePagination";
 import {cn} from "@/lib/utils";
 import {useTranslations} from "use-intl";
+import {Link, usePathname} from "@/i18n/navigation";
 
 type Props = {
     pageData: Page<unknown>;
@@ -16,9 +18,9 @@ const MAX_VISIBLE_PAGES = 5;
 
 const Pagination = ({pageData}: Props) => {
     const t = useTranslations("pagination");
-    const {page, size, setPage} = usePagination({
-        scrollTargetId: "catalog-product-list",
-    });
+    const {page, size} = usePagination();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     const currentPage = Math.min(Math.max(page, 1), Math.max(pageData.totalPages, 1));
 
@@ -47,17 +49,15 @@ const Pagination = ({pageData}: Props) => {
         const isActive = pageNumber === currentPage;
 
         return (
-            <button
+            <Link
                 key={pageNumber}
-                type="button"
-                onClick={() => setPage(pageNumber)}
+                href={pageHref(pageNumber)}
                 aria-label={t("page", {page: pageNumber})}
                 aria-current={isActive ? "page" : undefined}
-                disabled={isActive}
                 className={cn(
                     "flex h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border px-3 transition",
                     "hover:border-text-heading-primary hover:bg-surface-card",
-                    "disabled:cursor-default",
+                    isActive && "cursor-default",
                     isActive
                         ? "border-text-heading-primary bg-button-bg-action text-text-inverse hover:text-text-heading-secondary"
                         : "border-border-default bg-primary-bg text-text-heading-secondary"
@@ -72,8 +72,17 @@ const Pagination = ({pageData}: Props) => {
                 >
                     {pageNumber}
                 </Text>
-            </button>
+            </Link>
         );
+    };
+
+    const pageHref = (pageNumber: number) => {
+        const params = new URLSearchParams(searchParams?.toString());
+        if (pageNumber === 1) params.delete("page");
+        else params.set("page", String(pageNumber));
+        params.delete("size");
+        const query = params.toString();
+        return query ? `${pathname}?${query}` : pathname;
     };
 
     if (pageData.totalPages <= 1) {
@@ -90,16 +99,15 @@ const Pagination = ({pageData}: Props) => {
                                 const isActive = pageNumber === currentPage;
 
                                 return (
-                                    <button
+                                    <Link
                                         key={`range-${pageNumber}`}
-                                        type="button"
-                                        onClick={() => setPage(pageNumber)}
+                                        href={pageHref(pageNumber)}
                                         aria-label={t("items", {range: getRangeLabel(pageNumber)})}
-                                        disabled={isActive}
+                                        aria-current={isActive ? "page" : undefined}
                                         className={cn(
                                             "cursor-pointer rounded-full border px-4 py-2 transition",
                                             "hover:border-text-heading-primary hover:bg-surface-card",
-                                            "disabled:cursor-default",
+                                            isActive && "cursor-default",
                                             isActive
                                                 ? "border-text-heading-primary bg-button-bg-action"
                                                 : "border-transparent bg-transparent"
@@ -114,7 +122,7 @@ const Pagination = ({pageData}: Props) => {
                                         >
                                             {getRangeLabel(pageNumber)}
                                         </Text>
-                                    </button>
+                                    </Link>
                                 );
                             })}
                         </div>

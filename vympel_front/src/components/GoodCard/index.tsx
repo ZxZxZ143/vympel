@@ -1,6 +1,6 @@
 "use client";
 
-import {FC, useMemo, useState} from "react";
+import {FC, type MouseEvent, useMemo, useState} from "react";
 import Image from "next/image";
 import {useLocale, useTranslations} from "use-intl";
 
@@ -40,9 +40,11 @@ export type GoodCardProps = {
     link?: string;
     priority?: boolean;
     isCatalog?: boolean;
+    headingLevel?: "h2" | "h3";
     className?: string;
     ratingAverage?: number | null;
     ratingCount?: number | null;
+    onFavoriteRemoved?: (productId: number, keyboardActivated: boolean) => void;
 };
 
 const GoodCard: FC<GoodCardProps> = ({
@@ -58,9 +60,11 @@ const GoodCard: FC<GoodCardProps> = ({
                                          link,
                                          priority = false,
                                          isCatalog = true,
+                                         headingLevel = "h2",
                                          className,
                                          ratingAverage,
                                          ratingCount,
+                                         onFavoriteRemoved,
                                      }) => {
     const t = useTranslations("good");
     const locale = useLocale();
@@ -84,7 +88,7 @@ const GoodCard: FC<GoodCardProps> = ({
     const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
     const canRenderImage = Boolean(img) && failedImageUrl !== img;
 
-    const toggleFavoriteHandler = () => {
+    const toggleFavoriteHandler = (event: MouseEvent<HTMLButtonElement>) => {
         const result = toggleFavorite();
 
         if (!result.ok) {
@@ -99,6 +103,7 @@ const GoodCard: FC<GoodCardProps> = ({
         }
 
         if (result.status === "removed") {
+            onFavoriteRemoved?.(id, event.detail === 0);
             actionToasts.favoriteRemoved(productSnapshot);
             trackProductEvent(id, "UNFAVORITE");
         }
@@ -187,6 +192,7 @@ const GoodCard: FC<GoodCardProps> = ({
                         type="button"
                         aria-label={isFavorite ? t("removeFavorite", {name}) : t("addFavorite", {name})}
                         aria-pressed={isFavorite}
+                        data-favorite-product-id={id}
                         onClick={toggleFavoriteHandler}
                         className={cn(
                             "absolute right-3 top-3 flex size-11 items-center justify-center rounded-full border border-border-default bg-primary-bg/95 text-text-heading-secondary transition sm:right-4 sm:top-4 sm:size-10",
@@ -203,7 +209,7 @@ const GoodCard: FC<GoodCardProps> = ({
                         href={productHref}
                         className="block rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
                     >
-                        <Heading as={isCatalog ? "h2" : "h3"} size="bodyXl" className="product-card-title leading-tight">
+                        <Heading as={headingLevel} size="bodyXl" className="product-card-title leading-tight">
                             {name}
                         </Heading>
                     </Link>

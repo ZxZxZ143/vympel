@@ -34,8 +34,8 @@
     --color-error: var(--red);
     --color-success: var(--green);
 
-    --color-brands-carousel-dots: var(--white-200);
-    --color-brands-carousel-dots-active: var(--gray-100);
+    --color-brands-carousel-dots: var(--gray-150);
+    --color-brands-carousel-dots-active: var(--gray-200);
 
     --color-card-marketplace-hover: var(--black-50);
 
@@ -1167,7 +1167,7 @@
 }
 
 .customer-request-input::placeholder {
-    color: #aaa;
+    color: #555;
 }
 
 .customer-request-input:focus {

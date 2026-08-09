@@ -57,8 +57,13 @@ try {
 
     await expectStatusAndText(origin, "/ru", 200);
     await expectStatusAndText(origin, "/ru/product/1", 200, "Integration product");
-    await expectStatusAndText(origin, "/ru/catalog?categoryCode=WATCH_WRIST", 200);
+    await expectStatusAndText(origin, "/ru/catalog", 200, "/ru/product/1");
+    await expectStatusAndText(origin, "/ru/catalog?page=2", 200, "/ru/product/1");
+    await expectStatusAndText(origin, "/ru/catalog?page=3", 404, notFoundTitles.ru);
+    await expectPermanentRedirect(origin, "/ru/catalog?categoryCode=WATCH_WRIST&page=1", "/ru/catalog/WATCH_WRIST");
     await expectStatusAndText(origin, "/ru/brands/romanson", 200, "ROMANSON");
+
+    await expectApprovedIndexingPolicy(origin);
 
     for (const locale of locales) {
         await expectStatusAndText(
@@ -70,11 +75,10 @@ try {
     }
 
     await expectStatusAndText(origin, "/ru/product/999", 404, notFoundTitles.ru);
-    await expectStatusAndText(
+    await expectPermanentRedirect(
         origin,
         "/ru/catalog?categoryCode=MISSING_CATEGORY",
-        404,
-        notFoundTitles.ru
+        "/ru/catalog/MISSING_CATEGORY"
     );
     await expectStatusAndText(origin, "/ru/catalog/MISSING_CATEGORY", 404, notFoundTitles.ru);
     await expectStatusAndText(origin, "/ru/brands/missing-brand", 404, notFoundTitles.ru);
@@ -89,6 +93,13 @@ try {
 
     console.log("Production status matrix passed: valid=200, missing=404, localized UI=ru/kz/en, temporary failure!=404");
     console.log("Production initial self-hosted transfer bytes:", JSON.stringify(transfer));
+    if (process.env.BROWSER_VERIFY_HOLD === "true") {
+        console.log(`Browser verification server ready: ${origin}`);
+        await new Promise((resolve) => {
+            process.once("SIGINT", resolve);
+            process.once("SIGTERM", resolve);
+        });
+    }
 } finally {
     await stopProcess(nextProcess);
     await closeServer(mockApi);
@@ -132,6 +143,56 @@ async function expectStatusAndText(originUrl, pathname, expectedStatus, expected
     }
 }
 
+async function expectPermanentRedirect(originUrl, pathname, expectedLocation) {
+    const response = await fetch(originUrl + pathname, {redirect: "manual"});
+    assert.equal(response.status, 308, `${pathname} must permanently redirect`);
+    assert.equal(new URL(response.headers.get("location"), originUrl).pathname, expectedLocation);
+}
+
+async function expectApprovedIndexingPolicy(originUrl) {
+    const home = await fetch(`${originUrl}/kz`);
+    const homeHtml = await home.text();
+    assert.equal(home.headers.get("x-robots-tag"), null, "approved build must not emit global noindex header");
+    assert.match(homeHtml, /<meta name="robots" content="index, follow"/i);
+    assert.match(homeHtml, /<meta property="og:locale" content="kk_KZ"/i);
+    assert.match(homeHtml, /<meta name="twitter:card" content="summary_large_image"/i);
+
+    const pageTwo = await fetch(`${originUrl}/ru/catalog?page=2`);
+    const pageTwoHtml = await pageTwo.text();
+    assert.match(pageTwoHtml, /<link rel="canonical" href="[^"]*\/ru\/catalog\?page=2"/i);
+    assert.match(pageTwoHtml, /href="\/ru\/catalog"/i, "page two must link crawlably to page one");
+
+    const productResponse = await fetch(`${originUrl}/en/product/1`);
+    const productHtml = await productResponse.text();
+    assert.match(productHtml, /Integration product Status matrix/i);
+    assert.match(productHtml, /application\/ld\+json/i);
+    assert.match(productHtml, /"@type":"Product"/i);
+
+    for (const locale of locales) {
+        for (const route of ["cart", "favorites"]) {
+            const response = await fetch(`${originUrl}/${locale}/${route}`);
+            const html = await response.text();
+            assert.equal(response.status, 200);
+            assert.match(html, /<meta name="robots" content="noindex, nofollow"/i);
+            assert.doesNotMatch(html, /<link rel="canonical"/i);
+        }
+    }
+
+    const robotsResponse = await fetch(`${originUrl}/robots.txt`);
+    const robotsText = await robotsResponse.text();
+    assert.equal(robotsResponse.status, 200);
+    assert.match(robotsText, /Sitemap:/i);
+    assert.doesNotMatch(robotsText, /cart|favorites/i);
+
+    const sitemapResponse = await fetch(`${originUrl}/sitemap.xml`);
+    const sitemapText = await sitemapResponse.text();
+    assert.equal(sitemapResponse.status, 200);
+    assert.doesNotMatch(sitemapText, /cart|favorites/i);
+    const sitemapLocations = Array.from(sitemapText.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1]);
+    assert.ok(sitemapLocations.length > 0, "approved sitemap must publish canonical routes");
+    assert.ok(sitemapLocations.every((location) => !new URL(location).search), "sitemap must not contain query variants");
+}
+
 async function waitForServer(originUrl, child, logs) {
     const deadline = Date.now() + 30_000;
     while (Date.now() < deadline) {
@@ -170,7 +231,15 @@ function createMockApi() {
             return json(response, 200, page([]));
         }
         if (/^\/api\/public\/product\/catalog\/(ru|kz|en)$/.test(pathname)) {
-            return json(response, 200, page([]));
+            const requestedPage = Number(url.searchParams.get("page") ?? 0);
+            if (requestedPage <= 1) {
+                return json(response, 200, page([product()], {
+                    number: requestedPage,
+                    totalElements: 2,
+                    totalPages: 2,
+                }));
+            }
+            return json(response, 200, page([], {number: requestedPage, totalElements: 2, totalPages: 2}));
         }
         if (/^\/api\/public\/product\/filters\/(ru|kz|en)$/.test(pathname)) {
             return json(response, 200, catalogFilters());
@@ -209,7 +278,13 @@ function product() {
         category: {id: 1, name: "Wrist watches", code: "WATCH_WRIST", parentId: null},
         brand: {id: "1", name: "Romanson", country: []},
         collection: null,
-        images: [],
+        images: [{
+            id: 1,
+            url: "/Romanson_banner.webp",
+            alt: "Integration product",
+            sortOrder: 0,
+            isMain: true,
+        }],
         description: null,
         watchDetails: null,
         interiorClockDetails: null,
@@ -237,17 +312,20 @@ function catalogFilters() {
     };
 }
 
-function page(content) {
+function page(content, options = {}) {
+    const number = options.number ?? 0;
+    const totalElements = options.totalElements ?? content.length;
+    const totalPages = options.totalPages ?? (content.length ? 1 : 0);
     return {
         content,
         empty: content.length === 0,
-        first: true,
-        last: true,
-        number: 0,
+        first: number === 0,
+        last: number >= totalPages - 1,
+        number,
         numberOfElements: content.length,
         size: Math.max(content.length, 1),
-        totalElements: content.length,
-        totalPages: content.length ? 1 : 0,
+        totalElements,
+        totalPages,
     };
 }
 

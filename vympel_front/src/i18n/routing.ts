@@ -11,7 +11,8 @@ export type LocalesType = (typeof locales)[number];
 export const routing = {
     locales,
     defaultLocale: LocaleEnum.RU,
-    localePrefix: "always"
+    localePrefix: "always",
+    alternateLinks: false,
 } as const;
 
 export type RoutingType = (typeof routing);

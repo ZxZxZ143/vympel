@@ -22,6 +22,7 @@
       "modelLabel": "Модель {model}",
       "skuLabel": "Артикул {sku}",
       "resultAria": "{name} - {price}",
+      "resultCount": "Найдено товаров: {count}",
       "unavailable": "Нет в наличии"
     },
     "wrist": "Наручные часы",
@@ -71,7 +72,7 @@
       "message": "Комментарий"
     },
     "placeholders": {
-      "name": "Dear User",
+      "name": "Как к вам обращаться",
       "email": "example@mail.com",
       "phone": "+7 777 777 77 77",
       "message": "Мне нужна консультация"
@@ -114,11 +115,24 @@
     "page": "Перейти на страницу {page}",
     "items": "Перейти к товарам {range}"
   },
+  "carousel": {
+    "region": "Карусель",
+    "roleDescription": "карусель",
+    "slideRoleDescription": "слайд",
+    "previous": "Предыдущий слайд",
+    "next": "Следующий слайд",
+    "slide": "Слайд {index} из {total}",
+    "pagination": "Выбор слайда",
+    "goToSlide": "Перейти к слайду {index}",
+    "stopRotation": "Остановить смену слайдов",
+    "startRotation": "Запустить смену слайдов"
+  },
   "bannerCarousel": {
     "aria": "Рекламные баннеры",
     "fallbackAlt": "Рекламный баннер Romanson"
   },
   "benefits": {
+    "title": "Преимущества",
     "marketplaces": "Онлайн площадки",
     "payment": "Удобная оплата",
     "paymentSub": "Оплата картой, переводом, наличными.",
@@ -161,7 +175,8 @@
     "previousItems": "Предыдущие товары",
     "nextItems": "Следующие товары",
     "previous": "Назад",
-    "next": "Вперед"
+    "next": "Вперед",
+    "loading": "Загрузка товаров"
   },
   "brands": {
     "brand": "Бренд",
@@ -222,6 +237,7 @@
       "title": "Наша деятельность в соцсетях",
       "postAlt": "Публикация Vympel в Instagram {number}",
       "postAria": "Открыть публикацию Vympel в Instagram {number}",
+      "profileAria": "Открыть официальный профиль Vympel в Instagram",
       "dotsAria": "Пагинация Instagram-слайдера",
       "dotAria": "Перейти к слайду Instagram {number}"
     },
@@ -347,6 +363,8 @@
     }
   },
   "catalog": {
+    "loading": "Загрузка товаров...",
+    "resultCount": "Найдено товаров: {count}",
     "home": "Главная",
     "allGoods": "Все товары",
     "breadcrumbsAria": "Навигация по каталогу",
@@ -445,7 +463,9 @@
     },
     "summary": {
       "outOfStockTitle": "Нет в наличии",
-      "outOfStockBody": "Данной модели сейчас нет в наличии. Однако она может появиться в скором времени. Если вы хотите, чтобы вас известили о ее появлении, оставьте\nсвой е-мейл в форме ниже.",
+      "outOfStockBody": "Данной модели сейчас нет в наличии. Вы можете уточнить её доступность у менеджера.",
+      "askAvailability": "Уточнить доступность",
+      "availabilityMessage": "Подскажите, пожалуйста, доступна ли модель {product}?",
       "askQuestion": "Задать вопрос по модели",
       "kaspiPaymentAria": "Оплата через Kaspi",
       "buyOnMarketplace": "Купить на {marketplace}",
@@ -569,6 +589,9 @@
     "empty": "В избранном пока нет товаров.",
     "similarTitle": "Похожие товары",
     "loading": "Загрузка товаров...",
+    "resultCount": "Товаров в избранном: {count}",
+    "similarLoading": "Загрузка похожих товаров...",
+    "similarResultCount": "Найдено похожих товаров: {count}",
     "similarEmpty": "Похожие товары пока не найдены.",
     "breadcrumbsAria": "Навигация по избранному"
   },
@@ -584,6 +607,7 @@
     "unknownProduct": "Товар #{id}",
     "productImage": "Товар",
     "loading": "Обновляем товары...",
+    "resultCount": "Товаров в корзине: {count}",
     "stockLimitTooltip": "Больше этого количества товара нет на складе",
     "stockLimitInline": "Доступно только {stockQuantity} шт.",
     "whatsapp": {

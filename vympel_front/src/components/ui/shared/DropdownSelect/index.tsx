@@ -155,7 +155,7 @@ const DropdownSelect = <TValue extends string,>({
                 aria-labelledby={`${labelId} ${id}`}
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
-                aria-controls={listboxId}
+                aria-controls={isOpen ? listboxId : undefined}
                 disabled={disabled}
                 onClick={() => (isOpen ? closeDropdown() : openDropdown())}
                 onKeyDown={handleTriggerKeyDown}

@@ -16,6 +16,7 @@ import {
 import ProductImageFallback from "@/components/ui/shared/ProductImageFallback";
 import {cn} from "@/lib/utils";
 import {IProductImage} from "@/api/types/ProductTypes";
+import {Dialog as DialogPrimitive} from "radix-ui";
 
 type Props = {
     images: IProductImage[];
@@ -189,50 +190,6 @@ const ProductGallery = ({images, productName}: Props) => {
         });
     }, [selectedIndex]);
 
-    useEffect(() => {
-        if (!isLightboxOpen) {
-            return;
-        }
-
-        const previousOverflow = document.body.style.overflow;
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setIsLightboxOpen(false);
-                return;
-            }
-
-            if (imageCount <= 1) {
-                return;
-            }
-
-            if (event.key === "ArrowLeft") {
-                event.preventDefault();
-                if (lightboxCarouselApi) {
-                    lightboxCarouselApi.scrollPrev();
-                } else {
-                    selectImage((selectedIndex - 1 + imageCount) % imageCount);
-                }
-            }
-
-            if (event.key === "ArrowRight") {
-                event.preventDefault();
-                if (lightboxCarouselApi) {
-                    lightboxCarouselApi.scrollNext();
-                } else {
-                    selectImage((selectedIndex + 1) % imageCount);
-                }
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        document.body.style.overflow = "hidden";
-
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            document.body.style.overflow = previousOverflow;
-        };
-    }, [imageCount, isLightboxOpen, lightboxCarouselApi, selectImage, selectedIndex]);
-
     if (!selectedImage) {
         return (
             <section aria-label={t("sectionAria")} className="grid w-full min-w-0 gap-4 sm:block sm:max-w-[620px]">
@@ -290,16 +247,16 @@ const ProductGallery = ({images, productName}: Props) => {
         }
 
         selectImage(index);
-        setIsLightboxOpen(true);
     };
 
     return (
-        <>
+        <DialogPrimitive.Root open={isLightboxOpen} onOpenChange={setIsLightboxOpen} modal>
             <section
                 aria-label={t("sectionAria")}
                 className="grid w-full min-w-0 gap-3.5 sm:max-w-[760px] sm:grid-cols-[var(--spacing-product-gallery-rail-width)_minmax(0,1fr)] sm:items-start sm:gap-6"
             >
                 <div
+                    role="group"
                     className={cn(
                         "hidden h-[var(--spacing-product-gallery-main-height)] w-[var(--spacing-product-gallery-rail-width)] flex-col items-center overflow-hidden sm:flex",
                         hasThumbnailOverflow ? "justify-between" : "justify-center"
@@ -346,10 +303,11 @@ const ProductGallery = ({images, productName}: Props) => {
 
                             return (
                                 <CarouselItem key={`${image.id}-${index}`} className={cn("pl-0", galleryFrameClassName)}>
+                                    <DialogPrimitive.Trigger asChild>
                                     <button
                                         type="button"
                                         aria-label={t("openZoom")}
-                                        aria-disabled={imageFailed}
+                                        disabled={imageFailed}
                                         onClick={() => openLightbox(index)}
                                         className={cn(
                                             "flex h-full w-full items-center justify-center border-0 bg-transparent [touch-action:pan-y]",
@@ -372,6 +330,7 @@ const ProductGallery = ({images, productName}: Props) => {
                                             />
                                         )}
                                     </button>
+                                    </DialogPrimitive.Trigger>
                                 </CarouselItem>
                             );
                         })}
@@ -407,27 +366,22 @@ const ProductGallery = ({images, productName}: Props) => {
                 </div>
             </section>
 
-            {isLightboxOpen ? (
-                <div
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={t("dialogAria")}
-                    className="fixed inset-0 z-[1000] flex items-center justify-center bg-[var(--color-product-gallery-lightbox)] p-4"
-                    onClick={() => setIsLightboxOpen(false)}
+            <DialogPrimitive.Portal>
+                <DialogPrimitive.Overlay className="fixed inset-0 z-[1000] bg-[var(--color-product-gallery-lightbox)] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none"/>
+                <DialogPrimitive.Content
+                    className="fixed inset-0 z-[1010] flex items-center justify-center p-4 outline-none"
                 >
-                    <button
-                        type="button"
+                    <DialogPrimitive.Title className="sr-only">{t("dialogAria")}</DialogPrimitive.Title>
+                    <DialogPrimitive.Close
                         aria-label={t("closeZoom")}
                         className={cn(lightboxControlClassName, focusVisibleClassName, "right-4 top-4 size-11")}
-                        onClick={() => setIsLightboxOpen(false)}
                     >
                         <X className="size-6" aria-hidden="true"/>
-                    </button>
+                    </DialogPrimitive.Close>
                     <Carousel
                         setApi={setLightboxCarouselApi}
                         opts={{align: "center", loop: imageCount > 1, duration: 10, startIndex: selectedIndex}}
                         className="relative h-[86vh] w-[min(92vw,1180px)]"
-                        onClick={(event) => event.stopPropagation()}
                     >
                         <CarouselContent className="ml-0">
                             {orderedImages.map((image, index) => {
@@ -476,9 +430,9 @@ const ProductGallery = ({images, productName}: Props) => {
                     <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3.5 py-2 text-xs leading-none text-text-heading-primary">
                         {t("imageCounter", {current: selectedIndex + 1, total: imageCount})}
                     </span>
-                </div>
-            ) : null}
-        </>
+                </DialogPrimitive.Content>
+            </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
     );
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import {ReactNode, useState} from "react";
+import {ReactNode, useRef, useState} from "react";
 import {useTranslations} from "use-intl";
 
 import {IProductDetails, IProductDescription} from "@/api/types/ProductTypes";
@@ -36,6 +36,7 @@ const paymentMethodKeys = ["cash", "cards", "transfer"] as const;
 const ProductInfoTabs = ({product, description, reviews}: Props) => {
     const t = useTranslations("product");
     const [activeTab, setActiveTab] = useState<TabId>("description");
+    const tabRefs = useRef(new Map<TabId, HTMLButtonElement>());
     const brandName = product.brand?.name ?? "VYMPEL";
     const brandCatalogHref = product.brand?.id
         ? routes.filteredCatalog({
@@ -60,6 +61,18 @@ const ProductInfoTabs = ({product, description, reviews}: Props) => {
         reviews: t("reviews.title"),
     };
 
+    const activateTabByIndex = (index: number) => {
+        const tab = tabs[(index + tabs.length) % tabs.length];
+        setActiveTab(tab.id);
+        const element = tabRefs.current.get(tab.id);
+        element?.focus();
+        element?.scrollIntoView({
+            block: "nearest",
+            inline: "nearest",
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        });
+    };
+
     return (
         <section className="mt-14 sm:mt-20">
             <div
@@ -67,7 +80,7 @@ const ProductInfoTabs = ({product, description, reviews}: Props) => {
                 aria-label={t("tabs.ariaLabel")}
                 className="catalog-filter-scroll flex snap-x items-stretch justify-start gap-product-tabs-gap overflow-x-auto overflow-y-hidden border-b border-border-default lg:justify-between"
             >
-                {tabs.map((tab) => {
+                {tabs.map((tab, index) => {
                     const isActive = activeTab === tab.id;
 
                     return (
@@ -78,7 +91,27 @@ const ProductInfoTabs = ({product, description, reviews}: Props) => {
                             role="tab"
                             aria-selected={isActive}
                             aria-controls="product-tab-panel"
+                            tabIndex={isActive ? 0 : -1}
+                            ref={(node) => {
+                                if (node) tabRefs.current.set(tab.id, node);
+                                else tabRefs.current.delete(tab.id);
+                            }}
                             onClick={() => setActiveTab(tab.id)}
+                            onKeyDown={(event) => {
+                                if (event.key === "ArrowRight") {
+                                    event.preventDefault();
+                                    activateTabByIndex(index + 1);
+                                } else if (event.key === "ArrowLeft") {
+                                    event.preventDefault();
+                                    activateTabByIndex(index - 1);
+                                } else if (event.key === "Home") {
+                                    event.preventDefault();
+                                    activateTabByIndex(0);
+                                } else if (event.key === "End") {
+                                    event.preventDefault();
+                                    activateTabByIndex(tabs.length - 1);
+                                }
+                            }}
                             className="relative flex min-h-11 shrink-0 snap-start items-start px-1 pb-product-tab-underline-gap text-left transition"
                         >
                             <Text

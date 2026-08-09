@@ -1,5 +1,6 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import {buildSecurityHeaders} from "./security-headers.mjs";
+import {readSiteIndexingPolicy} from "./site-indexing.mjs";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -33,7 +34,12 @@ const nextConfig = {
     output: "standalone",
     poweredByHeader: false,
     async headers() {
-        return [{source: "/:path*", headers: buildSecurityHeaders()}];
+        const indexingPolicy = readSiteIndexingPolicy();
+        const headers = buildSecurityHeaders();
+        if (!indexingPolicy.enabled) {
+            headers.push({key: "X-Robots-Tag", value: "noindex, nofollow"});
+        }
+        return [{source: "/:path*", headers}];
     },
     webpack(config) {
         config.module.rules.push({

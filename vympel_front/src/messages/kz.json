@@ -22,6 +22,7 @@
       "modelLabel": "Модель {model}",
       "skuLabel": "Артикул {sku}",
       "resultAria": "{name} - {price}",
+      "resultCount": "Табылған тауарлар: {count}",
       "unavailable": "Қоймада жоқ"
     },
     "wrist": "Қол сағаттары",
@@ -71,7 +72,7 @@
       "message": "Пікір"
     },
     "placeholders": {
-      "name": "Dear User",
+      "name": "Сізге қалай хабарласуға болады",
       "email": "example@mail.com",
       "phone": "+7 777 777 77 77",
       "message": "Маған кеңес керек"
@@ -114,11 +115,24 @@
     "page": "{page}-бетке өту",
     "items": "{range} тауарларына өту"
   },
+  "carousel": {
+    "region": "Карусель",
+    "roleDescription": "карусель",
+    "slideRoleDescription": "слайд",
+    "previous": "Алдыңғы слайд",
+    "next": "Келесі слайд",
+    "slide": "{total} слайдтың {index}-сі",
+    "pagination": "Слайдты таңдау",
+    "goToSlide": "{index}-слайдқа өту",
+    "stopRotation": "Слайд ауысуын тоқтату",
+    "startRotation": "Слайд ауысуын бастау"
+  },
   "bannerCarousel": {
     "aria": "Жарнамалық баннерлер",
     "fallbackAlt": "Romanson жарнамалық баннері"
   },
   "benefits": {
+    "title": "Артықшылықтар",
     "marketplaces": "Онлайн маркетплейстер",
     "payment": "Ыңғайлы төлем",
     "paymentSub": "Картамен, аударыммен немесе қолма-қол төлеуге болады.",
@@ -161,7 +175,8 @@
     "previousItems": "Алдыңғы тауарлар",
     "nextItems": "Келесі тауарлар",
     "previous": "Артқа",
-    "next": "Алға"
+    "next": "Алға",
+    "loading": "Тауарлар жүктелуде"
   },
   "brands": {
     "brand": "Бренд",
@@ -222,6 +237,7 @@
       "title": "Әлеуметтік желілердегі қызметіміз",
       "postAlt": "Vympel Instagram жарияланымы {number}",
       "postAria": "Vympel Instagram жарияланымын ашу {number}",
+      "profileAria": "Vympel компаниясының ресми Instagram профилін ашу",
       "dotsAria": "Instagram слайдерінің беттеуі",
       "dotAria": "Instagram слайдына өту {number}"
     },
@@ -347,6 +363,8 @@
     }
   },
   "catalog": {
+    "loading": "Тауарлар жүктелуде...",
+    "resultCount": "Табылған тауарлар: {count}",
     "home": "Басты бет",
     "allGoods": "Барлық тауарлар",
     "breadcrumbsAria": "Каталог бойынша навигация",
@@ -445,7 +463,9 @@
     },
     "summary": {
       "outOfStockTitle": "Қоймада жоқ",
-      "outOfStockBody": "Бұл модель қазір қоймада жоқ. Дегенмен, ол жақын арада қолжетімді болуы мүмкін. Ол қолжетімді болған кезде хабарландыру алғыңыз келсе, төмендегі пішінге электрондық поштаңызды қалдырыңыз.",
+      "outOfStockBody": "Бұл модель қазір қоймада жоқ. Оның қолжетімділігін менеджерден нақтылай аласыз.",
+      "askAvailability": "Қолжетімділігін нақтылау",
+      "availabilityMessage": "{product} моделінің қолжетімді екенін нақтылап беріңізші.",
       "askQuestion": "Модель туралы сұрақ қою",
       "kaspiPaymentAria": "Kaspi арқылы төлеу",
       "buyOnMarketplace": "{marketplace} дүкенінен сатып алу",
@@ -569,6 +589,9 @@
     "empty": "Таңдаулыда әзірге тауар жоқ.",
     "similarTitle": "Ұқсас тауарлар",
     "loading": "Тауарлар жүктелуде...",
+    "resultCount": "Таңдаулы тауарлар саны: {count}",
+    "similarLoading": "Ұқсас тауарлар жүктелуде...",
+    "similarResultCount": "Ұқсас тауарлар табылды: {count}",
     "similarEmpty": "Ұқсас тауарлар әзірге табылмады.",
     "breadcrumbsAria": "Таңдаулы бойынша навигация"
   },
@@ -584,6 +607,7 @@
     "unknownProduct": "Тауар #{id}",
     "productImage": "Тауар",
     "loading": "Тауарлар жаңартылуда...",
+    "resultCount": "Себеттегі тауарлар саны: {count}",
     "stockLimitTooltip": "Бұл тауардың бұдан артық саны қоймада жоқ",
     "stockLimitInline": "Тек {stockQuantity} дана қолжетімді.",
     "whatsapp": {

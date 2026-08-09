@@ -2,7 +2,6 @@
 
 import {useMemo} from "react";
 import Image from "next/image";
-import {useForm} from "react-hook-form";
 import {useLocale, useTranslations} from "use-intl";
 
 import Button, {variants as buttonVariants} from "@/components/ui/shared/Button";
@@ -29,11 +28,6 @@ type Props = {
     product: IProductDetails;
 };
 
-type StockNotifyFormValues = {
-    email: string;
-    phone: string;
-};
-
 const productMarketplaceLinks = [
     {id: "kaspi", name: "Kaspi", href: MARKETPLACE_LINKS.kaspi},
     {id: "wildberries", name: "Wildberries", href: MARKETPLACE_LINKS.wildberries},
@@ -42,12 +36,6 @@ const productMarketplaceLinks = [
 const ProductSummary = ({product}: Props) => {
     const t = useTranslations("product");
     const locale = useLocale();
-    const notifyForm = useForm<StockNotifyFormValues>({
-        defaultValues: {
-            email: "",
-            phone: "",
-        },
-    });
     const productSnapshot = useMemo(() => createProductSnapshot(product), [product]);
     const {isFavorite, toggleFavorite: toggleStoredFavorite} = useFavoriteProduct(productSnapshot);
     const {isInCart, addItem} = useCartProduct(productSnapshot);
@@ -110,10 +98,6 @@ const ProductSummary = ({product}: Props) => {
 
         actionToasts.cartAdded();
         trackProductEvent(product.id, "ADD_TO_CART");
-    };
-
-    const submitStockNotify = () => {
-        // The storefront does not currently expose a stock-notify endpoint.
     };
 
     return (
@@ -270,31 +254,16 @@ const ProductSummary = ({product}: Props) => {
                     </div>
                 </>
             ) : (
-                <form className="flex max-w-none flex-col gap-3 mt-4 lg:max-w-[330px]" onSubmit={notifyForm.handleSubmit(submitStockNotify)}>
-                    <label className="flex flex-col gap-2">
-                        <Text as="span" size="bodySm" weight="medium">{t("summary.emailLabel")}</Text>
-                        <input
-                            {...notifyForm.register("email")}
-                            type="email"
-                            placeholder={t("summary.emailPlaceholder")}
-                            className="h-10 rounded-full border border-border-default px-5.5 py-4 text-2xs outline-none placeholder:text-text-placeholder focus:border-text-heading-secondary"
-                        />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                        <Text as="span" size="bodySm" weight="medium">{t("summary.phoneLabel")}</Text>
-                        <input
-                            {...notifyForm.register("phone")}
-                            type="tel"
-                            placeholder={t("summary.phonePlaceholder")}
-                            className="h-10 rounded-full border border-border-default px-5.5 py-4 text-2xs outline-none placeholder:text-text-placeholder focus:border-text-heading-secondary"
-                        />
-                    </label>
-                    <Button type="submit" variant="action" className="mt-4 h-12">
-                        <Text as="span" colors="inverse" className="leading-none">
-                            {t("summary.notifySubmit")}
-                        </Text>
-                    </Button>
-                </form>
+                <CustomerRequestButton
+                    source={`product_availability_question:${product.id}`}
+                    title="question"
+                    message={t("summary.availabilityMessage", {product: product.name})}
+                    className={cn(buttonVariants({variant: "action", size: "md"}), "mt-4 w-full lg:max-w-[330px]")}
+                >
+                    <Text as="span" colors="inverse" size="bodySm" weight="medium">
+                        {t("summary.askAvailability")}
+                    </Text>
+                </CustomerRequestButton>
             )}
         </section>
     );

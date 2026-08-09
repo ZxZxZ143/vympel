@@ -1,6 +1,7 @@
 import AboutPage from "@/screens/AboutPage";
 import {LocaleEnum} from "@/i18n/routing";
 import {publicSeoMetadata} from "@/lib/seo";
+import {staticSeoContent} from "@/lib/seoContent";
 
 export const revalidate = 30;
 
@@ -12,7 +13,7 @@ type Props = {
 
 export async function generateMetadata({params}: Props) {
     const {locale} = await params;
-    return publicSeoMetadata(locale, ["about"], "Vympel — About");
+    return publicSeoMetadata(locale, ["about"], staticSeoContent(locale, "about"));
 }
 
 export default async function About({params}: Props) {

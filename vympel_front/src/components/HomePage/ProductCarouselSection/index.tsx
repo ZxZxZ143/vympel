@@ -51,7 +51,7 @@ async function ProductCarouselSection({
 }: Props) {
     const products = await loadCategoryProducts(locale, categoryCode, sectionId);
 
-    if (products && products.content.length === 0) {
+    if (!products || products.content.length === 0) {
         return null;
     }
 
@@ -62,7 +62,7 @@ async function ProductCarouselSection({
                 mobileImg={bannerMobileImage}
                 fallbackImg={bannerFallbackImage}
                 bannerAlt={bannerAlt}
-                items={products?.content.map((product) => ({
+                items={products.content.map((product) => ({
                     ...product,
                     link: routes.product(product.id),
                 }))}

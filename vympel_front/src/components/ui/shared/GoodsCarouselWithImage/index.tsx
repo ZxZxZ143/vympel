@@ -43,6 +43,7 @@ type Props = {
     className?: string;
     showBanner?: boolean;
     showProductActions?: boolean;
+    loading?: boolean;
 }
 
 const GoodsCarouselWithImage: FC<Props> = ({
@@ -54,6 +55,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
                                                className,
                                                showBanner = true,
                                                showProductActions = false,
+                                               loading = false,
                                            }) => {
     const t = useTranslations("goodsCarousel");
     const [api, setApi] = useState<CarouselApi>();
@@ -104,12 +106,15 @@ const GoodsCarouselWithImage: FC<Props> = ({
                             ratingAverage={item.ratingAverage}
                             ratingCount={item.ratingCount}
                             isCatalog={showProductActions}
+                            headingLevel="h3"
                             className="w-full"
                         />
                     </CarouselItem>
                 ))
             );
         }
+
+        if (!loading) return null;
 
         return (
             new Array(15).fill(0).map((_, i) => (
@@ -126,8 +131,14 @@ const GoodsCarouselWithImage: FC<Props> = ({
         );
     };
 
+    if (!loading && !items?.length) return null;
+
     return (
-        <div className={cn("w-full select-none", img && showBanner && "goods-carousel-with-banner", className)}>
+        <div
+            className={cn("w-full select-none", img && showBanner && "goods-carousel-with-banner", className)}
+            aria-busy={loading}
+        >
+            {loading ? <Text role="status" className="sr-only">{t("loading")}</Text> : null}
             {img && showBanner ? (
                 <div className="goods-carousel-banner w-full">
                     <div className="h-full w-full overflow-hidden rounded-2xl sm:rounded-none">

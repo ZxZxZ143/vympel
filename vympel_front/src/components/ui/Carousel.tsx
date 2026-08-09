@@ -9,6 +9,7 @@ import {ArrowLeft, ArrowRight} from "lucide-react"
 import {cn} from "@/lib/utils"
 import {LibButton} from "@/components/ui/libButton"
 import {PropsWithChildren} from "react";
+import {useTranslations} from "use-intl";
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
@@ -29,6 +30,12 @@ type CarouselContextProps = {
     scrollNext: () => void
     canScrollPrev: boolean
     canScrollNext: boolean
+    visibleSlideIndexes: ReadonlySet<number>
+    slideCount: number
+    previousLabel: string
+    nextLabel: string
+    slideLabel: (index: number, total: number) => string
+    slideRoleDescription: string
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
@@ -50,6 +57,7 @@ function Carousel({
                       plugins,
                       className,
                       children,
+                      "aria-label": ariaLabel,
                       ...props
                   }: React.ComponentProps<"div"> & CarouselProps) {
     const [carouselRef, api] = useEmblaCarousel(
@@ -61,11 +69,30 @@ function Carousel({
     )
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
+    const [visibleSlideIndexes, setVisibleSlideIndexes] = React.useState<ReadonlySet<number>>(() => new Set([0]))
+    const [slideCount, setSlideCount] = React.useState(0)
+    const rootRef = React.useRef<HTMLDivElement>(null)
+    const t = useTranslations("carousel")
 
     const onSelect = React.useCallback((api: CarouselApi) => {
         if (!api) return
         setCanScrollPrev(api.canScrollPrev())
         setCanScrollNext(api.canScrollNext())
+        const nextVisible = new Set(api.slidesInView())
+        if (nextVisible.size === 0 && api.slideNodes().length > 0) {
+            nextVisible.add(api.selectedScrollSnap())
+        }
+        setSlideCount(api.slideNodes().length)
+        setVisibleSlideIndexes(nextVisible)
+
+        const activeElement = document.activeElement
+        const activeSlide = activeElement instanceof Element
+            ? activeElement.closest<HTMLElement>("[data-carousel-index]")
+            : null
+        const activeIndex = Number(activeSlide?.dataset.carouselIndex)
+        if (activeSlide && !nextVisible.has(activeIndex)) {
+            rootRef.current?.focus({preventScroll: true})
+        }
     }, [])
 
     const scrollPrev = React.useCallback(() => {
@@ -99,11 +126,13 @@ function Carousel({
         const initialSelection = window.setTimeout(() => onSelect(api), 0)
         api.on("reInit", onSelect)
         api.on("select", onSelect)
+        api.on("slidesInView", onSelect)
 
         return () => {
             window.clearTimeout(initialSelection)
             api.off("reInit", onSelect)
             api.off("select", onSelect)
+            api.off("slidesInView", onSelect)
         }
     }, [api, onSelect])
 
@@ -119,13 +148,22 @@ function Carousel({
                 scrollNext,
                 canScrollPrev,
                 canScrollNext,
+                visibleSlideIndexes,
+                slideCount,
+                previousLabel: t("previous"),
+                nextLabel: t("next"),
+                slideLabel: (index, total) => t("slide", {index: index + 1, total}),
+                slideRoleDescription: t("slideRoleDescription"),
             }}
         >
             <div
+                ref={rootRef}
+                tabIndex={-1}
                 onKeyDownCapture={handleKeyDown}
                 className={cn("relative", className)}
                 role="region"
-                aria-roledescription="carousel"
+                aria-label={ariaLabel ?? t("region")}
+                aria-roledescription={t("roleDescription")}
                 data-slot="carousel"
                 {...props}
             >
@@ -135,8 +173,14 @@ function Carousel({
     )
 }
 
-function CarouselContent({className, ...props}: React.ComponentProps<"div">) {
+function CarouselContent({className, children, ...props}: React.ComponentProps<"div">) {
     const {carouselRef, orientation} = useCarousel()
+    const total = React.Children.count(children)
+    const indexedChildren = React.Children.map(children, (child, index) => (
+        React.isValidElement(child)
+            ? React.cloneElement(child as React.ReactElement<{slideIndex?: number; slideTotal?: number}>, {slideIndex: index, slideTotal: total})
+            : child
+    ))
 
     return (
         <div
@@ -151,18 +195,25 @@ function CarouselContent({className, ...props}: React.ComponentProps<"div">) {
                     className
                 )}
                 {...props}
-            />
+            >
+                {indexedChildren}
+            </div>
         </div>
     )
 }
 
-function CarouselItem({className, ...props}: React.ComponentProps<"div">) {
-    const {orientation} = useCarousel()
+function CarouselItem({className, slideIndex = 0, slideTotal = 1, "aria-label": ariaLabel, ...props}: React.ComponentProps<"div"> & {slideIndex?: number; slideTotal?: number}) {
+    const {orientation, visibleSlideIndexes, slideCount, slideLabel, slideRoleDescription} = useCarousel()
+    const isVisible = visibleSlideIndexes.has(slideIndex)
 
     return (
         <div
             role="group"
-            aria-roledescription="slide"
+            aria-roledescription={slideRoleDescription}
+            aria-label={ariaLabel ?? slideLabel(slideIndex, slideCount || slideTotal)}
+            aria-hidden={!isVisible}
+            inert={!isVisible ? true : undefined}
+            data-carousel-index={slideIndex}
             data-slot="carousel-item"
             className={cn(
                 "min-w-0 shrink-0 grow-0 basis-full",
@@ -180,9 +231,10 @@ function CarouselPrevious({
                               size = "icon",
                               children,
                               setClassName = false,
+                              "aria-label": ariaLabel,
                               ...props
                           }: PropsWithChildren<React.ComponentProps<typeof LibButton>> & { setClassName?: boolean }) {
-    const { orientation, scrollPrev, canScrollPrev } = useCarousel()
+    const { orientation, scrollPrev, canScrollPrev, previousLabel } = useCarousel()
 
     const classes = cn(
         {
@@ -199,6 +251,7 @@ function CarouselPrevious({
             className={classes}
             disabled={!canScrollPrev}
             onClick={scrollPrev}
+            aria-label={ariaLabel ?? previousLabel}
             {...props}
         >
             {children ? (
@@ -218,6 +271,7 @@ function CarouselPrevious({
             className={classes}
             disabled={!canScrollPrev}
             onClick={scrollPrev}
+            aria-label={ariaLabel ?? previousLabel}
             {...props}
         >
             {children ? (
@@ -238,9 +292,10 @@ function CarouselNext({
                           size = "icon",
                           children,
                           setClassName = false,
+                          "aria-label": ariaLabel,
                           ...props
                       }: PropsWithChildren<React.ComponentProps<typeof LibButton>> & { setClassName?: boolean }) {
-    const { orientation, scrollNext, canScrollNext } = useCarousel()
+    const { orientation, scrollNext, canScrollNext, nextLabel } = useCarousel()
 
     const classes = cn(
         {
@@ -257,6 +312,7 @@ function CarouselNext({
             className={classes}
             disabled={!canScrollNext}
             onClick={scrollNext}
+            aria-label={ariaLabel ?? nextLabel}
             {...props}
         >
             {children ? (
@@ -276,6 +332,7 @@ function CarouselNext({
             className={classes}
             disabled={!canScrollNext}
             onClick={scrollNext}
+            aria-label={ariaLabel ?? nextLabel}
             {...props}
         >
             {children ? (

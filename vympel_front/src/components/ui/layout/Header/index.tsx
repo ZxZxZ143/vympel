@@ -4,7 +4,6 @@ import React, {useEffect, useRef, useState, useTransition} from "react";
 import {ChevronDown} from "lucide-react";
 
 import {Text} from "@/components/ui/shared/text";
-import {Heading} from "@/components/ui/shared/text/Heading";
 import {cn} from "@/lib/utils";
 import {useLocale, useTranslations} from "use-intl";
 import {usePathname, useRouter, Link} from "@/i18n/navigation";
@@ -23,6 +22,8 @@ const Header = () => {
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [, startTransition] = useTransition()
     const langRef = useRef<HTMLDivElement | null>(null);
+    const langTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const languageSelectorId = "header-language-selector";
 
     const locale = useLocale();
     const t = useTranslations("nav");
@@ -57,6 +58,18 @@ const Header = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (!isLangOpen) return;
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            setIsLangOpen(false);
+            langTriggerRef.current?.focus();
+        };
+        document.addEventListener("keydown", handleEscape);
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, [isLangOpen]);
 
     return (
         <header
@@ -99,8 +112,9 @@ const Header = () => {
 
                     <div ref={langRef} className="relative">
                         <button
+                            ref={langTriggerRef}
                             type="button"
-                            aria-haspopup="menu"
+                            aria-controls={languageSelectorId}
                             aria-expanded={isLangOpen}
                             onClick={() => setIsLangOpen((p) => !p)}
                             className="flex min-h-10 items-center justify-center rounded-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40 sm:min-h-11"
@@ -119,40 +133,35 @@ const Header = () => {
                             />
                         </button>
 
-                        <div
-                            role="menu"
-                            aria-label={t("languageSelector")}
-                            className={cn(
-                                "z-100 absolute left-0 top-12 flex flex-col items-center justify-center gap-4 px-8 py-6 rounded-sm bg-bg-lang-card/75 border border-border-default text-text-language",
-                                "origin-top transition-all duration-200 ease-out",
-                                isLangOpen
-                                    ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-                                    : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
-                            )}
-                        >
-                            {(locales).map((lang) => (
-                                <button
-                                    key={lang}
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={() => handleSelectLang(lang)}
-                                    className={cn(
-                                        "cursor-pointer transition hover:text-text-heading-primary transition",
-                                        locale === lang && "text-text-heading-primary"
-                                    )}
-                                >
-                                    {lang.toUpperCase()}
-                                </button>
-                            ))}
-                        </div>
+                        {isLangOpen ? (
+                            <div
+                                id={languageSelectorId}
+                                aria-label={t("languageSelector")}
+                                className="z-100 absolute left-0 top-12 flex origin-top flex-col items-center justify-center gap-4 rounded-sm border border-border-default bg-bg-lang-card/75 px-8 py-6 text-text-language motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95"
+                            >
+                                {(locales).map((lang) => (
+                                    <button
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => handleSelectLang(lang)}
+                                        className={cn(
+                                            "cursor-pointer transition hover:text-text-heading-primary",
+                                            locale === lang && "text-text-heading-primary"
+                                        )}
+                                    >
+                                        {lang.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : null}
                     </div>
                 </div>
 
                 <div className="flex min-w-0 items-center justify-center">
                     <Link href={routes.home()} aria-label={t("homeLink")}>
-                        <Heading as="h3" font="heading" colors="headingSecondary" className="text-2xl sm:text-3xl">
+                        <Text as="span" font="heading" colors="headingSecondary" className="text-2xl sm:text-3xl">
                             VYMPEL
-                        </Heading>
+                        </Text>
                     </Link>
                 </div>
 

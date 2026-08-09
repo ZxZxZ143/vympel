@@ -20,7 +20,7 @@ const Benefits: FC<Props> = ({className}) => {
             className
         )}>
             <h2 id="benefits-title" className="sr-only">
-                Benefits
+                {t("title")}
             </h2>
 
             <ul className="grid w-full gap-5 lg:grid-cols-2 xl:grid-cols-3 xl:gap-3">

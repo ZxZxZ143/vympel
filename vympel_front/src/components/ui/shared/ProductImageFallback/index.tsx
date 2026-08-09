@@ -16,7 +16,6 @@ const ProductImageFallback = ({className, compact = false}: ProductImageFallback
 
     return (
         <div
-            aria-label={t("label")}
             className={cn(
                 "product-image-fallback",
                 compact && "product-image-fallback--compact",

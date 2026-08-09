@@ -4,7 +4,7 @@ import {Inter, Judson, Montaga, Montserrat} from "next/font/google";
 import "../globals.css";
 import Header from "@/components/ui/layout/Header";
 import {NextIntlClientProvider} from "next-intl";
-import {routing} from "@/i18n/routing";
+import {LocaleEnum, routing} from "@/i18n/routing";
 import {notFound} from "next/navigation";
 import {getMessages, setRequestLocale} from "next-intl/server";
 import {Toaster} from "@/components/ui/sonner";
@@ -16,6 +16,7 @@ import {CustomerRequestDialogProvider} from "@/components/CustomerRequestDialog/
 import {CatalogOverlayProvider} from "@/components/CatalogPage/CatalogOverlayProvider";
 import TelemetryProvider from "@/components/Providers/TelemetryProvider";
 import {toHtmlLanguage} from "@/i18n/htmlLanguage";
+import {staticSeoContent} from "@/lib/seoContent";
 
 const fontSans = Inter({
     variable: "--font-family-sans",
@@ -40,10 +41,11 @@ const fontFooter = Montserrat({
     weight: ["400", "700", "200", "500", "600", "300"],
 })
 
-export const metadata: Metadata = {
-    title: "Vympel",
-    description: "Каталог часов и аксессуаров Vympel",
-};
+export async function generateMetadata({params}: {params: Promise<{locale: LocaleEnum}>}): Promise<Metadata> {
+    const {locale} = await params;
+    const fallback = staticSeoContent(locale, "home");
+    return {title: fallback.title, description: fallback.description};
+}
 
 export function generateStaticParams() {
     return routing.locales.map((locale) => ({locale}));

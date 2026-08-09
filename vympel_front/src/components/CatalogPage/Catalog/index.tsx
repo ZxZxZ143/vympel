@@ -31,12 +31,16 @@ import {isAccessoryCategoryCode} from "@/utils/catalogCategories";
 type Props = {
     locale: LocaleEnum;
     categoryCode: string | undefined;
+    initialPage: Page<IProduct> | null;
+    initialLoadError: boolean;
 }
 
-const Catalog: FC<Props> = ({locale, categoryCode}) => {
+const Catalog: FC<Props> = ({locale, categoryCode, initialPage, initialLoadError}) => {
     const stateT = useTranslations("states");
+    const catalogT = useTranslations("catalog");
     const searchParams = useSearchParams();
-    const [goods, setGoods] = useState<Page<IProduct> | null>(null);
+    const [goods, setGoods] = useState<Page<IProduct> | null>(initialPage);
+    const [serverError, setServerError] = useState(initialLoadError);
     const [retryKey, setRetryKey] = useState(0);
     const {
         page,
@@ -70,11 +74,13 @@ const Catalog: FC<Props> = ({locale, categoryCode}) => {
 
     const {loading, error} = useFetch<Page<IProduct>, ApiError>(
         fetchGoods,
-        setGoodsHandler
+        setGoodsHandler,
+        {enabled: retryKey > 0},
     )
 
     const retryCatalog = useCallback(() => {
         setGoods(null);
+        setServerError(false);
         setRetryKey((key) => key + 1);
     }, []);
 
@@ -106,19 +112,21 @@ const Catalog: FC<Props> = ({locale, categoryCode}) => {
         )
     }
 
-    if (error) {
+    if (serverError || error) {
         return (
-            <ErrorState
-                title={stateT("catalog.errorTitle")}
-                description={stateT("catalog.errorDescription")}
-                retryLabel={stateT("actions.retry")}
-                onRetry={retryCatalog}
-                action={{
-                    label: stateT("actions.goCatalog"),
-                    href: routes.catalog({page: 1}),
-                }}
-                className="mt-11"
-            />
+            <div role="alert">
+                <ErrorState
+                    title={stateT("catalog.errorTitle")}
+                    description={stateT("catalog.errorDescription")}
+                    retryLabel={stateT("actions.retry")}
+                    onRetry={retryCatalog}
+                    action={{
+                        label: stateT("actions.goCatalog"),
+                        href: routes.catalog({page: 1}),
+                    }}
+                    className="mt-11"
+                />
+            </div>
         );
     }
 
@@ -139,7 +147,15 @@ const Catalog: FC<Props> = ({locale, categoryCode}) => {
 
     return (
         <>
-            <div id="catalog-product-list" data-pagination-scroll-target="catalog" className="responsive-product-grid mt-11 scroll-mt-28">
+            <p className="sr-only" role="status" aria-live="polite">
+                {loading ? catalogT("loading") : goods ? catalogT("resultCount", {count: goods.totalElements}) : ""}
+            </p>
+            <div
+                id="catalog-product-list"
+                data-pagination-scroll-target="catalog"
+                aria-busy={loading}
+                className="responsive-product-grid mt-11 scroll-mt-28"
+            >
                 {renderGoods()}
             </div>
 

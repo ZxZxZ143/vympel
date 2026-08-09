@@ -424,6 +424,12 @@
 * **How:** Add or reuse a named token in `src/app/globals.css` / `TextVariants` first, then use named classes such as `text-2xs`, `text-product-title`, `text-text-product-muted`, or `bg-button-bg-product` in components. Do not use arbitrary Tailwind values like `text-[15px]`, `placeholder:text-[15px]`, or raw hex colors when the value should be reusable.
 * **Why:** Prevents one-off UI values from spreading and makes Figma-aligned values reusable.
 
+### Exact-commit accessibility and SEO audit handoff
+
+* **When to use:** When auditing the public storefront without implementing fixes in the same task.
+* **How:** Pin branch/SHA/remote/worktree state, count route patterns and locales from source, require source plus rendered/HTTP/test evidence for confirmed findings, write checkpoint evidence progressively to `docs/audits/FRONTEND_ACCESSIBILITY_SEO_AUDIT.md`, and mirror every confirmed ID into `CODEX_FRONTEND_ACCESSIBILITY_SEO_IMPLEMENTATION_PROMPT.md` with exact files, constraints, tests, manual checks, acceptance criteria, and external dependencies. Keep optional schema/social enhancements distinct from WCAG failures and preserve unsupported browser/AT/performance tooling as limitations rather than passes.
+* **Why:** A future implementation session can reproduce the issue, preserve working foundations, and apply fixes in dependency order without treating a scanner, stale prior report, or temporary deployment as current proof.
+
 ## Backend Patterns That Work
 
 ### Closed supported catalog domain
@@ -716,6 +722,42 @@
 * **How:** Update the backend contract first, then update frontend API client/types/hooks/components.
 * **Why:** Prevents mismatch between request/response shapes.
 
+### Fail-closed storefront indexing gate
+
+* **When to use:** Every storefront build, staging rehearsal, or public-domain promotion.
+* **How:** Keep `SITE_INDEXING_ENABLED` server-only and require the exact value `true` plus an origin-only HTTPS `NEXT_PUBLIC_SITE_URL`. When either input is missing/invalid, emit `X-Robots-Tag: noindex, nofollow`, page noindex metadata without canonical/alternates/social cards, an empty sitemap, and non-advertising robots. Enable indexing only after domain/ingress/product-owner approval.
+* **Why:** A syntactically valid temporary host is not approval to publish it to search engines, and build-time `NEXT_PUBLIC_*` values cannot be corrected later by runtime configuration.
+
+### Catalog URL classification before rendering
+
+* **When to use:** Adding or changing catalog path/query state, pagination, metadata, or links.
+* **How:** Classify/normalize with `catalogUrl.ts` before fetching or rendering. Clean category identity is `/catalog/{categoryCode}`; clean `page=n` self-canonicalizes; search/facets/non-default sort are `noindex, follow` with a clean canonical; legacy `categoryCode` query URLs permanently redirect. Seed the client catalog from the server result and expose real anchor pagination.
+* **Why:** One URL policy prevents duplicate category identities, client-only empty HTML, contradictory canonicals, and inaccessible script-only pagination.
+
+### Distinguish absence from dependency failure in SSR
+
+* **When to use:** Product/category/catalog server loaders and their metadata generators.
+* **How:** Share cached loaders between metadata and page rendering. Call `notFound()` only for confirmed 404/empty out-of-range identity; return an honest retryable, non-indexable state for transient failures. Never invent a generic product/category, substitute a fake successful response, or collapse an upstream failure into 404.
+* **Why:** HTTP status, metadata, structured data, and visible UI must describe the same resource state.
+
+### Truthful structured data and social metadata
+
+* **When to use:** Adding Product/Breadcrumb JSON-LD or Open Graph/Twitter fields.
+* **How:** Emit only on approved indexable public states and derive every field from current API/config facts. Validate absolute image/profile URLs, use an existing neutral fallback share image where needed, omit invalid rating/review/social/organization claims, and escape serialized `<` characters. Optional Instagram remains non-interactive until a validated profile URL is configured.
+* **Why:** Search/social markup is a public factual claim; fabricated ratings, profiles, availability, or images are worse than omitted fields.
+
+### Accessible disclosure, dialog, and carousel state
+
+* **When to use:** Header/menu disclosures, mobile navigation, lightboxes, carousels, and autoplaying rails.
+* **How:** Conditionally mount disclosure content, close on Escape, and restore trigger focus. Use Radix Dialog for modal surfaces so focus trap, scroll lock, outside content suppression, and close focus are owned centrally. Mark only offscreen Embla slides `aria-hidden`/`inert`, subscribe to `slidesInView`, and fall back to `selectedScrollSnap()` when the observer is temporarily empty. Autoplay must have the first localized Start/Stop control, stop persistently on focus/pointer/hover, and start disabled for reduced-motion users.
+* **Why:** Hidden controls must not remain tabbable, modal focus must not escape, and a timing gap in Embla visibility must never make the visible product image inaccessible.
+
+### Error semantics and post-mutation focus
+
+* **When to use:** RHF forms, async search/catalog state, or removing an item from cart/favorites.
+* **How:** Pair invalid fields with stable error IDs through `aria-invalid`/`aria-describedby`, expose validation errors as alerts, focus the first invalid field, clear cross-field contact errors together, and render loading/error/empty updates through appropriate busy/status/live regions. After removal, focus the next stable item/action or the collection heading/empty-state target.
+* **Why:** Visible feedback alone is not announced reliably, and removing the focused element otherwise drops keyboard users at the document root.
+
 ### Brand-country contract first
 
 * **When to use:** Any change to supported brands, countries, localized labels, product validation, public filter options, or CRM product fields.
@@ -942,6 +984,27 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### Blocking a noindex page in robots.txt
+
+* **What happened:** Cart and Favorites emitted `noindex,nofollow` but robots.txt also disallowed those URLs.
+* **Root cause:** Crawl prevention and index prevention were treated as interchangeable controls.
+* **Fix:** Keep user-facing private-state pages crawlable so bots can read their noindex, while excluding them from sitemap/canonical/alternate graphs; keep genuine API/internal/admin protections separate.
+* **How to avoid:** Test robots and page metadata together. A crawler cannot process a noindex on a URL it is forbidden to fetch, and robots.txt is not access control.
+
+### Treating a valid canonical origin as production-indexing approval
+
+* **What happened:** The public temporary sslip.io host allowed crawling, published a 75-URL sitemap, and self-canonicalized because `NEXT_PUBLIC_SITE_URL` was syntactically valid.
+* **Root cause:** URL construction and release authorization shared one implicit configuration signal.
+* **Fix:** Add a server-only fail-closed indexability flag that is explicitly enabled only for the approved permanent origin; prefer ingress protection for staging and otherwise provide readable global noindex with no sitemap inventory.
+* **How to avoid:** Never infer search-release approval from `NODE_ENV=production` or an origin string, never hardcode the temporary/final host, and test staging/default/production configurations independently.
+
+### Publishing independently generated hreflang sets
+
+* **What happened:** next-intl's automatic HTTP `Link` header exposed route token `kz` and root x-default while the route-owned HTML correctly exposed `kk` and `/ru`.
+* **Root cause:** Middleware and Metadata API independently owned the same alternate graph.
+* **Fix:** Disable the automatic middleware alternate header when tested HTML metadata is authoritative, or generate every surface from one mapping if HTTP headers are operationally required.
+* **How to avoid:** Inspect actual headers and initial HTML together; preserve public `/kz` paths while language tags remain standards-correct `kk`.
 
 ### Accepting legacy catalog spellings at runtime after normalization
 
@@ -1503,6 +1566,7 @@
 * **How to run all tests:** No single full-project test command is configured; run backend tests with `cd vympel_back && .\gradlew.bat test`, public frontend tests with `cd vympel_front && npm run test`, and CRM tests with `cd vympel_crm && npm test`.
 * **How to run frontend tests:** `cd vympel_front && npm run test` and `cd vympel_crm && npm test` run finite Vitest suites.
 * **How to verify real public 404 responses:** Run `cd vympel_front && npm run build`, then `npm run test:production-status`. The finite script owns ephemeral mock/Next processes, asserts status and rendered content for valid and missing routes in ru/kz/en, checks a temporary backend 500 is not converted to 404, and verifies both ports close during cleanup.
+* **How to verify storefront accessibility/SEO changes:** From `vympel_front`, run `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:security`, an indexing-enabled production `npm run build`, `npm run test:production-status`, `npm run test:budgets:ci`, and `npm run test:sharp-security`. The production-status matrix verifies RU/KZ/EN rendered HTML, clean catalog/product links, legacy redirects, self-canonicals, private noindex behavior, missing/out-of-range 404, and transient failure as non-404. For bounded browser checks, hold the script with `BROWSER_VERIFY_HOLD=true`, use Chromium/axe at 320/375/768/1023/1280, test keyboard/Escape/focus return/modal trapping/tabs/autoplay/reduced motion, then stop the exact process. Axe `incomplete` results are limitations, not passes.
 * **How to verify CMS changes:** Run backend tests with `cd vympel_back && .\gradlew.bat test`, public test/lint/typecheck/build, and CRM test/lint/build. `CmsMediaCleanupTransactionServiceTest` covers references, grace, retry, object-then-row success, and stale claims; `RefreshSessionMigrationTest` covers all six slots; `CmsMediaDryRunIntegrationTest` proves a configured-DB dry run does not change row count. Public signature/allow-list/targets and CRM partial-success mapping have Vitest coverage. A bounded production Next probe should assert 200/401/409 and close its exact port. Browser-check authenticated `/cms` only when a managed stack exists; never delete dry-run candidates merely to make a test pass.
 * **How to verify Step 7 DB integrity:** Run `STEP_7_DATABASE_PREFLIGHT.sql`, the full Java suite, and the PostgreSQL 16 `RefreshSessionMigrationTest`. Before live migration, restore a current dump to a disposable database and opt in `Step7ExternalDatabaseRehearsalTest` with its three `STEP7_REHEARSAL_*` environment variables; force execution because the target URL is external state. Verify live changelog/lock/constraints/invariant counts afterward.
 * **How to verify audit/security/optimization passes:** Use finite checks only: backend `.\gradlew.bat test` with Java 17, public `npm run lint` and `npm run build`, and CRM `npm run lint` and `npm run build`. Do not use `dev`, `start`, or watch commands as final verification.
@@ -2204,4 +2268,4 @@
 
 ## Last Updated
 
-2026-08-02 - Documented the closed six-brand/five-country domain and the successful immutable RC.11 publication, including artifact/registry cross-checks, stale generated migration-metadata correction, RC.10 preservation, and the no-deployment boundary.
+2026-08-10 - Added working storefront accessibility/SEO patterns for fail-closed indexing, canonical catalog classification, truthful SSR/error/schema/social states, focus-managed dialogs/disclosures/carousels/forms, locale mapping, and the complete finite regression/browser gate.

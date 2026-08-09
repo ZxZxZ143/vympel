@@ -39,6 +39,7 @@ const FavoritesPage = ({locale}: Props) => {
     const [favoritesRefreshing, setFavoritesRefreshing] = useState(false);
     const [favoritesRefreshError, setFavoritesRefreshError] = useState(false);
     const [favoritesRefreshKey, setFavoritesRefreshKey] = useState(0);
+    const pendingFocusRef = useRef<number | "heading" | null>(null);
 
     const favoriteIds = useMemo(() => (
         Array.from(new Set(items.map((item) => item.productId))).sort((a, b) => a - b)
@@ -56,6 +57,22 @@ const FavoritesPage = ({locale}: Props) => {
     useEffect(() => {
         itemsRef.current = items;
     }, [items]);
+
+    useEffect(() => {
+        const target = pendingFocusRef.current;
+        if (target == null) return;
+        pendingFocusRef.current = null;
+        const element = target === "heading"
+            ? document.getElementById("favorites-page-heading")
+            : document.querySelector<HTMLElement>(`[data-favorite-product-id="${target}"]`);
+        element?.focus({preventScroll: true});
+    }, [favoriteIdKey]);
+
+    const preserveFocusAfterFavoriteRemoval = (productId: number, keyboardActivated: boolean) => {
+        if (!keyboardActivated) return;
+        const index = items.findIndex((item) => item.productId === productId);
+        pendingFocusRef.current = items[index + 1]?.productId ?? items[index - 1]?.productId ?? "heading";
+    };
 
     useEffect(() => {
         if (!favoriteIdKey) {
@@ -155,10 +172,17 @@ const FavoritesPage = ({locale}: Props) => {
             <Navigation/>
             <div className="responsive-page-x pt-10 sm:pt-10">
 
-                <section>
-                    <Heading as="h1" size="h2" font="mono" colors="headingPrimary">
+                <section aria-busy={favoritesRefreshing || similarLoading}>
+                    <Heading id="favorites-page-heading" tabIndex={-1} as="h1" size="h2" font="mono" colors="headingPrimary">
                         {t("title")}
                     </Heading>
+                    <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                        {favoritesRefreshing
+                            ? t("loading")
+                            : favoritesRefreshError
+                                ? stateT("favorites.loadErrorTitle")
+                                : t("resultCount", {count: favoriteSnapshots.length})}
+                    </p>
 
                     {items.length && favoritesRefreshError ? (
                         <ErrorState
@@ -189,6 +213,8 @@ const FavoritesPage = ({locale}: Props) => {
                                     href={product.href}
                                     priority={index < 4}
                                     isCatalog
+                                    headingLevel="h2"
+                                    onFavoriteRemoved={preserveFocusAfterFavoriteRemoval}
                                 />
                             ))}
                         </div>
@@ -210,6 +236,13 @@ const FavoritesPage = ({locale}: Props) => {
                     )}
 
                     <SectionWithTitle title={t("similarTitle")} className="mt-favorites-section-gap">
+                        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                            {similarLoading
+                                ? t("similarLoading")
+                                : similarError
+                                    ? stateT("similar.errorTitle")
+                                    : t("similarResultCount", {count: similarProducts.length})}
+                        </p>
                         {similarProducts.length ? (
                             <GoodsCarouselWithImage
                                 items={similarProducts.map((product) => ({
@@ -223,6 +256,7 @@ const FavoritesPage = ({locale}: Props) => {
                         ) : similarLoading ? (
                             <GoodsCarouselWithImage
                                 items={undefined}
+                                loading
                                 showBanner={false}
                                 className="mt-6"
                             />

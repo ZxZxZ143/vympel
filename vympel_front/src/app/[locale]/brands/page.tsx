@@ -1,6 +1,7 @@
 import BrandsPage from "@/screens/BrandsPage";
 import {LocaleEnum} from "@/i18n/routing";
 import {publicSeoMetadata} from "@/lib/seo";
+import {staticSeoContent} from "@/lib/seoContent";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ type Props = {
 
 export async function generateMetadata({params}: Props) {
     const {locale} = await params;
-    return publicSeoMetadata(locale, ["brands"], "Vympel — Brands");
+    return publicSeoMetadata(locale, ["brands"], staticSeoContent(locale, "brands"));
 }
 
 export default async function Page({params}: Props) {

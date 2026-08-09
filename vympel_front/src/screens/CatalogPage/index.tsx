@@ -21,15 +21,20 @@ import {
     isAccessoryCategoryCode
 } from "@/utils/catalogCategories";
 import {ICategoryWithParent} from "@/api/types/CategoryTypes";
+import type {Page} from "@/api/types/PageType";
+import type {IProduct} from "@/api/types/ProductTypes";
 
 type Props = {
     categoryCode: string | undefined;
     locale: LocaleEnum;
     initialCategory: ICategoryWithParent | null;
+    initialProducts: Page<IProduct> | null;
+    initialProductsError: boolean;
+    initialQueryKey: string;
 }
 
 
-const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory}) => {
+const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory, initialProducts, initialProductsError, initialQueryKey}) => {
     const t = await getTranslations("title")
     const catalogT = await getTranslations("catalog");
     const productT = await getTranslations("product");
@@ -86,7 +91,13 @@ const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory}) =
                         initialCategory={initialCategory}
                     />
                     <div className="w-full">
-                        <Catalog locale={locale} categoryCode={categoryCode}/>
+                        <Catalog
+                            key={initialQueryKey}
+                            locale={locale}
+                            categoryCode={categoryCode}
+                            initialPage={initialProducts}
+                            initialLoadError={initialProductsError}
+                        />
                     </div>
                 </div>
                 <div className="mt-[var(--spacing-responsive-section-y)] flex flex-col gap-[var(--spacing-responsive-section-y)]">

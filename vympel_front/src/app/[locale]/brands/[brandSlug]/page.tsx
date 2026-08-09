@@ -3,6 +3,7 @@ import {LocaleEnum} from "@/i18n/routing";
 import {getBrandPageData} from "@/config/brandPages";
 import {notFound} from "next/navigation";
 import {publicSeoMetadata} from "@/lib/seo";
+import {brandSeoContent} from "@/lib/seoContent";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export async function generateMetadata({params}: Props) {
     const {locale, brandSlug} = await params;
     const brand = getBrandPageData(brandSlug, locale);
     if (!brand) return {robots: {index: false, follow: false}};
-    return publicSeoMetadata(locale, ["brands", brand.slug], `${brand.displayName} — Vympel`);
+    return publicSeoMetadata(locale, ["brands", brand.slug], brandSeoContent(brand.displayName, brand.description));
 }
 
 export default async function Page({params}: Props) {

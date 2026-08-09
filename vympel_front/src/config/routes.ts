@@ -1,6 +1,8 @@
 import {LocaleEnum} from "@/i18n/routing";
 import type {BrandSlug} from "@/config/brandRoutes";
 import {normalizeCatalogQueryValue, normalizeCatalogQueryValues} from "@/utils/catalogFilterParams";
+import {catalogHrefFromPolicy, classifyCatalogUrl} from "@/lib/catalogUrl";
+import {instagramProfileUrl} from "@/config/socialLinks";
 
 type CatalogFilterValue = string | number | Array<string | number> | null | undefined;
 type CatalogFilters = Record<string, CatalogFilterValue>;
@@ -33,7 +35,7 @@ export const CONTACT_LINKS = {
     phoneNumber: "+77474080620",
     phone: "tel:+77474080620",
     whatsapp: "https://wa.me/77474080620",
-    instagram: "https://www.instagram.com/",
+    instagram: instagramProfileUrl,
 } as const;
 
 export const MARKETPLACE_LINKS = {
@@ -92,11 +94,6 @@ function appendFilter(params: URLSearchParams, key: string, value: CatalogFilter
         .forEach((normalizedValue) => appendParam(params, key, normalizedValue));
 }
 
-function hrefWithParams(path: string, params: URLSearchParams) {
-    const query = params.toString();
-    return query ? `${path}?${query}` : path;
-}
-
 export function isExternalHref(href: string) {
     return /^(https?:|mailto:|tel:)/i.test(href);
 }
@@ -120,7 +117,6 @@ export function home() {
 export function catalog(params: CatalogRouteParams = {}) {
     const searchParams = new URLSearchParams();
 
-    appendParam(searchParams, "categoryCode", params.categoryCode);
     appendParam(searchParams, "search", params.search);
     appendParam(searchParams, "priceMin", params.priceMin);
     appendParam(searchParams, "priceMax", params.priceMax);
@@ -131,15 +127,15 @@ export function catalog(params: CatalogRouteParams = {}) {
         appendFilter(searchParams, key, value);
     });
 
-    return hrefWithParams("/catalog", searchParams);
+    return catalogHrefFromPolicy(classifyCatalogUrl(params.categoryCode, searchParams));
 }
 
-export function catalogFromSearchParams(params: URLSearchParams) {
-    return hrefWithParams("/catalog", params);
+export function catalogFromSearchParams(params: URLSearchParams, categoryCode?: string | null) {
+    return catalogHrefFromPolicy(classifyCatalogUrl(categoryCode, params));
 }
 
 export function category(categoryCode: string | null | undefined) {
-    return catalog({categoryCode, page: 1});
+    return catalog({categoryCode});
 }
 
 export function filteredCatalog(params: CatalogRouteParams) {
@@ -159,10 +155,7 @@ export function categorySelectionCatalog(categoryCode: string | null | undefined
         }
     });
 
-    appendParam(params, "categoryCode", categoryCode);
-    appendParam(params, "page", 1);
-
-    return catalogFromSearchParams(params);
+    return catalogFromSearchParams(params, categoryCode);
 }
 
 export function product(productId: string | number) {

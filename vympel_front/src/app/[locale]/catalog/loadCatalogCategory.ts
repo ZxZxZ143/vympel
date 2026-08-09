@@ -4,8 +4,9 @@ import {PublicApiController} from "@/api/controllers/PublicController";
 import {ApiError} from "@/api/types/ApiError";
 import {ICategoryWithParent} from "@/api/types/CategoryTypes";
 import {LocaleEnum} from "@/i18n/routing";
+import {cache} from "react";
 
-export async function loadCatalogCategory(
+export const loadCatalogCategory = cache(async function loadCatalogCategory(
     categoryCode: string | undefined,
     locale: LocaleEnum
 ): Promise<ICategoryWithParent | null> {
@@ -23,4 +24,4 @@ export async function loadCatalogCategory(
         console.error(error);
         return null;
     }
-}
+});

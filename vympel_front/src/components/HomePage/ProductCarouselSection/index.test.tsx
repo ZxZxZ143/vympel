@@ -77,4 +77,11 @@ describe("ProductCarouselSection", () => {
 
         await expect(ProductCarouselSection(baseProps)).resolves.toBeNull();
     });
+
+    it("omits an awaited failed optional rail instead of rendering terminal skeletons", async () => {
+        vi.spyOn(PublicApiController, "getProductsList").mockRejectedValue(new Error("offline"));
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+        await expect(ProductCarouselSection(baseProps)).resolves.toBeNull();
+    });
 });

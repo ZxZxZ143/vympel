@@ -256,12 +256,12 @@ const ProductStateShell = ({
     </main>
 );
 
-type ProductBreadcrumb = {
+export type ProductBreadcrumb = {
     label: string;
     href?: string;
 };
 
-function buildProductBreadcrumbs(
+export function buildProductBreadcrumbs(
     product: IProductDetails,
     labels: { home: string; catalog: string }
 ): ProductBreadcrumb[] {

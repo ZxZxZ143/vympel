@@ -63,8 +63,9 @@ const CartPage = ({locale}: Props) => {
     const [cartRefreshLoading, setCartRefreshLoading] = useState(false);
     const [cartRefreshError, setCartRefreshError] = useState(false);
     const [cartRefreshKey, setCartRefreshKey] = useState(0);
-    const [removeCandidate, setRemoveCandidate] = useState<{ productId: number; name: string } | null>(null);
+    const [removeCandidate, setRemoveCandidate] = useState<{ productId: number; name: string; keyboardActivated: boolean } | null>(null);
     const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+    const pendingFocusRef = useRef<number | "heading" | null>(null);
     const total = useMemo(() => (
         items.reduce((sum, item) => sum + ((item.snapshot?.price ?? 0) * item.quantity), 0)
     ), [items]);
@@ -222,10 +223,26 @@ const CartPage = ({locale}: Props) => {
         }
     };
 
+    const nextCartFocusTarget = (productId: number): number | "heading" => {
+        const index = items.findIndex((item) => item.productId === productId);
+        return items[index + 1]?.productId ?? items[index - 1]?.productId ?? "heading";
+    };
+
+    const restoreMutationFocus = (event: Event) => {
+        const target = pendingFocusRef.current;
+        if (target == null) return;
+        event.preventDefault();
+        pendingFocusRef.current = null;
+        const element = target === "heading"
+            ? document.getElementById("cart-page-heading")
+            : document.querySelector<HTMLElement>(`[data-cart-remove-id="${target}"]`);
+        element?.focus({preventScroll: true});
+    };
+
     return (
-        <main className="mx-auto max-w-360 responsive-page-x pt-10 sm:pt-12">
+        <main aria-busy={cartRefreshLoading} className="mx-auto max-w-360 responsive-page-x pt-10 sm:pt-12">
             <div className="flex flex-wrap items-center justify-between gap-6">
-                <Heading as="h1" size="h2" font="mono" colors="headingPrimary">
+                <Heading id="cart-page-heading" tabIndex={-1} as="h1" size="h2" font="mono" colors="headingPrimary">
                     {cartT("title")}
                 </Heading>
 
@@ -240,6 +257,13 @@ const CartPage = ({locale}: Props) => {
                     </button>
                 ) : null}
             </div>
+            <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                {cartRefreshLoading
+                    ? cartT("loading")
+                    : cartRefreshError
+                        ? stateT("cart.loadErrorTitle")
+                        : cartT("resultCount", {count: items.length})}
+            </p>
 
             {!items.length ? (
                 <EmptyState
@@ -370,8 +394,13 @@ const CartPage = ({locale}: Props) => {
                                         <button
                                             type="button"
                                             aria-label={cartT("remove", {name: productName})}
+                                            data-cart-remove-id={item.productId}
                                             className="flex size-11 items-center justify-center rounded-full text-text-heading-secondary transition hover:text-text-heading-primary"
-                                            onClick={() => setRemoveCandidate({productId: item.productId, name: productName})}
+                                            onClick={(event) => setRemoveCandidate({
+                                                productId: item.productId,
+                                                name: productName,
+                                                keyboardActivated: event.detail === 0,
+                                            })}
                                         >
                                             <Trash2 className="size-5" aria-hidden="true"/>
                                         </button>
@@ -418,7 +447,7 @@ const CartPage = ({locale}: Props) => {
                     }
                 }}
             >
-                <AlertDialogContent closeLabel={cartT("confirmRemove.cancel")}>
+                <AlertDialogContent closeLabel={cartT("confirmRemove.cancel")} onCloseAutoFocus={restoreMutationFocus}>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{cartT("confirmRemove.title")}</AlertDialogTitle>
                         <AlertDialogDescription>{cartT("confirmRemove.description")}</AlertDialogDescription>
@@ -433,8 +462,11 @@ const CartPage = ({locale}: Props) => {
                             <Button
                                 variant="action"
                                 className="w-full sm:w-auto"
-                                onClick={() => {
+                                onClick={(event) => {
                                     if (removeCandidate) {
+                                        if (removeCandidate.keyboardActivated || event.detail === 0) {
+                                            pendingFocusRef.current = nextCartFocusTarget(removeCandidate.productId);
+                                        }
                                         removeProduct(removeCandidate.productId);
                                     }
                                     setRemoveCandidate(null);
@@ -448,7 +480,7 @@ const CartPage = ({locale}: Props) => {
             </AlertDialog>
 
             <AlertDialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
-                <AlertDialogContent closeLabel={cartT("confirmClear.cancel")}>
+                <AlertDialogContent closeLabel={cartT("confirmClear.cancel")} onCloseAutoFocus={restoreMutationFocus}>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{cartT("confirmClear.title")}</AlertDialogTitle>
                         <AlertDialogDescription>{cartT("confirmClear.description")}</AlertDialogDescription>
@@ -463,7 +495,8 @@ const CartPage = ({locale}: Props) => {
                             <Button
                                 variant="action"
                                 className="w-full sm:w-auto"
-                                onClick={() => {
+                                onClick={(event) => {
+                                    if (event.detail === 0) pendingFocusRef.current = "heading";
                                     clearProducts();
                                     setClearConfirmOpen(false);
                                 }}

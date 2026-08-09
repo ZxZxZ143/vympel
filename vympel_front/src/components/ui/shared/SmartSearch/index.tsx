@@ -84,6 +84,17 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
     const ariaLabel = isHomeSearch ? navT("ariaLabel") : productT("ariaLabel");
     const placeholder = isHomeSearch ? navT("placeholder") : productT("placeholder");
     const submitLabel = isHomeSearch ? navT("submit") : productT("submit");
+    const settledAnnouncement = !isSearchOpen || !canSearch
+        ? ""
+        : status === "success"
+            ? results.length
+                ? navT("resultCount", {count: results.length})
+                : navT("noResultsTitle")
+            : status === "error"
+                ? navT("errorTitle")
+                : status === "rateLimited"
+                    ? navT("rateLimitTitle")
+                    : "";
 
     const closeOverlay = useCallback(() => {
         if (coordinatesCatalogOverlay) {
@@ -331,7 +342,7 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
                                             type="button"
                                             aria-label={navT("close")}
                                             onClick={closeOverlay}
-                                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-text-product-muted transition-vympel-fast hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
+                                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full text-text-heading-secondary transition-vympel-fast hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
                                         >
                                             <X className="size-5" aria-hidden="true"/>
                                         </button>
@@ -363,7 +374,10 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
                                     updateQuery(event.target.value);
                                 }}
                                 onFocus={openOverlay}
-                                aria-controls={panelId}
+                                role="combobox"
+                                aria-haspopup="dialog"
+                                aria-controls={isSearchOpen ? panelId : undefined}
+                                aria-expanded={isSearchOpen}
                                 placeholder={placeholder}
                                 className={cn(
                                     "min-w-0 flex-1 bg-transparent text-text-input-primary outline-none placeholder:text-text-placeholder",
@@ -406,6 +420,10 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
 
                     <div
                         id={panelId}
+                        role="dialog"
+                        aria-modal="false"
+                        aria-label={ariaLabel}
+                        aria-busy={status === "loading"}
                         aria-hidden={!isSearchOpen}
                         className={cn(
                             "absolute left-0 top-full z-50 -mt-px w-full origin-top rounded-b-2xl border border-t-0 border-border-default bg-primary-bg transition-vympel motion-reduce:transition-none",
@@ -436,6 +454,9 @@ const SmartSearch = ({className, mobileIconOnly = false, onOpen, variant = "head
                             />
                         </div>
                     </div>
+                    <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                        {settledAnnouncement}
+                    </p>
                 </div>
             </div>
         </div>
