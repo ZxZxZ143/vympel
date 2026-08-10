@@ -83,10 +83,16 @@ describe("confirmed accessibility and semantics regressions", () => {
 
     it("removes false stock notification and decouples headings from actions", () => {
         const summary = source("components/ProductPage/ProductSummary/index.tsx");
+        const globals = source("app/globals.css");
         const card = source("components/GoodCard/index.tsx");
         const goods = source("components/ui/shared/GoodsCarouselWithImage/index.tsx");
         expect(summary).not.toContain("submitStockNotify");
         expect(summary).toContain("product_availability_question");
+        expect(summary).not.toContain("productMarketplaceLinks");
+        expect(summary).not.toContain("buyOnMarketplace");
+        expect(summary).not.toContain("MARKETPLACE_CLICK");
+        expect(summary.match(/mt-product-summary-actions-gap/g)).toHaveLength(2);
+        expect(globals).toContain("--spacing-product-summary-actions-gap: 28px");
         expect(card).toContain('headingLevel?: "h2" | "h3"');
         expect(goods).toContain('headingLevel="h3"');
         expect(goods).toContain("loading?: boolean");

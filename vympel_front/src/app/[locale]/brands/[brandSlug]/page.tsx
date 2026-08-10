@@ -18,7 +18,7 @@ export async function generateMetadata({params}: Props) {
     const {locale, brandSlug} = await params;
     const brand = getBrandPageData(brandSlug, locale);
     if (!brand) return {robots: {index: false, follow: false}};
-    return publicSeoMetadata(locale, ["brands", brand.slug], brandSeoContent(brand.displayName, brand.description));
+    return publicSeoMetadata(locale, ["brands", brand.slug], brandSeoContent(locale, brand.displayName, brand.description));
 }
 
 export default async function Page({params}: Props) {

@@ -50,13 +50,14 @@ try {
     await expectSecurityHeaders(origin, "/ru");
     await expectSecurityHeaders(origin, "/kaspi.png");
     await expectSecurityHeaders(origin, "/api/telemetry");
+    await expectFavicon(origin);
     const staticChunk = (await readdir(path.join(root, ".next", "static", "chunks")))
         .find((name) => name.endsWith(".js"));
     assert.ok(staticChunk, "production build must contain a static JS chunk");
     await expectSecurityHeaders(origin, `/_next/static/chunks/${staticChunk}`);
 
     await expectStatusAndText(origin, "/ru", 200);
-    await expectStatusAndText(origin, "/ru/product/1", 200, "Integration product");
+    await expectStatusAndText(origin, "/ru/product/1", 200, "Romanson TM9A19MMW(BK)");
     await expectStatusAndText(origin, "/ru/catalog", 200, "/ru/product/1");
     await expectStatusAndText(origin, "/ru/catalog?page=2", 200, "/ru/product/1");
     await expectStatusAndText(origin, "/ru/catalog?page=3", 404, notFoundTitles.ru);
@@ -64,6 +65,7 @@ try {
     await expectStatusAndText(origin, "/ru/brands/romanson", 200, "ROMANSON");
 
     await expectApprovedIndexingPolicy(origin);
+    await expectMetadataMatrix(origin);
 
     for (const locale of locales) {
         await expectStatusAndText(
@@ -164,9 +166,19 @@ async function expectApprovedIndexingPolicy(originUrl) {
 
     const productResponse = await fetch(`${originUrl}/en/product/1`);
     const productHtml = await productResponse.text();
-    assert.match(productHtml, /Integration product Status matrix/i);
+    assert.match(productHtml, /Romanson TM9A19MMW\(BK\)/i);
     assert.match(productHtml, /application\/ld\+json/i);
     assert.match(productHtml, /"@type":"Product"/i);
+    assert.doesNotMatch(
+        productHtml,
+        /<a\b[^>]*href="https:\/\/[^\"]*(?:kaspi\.kz|wildberries\.(?:ru|kz))/i,
+        "product page must not render Kaspi or Wildberries purchase anchors",
+    );
+    assert.match(
+        productHtml,
+        /class="[^"]*mt-product-summary-actions-gap[^"]*"/i,
+        "the next product action block must retain the named 28px spacing token",
+    );
 
     for (const locale of locales) {
         for (const route of ["cart", "favorites"]) {
@@ -191,6 +203,158 @@ async function expectApprovedIndexingPolicy(originUrl) {
     const sitemapLocations = Array.from(sitemapText.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1]);
     assert.ok(sitemapLocations.length > 0, "approved sitemap must publish canonical routes");
     assert.ok(sitemapLocations.every((location) => !new URL(location).search), "sitemap must not contain query variants");
+}
+
+async function expectFavicon(originUrl) {
+    const response = await fetch(`${originUrl}/favicon.ico`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    assert.equal(response.status, 200, "favicon request must return 200");
+    assert.match(response.headers.get("content-type") ?? "", /image\/(?:x-icon|vnd\.microsoft\.icon)/i);
+    assert.ok(bytes.length > 500, "favicon must contain real multi-size icon data");
+    assert.deepEqual(Array.from(bytes.slice(0, 4)), [0, 0, 1, 0], "favicon must have a valid ICO header");
+}
+
+function getMetadataExpectations() {
+    return {
+    ru: {
+        home: ["Vympel — официальный дистрибьютор премиальных часов", "авторизованный дистрибьютор"],
+        catalog: ["Каталог часов и аксессуаров — Vympel", "оригинальные наручные"],
+        category: ["Наручные часы — Vympel", "Наручные часы в каталоге Vympel"],
+        product: ["Romanson TM9A19MMW(BK) — Vympel", "Мужские наручные часы Romanson"],
+        brands: ["Бренды часов — Vympel", "Romanson, Adriatica"],
+        brand: ["ROMANSON — часы | Vympel", "Южнокорейский бренд"],
+        about: ["О компании Vympel — официальный магазин часов", "более 30 лет опыта"],
+        delivery: ["Доставка — Vympel", "доставки заказов Vympel"],
+        payment: ["Оплата — Vympel", "Способы оплаты заказов Vympel"],
+        guarantee: ["Гарантия — Vympel", "Условия гарантии"],
+    },
+    kz: {
+        home: ["Vympel — премиум сағаттардың ресми дистрибьюторы", "авторизацияланған дистрибьюторы"],
+        catalog: ["Сағаттар мен аксессуарлар каталогы — Vympel", "түпнұсқа қол сағаттарын"],
+        category: ["Қол сағаттары — Vympel", "Қол сағаттары Vympel каталогында"],
+        product: ["Romanson TM9A19MMW(BK) — Vympel", "Romanson ерлер қол сағаты"],
+        brands: ["Сағат брендтері — Vympel", "Romanson, Adriatica"],
+        brand: ["ROMANSON — сағаттар | Vympel", "Заманауи эстетика"],
+        about: ["Vympel компаниясы туралы — ресми сағат дүкені", "30 жылдан астам тәжірибе"],
+        delivery: ["Жеткізу — Vympel", "жеткізу шарттары"],
+        payment: ["Төлем — Vympel", "төлеу тәсілдері"],
+        guarantee: ["Кепілдік — Vympel", "кепілдік, сервистік қызмет"],
+    },
+    en: {
+        home: ["Vympel — official distributor of premium watches", "authorized distributor"],
+        catalog: ["Watches and accessories catalog — Vympel", "original wristwatches"],
+        category: ["Wrist watches — Vympel", "Explore Wrist watches"],
+        product: ["Romanson TM9A19MMW(BK) — Vympel", "Romanson men's wristwatch"],
+        brands: ["Watch brands — Vympel", "Romanson, Adriatica"],
+        brand: ["ROMANSON watches | Vympel", "A South Korean brand"],
+        about: ["About Vympel — official watch store", "30+ years of experience"],
+        delivery: ["Delivery — Vympel", "Delivery terms and options"],
+        payment: ["Payment — Vympel", "Payment options for Vympel"],
+        guarantee: ["Warranty — Vympel", "Warranty, service, and return"],
+    },
+    };
+}
+
+function getMetadataRoutes() {
+    return {
+        home: "",
+        catalog: "/catalog",
+        category: "/catalog/WATCH_WRIST",
+        product: "/product/1",
+        brands: "/brands",
+        brand: "/brands/romanson",
+        about: "/about",
+        delivery: "/delivery",
+        payment: "/payment",
+        guarantee: "/guarantee",
+    };
+}
+
+async function expectMetadataMatrix(originUrl) {
+    const canonicalOrigin = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop.example.test");
+    const descriptionsByLocale = {};
+    const metadataExpectations = getMetadataExpectations();
+    const metadataRoutes = getMetadataRoutes();
+
+    for (const locale of locales) {
+        const expectedLocale = metadataExpectations[locale];
+        const descriptions = [];
+
+        for (const [routeName, suffix] of Object.entries(metadataRoutes)) {
+            const pathname = `/${locale}${suffix}`;
+            const response = await fetch(originUrl + pathname);
+            const html = await response.text();
+            assert.equal(response.status, 200, `${pathname} must render for metadata verification`);
+            const head = readHeadMetadata(html);
+            const [expectedTitle, descriptionMarker] = expectedLocale[routeName];
+
+            assert.equal(head.title, expectedTitle, `${pathname} title must be route-specific and localized`);
+            assert.ok(head.description.includes(descriptionMarker), `${pathname} description must include ${descriptionMarker}`);
+            assert.equal(head.openGraphTitle, head.title, `${pathname} Open Graph title must match title`);
+            assert.equal(head.openGraphDescription, head.description, `${pathname} Open Graph description must match description`);
+            assert.equal(head.twitterTitle, head.title, `${pathname} Twitter title must match title`);
+            assert.equal(head.twitterDescription, head.description, `${pathname} Twitter description must match description`);
+
+            const expectedCanonical = new URL(pathname, canonicalOrigin).toString();
+            assert.equal(head.canonical, expectedCanonical, `${pathname} canonical must be self-referential`);
+            assert.equal(head.languages.ru, new URL(`/ru${suffix}`, canonicalOrigin).toString());
+            assert.equal(head.languages.kk, new URL(`/kz${suffix}`, canonicalOrigin).toString());
+            assert.equal(head.languages.en, new URL(`/en${suffix}`, canonicalOrigin).toString());
+            assert.equal(head.languages["x-default"], new URL(`/ru${suffix}`, canonicalOrigin).toString());
+            descriptions.push(head.description);
+        }
+
+        assert.equal(new Set(descriptions).size, descriptions.length, `${locale} route descriptions must not reuse generic copy`);
+        descriptionsByLocale[locale] = descriptions;
+    }
+
+    assert.ok(descriptionsByLocale.en.every((value) => !/[А-Яа-яӘәҒғҚқҢңӨөҰұҮүҺһІі]/.test(value)), "English metadata must not leak Cyrillic copy");
+    assert.ok(descriptionsByLocale.ru.every((value) => !/[ӘәҒғҚқҢңӨөҰұҮүҺһІі]/.test(value)), "Russian metadata must not leak Kazakh-specific copy");
+    assert.ok(descriptionsByLocale.kz.every((value) => /[ӘәҒғҚқҢңӨөҰұҮүҺһІі]/.test(value)), "Kazakh descriptions must contain real Kazakh copy");
+}
+
+function readHeadMetadata(html) {
+    const headHtml = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? "";
+    const title = decodeHtml(headHtml.match(/<title>([\s\S]*?)<\/title>/i)?.[1] ?? "");
+    const metaTags = headHtml.match(/<meta\b[^>]*>/gi) ?? [];
+    const linkTags = headHtml.match(/<link\b[^>]*>/gi) ?? [];
+    const meta = (attributeName, attributeValue) => decodeHtml(getAttribute(
+        metaTags.find((tag) => getAttribute(tag, attributeName) === attributeValue) ?? "",
+        "content",
+    ));
+    const link = (rel, hrefLang) => decodeHtml(getAttribute(
+        linkTags.find((tag) => getAttribute(tag, "rel") === rel && (!hrefLang || getAttribute(tag, "hreflang") === hrefLang)) ?? "",
+        "href",
+    ));
+
+    return {
+        title,
+        description: meta("name", "description"),
+        openGraphTitle: meta("property", "og:title"),
+        openGraphDescription: meta("property", "og:description"),
+        twitterTitle: meta("name", "twitter:title"),
+        twitterDescription: meta("name", "twitter:description"),
+        canonical: link("canonical"),
+        languages: {
+            ru: link("alternate", "ru"),
+            kk: link("alternate", "kk"),
+            en: link("alternate", "en"),
+            "x-default": link("alternate", "x-default"),
+        },
+    };
+}
+
+function getAttribute(tag, name) {
+    return tag.match(new RegExp(`\\s${name}="([^"]*)"`, "i"))?.[1] ?? "";
+}
+
+function decodeHtml(value) {
+    return value
+        .replace(/&quot;/g, "\"")
+        .replace(/&#x27;|&#39;|&apos;/g, "'")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&");
 }
 
 async function waitForServer(originUrl, child, logs) {
@@ -218,7 +382,7 @@ function createMockApi() {
         const productMatch = pathname.match(/^\/api\/public\/product\/(ru|kz|en)\/(\d+)$/);
         if (productMatch) {
             if (productMatch[2] === "999") return json(response, 404, apiError(404, "Resource not found."));
-            return json(response, 200, product());
+            return json(response, 200, product(productMatch[1]));
         }
 
         if (/^\/api\/public\/product\/(ru|kz|en)\/\d+\/reviews$/.test(pathname)) {
@@ -231,9 +395,10 @@ function createMockApi() {
             return json(response, 200, page([]));
         }
         if (/^\/api\/public\/product\/catalog\/(ru|kz|en)$/.test(pathname)) {
+            const locale = pathname.match(/^\/api\/public\/product\/catalog\/(ru|kz|en)$/)?.[1] ?? "ru";
             const requestedPage = Number(url.searchParams.get("page") ?? 0);
             if (requestedPage <= 1) {
-                return json(response, 200, page([product()], {
+                return json(response, 200, page([product(locale)], {
                     number: requestedPage,
                     totalElements: 2,
                     totalPages: 2,
@@ -250,11 +415,12 @@ function createMockApi() {
             const code = categoryMatch[2];
             if (code === "MISSING_CATEGORY") return json(response, 404, apiError(404, "Resource not found."));
             if (code === "TEMPORARY_FAILURE") return json(response, 500, apiError(500, "Unexpected server error."));
-            return json(response, 200, category(code));
+            return json(response, 200, category(code, categoryMatch[1]));
         }
 
-        if (/^\/api\/public\/category\/all\/(ru|kz|en)$/.test(pathname)) {
-            return json(response, 200, [category("WATCH_WRIST")]);
+        const allCategoriesMatch = pathname.match(/^\/api\/public\/category\/all\/(ru|kz|en)$/);
+        if (allCategoriesMatch) {
+            return json(response, 200, [category("WATCH_WRIST", allCategoriesMatch[1])]);
         }
 
         if (/^\/api\/public\/cms\/pages\//.test(pathname)) {
@@ -265,17 +431,22 @@ function createMockApi() {
     });
 }
 
-function product() {
+function product(locale = "ru") {
+    const descriptions = {
+        ru: "Мужские наручные часы Romanson с лаконичным циферблатом и фирменной гарантией.",
+        kz: "Romanson ерлер қол сағаты, ықшам циферблатпен және фирмалық кепілдікпен.",
+        en: "Romanson men's wristwatch with a clean dial and official warranty support.",
+    };
     return {
         id: 1,
         sku: "INTEGRATION-1",
-        name: "Integration product",
-        model: "Status matrix",
+        name: "Romanson TM9A19MMW(BK)",
+        model: "TM9A19MMW(BK)",
         price: 100000,
         stockQuantity: 1,
         status: "ACTIVE",
         productType: "WATCH",
-        category: {id: 1, name: "Wrist watches", code: "WATCH_WRIST", parentId: null},
+        category: category("WATCH_WRIST", locale),
         brand: {id: "1", name: "Romanson", country: []},
         collection: null,
         images: [{
@@ -285,7 +456,7 @@ function product() {
             sortOrder: 0,
             isMain: true,
         }],
-        description: null,
+        description: {shortText: descriptions[locale], content: descriptions[locale], title: null},
         watchDetails: null,
         interiorClockDetails: null,
         kaspiUrl: null,
@@ -295,8 +466,9 @@ function product() {
     };
 }
 
-function category(code) {
-    return {id: 1, name: "Wrist watches", code, parent: null, parentId: null};
+function category(code, locale = "ru") {
+    const names = {ru: "Наручные часы", kz: "Қол сағаттары", en: "Wrist watches"};
+    return {id: 1, name: names[locale], code, parent: null, parentId: null};
 }
 
 function catalogFilters() {

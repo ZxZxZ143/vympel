@@ -22,16 +22,10 @@ import {
 import {useProductActionToasts} from "@/hooks/useProductActionToasts";
 import RatingStars from "@/components/ProductRating/RatingStars";
 import CustomerRequestButton from "@/components/CustomerRequestDialog/CustomerRequestButton";
-import {MARKETPLACE_LINKS} from "@/config/routes";
 
 type Props = {
     product: IProductDetails;
 };
-
-const productMarketplaceLinks = [
-    {id: "kaspi", name: "Kaspi", href: MARKETPLACE_LINKS.kaspi},
-    {id: "wildberries", name: "Wildberries", href: MARKETPLACE_LINKS.wildberries},
-] as const;
 
 const ProductSummary = ({product}: Props) => {
     const t = useTranslations("product");
@@ -160,30 +154,9 @@ const ProductSummary = ({product}: Props) => {
                 {formattedPrice}
             </Text>
 
-            <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-                {productMarketplaceLinks.map((marketplace) => (
-                    <a
-                        key={marketplace.id}
-                        href={marketplace.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={t("summary.openMarketplaceAria", {marketplace: marketplace.name})}
-                        onClick={() => trackProductEvent(product.id, "MARKETPLACE_CLICK")}
-                        className={cn(
-                            buttonVariants({variant: "default", size: "md"}),
-                            "min-h-12 w-full min-w-0 px-5 text-center"
-                        )}
-                    >
-                        <Text as="span" size="bodySm" weight="medium" className="leading-tight">
-                            {t("summary.buyOnMarketplace", {marketplace: marketplace.name})}
-                        </Text>
-                    </a>
-                ))}
-            </div>
-
             {isAvailable ? (
                 <>
-                    <div className="flex items-center gap-3 mt-7">
+                    <div className="mt-product-summary-actions-gap flex items-center gap-3">
                         <Button
                             variant="action"
                             aria-pressed={isInCart}
@@ -258,7 +231,10 @@ const ProductSummary = ({product}: Props) => {
                     source={`product_availability_question:${product.id}`}
                     title="question"
                     message={t("summary.availabilityMessage", {product: product.name})}
-                    className={cn(buttonVariants({variant: "action", size: "md"}), "mt-4 w-full lg:max-w-[330px]")}
+                    className={cn(
+                        buttonVariants({variant: "action", size: "md"}),
+                        "mt-product-summary-actions-gap w-full lg:max-w-[330px]"
+                    )}
                 >
                     <Text as="span" colors="inverse" size="bodySm" weight="medium">
                         {t("summary.askAvailability")}
