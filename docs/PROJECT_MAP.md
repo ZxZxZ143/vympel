@@ -1127,7 +1127,7 @@ Public RU/KZ/EN message files include `nav`, `pagination`, `bannerCarousel`, `ph
 
 Both Next applications use Next.js 16.2.12 and `eslint-config-next` 16.2.12. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.26 under Next, which resolves `nanoid` 3.3.18, and public also pins the affected watcher `picomatch` transitive. The current ESLint graph locks `js-yaml` 4.3.1. Both apps narrowly override Next's optional `sharp` dependency to the stable `^0.35.0` line, currently locked at `0.35.3`; `scripts/check-sharp-security.mjs` prints the installed `next`/`sharp` graph and fails unless every installed `sharp` is a stable version at least `0.35.0`.
 
-The frontend and CRM also scope `brace-expansion@5.0.9` to the legacy `minimatch@3.1.5` owner. The secure 5.x line changed its CommonJS export shape, so each application owns a fail-closed `scripts/patch-minimatch-brace-expansion.mjs` postinstall bridge that accepts only the reviewed minimatch and brace-expansion versions, patches the legacy import, and runs a finite matching assertion. Both Docker dependency stages copy the bridge before `npm ci`; clean Windows and Linux/Alpine installs therefore exercise the same path. Storefront CI, CRM CI, and the aggregate gate retain the unmodified `npm audit --audit-level=high` threshold.
+The frontend and CRM also scope `brace-expansion@5.0.9` to the legacy `minimatch@3.1.5` owner. The secure 5.x line changed its CommonJS export shape, so each application owns a fail-closed `scripts/patch-minimatch-brace-expansion.mjs` postinstall bridge that accepts only the reviewed minimatch and brace-expansion versions, patches the legacy import, and runs a finite matching assertion. Both Docker dependency stages copy the bridge before `npm ci`; clean Windows and Linux/Alpine installs therefore exercise the same path. Lockfiles must be generated and clean-installed with the release container's npm 10 contract so required cross-platform optional peer entries remain present. Storefront CI, CRM CI, and the aggregate gate retain the unmodified `npm audit --audit-level=high` threshold.
 
 ### Final release evidence
 
@@ -1155,4 +1155,4 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 
 ## Last Updated
 
-2026-08-10 - Remediated the advisories that stopped SHA-based staging publication run `31376850305` by locking compatible `brace-expansion` 5.0.9, `js-yaml` 4.3.1, `postcss` 8.5.26, and `nanoid` 3.3.18 while preserving the fail-closed compatibility bridge and unchanged release gates; the failed run wrote no GHCR tags.
+2026-08-10 - Remediated the advisories that stopped SHA-based staging publication run `31376850305`, then restored npm 10 cross-platform optional lock entries after build-only run `31380881311` exposed npm 12 lock normalization; both stopped before GHCR writes and the final dependency graph keeps the unchanged security gates.

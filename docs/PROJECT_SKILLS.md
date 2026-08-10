@@ -1964,6 +1964,12 @@
 * **How:** Confirm publication stopped before registry preflight, inspect each owner with `npm ls`/`npm explain`, and update only compatible patched leaves. The 2026-08-10 remediation moved the reviewed minimatch bridge to `brace-expansion` 5.0.9, Next's scoped PostCSS override to 8.5.26 (resolving `nanoid` 3.3.18), and the ESLint lock to `js-yaml` 4.3.1. Re-run clean installs, both full and production-only audits, the owning tools, production builds, and the complete release workflow before publishing a new SHA.
 * **Why:** Advisory data changes independently of application code. A narrow lock/override update preserves the reviewed Next/React contract and prevents either bypassing a security gate or performing an unnecessary framework upgrade.
 
+### Generate frontend lockfiles with the release npm major
+
+* **When to use:** Updating either Next application's lockfile on a workstation whose npm major differs from the `node:22-alpine` dependency stage.
+* **How:** Regenerate and clean-install with npm 10.9.8 (the current container version), then require the Linux Docker/build-only gate before publication. Preserve platform-conditional optional peer records such as `@emnapi/core`, `@emnapi/runtime`, and the nested `@swc/helpers`; do not accept a host-only `npm ci` as proof.
+* **Why:** npm 12 can normalize those records away while still passing on Windows. npm 10 in the Linux dependency stage then rejects the lockfile as out of sync before application build, as run `31380881311` demonstrated.
+
 ### Run accessibility scans against configured real data
 
 * **When to use:** Release accessibility verification for catalog/product/admin views.
@@ -2286,4 +2292,4 @@
 
 ## Last Updated
 
-2026-08-10 - Documented the narrow advisory remediation after blocked run `31376850305`: compatible patched leaves, both audit modes, owner compatibility checks, and a new commit/SHA are required before immutable publication is retried.
+2026-08-10 - Documented both release blockers: advisory remediation from run `31376850305` and npm-major-compatible cross-platform lockfile generation after build-only run `31380881311`; neither run wrote GHCR tags.
