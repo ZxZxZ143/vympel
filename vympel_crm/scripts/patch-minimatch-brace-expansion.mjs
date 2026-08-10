@@ -21,9 +21,9 @@ if (minimatchPackage.version !== "3.1.5") {
   );
 }
 
-if (braceExpansionPackage.version !== "5.0.8") {
+if (braceExpansionPackage.version !== "5.0.9") {
   throw new Error(
-    `Expected the patched brace-expansion 5.0.8 release, found ${braceExpansionPackage.version}.`,
+    `Expected the patched brace-expansion 5.0.9 release, found ${braceExpansionPackage.version}.`,
   );
 }
 
@@ -41,4 +41,4 @@ if (!minimatch("catalog/product", "catalog/**")) {
   throw new Error("The patched minimatch compatibility check failed.");
 }
 
-console.log("Verified minimatch 3.1.5 with patched brace-expansion 5.0.8.");
+console.log("Verified minimatch 3.1.5 with patched brace-expansion 5.0.9.");

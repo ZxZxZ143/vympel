@@ -1958,6 +1958,12 @@
 * **How:** Scope the npm override to the exact owner/version, keep the secure transitive exact, and run a fail-closed postinstall bridge that verifies both reviewed versions, patches only the known import, and executes a representative API assertion. Copy that bridge into the Docker dependency stage before `npm ci`, then prove clean host and Linux/Alpine installs, lint, tests, builds, and full/production audits.
 * **Why:** A global override can make the audit green while silently breaking unrelated consumers. Exact owner/version checks keep the temporary compatibility boundary narrow and force a deliberate review when upstream packages change.
 
+### Refresh advisory-driven patches without broad framework churn
+
+* **When to use:** The immutable-image workflow starts failing an unchanged npm audit gate because newly disclosed advisories affect compatible transitive releases.
+* **How:** Confirm publication stopped before registry preflight, inspect each owner with `npm ls`/`npm explain`, and update only compatible patched leaves. The 2026-08-10 remediation moved the reviewed minimatch bridge to `brace-expansion` 5.0.9, Next's scoped PostCSS override to 8.5.26 (resolving `nanoid` 3.3.18), and the ESLint lock to `js-yaml` 4.3.1. Re-run clean installs, both full and production-only audits, the owning tools, production builds, and the complete release workflow before publishing a new SHA.
+* **Why:** Advisory data changes independently of application code. A narrow lock/override update preserves the reviewed Next/React contract and prevents either bypassing a security gate or performing an unnecessary framework upgrade.
+
 ### Run accessibility scans against configured real data
 
 * **When to use:** Release accessibility verification for catalog/product/admin views.
@@ -2280,4 +2286,4 @@
 
 ## Last Updated
 
-2026-08-10 - Documented storefront-only marketplace CTA removal with exact 28px spacing, VYMPEL favicon handling, real localized route/product metadata composition, and the expanded production HTML/browser verification gate.
+2026-08-10 - Documented the narrow advisory remediation after blocked run `31376850305`: compatible patched leaves, both audit modes, owner compatibility checks, and a new commit/SHA are required before immutable publication is retried.
