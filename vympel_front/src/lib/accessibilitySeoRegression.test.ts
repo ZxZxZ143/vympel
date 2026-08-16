@@ -38,19 +38,29 @@ describe("confirmed accessibility and semantics regressions", () => {
         expect(dots).not.toContain('role="tab"');
     });
 
-    it("keeps autoplay explicitly controllable and the hero priority singular", () => {
+    it("limits autoplay to the controllable reduced-motion-aware home hero", () => {
+        const banner = source("components/HomePage/bannerCarousel/index.tsx");
+        const autoplayControl = source("hooks/useCarouselAutoplayControl.ts");
+        expect(banner).toContain("Autoplay({delay: 5000");
+        expect(banner).toContain("pauseAutoplay");
+        expect(banner).toContain("resumeAutoplay");
+        expect(banner).toContain('onFocusCapture={pauseOnUserInteraction}');
+        expect(banner).toContain("data-carousel-autoplay-control");
+        expect(banner).toContain('aria-label={isPlaying ? t("pauseAutoplay") : t("resumeAutoplay")}');
+        expect(autoplayControl).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+        expect(autoplayControl).toContain('media.addEventListener("change"');
+
         for (const path of [
-            "components/HomePage/bannerCarousel/index.tsx",
             "components/HomePage/BrandsCarousel/index.tsx",
             "components/AboutPage/InstagramSlider/index.tsx",
+            "components/ui/shared/GoodsCarouselWithImage/index.tsx",
+            "components/ProductPage/ProductGallery/index.tsx",
+            "components/ProductPage/ProductRecommendations/index.tsx",
         ]) {
             const component = source(path);
-            expect(component).toContain("playOnInit: false");
-            expect(component).toContain("stopRotation");
-            expect(component).toContain("startRotation");
-            expect(component).toContain("onFocusCapture={stopRotation}");
+            expect(component).not.toContain("embla-carousel-autoplay");
+            expect(component).not.toContain("Autoplay(");
         }
-        const banner = source("components/HomePage/bannerCarousel/index.tsx");
         const item = source("components/HomePage/bannerCarousel/Item/index.tsx");
         expect(banner).toContain("priority={index === 0}");
         expect(item.match(/priority=\{priority\}/g)).toHaveLength(1);
@@ -105,7 +115,10 @@ describe("localized accessibility copy", () => {
             const messages = JSON.parse(source(`messages/${locale}.json`));
             expect(messages.benefits.title).toBeTruthy();
             expect(messages.carousel.previous).toBeTruthy();
-            expect(messages.carousel.stopRotation).toBeTruthy();
+            expect(messages.bannerCarousel.pauseAutoplay).toBeTruthy();
+            expect(messages.bannerCarousel.resumeAutoplay).toBeTruthy();
+            expect(messages.carousel.stopRotation).toBeUndefined();
+            expect(messages.carousel.startRotation).toBeUndefined();
             if (locale !== "en") {
                 expect(messages.benefits.title).not.toBe("Benefits");
                 expect(messages.requestDialog.placeholders.name).not.toBe("Dear User");

@@ -22,9 +22,10 @@ vi.mock("@/components/HomePage/bannerCarousel/Item", () => ({
 }));
 vi.mock("@/hooks/useCarouselAutoplayControl", () => ({
     useCarouselAutoplayControl: () => ({
-        isRotating: false,
-        startRotation: vi.fn(),
-        stopRotation: vi.fn(),
+        isPlaying: false,
+        autoplayAllowed: false,
+        pauseAutoplay: vi.fn(),
+        resumeAutoplay: vi.fn(),
     }),
 }));
 vi.mock("use-intl", () => ({useTranslations: () => (key: string) => key}));

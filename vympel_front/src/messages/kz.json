@@ -123,13 +123,13 @@
     "next": "Келесі слайд",
     "slide": "{total} слайдтың {index}-сі",
     "pagination": "Слайдты таңдау",
-    "goToSlide": "{index}-слайдқа өту",
-    "stopRotation": "Слайд ауысуын тоқтату",
-    "startRotation": "Слайд ауысуын бастау"
+    "goToSlide": "{index}-слайдқа өту"
   },
   "bannerCarousel": {
     "aria": "Жарнамалық баннерлер",
-    "fallbackAlt": "Romanson жарнамалық баннері"
+    "fallbackAlt": "Romanson жарнамалық баннері",
+    "pauseAutoplay": "Баннерлердің автоматты ауысуын кідірту",
+    "resumeAutoplay": "Баннерлердің автоматты ауысуын жалғастыру"
   },
   "benefits": {
     "title": "Артықшылықтар",
@@ -236,8 +236,7 @@
     "social": {
       "title": "Әлеуметтік желілердегі қызметіміз",
       "postAlt": "Vympel Instagram жарияланымы {number}",
-      "postAria": "Vympel Instagram жарияланымын ашу {number}",
-      "profileAria": "Vympel компаниясының ресми Instagram профилін ашу",
+      "postAria": "Instagram жарияланымын ашу: {description}",
       "dotsAria": "Instagram слайдерінің беттеуі",
       "dotAria": "Instagram слайдына өту {number}"
     },

@@ -27,6 +27,7 @@ import { Text } from "@/shared/ui/Text";
 import { cx } from "@/shared/utils/cx";
 import { CmsBlockSchema, cmsBlockSchemas } from "@/features/cms/cmsBlockSchemas";
 import { cmsRefreshFeedbackKey } from "@/features/cms/cmsRefreshFeedback";
+import { canonicalInstagramPostUrl } from "@/features/cms/instagramPostUrl";
 
 type CmsBlockFormState = {
   pageKey: string;
@@ -149,6 +150,7 @@ export function CmsView() {
   const [page, setPage] = useState<CmsPage | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [creatingBlockType, setCreatingBlockType] = useState<CmsBlockType>("BANNER");
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -250,14 +252,14 @@ export function CmsView() {
 
   useEffect(() => {
     if (isCreating && page) {
-      reset(newBlockForm(page));
+      reset(newBlockForm(page, creatingBlockType));
       return;
     }
 
     if (selectedBlock) {
       reset(blockToForm(selectedBlock));
     }
-  }, [isCreating, page, reset, selectedBlock]);
+  }, [creatingBlockType, isCreating, page, reset, selectedBlock]);
 
   const updateField = <FieldName extends keyof CmsBlockFormState>(
     field: FieldName,
@@ -267,10 +269,11 @@ export function CmsView() {
     setError(null);
   };
 
-  const startCreate = () => {
+  const startCreate = (blockType: CmsBlockType = "BANNER") => {
     if (!page) {
       return;
     }
+    setCreatingBlockType(blockType);
     setSelectedBlockId(null);
     setIsCreating(true);
     setError(null);
@@ -427,9 +430,18 @@ export function CmsView() {
               <Heading as="h2" size="title">{t("cms.blocks")}</Heading>
               {page && <Text tone="muted" size="small">{pageLabel(page.pageKey, messages.cms.pageLabels, page.title)}</Text>}
             </div>
-            <Button type="button" onClick={startCreate}>{t("cms.addBlock")}</Button>
+            <Button type="button" onClick={() => startCreate()}>{t("cms.addBlock")}</Button>
           </div>
           <div className="crm-panel__body">
+            {page?.pageKey === "about" && (
+              <section className="cms-instagram-section" aria-labelledby="cms-instagram-section-title">
+                <div>
+                  <Heading as="h3" size="title" id="cms-instagram-section-title">{t("cms.instagramSection")}</Heading>
+                  <Text tone="muted" size="small">{t("cms.instagramSectionHint")}</Text>
+                </div>
+                <Button type="button" onClick={() => startCreate("INSTAGRAM_POST")}>{t("cms.addInstagramPost")}</Button>
+              </section>
+            )}
             {pageLoading ? (
               <Text tone="muted">{t("common.loading")}</Text>
             ) : !page || page.blocks.length === 0 ? (
@@ -443,8 +455,14 @@ export function CmsView() {
                     key={block.id}
                     className={cx("cms-block-card", selectedBlockId === block.id && !isCreating && "cms-block-card--active")}
                   >
+                    {block.blockType === "INSTAGRAM_POST" && block.media?.url && (
+                      <div className="cms-instagram-block-preview">
+                        <img src={block.media.url} alt="" />
+                        <Text size="caption" tone="muted">{block.linkTarget}</Text>
+                      </div>
+                    )}
                     <button type="button" className="cms-block-card__main" onClick={() => selectBlock(block.id)}>
-                      <span>{blockLabel(block, messages.cms.blockLabels)}</span>
+                      <span>{blockLabel(block, messages.cms.blockLabels, t("cms.instagramPost"))}</span>
                       <Text as="span" tone="muted" size="caption">{block.blockKey}</Text>
                     </button>
                     <div className="cms-block-card__meta">
@@ -478,7 +496,9 @@ export function CmsView() {
           <div className="crm-panel__header">
             <div>
               <Heading as="h2" size="title">
-                {isCreating ? t("cms.newBlock") : selectedBlock ? blockLabel(selectedBlock, messages.cms.blockLabels) : t("cms.editor")}
+                {isCreating
+                  ? form.blockType === "INSTAGRAM_POST" ? t("cms.newInstagramPost") : t("cms.newBlock")
+                  : selectedBlock ? blockLabel(selectedBlock, messages.cms.blockLabels, t("cms.instagramPost")) : t("cms.editor")}
               </Heading>
               <Text tone="muted" size="small">{t("cms.editorHint")}</Text>
             </div>
@@ -496,14 +516,19 @@ export function CmsView() {
               <>
                 <section className="cms-editor-section">
                   <Heading as="h3" size="title">{t("cms.core")}</Heading>
+                  {form.blockType === "INSTAGRAM_POST" && (
+                    <Text tone="muted" size="small">{t("cms.instagramEditorHint")}</Text>
+                  )}
                   <div className="crm-grid crm-grid--form">
-                    <TextField id="blockKey" label={t("cms.blockKey")} value={form.blockKey} onChange={(value) => updateField("blockKey", value)} />
+                    {form.blockType !== "INSTAGRAM_POST" && <>
+                      <TextField id="blockKey" label={t("cms.blockKey")} value={form.blockKey} onChange={(value) => updateField("blockKey", value)} />
+                      <SelectField id="blockType" label={t("cms.blockType")} value={form.blockType} onChange={(value) => updateField("blockType", value as CmsBlockType)}>
+                        {blockTypes.map((type) => (
+                          <option key={type} value={type}>{messages.cms.blockTypes[type]}</option>
+                        ))}
+                      </SelectField>
+                    </>}
                     <NumberField id="sortOrder" label={t("cms.sortOrder")} value={form.sortOrder} onChange={(value) => updateField("sortOrder", value)} />
-                    <SelectField id="blockType" label={t("cms.blockType")} value={form.blockType} onChange={(value) => updateField("blockType", value as CmsBlockType)}>
-                      {blockTypes.map((type) => (
-                        <option key={type} value={type}>{messages.cms.blockTypes[type]}</option>
-                      ))}
-                    </SelectField>
                     <SelectField id="status" label={t("cms.status")} value={form.status} onChange={(value) => updateField("status", value as CmsBlockStatus)}>
                       <option value="PUBLISHED">{messages.cms.statuses.PUBLISHED}</option>
                       <option value="DRAFT">{messages.cms.statuses.DRAFT}</option>
@@ -647,20 +672,29 @@ export function CmsView() {
 
                 {blockSchema.supportsLink && (
                   <section className="cms-editor-section">
-                    <Heading as="h3" size="title">{t("cms.link")}</Heading>
-                    <div className="crm-grid crm-grid--form">
-                      <SelectField id="linkType" label={t("cms.linkType")} value={form.linkType} onChange={(value) => updateField("linkType", value as CmsLinkType)}>
-                        {linkTypes.map((type) => (
-                          <option key={type} value={type}>{messages.cms.linkTypes[type]}</option>
-                        ))}
-                      </SelectField>
-                      <TextField id="linkTarget" label={t("cms.linkTarget")} value={form.linkTarget} onChange={(value) => updateField("linkTarget", value)} />
-                      <SelectField id="linkOpenBehavior" label={t("cms.linkOpenBehavior")} value={form.linkOpenBehavior} onChange={(value) => updateField("linkOpenBehavior", value as CmsLinkOpenBehavior)}>
-                        {linkOpenBehaviors.map((behavior) => (
-                          <option key={behavior} value={behavior}>{messages.cms.linkOpenBehaviors[behavior]}</option>
-                        ))}
-                      </SelectField>
-                    </div>
+                    <Heading as="h3" size="title">
+                      {form.blockType === "INSTAGRAM_POST" ? t("cms.instagramUrlTitle") : t("cms.link")}
+                    </Heading>
+                    {form.blockType === "INSTAGRAM_POST" ? (
+                      <div className="crm-grid">
+                        <TextField id="linkTarget" label={t("cms.instagramUrl")} value={form.linkTarget} onChange={(value) => updateField("linkTarget", value)} />
+                        <Text tone="muted" size="small">{t("cms.instagramUrlHint")}</Text>
+                      </div>
+                    ) : (
+                      <div className="crm-grid crm-grid--form">
+                        <SelectField id="linkType" label={t("cms.linkType")} value={form.linkType} onChange={(value) => updateField("linkType", value as CmsLinkType)}>
+                          {linkTypes.map((type) => (
+                            <option key={type} value={type}>{messages.cms.linkTypes[type]}</option>
+                          ))}
+                        </SelectField>
+                        <TextField id="linkTarget" label={t("cms.linkTarget")} value={form.linkTarget} onChange={(value) => updateField("linkTarget", value)} />
+                        <SelectField id="linkOpenBehavior" label={t("cms.linkOpenBehavior")} value={form.linkOpenBehavior} onChange={(value) => updateField("linkOpenBehavior", value as CmsLinkOpenBehavior)}>
+                          {linkOpenBehaviors.map((behavior) => (
+                            <option key={behavior} value={behavior}>{messages.cms.linkOpenBehaviors[behavior]}</option>
+                          ))}
+                        </SelectField>
+                      </div>
+                    )}
                   </section>
                 )}
 
@@ -795,6 +829,22 @@ function CmsPreview({
   const imageUrl = mobilePreview && canPreviewMobile ? mobilePreviewUrl : desktopPreviewUrl;
   const hasImage = schema.supportsImage && Boolean(imageUrl);
   const hasButton = schema.supportsButton && form.linkType !== "NONE" && Boolean(form.linkTarget.trim()) && Boolean(translation.buttonText.trim());
+
+  if (form.blockType === "INSTAGRAM_POST") {
+    return (
+      <article className="cms-preview-instagram">
+        <div className="cms-preview-instagram__image-wrap">
+          {hasImage ? (
+            <img className="cms-preview-instagram__image" src={imageUrl} alt={translation.altText || messages.previewImageAlt} />
+          ) : (
+            <div className="cms-preview-hero__empty"><Text tone="muted">{messages.noImage}</Text></div>
+          )}
+          <span className="cms-preview-instagram__badge" aria-hidden="true">◎</span>
+        </div>
+        <Text tone="muted" size="caption">{form.linkTarget || messages.instagramUrlHint}</Text>
+      </article>
+    );
+  }
 
   if (!schema.supportsImage) {
     return (
@@ -992,13 +1042,22 @@ function SelectField({
   );
 }
 
-function newBlockForm(page: CmsPage): CmsBlockFormState {
+function newBlockForm(page: CmsPage, blockType: CmsBlockType): CmsBlockFormState {
   const nextSortOrder = page.blocks.reduce((max, block) => Math.max(max, block.sortOrder), 0) + 10;
+  const isInstagramPost = blockType === "INSTAGRAM_POST";
+  let instagramPosition = page.blocks.filter((block) => block.blockType === "INSTAGRAM_POST").length + 1;
+  while (page.blocks.some((block) => block.blockKey === `about.instagram.post-${instagramPosition}`)) {
+    instagramPosition += 1;
+  }
   return {
     ...emptyForm,
     pageKey: page.pageKey,
-    blockKey: `${page.pageKey}.newBlock`,
+    blockKey: isInstagramPost ? `about.instagram.post-${instagramPosition}` : `${page.pageKey}.newBlock`,
+    blockType,
     sortOrder: String(nextSortOrder),
+    status: isInstagramPost ? "DRAFT" : "PUBLISHED",
+    linkType: isInstagramPost ? "EXTERNAL_URL" : "NONE",
+    linkOpenBehavior: isInstagramPost ? "NEW_TAB" : "SAME_TAB",
   };
 }
 
@@ -1054,6 +1113,9 @@ function translationFields(block: CmsBlock, lang: CrmLocale) {
 
 function toPayload(form: CmsBlockFormState): CmsBlockPayload {
   const schema = cmsBlockSchemas[form.blockType];
+  const instagramUrl = form.blockType === "INSTAGRAM_POST"
+    ? canonicalInstagramPostUrl(form.linkTarget)
+    : null;
   return {
     pageKey: form.pageKey,
     blockKey: form.blockKey.trim(),
@@ -1067,9 +1129,9 @@ function toPayload(form: CmsBlockFormState): CmsBlockPayload {
     mobileMediaId: schema.supportsMobileImage && form.mobileMediaId ? Number(form.mobileMediaId) : null,
     mobileMediaKzId: schema.supportsMobileImage && schema.supportsLocalizedImages && form.mobileMediaKzId ? Number(form.mobileMediaKzId) : null,
     mobileMediaEnId: schema.supportsMobileImage && schema.supportsLocalizedImages && form.mobileMediaEnId ? Number(form.mobileMediaEnId) : null,
-    linkType: schema.supportsLink ? form.linkType : "NONE",
-    linkTarget: schema.supportsLink ? form.linkTarget.trim() || null : null,
-    linkOpenBehavior: form.linkOpenBehavior,
+    linkType: form.blockType === "INSTAGRAM_POST" ? "EXTERNAL_URL" : schema.supportsLink ? form.linkType : "NONE",
+    linkTarget: form.blockType === "INSTAGRAM_POST" ? instagramUrl : schema.supportsLink ? form.linkTarget.trim() || null : null,
+    linkOpenBehavior: form.blockType === "INSTAGRAM_POST" ? "NEW_TAB" : form.linkOpenBehavior,
     translations: normalizeTranslationPayloads({
       ru: translationPayload(form, "ru", schema),
       kz: translationPayload(form, "kz", schema),
@@ -1144,6 +1206,9 @@ function validateForm(form: CmsBlockFormState, t: (key: string) => string) {
   if (schema.requiresImage && !form.mediaId) {
     return t("cms.imageRequired");
   }
+  if (form.blockType === "INSTAGRAM_POST" && !canonicalInstagramPostUrl(form.linkTarget)) {
+    return t("cms.instagramUrlError");
+  }
   if (schema.requiresText) {
     const fallbackTranslation = translationFromForm(form, "ru");
     if (!fallbackTranslation.title.trim() && !fallbackTranslation.description.trim()) {
@@ -1217,6 +1282,9 @@ function pageLabel(pageKey: string, labels: Record<string, string>, fallback: st
   return labels[pageKey] ?? fallback;
 }
 
-function blockLabel(block: CmsBlock, labels: Record<string, string>) {
+function blockLabel(block: CmsBlock, labels: Record<string, string>, instagramPostLabel: string) {
+  if (block.blockType === "INSTAGRAM_POST") {
+    return instagramPostLabel;
+  }
   return labels[block.blockKey] ?? block.blockKey;
 }

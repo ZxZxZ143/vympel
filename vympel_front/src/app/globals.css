@@ -1549,9 +1549,11 @@
 }
 
 .about-instagram-card {
+    aspect-ratio: 542 / 820;
     background: var(--color-primary-bg);
     border-radius: var(--radius-xl);
     display: block;
+    overflow: hidden;
     position: relative;
 }
 
@@ -1559,7 +1561,7 @@
     aspect-ratio: 542 / 820;
     border-radius: var(--radius-xl);
     display: block;
-    height: auto;
+    height: 100%;
     object-fit: cover;
     width: 100%;
 }

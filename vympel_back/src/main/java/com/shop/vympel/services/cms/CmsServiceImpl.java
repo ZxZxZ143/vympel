@@ -13,6 +13,7 @@ import com.shop.vympel.exceptions.BusinessRuleViolationException;
 import com.shop.vympel.exceptions.ResourceNotFoundException;
 import com.shop.vympel.services.marketplace.MarketplaceUrlPolicy;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
+import com.shop.vympel.services.social.InstagramPostUrlPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.context.ApplicationEventPublisher;
@@ -229,8 +230,19 @@ public class CmsServiceImpl implements CmsService {
         String linkTarget = cleanOptional(request.linkTarget());
         Map<String, CmsTranslationRequest> translations = normalizeTranslations(request.translations());
 
-        validateLink(linkType, linkTarget);
-        if (linkType == CmsLinkType.EXTERNAL_URL) {
+        if (blockType == CmsBlockType.INSTAGRAM_POST) {
+            if (!"about".equals(page.getPageKey())) {
+                throw new IllegalArgumentException("Instagram CMS posts are supported only on the About page");
+            }
+            if (linkType != CmsLinkType.EXTERNAL_URL) {
+                throw new IllegalArgumentException("Instagram CMS posts require an external URL");
+            }
+            linkTarget = InstagramPostUrlPolicy.canonicalize(linkTarget);
+            linkOpenBehavior = CmsLinkOpenBehavior.NEW_TAB;
+        } else {
+            validateLink(linkType, linkTarget);
+        }
+        if (blockType != CmsBlockType.INSTAGRAM_POST && linkType == CmsLinkType.EXTERNAL_URL) {
             linkTarget = MarketplaceUrlPolicy.canonicalizeCmsExternalUrl(linkTarget);
             if (MarketplaceUrlPolicy.isCanonicalMarketplaceUrl(linkTarget)) {
                 linkOpenBehavior = CmsLinkOpenBehavior.NEW_TAB;

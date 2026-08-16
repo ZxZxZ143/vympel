@@ -123,13 +123,13 @@
     "next": "Next slide",
     "slide": "Slide {index} of {total}",
     "pagination": "Choose slide",
-    "goToSlide": "Go to slide {index}",
-    "stopRotation": "Stop slide rotation",
-    "startRotation": "Start slide rotation"
+    "goToSlide": "Go to slide {index}"
   },
   "bannerCarousel": {
     "aria": "Promotional banners",
-    "fallbackAlt": "Romanson promotional banner"
+    "fallbackAlt": "Romanson promotional banner",
+    "pauseAutoplay": "Pause automatic banner rotation",
+    "resumeAutoplay": "Resume automatic banner rotation"
   },
   "benefits": {
     "title": "Benefits",
@@ -236,8 +236,7 @@
     "social": {
       "title": "Our activity on social media",
       "postAlt": "Vympel Instagram post {number}",
-      "postAria": "Open Vympel Instagram post {number}",
-      "profileAria": "Open the official Vympel Instagram profile",
+      "postAria": "Open Instagram post: {description}",
       "dotsAria": "Instagram slider pagination",
       "dotAria": "Go to Instagram slide {number}"
     },

@@ -123,13 +123,13 @@
     "next": "Следующий слайд",
     "slide": "Слайд {index} из {total}",
     "pagination": "Выбор слайда",
-    "goToSlide": "Перейти к слайду {index}",
-    "stopRotation": "Остановить смену слайдов",
-    "startRotation": "Запустить смену слайдов"
+    "goToSlide": "Перейти к слайду {index}"
   },
   "bannerCarousel": {
     "aria": "Рекламные баннеры",
-    "fallbackAlt": "Рекламный баннер Romanson"
+    "fallbackAlt": "Рекламный баннер Romanson",
+    "pauseAutoplay": "Приостановить автоматическую смену баннеров",
+    "resumeAutoplay": "Возобновить автоматическую смену баннеров"
   },
   "benefits": {
     "title": "Преимущества",
@@ -236,8 +236,7 @@
     "social": {
       "title": "Наша деятельность в соцсетях",
       "postAlt": "Публикация Vympel в Instagram {number}",
-      "postAria": "Открыть публикацию Vympel в Instagram {number}",
-      "profileAria": "Открыть официальный профиль Vympel в Instagram",
+      "postAria": "Открыть публикацию Instagram: {description}",
       "dotsAria": "Пагинация Instagram-слайдера",
       "dotAria": "Перейти к слайду Instagram {number}"
     },

@@ -2,7 +2,6 @@
 
 import React, {useState} from "react";
 import Image from "next/image";
-import Autoplay from "embla-carousel-autoplay";
 import {useTranslations} from "use-intl";
 
 import {
@@ -10,61 +9,45 @@ import {
     CarouselApi,
     CarouselContent,
     CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
 } from "@/components/ui/Carousel";
 import CarouselDots from "@/components/ui/shared/CarouselDots";
-import {CONTACT_LINKS} from "@/config/routes";
 import InstaStroke from "@/assets/icons/InstaStroke";
-import {useCarouselAutoplayControl} from "@/hooks/useCarouselAutoplayControl";
+import {cn} from "@/lib/utils";
+import {type AboutInstagramPost, resolveAboutInstagramPosts} from "@/utils/aboutInstagramPosts";
 
-const instagramPosts = [
-    {id: 1, src: "/insta-1.webp", width: 542, height: 820},
-    {id: 2, src: "/insta-2.png", width: 542, height: 820},
-    {id: 3, src: "/insta-3.webp", width: 542, height: 820},
-    {id: 4, src: "/insta-4.webp", width: 547, height: 820},
-] as const;
+type Props = {
+    posts: AboutInstagramPost[];
+};
 
-export default function AboutInstagramSlider() {
+export default function AboutInstagramSlider({posts}: Props) {
     const t = useTranslations("aboutPage.social");
-    const carouselT = useTranslations("carousel");
     const [api, setApi] = useState<CarouselApi>();
-    const [plugin] = useState(() => (
-        Autoplay({delay: 3500, stopOnInteraction: true, playOnInit: false})
-    ));
-    const {isRotating, startRotation, stopRotation} = useCarouselAutoplayControl(plugin);
+    const resolvedPosts = resolveAboutInstagramPosts(posts, (position) => t("postAlt", {number: position}));
 
     return (
         <Carousel
             setApi={setApi}
-            opts={{align: "start", loop: true}}
-            plugins={[plugin]}
-            className="about-instagram-carousel"
+            opts={{align: "start", loop: resolvedPosts.length > 1}}
+            className="about-instagram-carousel group"
             aria-label={t("dotsAria")}
-            onMouseEnter={stopRotation}
-            onFocusCapture={stopRotation}
-            onPointerDownCapture={stopRotation}
         >
-            <button
-                type="button"
-                onClick={isRotating ? stopRotation : startRotation}
-                className="absolute left-3 top-3 z-30 min-h-11 rounded-full bg-primary-bg/90 px-4 text-sm text-text-heading-primary shadow-state focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/50"
-            >
-                {isRotating ? carouselT("stopRotation") : carouselT("startRotation")}
-            </button>
             <CarouselContent className="about-instagram-track">
-                {instagramPosts.map((post, index) => (
+                {resolvedPosts.map((post) => (
                     <CarouselItem key={post.id} className="about-instagram-slide">
-                        {CONTACT_LINKS.instagram && index === 0 ? <a
-                            href={CONTACT_LINKS.instagram}
+                        {post.href ? <a
+                            href={post.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={t("profileAria")}
+                            aria-label={t("postAria", {description: post.alt})}
                             className="about-instagram-card group"
                         >
                             <Image
                                 src={post.src}
-                                alt={t("postAlt", {number: post.id})}
-                                width={post.width}
-                                height={post.height}
+                                alt={post.alt}
+                                fill
+                                loading="lazy"
                                 sizes="(min-width: 1280px) 263px, (min-width: 768px) 28vw, 76vw"
                                 className="about-instagram-image"
                             />
@@ -74,9 +57,9 @@ export default function AboutInstagramSlider() {
                         </a> : <div className="about-instagram-card group">
                             <Image
                                 src={post.src}
-                                alt={t("postAlt", {number: post.id})}
-                                width={post.width}
-                                height={post.height}
+                                alt={post.alt}
+                                fill
+                                loading="lazy"
                                 sizes="(min-width: 1280px) 263px, (min-width: 768px) 28vw, 76vw"
                                 className="about-instagram-image"
                             />
@@ -87,6 +70,17 @@ export default function AboutInstagramSlider() {
                     </CarouselItem>
                 ))}
             </CarouselContent>
+
+            {resolvedPosts.length > 1 && <>
+                <CarouselPrevious className={cn(
+                    "left-3 z-20 opacity-0 pointer-events-none transition-opacity duration-200",
+                    "group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+                )}/>
+                <CarouselNext className={cn(
+                    "right-3 z-20 opacity-0 pointer-events-none transition-opacity duration-200",
+                    "group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+                )}/>
+            </>}
 
             <CarouselDots
                 api={api}

@@ -220,6 +220,41 @@ class CmsServiceImplTest {
         assertEquals(30, first.getSortOrder());
     }
 
+    @Test
+    void updateInstagramPostRequiresItsImageAndStoresOnlyTheCanonicalNewTabUrl() {
+        CmsPage page = page("about");
+        CmsMedia media = publicMedia(7L, "/instagram.png");
+        CmsBlock block = block(9L, page, "about.instagram.existing", 40);
+        block.setBlockType(CmsBlockType.INSTAGRAM_POST);
+
+        stubLockedPageBlocks(page, List.of(block), 9L);
+        when(cmsBlockRepository.existsByBlockKeyAndIdNot("about.instagram.existing", 9L)).thenReturn(false);
+        when(cmsMediaRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(media));
+
+        cmsService.updateBlock(9L, instagramRequest("https://instagram.com/reel/AbC_123?igsh=tracking"));
+
+        assertSame(media, block.getMedia());
+        assertEquals(CmsLinkType.EXTERNAL_URL, block.getLinkType());
+        assertEquals("https://www.instagram.com/reel/AbC_123/", block.getLinkTarget());
+        assertEquals(CmsLinkOpenBehavior.NEW_TAB, block.getLinkOpenBehavior());
+    }
+
+    @Test
+    void updateInstagramPostRejectsGenericExternalDestinations() {
+        CmsPage page = page("about");
+        CmsMedia media = publicMedia(7L, "/instagram.png");
+        CmsBlock block = block(9L, page, "about.instagram.existing", 40);
+        block.setBlockType(CmsBlockType.INSTAGRAM_POST);
+
+        stubLockedPageBlocks(page, List.of(block), 9L);
+        when(cmsBlockRepository.existsByBlockKeyAndIdNot("about.instagram.existing", 9L)).thenReturn(false);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> cmsService.updateBlock(9L, instagramRequest("https://example.com/p/unsafe"))
+        );
+    }
+
     private CmsMedia publicMedia(Long id, String url) {
         CmsMedia media = new CmsMedia();
         media.setId(id);
@@ -274,6 +309,31 @@ class CmsServiceImplTest {
                 null,
                 CmsLinkOpenBehavior.SAME_TAB,
                 translations
+        );
+    }
+
+    private CmsBlockRequest instagramRequest(String url) {
+        return new CmsBlockRequest(
+                "about",
+                "about.instagram.existing",
+                CmsBlockType.INSTAGRAM_POST,
+                40,
+                CmsBlockStatus.DRAFT,
+                null,
+                7L,
+                null,
+                null,
+                null,
+                null,
+                null,
+                CmsLinkType.EXTERNAL_URL,
+                url,
+                CmsLinkOpenBehavior.SAME_TAB,
+                Map.of(
+                        "ru", altTranslation("Публикация Vympel"),
+                        "kz", altTranslation("Vympel жарияланымы"),
+                        "en", altTranslation("Vympel post")
+                )
         );
     }
 

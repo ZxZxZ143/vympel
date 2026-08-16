@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-08-16-01-about-instagram-post-cms" author="codex" dbms="postgresql">
+        <comment>Allow repeatable, image-backed Instagram post blocks on the About CMS page.</comment>
+        <sql>
+            ALTER TABLE cms_block DROP CONSTRAINT chk_cms_block_type;
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_type CHECK (block_type IN
+                    ('HERO_SLIDER', 'BANNER', 'TEXT_BLOCK', 'IMAGE_TEXT_BLOCK', 'LINK_CARD',
+                     'INSTAGRAM_POST', 'MARKETPLACE_LINK', 'FOOTER_LINK_GROUP', 'CUSTOM_JSON'));
+        </sql>
+        <rollback>
+            ALTER TABLE cms_block DROP CONSTRAINT chk_cms_block_type;
+            ALTER TABLE cms_block
+                ADD CONSTRAINT chk_cms_block_type CHECK (block_type IN
+                    ('HERO_SLIDER', 'BANNER', 'TEXT_BLOCK', 'IMAGE_TEXT_BLOCK', 'LINK_CARD',
+                     'MARKETPLACE_LINK', 'FOOTER_LINK_GROUP', 'CUSTOM_JSON'));
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -17,7 +17,7 @@
 ### Localized About page composition
 
 * **When to use:** When implementing About-style public pages from provided static assets and a Figma/static-page design.
-* **How:** Keep the route thin under `src/app/[locale]/about`, compose sections in `src/screens/AboutPage`, localize every heading/body/aria string under `aboutPage`, use `/about-us-banner.png` as a full-width responsive image, render company cards with project `Heading`/`Text`, use the existing Embla `Carousel` plus `CarouselDots` for `/insta-*.png`, and reuse `ContactBanner`, `MarketPlaces`, `Navigation`, and the layout footer.
+* **How:** Keep the route thin under `src/app/[locale]/about`, compose sections in `src/screens/AboutPage`, localize every heading/body/aria string under `aboutPage`, use `/about-us-banner.png` as a full-width responsive image, render company cards with project `Heading`/`Text`, and use the existing manual Embla `Carousel` plus `CarouselDots` for ordered CMS Instagram cards or the exact four static fallbacks. Reuse `ContactBanner`, `MarketPlaces`, `Navigation`, and the layout footer.
 * **Why:** The About page shares the storefront shell and design system, but its Figma-specific spacing and asset sizing belong in global `.about-*` tokens/classes rather than one-off TSX values.
 
 ### Shared store location block
@@ -908,6 +908,18 @@
 * **How:** Verify `vympel_back` `Language` enum, Liquibase language checks, and `vympel_front/src/i18n/routing.ts` together.
 * **Why:** Frontend uses `kz`; backend `Language.KZ` stores `kk` and accepts both `kk` and `kz`, while database checks use `kk`.
 
+### Repeatable CMS collection with an exact fallback boundary
+
+* **When to use:** When a public section should be editor-managed as an ordered list but must remain populated before CMS content exists.
+* **How:** Model each item as an ordinary typed `cms_block`, reuse the page-owned sort/status/media/audit/revalidation lifecycle, and resolve published usable items first. If the resolved CMS list is non-empty, render only that list; if it is empty, render the complete static fallback set. Never append fallbacks to a partial CMS list.
+* **Why:** Editors get normal CRUD/order/publish behavior without a parallel persistence system, and the public page cannot show duplicates or a hybrid list whose source of truth is unclear.
+
+### Backend-authoritative social URL policy
+
+* **When to use:** When CMS stores a third-party post/reel link that becomes a public external anchor.
+* **How:** Parse and canonicalize at the backend trust boundary using an exact HTTPS host/path/id allow-list; force the required link type/open behavior. Mirror the parser in CRM for immediate feedback and storefront for defense in depth, but never rely on either client as authorization.
+* **Why:** String-prefix checks accept fake hosts and encoded-path tricks, while one canonical stored form makes output, testing, and auditing predictable.
+
 ## Figma / UI Implementation Patterns
 
 ### Pixel-perfect Figma implementation
@@ -919,7 +931,7 @@
 ### About page Figma layout
 
 * **When to use:** When changing `/about`, `AboutPage`, or the About Instagram slider.
-* **How:** Preserve the Figma structure from node `263:3266`: standard navigation, full-width `about-us-banner.png`, 68px desktop content gutters, 120px section rhythm, two-column intro, four numbered company cards, Instagram carousel using existing `Carousel`/`CarouselDots`, shared cooperation `ContactBanner`, existing `MarketPlaces`, and footer. Keep About spacing/sizing in `.about-*` globals rather than arbitrary Tailwind values in TSX.
+* **How:** Preserve the Figma structure from node `263:3266`: standard navigation, full-width `about-us-banner.png`, 68px desktop content gutters, 120px section rhythm, two-column intro, four numbered company cards, manual Instagram carousel using existing `Carousel`/`CarouselDots`, shared cooperation `ContactBanner`, existing `MarketPlaces`, and footer. CMS posts retain the reference card proportions; the exact four static cards render only when no usable CMS post exists. Keep About spacing/sizing in `.about-*` globals rather than arbitrary Tailwind values in TSX.
 * **Why:** The page is asset- and rhythm-driven; reusing global tokens and existing shared sections keeps it close to the design while staying maintainable.
 
 ### Existing visual system first
@@ -958,6 +970,7 @@
 * **When to use:** When adding or changing editable CMS block types or fields.
 * **How:** Keep `/cms` admin-only and RHF-backed. Read field visibility from `cmsBlockSchemas`: blocks without text show no title/subtitle/description inputs; non-image/non-link types hide those groups. Show only the default image initially, then reveal optional KZ/EN/mobile uploads from a localized toggle. Each slot uses the existing multipart upload, preview, and remove flow. Preview must follow the current block type/CRM locale and offer desktop/mobile mode when a mobile variant exists.
 * **Why:** Admins need to see what each block will look like before publishing, and CMS editing should stay inside the existing CRM visual system.
+* **Instagram specialization:** On `about`, keep repeatable `INSTAGRAM_POST` items in their own localized section with image, exact post/reel URL, RU/KZ/EN alt text, sort/status, preview, and existing publish/order/delete actions. Exclude this type from the generic add-block dropdown so invalid cross-page Instagram blocks are not suggested.
 
 ### Product detail Figma layout
 
@@ -1199,6 +1212,27 @@
 * **Root cause:** Absolutely positioned surfaces used `w-full` without a correctly positioned root or explicit desktop width.
 * **Fix:** Let `.catalog-toolbar-shell` own desktop geometry: category/filter/sort panels use the full white card width and active catalog search animates inside the same card coordinate system.
 * **How to avoid:** Verify compact toolbar geometry at 900, 1000, 1024, 1100, and 1280px, including icon-search clearance and the accessory second row; then verify the full 1440px row has real space between the last control and search. Check open attached panels at 1024-1439px and the white card/panel X/width at 1440px. Never assume `w-full` refers to the desired container or hide a collision by clipping text.
+
+### Letting an autoplay control trigger the carousel's interaction stop handler
+
+* **What happened:** The Home hero's pause/resume icon lived inside the carousel root, so the root capture handler treated clicking Resume as ordinary interaction and stopped Autoplay immediately before the button tried to resume it.
+* **Root cause:** Event ownership distinguished controls by intent but not by DOM target.
+* **Fix:** Mark the compact control with `data-carousel-autoplay-control` and have the root pointer/focus stop handler ignore targets inside it; all other user interaction still stops autoplay permanently.
+* **How to avoid:** Browser-test pause, wait longer than one interval, resume, wait for a slide change, then manually navigate and confirm it remains stopped. Source-only event tests miss capture/bubble ordering.
+
+### Mixing partial CMS Instagram data with static cards
+
+* **What happened:** A naive item-level fallback could append static cards after one or two CMS posts, producing duplicates and ambiguous ordering.
+* **Root cause:** Fallback was applied per item instead of at the collection boundary.
+* **Fix:** Resolve all usable published CMS posts first; use the CMS list when non-empty, otherwise return exactly four static non-linked cards.
+* **How to avoid:** Test zero, one, and multiple CMS blocks explicitly and assert that a non-empty CMS list contains no fallback IDs.
+
+### Validating Instagram links with string prefixes
+
+* **What happened:** Prefix or broad-host validation can accept `instagram.com.evil.example`, userinfo, ports, encoded slashes, extra path segments, or unsupported Instagram surfaces.
+* **Root cause:** URL security was treated as display validation instead of a backend trust boundary.
+* **Fix:** Parse with `URI`/`URL`, require HTTPS, exact approved host, no userinfo/port, and exact `/p/{id}` or `/reel/{id}` path; strip query/fragment into one canonical `www.instagram.com` form.
+* **How to avoid:** Keep positive and adversarial cases aligned across backend, CRM, and storefront parsers; backend rejection remains authoritative.
 
 ### Showing every CMS field for every block type
 
@@ -1580,6 +1614,8 @@
 * **How to verify real public 404 responses:** Run `cd vympel_front && npm run build`, then `npm run test:production-status`. The finite script owns ephemeral mock/Next processes, asserts status and rendered content for valid and missing routes in ru/kz/en, checks a temporary backend 500 is not converted to 404, and verifies both ports close during cleanup.
 * **How to verify storefront accessibility/SEO changes:** From `vympel_front`, run `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:security`, an indexing-enabled production `npm run build`, `npm run test:production-status`, `npm run test:budgets:ci`, and `npm run test:sharp-security`. The production-status matrix verifies RU/KZ/EN rendered HTML, route-specific title/description, favicon 200/ICO, product marketplace-anchor absence, the named 28px summary spacing token, clean catalog/product links, legacy redirects, self-canonical/hreflang, matching OG/Twitter, private noindex behavior, missing/out-of-range 404, and transient failure as non-404. For bounded browser checks, hold the script with `BROWSER_VERIFY_HOLD=true`, use Chromium/axe at 320/375/768/1023/1280, test keyboard/Escape/focus return/modal trapping/tabs/autoplay/reduced motion, then stop the exact process. Axe `incomplete` results are limitations, not passes.
 * **How to verify CMS changes:** Run backend tests with `cd vympel_back && .\gradlew.bat test`, public test/lint/typecheck/build, and CRM test/lint/build. `CmsMediaCleanupTransactionServiceTest` covers references, grace, retry, object-then-row success, and stale claims; `RefreshSessionMigrationTest` covers all six slots; `CmsMediaDryRunIntegrationTest` proves a configured-DB dry run does not change row count. Public signature/allow-list/targets and CRM partial-success mapping have Vitest coverage. A bounded production Next probe should assert 200/401/409 and close its exact port. Browser-check authenticated `/cms` only when a managed stack exists; never delete dry-run candidates merely to make a test pass.
+* **How to verify About Instagram CMS:** Run `InstagramPostUrlPolicyTest` and `CmsServiceImplTest`, storefront `instagramPostUrl` / `aboutInstagramPosts` / accessibility-regression tests, CRM `instagramPostUrl.test.ts`, and the full three-app gates. Against an isolated local stack, perform create -> unsafe update rejection -> valid update -> reorder -> publish/public read -> unpublish/public read -> delete, reuse an existing media row where possible, and delete the disposable block in `finally`. Browser-check desktop/mobile About cards, swipe/dots, lazy images, new-tab attributes for CMS links, no old text pill, and exact four-card fallback when CMS has zero posts.
+* **How to verify carousel autoplay policy:** Search the complete storefront carousel inventory and assert only `HomePage/bannerCarousel` imports Embla Autoplay. Browser-check pause/wait, resume/wait, manual next/wait, focus/pointer stop, and reduced-motion absence; About, Brands, product rails/recommendations, and gallery must remain manual.
 * **How to verify Step 7 DB integrity:** Run `STEP_7_DATABASE_PREFLIGHT.sql`, the full Java suite, and the PostgreSQL 16 `RefreshSessionMigrationTest`. Before live migration, restore a current dump to a disposable database and opt in `Step7ExternalDatabaseRehearsalTest` with its three `STEP7_REHEARSAL_*` environment variables; force execution because the target URL is external state. Verify live changelog/lock/constraints/invariant counts afterward.
 * **How to verify audit/security/optimization passes:** Use finite checks only: backend `.\gradlew.bat test` with Java 17, public `npm run lint` and `npm run build`, and CRM `npm run lint` and `npm run build`. Do not use `dev`, `start`, or watch commands as final verification.
 * **How to verify server logging:** Run `cd vympel_back && .\gradlew.bat test`; the context test validates `logback-spring.xml`, and focused tests validate request ID reuse/generation, response headers, MDC cleanup, safe error payloads, masking, and dedicated security/CRM logger calls. Confirm all four current files exist under `APP_LOG_DIR`, grep generated logs for injected test secrets, and inspect the XML for daily+size rolling, retention, and total-size caps. Do not start a long-running server as the final logging check.
@@ -1685,6 +1721,7 @@
 * shadcn UI: Use project-local shadcn source components from `src/components/ui`; style their surfaces with VYMPEL semantic tokens instead of leaving raw default foreground/background styling when the component is user-visible.
 * Fetching: Use `PublicApiController` for public API calls, not ad hoc `fetch` calls in many components.
 * Public CMS: Use `PublicApiController.getCmsPage` with Next tags `cms` and `cms:{pageKey}`, short `revalidate`, backend-triggered `/api/revalidate`, `cmsImageSources`, and `CmsResponsiveImage`; valid CMS content wins and static localized messages/assets remain subordinate fallbacks.
+* About Instagram: Use `resolveAboutInstagramPosts` for the all-or-nothing CMS/fallback collection boundary and `canonicalInstagramPostUrl` only as storefront defense in depth. CMS cards must be lazy, localized, new-tab/noopener/noreferrer links; fallback cards are not links.
 * Catalog query params: Use `src/utils/catalogFilterParams.ts` to normalize catalog search/filter values and keep `categoryCode`, paging, sorting, search, and price controls out of active filter objects.
 * Favorites/cart storage: Use `src/services/localProductStorage.ts`; do not call `localStorage` directly from cards, header, product page, favorites page, or cart page.
 * Product action feedback: Use `src/hooks/useProductActionToasts.ts` for favorite/cart toasts and branch on `localProductStorage` mutation statuses before showing success, warning, or error copy.
@@ -1696,6 +1733,7 @@
 * CRM request UI: Keep request processing under `vympel_crm/src/features/requests`, call only `crmApi` methods, and pair every status/comment/cancel mutation with a loading spinner, disabled peer actions, success toast, and `getCrmErrorMessage` error toast.
 * CRM admin-only UI: Use `ProtectedShell adminOnly` for `/users` routes and hide admin-only navigation based on `/api/crm/auth/me` roles.
 * CRM CMS UI: Keep CMS editing under `vympel_crm/src/features/cms`, mirror DTOs in shared API types, call endpoints through `crmApi`, drive field visibility from `cmsBlockSchemas`, keep optional media variants collapsed by default, preview every type without unsupported empty placeholders, and surface `publicCacheRefresh` warnings without treating the saved CMS write as failed.
+* CRM About Instagram UI: Keep `INSTAGRAM_POST` creation inside the About-only social section, canonicalize before submit, force `EXTERNAL_URL`/`NEW_TAB`, preserve all three alt translations, and reuse existing CMS mutation/order/status/delete feedback rather than a parallel client.
 * CRM product selects: Render reference option `name` and submit the option `id`; keep any fallback enum labels in localization dictionaries, not inline JSX.
 * CRM product profile helpers: Reuse `vympel_crm/src/features/products/productCategoryProfile.ts` for category profile and product type derivation in single and bulk product forms.
 
@@ -1715,6 +1753,7 @@
 * CRM user management: Keep `/api/crm/users/**` ADMIN-only, hash admin-created passwords with `PasswordEncoder`, never return password hashes, use `users.enabled` for block/unblock, and audit create/update/role/status changes.
 * CRM collection management: Keep collection create/list endpoints under `/api/crm`, require brandId and three translation objects, store DB language `kk` for the frontend `kz` translation, and audit `COLLECTION_CREATED`.
 * CMS management: Keep public reads under `/api/public/cms/**` and admin mutations under `/api/crm/cms/**`; require `ADMIN` for CRM CMS endpoints, validate link/media/text requirements in the service, upsert translations by normalized `(blockId, lang)`, and audit create/update/delete/reorder/publish/unpublish/media-upload actions.
+* Instagram CMS policy: `INSTAGRAM_POST` is About-only, image-required, external/new-tab, and must pass `InstagramPostUrlPolicy`; never widen it to arbitrary Instagram/profile/story URLs or trust the CRM parser alone.
 
 ### Shared
 
@@ -1751,7 +1790,7 @@
 * Product details tabs/specs/reviews: Use global product details tokens rather than arbitrary values. The description/spec grid and both children must be `min-width: 0`; administrator-entered description/feature text uses `.product-long-copy` so even unbroken strings wrap inside the column. Characteristic labels/values stay one visual row where possible. Warranty/delivery/payment tabs should use the localized 20px info-block copy and `Подробнее` arrow links to their detail pages. Reviews remain localized, approved-only, and inside the fifth tab.
 * VYMPEL motion: Use `--duration-vympel-fast/base/slow`, `--ease-vympel`, and `transition-vympel*` for search/dropdown/filter/category motion; global `prefers-reduced-motion` must keep motion near-instant for reduced-motion users. Catalog hover must use underline/color motion rather than translate or height-changing effects.
 * Product contact banner: Use `/contact_banner.png`, `--color-connect-*`, `--spacing-connect-banner-*`, `Button` `connectBanner` variant/size, desktop `Heading size="h1xl"`/60px, mobile `text-4xl` fallback for fit, and `Text` colors `connectButton`/`connectSide`.
-* About page: Use `/about-us-banner.png` full-width, `/insta-1.png` through `/insta-4.png` in the existing Embla carousel/dots, localized `aboutPage.*` strings, `Heading`/`Text`, and `.about-*` globals for section rhythm, company cards, and Instagram sizing. Company cards must be `min-width: 0`, one-column on mobile, and use fixed-size number badges so long headings/body copy wrap inside the card instead of clipping or creating body overflow.
+* About page: Use `/about-us-banner.png` full-width and the existing manual Embla carousel/dots. Published ordered CMS `INSTAGRAM_POST` cards replace the entire static set; only zero usable posts render `/insta-1.webp`, `/insta-2.png`, `/insta-3.webp`, and `/insta-4.webp`. Keep localized `aboutPage.*` strings, `Heading`/`Text`, and `.about-*` globals for section rhythm, company cards, and Instagram sizing. Company cards must be `min-width: 0`, one-column on mobile, and use fixed-size number badges so long headings/body copy wrap inside the card instead of clipping or creating body overflow.
 * Public info pages: Use `src/screens/InfoPages` and `src/components/InfoPages` for Warranty/Delivery/Payment-style pages. Body text is Inter 20px/300 with `Text size="bodyLg" weight="light"`, highlights are 500 weight through localized rich text, paragraph spacing is `--spacing-info-paragraph-gap` (30px), and title-to-body gap is `--spacing-info-title-text-gap` (40px). The page wrapper adds no final padding; Footer supplies the 120/96/64px final gap.
 * Info page warranty badges: Reuse `WarrantyBadges`; badges have `border-border-default`, 60px vertical padding, 72px desktop gap, 20px icon/text gap, same-size fixed icon circles, centered icons, 22px main text in `headingSecondary`, and 15px muted subtext.
 * Info page store block: Reuse `StoreLocationBlock`; `/shop.png` is 1318x940 and should render at the 659/470 ratio without distortion, next to localized contact rows on desktop and stacked on mobile.
@@ -2292,4 +2331,4 @@
 
 ## Last Updated
 
-2026-08-10 - Documented both release blockers: advisory remediation from run `31376850305` and npm-major-compatible cross-platform lockfile generation after build-only run `31380881311`; neither run wrote GHCR tags.
+2026-08-16 - Documented Home-only accessible autoplay, collection-level About Instagram fallbacks, strict backend-authoritative Instagram URL policy, reusable CMS CRUD/order/publish/revalidation flow, and the event-capture/manual-test lessons from implementation.

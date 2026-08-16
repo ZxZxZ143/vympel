@@ -11,6 +11,7 @@ import {LocaleEnum} from "@/i18n/routing";
 import {PublicApiController} from "@/api/controllers/PublicController";
 import {cmsImageSources, cmsLink, cmsText, cmsTextList, findCmsBlock} from "@/utils/cmsContent";
 import CmsResponsiveImage from "@/components/ui/shared/CmsResponsiveImage";
+import {cmsAboutInstagramPosts} from "@/utils/aboutInstagramPosts";
 
 type Props = {
     locale: LocaleEnum;
@@ -20,8 +21,10 @@ const companyCardKeys = ["official", "expertise", "selection", "service"] as con
 const cooperationTextKeys = ["body1", "body2", "body3"] as const;
 
 export default async function AboutPage({locale}: Props) {
-    const t = await getTranslations({locale, namespace: "aboutPage"});
-    const cmsPage = await PublicApiController.getCmsPage("about", locale).catch(() => null);
+    const [t, cmsPage] = await Promise.all([
+        getTranslations({locale, namespace: "aboutPage"}),
+        PublicApiController.getCmsPage("about", locale).catch(() => null),
+    ]);
     const blocks = cmsPage?.blocks ?? [];
     const heroBanner = findCmsBlock(blocks, "about.heroBanner");
     const introBlock = findCmsBlock(blocks, "about.intro");
@@ -32,6 +35,10 @@ export default async function AboutPage({locale}: Props) {
     const cooperationButtonHref = cooperationBanner
         ? cooperationLink?.href ?? null
         : undefined;
+    const instagramPosts = cmsAboutInstagramPosts(
+        blocks,
+        (position) => t("social.postAlt", {number: position})
+    );
 
     return (
         <main className="mx-auto max-w-360">
@@ -112,7 +119,7 @@ export default async function AboutPage({locale}: Props) {
                     <Title headingId="about-social-title" className="mb-9">
                         {t("social.title")}
                     </Title>
-                    <AboutInstagramSlider/>
+                    <AboutInstagramSlider posts={instagramPosts}/>
                 </section>
 
                 <section className="about-page-section" aria-labelledby="about-cooperation-title">

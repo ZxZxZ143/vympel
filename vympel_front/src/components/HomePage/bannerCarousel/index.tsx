@@ -18,6 +18,7 @@ import BannerItem, {BannerItemProps} from "@/components/HomePage/bannerCarousel/
 import {routes} from "@/config/routes";
 import {useTranslations} from "use-intl";
 import {useCarouselAutoplayControl} from "@/hooks/useCarouselAutoplayControl";
+import {Pause, Play} from "lucide-react";
 
 type Props = {
     items?: (BannerItemProps & { id: number })[];
@@ -25,12 +26,18 @@ type Props = {
 
 const BannerCarousel = ({items}: Props) => {
     const t = useTranslations("bannerCarousel");
-    const carouselT = useTranslations("carousel");
     const [api, setApi] = useState<CarouselApi>();
     const [plugin] = useState(() => (
         Autoplay({delay: 5000, stopOnInteraction: true, playOnInit: false})
     ))
-    const {isRotating, startRotation, stopRotation} = useCarouselAutoplayControl(plugin);
+    const {isPlaying, autoplayAllowed, pauseAutoplay, resumeAutoplay} = useCarouselAutoplayControl(api, plugin);
+    const pauseOnUserInteraction = (event: React.SyntheticEvent) => {
+        const target = event.target;
+        if (target instanceof Element && target.closest("[data-carousel-autoplay-control]")) {
+            return;
+        }
+        pauseAutoplay();
+    };
     const slides = items?.length ? items : Array.from({length: 4}, (_, index) => ({
         id: index + 1,
         link: routes.brand("romanson"),
@@ -45,18 +52,10 @@ const BannerCarousel = ({items}: Props) => {
                 setApi={setApi}
                 opts={{ loop: true, duration: 10 }}
                 plugins={[plugin]}
-                onMouseEnter={stopRotation}
-                onFocusCapture={stopRotation}
-                onPointerDownCapture={stopRotation}
+                onFocusCapture={pauseOnUserInteraction}
+                onPointerDownCapture={pauseOnUserInteraction}
                 className="w-full rounded-md overflow-hidden"
             >
-                <button
-                    type="button"
-                    onClick={isRotating ? stopRotation : startRotation}
-                    className="absolute left-3 top-3 z-30 min-h-11 rounded-full bg-primary-bg/90 px-4 text-sm text-text-heading-primary shadow-state focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/50"
-                >
-                    {isRotating ? carouselT("stopRotation") : carouselT("startRotation")}
-                </button>
                 <CarouselContent className="ml-0">
                     {slides.map((item, index) => (
                         <CarouselItem key={item.id} className="pl-0">
@@ -78,8 +77,19 @@ const BannerCarousel = ({items}: Props) => {
                     )}
                 />
 
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
                     <CarouselDots api={api} />
+                    {autoplayAllowed && slides.length > 1 && (
+                        <button
+                            type="button"
+                            data-carousel-autoplay-control
+                            onClick={isPlaying ? pauseAutoplay : resumeAutoplay}
+                            aria-label={isPlaying ? t("pauseAutoplay") : t("resumeAutoplay")}
+                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-bg/90 text-text-heading-primary shadow-state transition-colors hover:bg-primary-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-bg focus-visible:ring-offset-2 focus-visible:ring-offset-text-heading-primary"
+                        >
+                            {isPlaying ? <Pause className="size-5" aria-hidden="true"/> : <Play className="size-5" aria-hidden="true"/>}
+                        </button>
+                    )}
                 </div>
             </Carousel>
         </section>

@@ -32,6 +32,9 @@ public record CmsBlockSchema(
             case LINK_CARD -> new CmsBlockSchema(
                     true, true, true, false, true, true, true, false, true, true, false
             );
+            case INSTAGRAM_POST -> new CmsBlockSchema(
+                    false, false, true, true, true, false, true, false, false, false, false
+            );
             case MARKETPLACE_LINK -> new CmsBlockSchema(
                     false, false, true, true, true, false, true, false, true, true, false
             );
