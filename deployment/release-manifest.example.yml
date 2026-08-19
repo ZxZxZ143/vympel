@@ -21,6 +21,7 @@ images:
       canonicalSiteUrl: DOMAIN_PENDING
       apiBase: DOMAIN_PENDING/api/public
       mediaOrigins: OBJECT_STORAGE_ORIGIN_PENDING
+      siteIndexingEnabled: false
   crm:
     repository: ghcr.io/zxzxz143/vympel-crm
     tag: 0000000000000000000000000000000000000000
@@ -30,7 +31,7 @@ images:
       mediaOrigins: OBJECT_STORAGE_ORIGIN_PENDING
 database:
   changelog: classpath:db/changelog/db.changelog-master.xml
-  expectedLatestChange: 2026-07-19-02-update-public-image-paths-to-webp
+  expectedLatestChange: 2026-08-16-01-about-instagram-post-cms
   migrationMode: one-time-job
   historicalCompatibility: CONDITIONAL_EXTERNAL_ACCEPTANCE_IF_ROW_PRESENT
   backupEvidence: docs/deployment/BACKUP_RESTORE_REHEARSAL_REPORT.md

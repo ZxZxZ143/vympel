@@ -50,6 +50,7 @@ jobs:
       NEXT_PUBLIC_APP_ENV: ci
       NEXT_PUBLIC_APP_RELEASE: ${{ github.sha }}
       NEXT_PUBLIC_TELEMETRY_ENABLED: "false"
+      SITE_INDEXING_ENABLED: "false"
       TELEMETRY_ENABLED: "false"
     steps:
       - uses: actions/checkout@v4.2.2
@@ -78,6 +79,7 @@ jobs:
           --build-arg NEXT_PUBLIC_SITE_URL=https://shop.example.com
           --build-arg NEXT_PUBLIC_APP_ENV=ci
           --build-arg NEXT_PUBLIC_APP_RELEASE="${GITHUB_SHA}"
+          --build-arg SITE_INDEXING_ENABLED=false
           --tag "vympel-storefront:${GITHUB_SHA}"
           vympel_front
       - name: Verify non-local storefront bundle URLs

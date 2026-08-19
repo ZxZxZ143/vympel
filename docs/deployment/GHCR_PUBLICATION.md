@@ -11,6 +11,38 @@ Vympel publishes three independent OCI indexes with `linux/amd64` and
 
 Every set uses the same full 40-character Git commit SHA. `latest` is never a release or deployment tag. An approved Git release tag may be added to the same digest only when that existing Git tag resolves to the exact published commit.
 
+## Preview-domain SHA-only publication contract
+
+The current publication target prepares application images only for the future
+preview routing change; it does not authorize a VM deployment, DNS, Nginx, TLS,
+or production-domain change. Dispatch the canonical `Release Images` workflow
+from the exact `main` commit with `release_tag` empty and these values:
+
+| Input / build variable | Value |
+| --- | --- |
+| `storefront_api_base` / `NEXT_PUBLIC_BASE_API_PUBLIC` | `https://api.vympel.kz/api/public` |
+| `media_origins` / storefront `NEXT_PUBLIC_MEDIA_ORIGINS` | `https://api.vympel.kz` |
+| `storefront_site_url` / `NEXT_PUBLIC_SITE_URL` | `https://preview.vympel.kz` |
+| `deployment_environment` / `NEXT_PUBLIC_APP_ENV` | `staging` |
+| `NEXT_PUBLIC_APP_RELEASE` | exact dispatched 40-character Git SHA |
+| `NEXT_PUBLIC_TELEMETRY_ENABLED` | `false` |
+| `SITE_INDEXING_ENABLED` | `false` |
+| `crm_api_base` / `NEXT_PUBLIC_CRM_API_BASE` | `https://api.34.18.200.58.sslip.io/api/crm` |
+
+The shared media input also compiles `https://api.vympel.kz` into the CRM image,
+but the administrative CRM API remains on the working sslip.io staging origin.
+Do not substitute `https://api.vympel.kz/api/crm`: the future public API ingress
+is not intended to expose `/api/crm`. `preview.vympel.kz` is a preview origin,
+not the production canonical domain. Publication metadata must record
+`siteIndexingEnabled: false`, and both exact-image runtime jobs must prove the
+global noindex header/meta behavior, absence of discovery metadata, and an
+unadvertised empty sitemap before the manifest artifact is emitted.
+
+For this SHA-only set, leave `release_tag` blank, set `publish_images=true`, and
+keep `acknowledge_placeholder_public_config=false`. The workflow must create
+only the full SHA tags; it must not create `latest`, `preview`, `staging-latest`,
+or a new `v1.0.0-rc.*` alias.
+
 ## Published release-candidate evidence
 
 ### RC.11 supported catalog-domain candidate

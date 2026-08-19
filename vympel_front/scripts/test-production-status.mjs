@@ -64,8 +64,12 @@ try {
     await expectPermanentRedirect(origin, "/ru/catalog?categoryCode=WATCH_WRIST&page=1", "/ru/catalog/WATCH_WRIST");
     await expectStatusAndText(origin, "/ru/brands/romanson", 200, "ROMANSON");
 
-    await expectApprovedIndexingPolicy(origin);
-    await expectMetadataMatrix(origin);
+    if (process.env.SITE_INDEXING_ENABLED?.trim().toLowerCase() === "true") {
+        await expectApprovedIndexingPolicy(origin);
+        await expectMetadataMatrix(origin);
+    } else {
+        await expectDisabledIndexingPolicy(origin);
+    }
 
     for (const locale of locales) {
         await expectStatusAndText(
@@ -203,6 +207,32 @@ async function expectApprovedIndexingPolicy(originUrl) {
     const sitemapLocations = Array.from(sitemapText.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1]);
     assert.ok(sitemapLocations.length > 0, "approved sitemap must publish canonical routes");
     assert.ok(sitemapLocations.every((location) => !new URL(location).search), "sitemap must not contain query variants");
+}
+
+async function expectDisabledIndexingPolicy(originUrl) {
+    for (const locale of locales) {
+        const response = await fetch(`${originUrl}/${locale}`);
+        const html = await response.text();
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow");
+        assert.match(html, /<meta name="robots" content="noindex, nofollow"/i);
+        assert.doesNotMatch(html, /<link rel="canonical"/i);
+        assert.doesNotMatch(html, /<link rel="alternate"/i);
+        assert.doesNotMatch(html, /<meta property="og:/i);
+        assert.doesNotMatch(html, /<meta name="twitter:/i);
+    }
+
+    const robotsResponse = await fetch(`${originUrl}/robots.txt`);
+    const robotsText = await robotsResponse.text();
+    assert.equal(robotsResponse.status, 200);
+    assert.doesNotMatch(robotsText, /Sitemap:/i);
+
+    const sitemapResponse = await fetch(`${originUrl}/sitemap.xml`);
+    const sitemapText = await sitemapResponse.text();
+    assert.equal(sitemapResponse.status, 200);
+    assert.doesNotMatch(sitemapText, /<loc>/i);
+
+    console.log("Preview indexing policy passed: noindex headers/metadata, no discovery metadata, and no indexable sitemap.");
 }
 
 async function expectFavicon(originUrl) {

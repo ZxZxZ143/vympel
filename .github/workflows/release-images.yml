@@ -18,22 +18,22 @@ on:
       storefront_api_base:
         description: Browser-visible storefront API URL compiled into the image
         required: true
-        default: https://api.example.com/api/public
+        default: https://api.vympel.kz/api/public
         type: string
       crm_api_base:
         description: Browser-visible CRM API URL compiled into the image
         required: true
-        default: https://api.example.com/api/crm
+        default: https://api.34.18.200.58.sslip.io/api/crm
         type: string
       media_origins:
         description: Comma-separated browser-visible media origins
         required: true
-        default: https://media.example.com
+        default: https://api.vympel.kz
         type: string
       storefront_site_url:
-        description: Browser-visible canonical storefront origin compiled into the image
+        description: Browser-visible storefront origin; indexing remains a separate fail-closed release decision
         required: true
-        default: https://shop.example.com
+        default: https://preview.vympel.kz
         type: string
       deployment_environment:
         description: Public environment label compiled into frontend images
@@ -175,6 +175,7 @@ jobs:
               NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment || 'ci' }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false
+              SITE_INDEXING_ENABLED=false
           - image: vympel-crm
             context: vympel_crm
             dockerfile: vympel_crm/Dockerfile
@@ -335,6 +336,7 @@ jobs:
         NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
         NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
         NEXT_PUBLIC_TELEMETRY_ENABLED=false
+        SITE_INDEXING_ENABLED=false
       cache: true
       cache-mode: max
       cache-scope: vympel-storefront
@@ -463,6 +465,7 @@ jobs:
       PUBLIC_STOREFRONT_SITE_URL: ${{ inputs.storefront_site_url }}
       PUBLIC_DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
       PUBLIC_TELEMETRY_ENABLED: "false"
+      PUBLIC_SITE_INDEXING_ENABLED: "false"
       PLACEHOLDER_ACKNOWLEDGED: ${{ inputs.acknowledge_placeholder_public_config }}
     steps:
       - uses: docker/setup-buildx-action@v3.11.1
@@ -532,6 +535,7 @@ jobs:
               --arg storefrontSiteUrl "$PUBLIC_STOREFRONT_SITE_URL" \
               --arg deploymentEnvironment "$PUBLIC_DEPLOYMENT_ENVIRONMENT" \
               --arg telemetryEnabled "$PUBLIC_TELEMETRY_ENABLED" \
+              --arg siteIndexingEnabled "$PUBLIC_SITE_INDEXING_ENABLED" \
               --arg placeholderAcknowledged "$PLACEHOLDER_ACKNOWLEDGED" \
               '{
                 image: $image,
@@ -555,6 +559,7 @@ jobs:
                   deploymentEnvironment: $deploymentEnvironment,
                   release: $commit,
                   telemetryEnabled: ($telemetryEnabled == "true"),
+                  siteIndexingEnabled: ($siteIndexingEnabled == "true"),
                   placeholderAcknowledged: ($placeholderAcknowledged == "true")
                 }
               }' > "release-metadata/$image.json"
@@ -609,6 +614,7 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness | grep -q '"status":"UP"'
           test "$(curl --fail --silent --show-error http://127.0.0.1:3200/ru | wc -c)" -gt 500
           test "$(curl --fail --silent --show-error http://127.0.0.1:3201/login | wc -c)" -gt 500
+          sh deployment/scripts/verify-preview-indexing.sh http://127.0.0.1:3200
           docker compose \
             -f compose.yml \
             -f deployment/rehearsals/compose.published-images.yml \
@@ -673,6 +679,7 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness | grep -q '"status":"UP"'
           test "$(curl --fail --silent --show-error http://127.0.0.1:3200/ru | wc -c)" -gt 500
           test "$(curl --fail --silent --show-error http://127.0.0.1:3201/login | wc -c)" -gt 500
+          sh deployment/scripts/verify-preview-indexing.sh http://127.0.0.1:3200
           test "$(curl --fail --silent --show-error \
             'http://127.0.0.1:3200/_next/image?url=%2Fcatalog-hero-banner.jpg&w=64&q=75' | wc -c)" -gt 100
           docker compose \

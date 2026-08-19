@@ -65,6 +65,7 @@ for image in vympel-backend vympel-storefront vympel-crm; do
         deploymentEnvironment: "staging",
         release: $commit,
         telemetryEnabled: false,
+        siteIndexingEnabled: false,
         placeholderAcknowledged: false
       }
     }' > "$temp_dir/$image.json"
@@ -81,10 +82,11 @@ sh "$repository_root/deployment/scripts/generate-published-release-manifest.sh" 
 grep -q 'linux/amd64:' "$output_path"
 grep -q 'linux/arm64:' "$output_path"
 grep -q 'NEXT_PUBLIC_TELEMETRY_ENABLED: false' "$output_path"
+grep -q 'SITE_INDEXING_ENABLED: false' "$output_path"
 grep -q 'NEXT_PUBLIC_APP_RELEASE: "1111111111111111111111111111111111111111"' "$output_path"
 grep -q 'NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.34.18.200.58.sslip.io/api/public"' "$output_path"
 grep -q 'placeholder_acknowledged: false' "$output_path"
-grep -q 'expected_latest_change: 2026-07-19-02-update-public-image-paths-to-webp' "$output_path"
+grep -q 'expected_latest_change: 2026-08-16-01-about-instagram-post-cms' "$output_path"
 grep -q 'linux_arm64_runtime: passed' "$output_path"
 if grep -Eq 'PENDING|0000000000000000000000000000000000000000' "$output_path"; then
   echo "Synthetic published manifest retained an unresolved value" >&2

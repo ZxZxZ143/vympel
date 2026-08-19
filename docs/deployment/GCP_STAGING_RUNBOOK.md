@@ -2,11 +2,14 @@
 
 ## Status and deployment boundary
 
-Image publication for the exact temporary `34.18.200.58.sslip.io` routing
-contract is authorized. Google Cloud resource creation and external deployment
-remain unauthorized: do not create a project, address, firewall rule, VM, DNS
-record, certificate, secret, backup, or running stack from this runbook without
-separate approval.
+The checked-in GCP environment example remains a record of the previously
+deployed sslip.io routing contract and its immutable image selector. The
+release workflow is prepared to create a new SHA-only image set for
+`preview.vympel.kz` and `api.vympel.kz`, but Google Cloud resource changes and
+external deployment remain unauthorized:
+do not edit the VM environment, create or change DNS, change Nginx/TLS, pull or
+start containers, run migrations, or touch the production `vympel.kz` routing
+without separate approval.
 
 The recommended target is one `e2-standard-2` Compute Engine VM (2 vCPU, 8 GB)
 running Ubuntu 24.04 LTS on `linux/amd64`. Use:
@@ -25,6 +28,37 @@ Images run
 The exact registry and public-build record is
 `deployment/releases/v1.0.0-rc.8.yml`. No Google Cloud resource or external
 deployment was created.
+
+## Preview-domain runtime changes required later
+
+These are requirements for a separately authorized future deployment, not
+commands to apply during image publication:
+
+- Storefront public origin: `https://preview.vympel.kz`.
+- Public API base: `https://api.vympel.kz/api/public`.
+- Public media origin: `https://api.vympel.kz`; backend
+  `VYMPEL_S3_PUBLIC_ENDPOINT` must become `https://api.vympel.kz/media`.
+- Backend `VYMPEL_CORS_ALLOWED_ORIGINS` must allow exactly
+  `https://preview.vympel.kz` and the still-active CRM staging origin
+  `https://crm.34.18.200.58.sslip.io`; do not use `*`.
+- CRM remains a staging application. Keep
+  `NEXT_PUBLIC_CRM_API_BASE=https://api.34.18.200.58.sslip.io/api/crm` and do
+  not create `crm.vympel.kz`.
+- The public `api.vympel.kz` ingress must not expose `/api/crm`; any continued
+  CRM access remains on the existing staging ingress until a private-access
+  migration is designed and approved.
+- Keep backend-to-storefront CMS revalidation on the internal Compose URL
+  `http://storefront:3000/api/revalidate`. Do not route signed webhook delivery
+  out through the public preview hostname.
+- Keep `SITE_INDEXING_ENABLED=false`. The preview hostname is not a production
+  canonical-domain approval and must remain globally `noindex, nofollow` with
+  no advertised/indexable sitemap.
+
+The repository template is deliberately not repinned to an unpublished SHA or
+mixed with these future runtime values. After publication, an authorized
+deployment task must copy the digest-complete manifest values into the external
+VM environment as one atomic change and perform the separate Nginx/DNS/TLS
+review.
 
 ## Architecture and ports
 
@@ -168,8 +202,9 @@ sudo chmod 0600 /etc/vympel/gcp-staging.env
 sudoedit /etc/vympel/gcp-staging.env
 ```
 
-Replace every `REPLACE_ME` value. The checked-in temporary sslip.io routing
-values already match the requested staging contract. Use the exact release
+Replace every `REPLACE_ME` value. The checked-in sslip.io routing values match
+the preserved prior staging contract only; they are not the preview-domain
+promotion instructions above. Use the exact release
 SHA and public values recorded by the selected digest-complete manifest:
 
 | Variable class | Variables | Rule |
@@ -331,9 +366,10 @@ estimated 891.31 MiB heap under the 1,536 MiB migration limit.
 
 - Approve Google Cloud project/region/zone, VPC/subnet, billing, IAM/OS Login,
   SSH source, static IP, VM, disk, deletion protection, and firewall rules.
-- Use the already pinned RC.8 full SHA from
-  `infrastructure/env/gcp-staging.env.example`; confirm it against
-  `deployment/releases/v1.0.0-rc.8.yml` before the first authorized startup.
+- Treat the SHA in `infrastructure/env/gcp-staging.env.example` as historical
+  sslip.io state. A future authorized preview deployment must replace it and
+  every compiled/runtime public value from the new digest-complete SHA
+  manifest in one reviewed operation; never mix the old image with new origins.
 - Generate/store real secrets outside Git and decide backup/restore retention.
 - Create the VM, DNS, Nginx/Certbot configuration, monitoring, and alerts.
 - Perform the first authorized deployment, ADMIN bootstrap, external smoke

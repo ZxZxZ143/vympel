@@ -82,10 +82,19 @@ placeholder_acknowledged=$(printf '%s\n' "$public_config" | jq -r '
   then (.placeholderAcknowledged | tostring)
   else error("placeholderAcknowledged must be boolean")
   end')
+site_indexing_enabled=$(printf '%s\n' "$public_config" | jq -r '
+  if (.siteIndexingEnabled | type) == "boolean"
+  then (.siteIndexingEnabled | tostring)
+  else error("siteIndexingEnabled must be boolean")
+  end')
 case "$telemetry_enabled" in
   true|false) ;;
   *) echo "Published metadata contains an invalid telemetry flag" >&2; exit 1 ;;
 esac
+if [ "$site_indexing_enabled" != "false" ]; then
+  echo "Preview publication requires SITE_INDEXING_ENABLED=false" >&2
+  exit 1
+fi
 generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 git_tag_value=null
 if [ -n "$release_tag" ]; then
@@ -131,6 +140,7 @@ public_build_configuration:
     NEXT_PUBLIC_APP_ENV: "$deployment_environment"
     NEXT_PUBLIC_APP_RELEASE: "$commit_sha"
     NEXT_PUBLIC_TELEMETRY_ENABLED: $telemetry_enabled
+    SITE_INDEXING_ENABLED: $site_indexing_enabled
   storefront_api_base: "$storefront_api_base"
   crm_api_base: "$crm_api_base"
   media_origins: "$media_origins"
@@ -138,10 +148,11 @@ public_build_configuration:
   deployment_environment: "$deployment_environment"
   release: "$commit_sha"
   telemetry_enabled: $telemetry_enabled
+  site_indexing_enabled: $site_indexing_enabled
   placeholder_acknowledged: $placeholder_acknowledged
 database:
   changelog: classpath:db/changelog/db.changelog-master.xml
-  expected_latest_change: 2026-07-19-02-update-public-image-paths-to-webp
+  expected_latest_change: 2026-08-16-01-about-instagram-post-cms
   migration_mode: one-time-job
 verification:
   workflow_run: "$run_url"

@@ -2051,6 +2051,12 @@
 * **How:** Tag all three image boundaries with the same full 40-character Git SHA, record registry digests in the release manifest, and roll applications back only to an explicitly supplied compatible prior SHA.
 * **Why:** The deployment is reproducible and auditable without coupling the applications into one image or relying on mutable `latest` tags.
 
+### Prove preview indexing policy on the exact published image
+
+* **When to use:** Publishing a publicly reachable preview/staging storefront on a real domain while search indexing is not approved.
+* **How:** Compile and retain `SITE_INDEXING_ENABLED=false` explicitly, record the boolean in per-image metadata and the consolidated manifest, then run `deployment/scripts/verify-preview-indexing.sh` against the exact SHA-tagged runtime on every published platform. Require `X-Robots-Tag: noindex, nofollow`, page noindex metadata, no canonical/alternate/social discovery metadata, no sitemap advertisement in robots, and no sitemap locations. Keep `NEXT_PUBLIC_SITE_URL` only as the preview URL-construction origin; it is not production canonical approval.
+* **Why:** A valid `.kz` hostname can be crawled immediately, and build logs or source defaults alone do not prove the immutable image retained the fail-closed policy.
+
 ### Bootstrap ADMIN once, then disable it
 
 * **When to use:** A controlled environment has no initial ADMIN.
@@ -2331,4 +2337,4 @@
 
 ## Last Updated
 
-2026-08-16 - Documented Home-only accessible autoplay, collection-level About Instagram fallbacks, strict backend-authoritative Instagram URL policy, reusable CMS CRUD/order/publish/revalidation flow, and the event-capture/manual-test lessons from implementation.
+2026-08-19 - Documented explicit SHA-only preview build values, the preserved sslip.io CRM API boundary, and exact-image runtime proof for disabled indexing and absent discovery metadata.
