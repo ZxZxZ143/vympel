@@ -2057,6 +2057,12 @@
 * **How:** Compile and retain `SITE_INDEXING_ENABLED=false` explicitly, record the boolean in per-image metadata and the consolidated manifest, then run `deployment/scripts/verify-preview-indexing.sh` against the exact SHA-tagged runtime on every published platform. Require `X-Robots-Tag: noindex, nofollow`, page noindex metadata, no canonical/alternate/social discovery metadata, no sitemap advertisement in robots, and no sitemap locations. Keep `NEXT_PUBLIC_SITE_URL` only as the preview URL-construction origin; it is not production canonical approval.
 * **Why:** A valid `.kz` hostname can be crawled immediately, and build logs or source defaults alone do not prove the immutable image retained the fail-closed policy.
 
+### Match dumped HTTP headers portably in shell gates
+
+* **When to use:** Inspecting headers written by `curl --dump-header` in Linux CI or cross-platform local tests.
+* **How:** Treat the line terminator as POSIX whitespace, for example `[[:space:]]*$`; do not use `\r?` with `grep -E`, because GNU ERE does not interpret `\r` as a carriage-return escape. Wrap required matches in explicit `if ! grep ...` diagnostics so a failed immutable-image gate identifies the missing contract.
+* **Why:** HTTP header files use CRLF. Windows/MSYS normalization can make a non-portable regex pass locally even though the same exact-image verification fails on Linux runners.
+
 ### Bootstrap ADMIN once, then disable it
 
 * **When to use:** A controlled environment has no initial ADMIN.
@@ -2337,4 +2343,4 @@
 
 ## Last Updated
 
-2026-08-19 - Documented explicit SHA-only preview build values, the preserved sslip.io CRM API boundary, and exact-image runtime proof for disabled indexing and absent discovery metadata.
+2026-08-19 - Documented explicit SHA-only preview build values, the preserved sslip.io CRM API boundary, exact-image runtime proof for disabled indexing, and the GNU grep/CRLF rule for portable dumped-header assertions.

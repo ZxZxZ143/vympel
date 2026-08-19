@@ -19,8 +19,14 @@ curl --fail --silent --show-error --dump-header "$headers" --output "$home" "$or
 curl --fail --silent --show-error --output "$robots" "$origin/robots.txt"
 curl --fail --silent --show-error --output "$sitemap" "$origin/sitemap.xml"
 
-grep -Eiq '^x-robots-tag:[[:space:]]*noindex, nofollow\r?$' "$headers"
-grep -Eiq '<meta[^>]+name="robots"[^>]+content="noindex, nofollow"' "$home"
+if ! grep -Eiq '^x-robots-tag:[[:space:]]*noindex,[[:space:]]*nofollow[[:space:]]*$' "$headers"; then
+  echo "Preview response is missing the global X-Robots-Tag noindex policy" >&2
+  exit 1
+fi
+if ! grep -Eiq '<meta[^>]+name="robots"[^>]+content="noindex,[[:space:]]*nofollow"' "$home"; then
+  echo "Preview HTML is missing the robots noindex policy" >&2
+  exit 1
+fi
 
 if grep -Eiq '<link[^>]+rel="canonical"|rel="alternate"|property="og:|name="twitter:' "$home"; then
   echo "Preview HTML advertises canonical, alternate, or social discovery metadata" >&2

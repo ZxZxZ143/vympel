@@ -1165,4 +1165,4 @@ The 2026-08-19 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-08-19 - Added the SHA-only preview-domain image build contract, preserved the sslip.io CRM API boundary, made `SITE_INDEXING_ENABLED=false` explicit in storefront images/release metadata, and added exact-image noindex/discovery verification without changing VM deployment state.
+2026-08-19 - Added the SHA-only preview-domain image build contract, preserved the sslip.io CRM API boundary, made `SITE_INDEXING_ENABLED=false` explicit in storefront images/release metadata, and added Linux/CRLF-safe exact-image noindex/discovery verification without changing VM deployment state.
