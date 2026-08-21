@@ -5,8 +5,9 @@
 The checked-in GCP environment example remains a record of the previously
 deployed sslip.io routing contract and its immutable image selector. The
 release workflow is prepared to create a new SHA-only image set for
-`preview.vympel.kz` and `api.vympel.kz`, but Google Cloud resource changes and
-external deployment remain unauthorized:
+`preview.vympel.kz`, `api.vympel.kz`, and the protected CRM origin
+`x7m2q9k4n6p8.vympel.kz`, but Google Cloud resource changes and external
+deployment remain unauthorized:
 do not edit the VM environment, create or change DNS, change Nginx/TLS, pull or
 start containers, run migrations, or touch the production `vympel.kz` routing
 without separate approval.
@@ -39,14 +40,21 @@ commands to apply during image publication:
 - Public media origin: `https://api.vympel.kz`; backend
   `VYMPEL_S3_PUBLIC_ENDPOINT` must become `https://api.vympel.kz/media`.
 - Backend `VYMPEL_CORS_ALLOWED_ORIGINS` must allow exactly
-  `https://preview.vympel.kz` and the still-active CRM staging origin
-  `https://crm.34.18.200.58.sslip.io`; do not use `*`.
-- CRM remains a staging application. Keep
-  `NEXT_PUBLIC_CRM_API_BASE=https://api.34.18.200.58.sslip.io/api/crm` and do
-  not create `crm.vympel.kz`.
-- The public `api.vympel.kz` ingress must not expose `/api/crm`; any continued
-  CRM access remains on the existing staging ingress until a private-access
-  migration is designed and approved.
+  `https://preview.vympel.kz,https://x7m2q9k4n6p8.vympel.kz`; do not use `*`.
+  `https://crm.34.18.200.58.sslip.io` may remain as a third origin only during
+  a bounded rollback transition and must be removed after old CRM shutdown.
+- CRM host: `x7m2q9k4n6p8.vympel.kz`. CRM frontend:
+  `https://x7m2q9k4n6p8.vympel.kz`. CRM API:
+  `https://x7m2q9k4n6p8.vympel.kz/api/crm`. Compile the CRM image with
+  `NEXT_PUBLIC_CRM_API_BASE=https://x7m2q9k4n6p8.vympel.kz/api/crm`. Do not
+  create or use `crm.vympel.kz`.
+- The public `api.vympel.kz` ingress must not expose `/api/crm`; it remains
+  limited to the approved `/api/public/*` and `/media/*` surfaces.
+- Basic Auth is an ingress-only control. Protect the CRM UI and the exact auth
+  endpoints `/api/crm/auth/login`, `/api/crm/auth/refresh`, and
+  `/api/crm/auth/logout`. Set `auth_basic off` for all other `/api/crm/*`
+  routes so their `Authorization: Bearer ...` header is not consumed by
+  Nginx. Keep all Basic Auth credentials and hashes only on the VM.
 - Keep backend-to-storefront CMS revalidation on the internal Compose URL
   `http://storefront:3000/api/revalidate`. Do not route signed webhook delivery
   out through the public preview hostname.
@@ -67,8 +75,9 @@ Internet :80/:443
   -> Google Cloud VPC firewall
   -> host Nginx
        storefront domain -> 127.0.0.1:3000 -> storefront
-       CRM domain        -> 127.0.0.1:3001 -> CRM
-       API domain        -> 127.0.0.1:8080 -> backend
+       protected CRM /   -> 127.0.0.1:3001 -> CRM
+       protected CRM /api/crm/* -> 127.0.0.1:8080 -> backend
+       API /api/public/* -> 127.0.0.1:8080 -> backend
        API /media/       -> 127.0.0.1:9002 -> read-only media gateway -> minio:9000
 
 Private Docker networks
@@ -246,7 +255,27 @@ acceptance, stop and follow `LIQUIBASE_HISTORY_RECONCILIATION.md`.
 
 ## 6. Install host Nginx
 
-Render only the three domain placeholders so native Nginx variables remain:
+The checked-in HTTP-first template records the older three-upstream routing
+shape and must not be installed unchanged for the protected CRM origin. In a
+separately authorized VM/Nginx task, preserve the existing forwarding,
+timeouts, upload limits, request IDs, and Actuator denial while applying these
+location boundaries on `x7m2q9k4n6p8.vympel.kz`:
+
+- `/` -> Basic Auth -> `127.0.0.1:3001` CRM frontend.
+- Exact `/api/crm/auth/login`, `/api/crm/auth/refresh`, and
+  `/api/crm/auth/logout` -> Basic Auth -> `127.0.0.1:8080` backend.
+- Remaining `/api/crm/*` -> `auth_basic off` -> `127.0.0.1:8080` backend,
+  preserving the browser Bearer `Authorization` header.
+- `api.vympel.kz/api/crm` and `api.vympel.kz/api/crm/*` -> unavailable (404).
+- `/actuator`, Swagger/OpenAPI, MinIO API, and MinIO console remain
+  unavailable on the CRM and public API hosts.
+
+Do not store the Basic Auth password or htpasswd contents in the repository,
+release manifest, image metadata, or build arguments.
+
+For the preserved sslip rollback topology only, the existing template renders
+the three domain placeholders as follows. Do not use this command to replace
+the protected-origin location design described above:
 
 ```bash
 . /etc/vympel/gcp-staging.env
@@ -370,6 +399,10 @@ estimated 891.31 MiB heap under the 1,536 MiB migration limit.
   sslip.io state. A future authorized preview deployment must replace it and
   every compiled/runtime public value from the new digest-complete SHA
   manifest in one reviewed operation; never mix the old image with new origins.
+- Retain the old sslip CRM host only for a bounded rollback window. After the
+  new CRM UI, login/refresh/logout, Bearer API calls, and cookie rotation are
+  verified, remove the old CRM origin from CORS, disable its Nginx route, and
+  retire its DNS/TLS only in a separately authorized cleanup task.
 - Generate/store real secrets outside Git and decide backup/restore retention.
 - Create the VM, DNS, Nginx/Certbot configuration, monitoring, and alerts.
 - Perform the first authorized deployment, ADMIN bootstrap, external smoke

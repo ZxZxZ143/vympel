@@ -9,6 +9,9 @@ Record release SHA, all three image digests, date/operator, target environment, 
 - [ ] Storefront RU, KZ, and EN home/catalog/product paths return expected content.
 - [ ] Storefront server-side API and browser-visible API/media origins point to staging.
 - [ ] CRM login works using a disposable/approved staging ADMIN; refresh cookie is Secure, HttpOnly, and has the approved SameSite value.
+- [ ] CRM refresh cookie is host-only (no `Domain` attribute), scoped to `/api/crm/auth`, rotates on refresh, and is cleared with the same attributes on logout.
+- [ ] CRM UI and login/refresh/logout pass the VM-only Basic Auth gate; protected CRM API calls preserve the Bearer header with Nginx Basic Auth disabled on the remaining `/api/crm/*` routes.
+- [ ] `api.vympel.kz/api/crm` remains unavailable, while the protected CRM host exposes only the intended UI and `/api/crm/*` backend route.
 - [ ] If initial ADMIN setup is required, provision the four `VYMPEL_BOOTSTRAP_ADMIN_*` values through the staging secret manager for one controlled deployment only.
 - [ ] Verify CRM login and ADMIN authorization, then set `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=false`, remove or rotate the temporary password secret, and redeploy.
 - [ ] Existing ADMIN bootstrap is idempotent, does not reset the existing password, and remains disabled after controlled setup.

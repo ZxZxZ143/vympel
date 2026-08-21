@@ -23,7 +23,7 @@ on:
       crm_api_base:
         description: Browser-visible CRM API URL compiled into the image
         required: true
-        default: https://api.34.18.200.58.sslip.io/api/crm
+        default: https://x7m2q9k4n6p8.vympel.kz/api/crm
         type: string
       media_origins:
         description: Comma-separated browser-visible media origins

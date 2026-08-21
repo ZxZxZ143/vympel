@@ -340,6 +340,12 @@
 * **How:** Return the short-lived access JWT in JSON, but set the refresh JWT only as a host-only HttpOnly cookie scoped to `/api/crm/auth`, with `SameSite=Lax` and `Secure=true` in production. Persist only SHA-256 hashes of refresh `jti` values. Rotate under a pessimistic lock, mark replacements, revoke the active family on replay, revoke all active sessions after role removal/user disable, and validate exact `Origin`/`Referer` on cookie-authenticated refresh/logout requests. Keep production CRM/API same-site unless this threat model is redesigned.
 * **Why:** JavaScript cannot exfiltrate the refresh credential, stolen rotated tokens cannot be replayed silently, and role/status changes take effect without waiting 14 days.
 
+### Same-origin protected CRM routing
+
+* **When to use:** When the CRM UI and `/api/crm/*` share one Nginx hostname while the UI also has a VM-only Basic Auth gate.
+* **How:** Compile `NEXT_PUBLIC_CRM_API_BASE` as the protected host plus `/api/crm`. Apply Basic Auth to the UI and exact login/refresh/logout paths, but set `auth_basic off` on every other `/api/crm/*` location so `Authorization: Bearer <access-token>` reaches Spring unchanged. Keep the refresh cookie host-only, Secure, HttpOnly, `SameSite=Lax`, and scoped to `/api/crm/auth`; allow the protected host explicitly in backend CORS/trusted-origin configuration. Never place Basic Auth credentials, hashes, or header workarounds in source, images, or build arguments.
+* **Why:** A request cannot use the same `Authorization` header for Nginx Basic credentials and the CRM Bearer JWT. The split preserves ingress privacy for the UI/auth bootstrap while leaving backend JWT/RBAC as the authorization boundary for protected API work.
+
 ### CRM global mutation feedback
 
 * **When to use:** When a CRM action calls a backend mutation, including login/logout, create/update/archive, quick edits, user status changes, collection creation, or product photo upload.
@@ -2343,4 +2349,4 @@
 
 ## Last Updated
 
-2026-08-19 - Documented explicit SHA-only preview build values, the preserved sslip.io CRM API boundary, exact-image runtime proof for disabled indexing, and the GNU grep/CRLF rule for portable dumped-header assertions.
+2026-08-21 - Documented the protected same-origin CRM release contract, the Nginx Basic/Bearer path split, host-only refresh-cookie compatibility, rollback-only sslip cleanup, and exact-image CRM bundle origin proof.

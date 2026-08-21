@@ -27,13 +27,28 @@ from the exact `main` commit with `release_tag` empty and these values:
 | `NEXT_PUBLIC_APP_RELEASE` | exact dispatched 40-character Git SHA |
 | `NEXT_PUBLIC_TELEMETRY_ENABLED` | `false` |
 | `SITE_INDEXING_ENABLED` | `false` |
-| `crm_api_base` / `NEXT_PUBLIC_CRM_API_BASE` | `https://api.34.18.200.58.sslip.io/api/crm` |
+| `crm_api_base` / `NEXT_PUBLIC_CRM_API_BASE` | `https://x7m2q9k4n6p8.vympel.kz/api/crm` |
 
 The shared media input also compiles `https://api.vympel.kz` into the CRM image,
-but the administrative CRM API remains on the working sslip.io staging origin.
-Do not substitute `https://api.vympel.kz/api/crm`: the future public API ingress
-is not intended to expose `/api/crm`. `preview.vympel.kz` is a preview origin,
-not the production canonical domain. Publication metadata must record
+and the CRM browser calls its API through the same protected CRM origin. The
+future Nginx configuration must route `/` to the CRM frontend and `/api/crm/*`
+to the backend on `x7m2q9k4n6p8.vympel.kz`. Do not substitute
+`https://api.vympel.kz/api/crm`: the public API ingress must keep `/api/crm`
+unavailable. `crm.vympel.kz` is not part of this contract. The former sslip.io
+CRM origin is rollback-only during a bounded transition and must be removed
+from `VYMPEL_CORS_ALLOWED_ORIGINS` after that rollback path is retired.
+
+Basic Auth remains a VM/Nginx-only control and no credential or password hash
+belongs in Git, an image, or a build argument. Protect the CRM UI and the three
+cookie-authenticated endpoints `/api/crm/auth/login`,
+`/api/crm/auth/refresh`, and `/api/crm/auth/logout` with Basic Auth. Disable
+Nginx Basic Auth for every other `/api/crm/*` path so the browser's
+`Authorization: Bearer <access-token>` header reaches Spring unchanged. The
+hidden hostname is routing, not an authorization boundary; backend JWT, RBAC,
+trusted-origin, rate-limit, and cookie controls remain authoritative.
+
+`preview.vympel.kz` is a preview origin, not the production canonical domain.
+Publication metadata must record
 `siteIndexingEnabled: false`, and both exact-image runtime jobs must prove the
 global noindex header/meta behavior, absence of discovery metadata, and an
 unadvertised empty sitemap before the manifest artifact is emitted.

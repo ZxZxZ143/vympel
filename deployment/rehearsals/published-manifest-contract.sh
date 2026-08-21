@@ -11,8 +11,9 @@ good_bundle=$temp_dir/good-bundle.js
 bad_bundle=$temp_dir/bad-bundle.js
 
 printf '%s\n' \
-  'https://api.34.18.200.58.sslip.io/api/public' \
-  'https://shop.34.18.200.58.sslip.io' \
+  'https://api.vympel.kz/api/public' \
+  'https://x7m2q9k4n6p8.vympel.kz/api/crm' \
+  'https://preview.vympel.kz' \
   'http://localhost:${process.env.PORT||3000}' > "$good_bundle"
 sh "$bundle_url_verifier" "$good_bundle"
 
@@ -58,10 +59,10 @@ for image in vympel-backend vympel-storefront vympel-crm; do
       },
       publicBuildConfiguration: {
         strategy: "build-time-release-contract",
-        storefrontApiBase: "https://api.34.18.200.58.sslip.io/api/public",
-        crmApiBase: "https://api.34.18.200.58.sslip.io/api/crm",
-        mediaOrigins: "https://api.34.18.200.58.sslip.io",
-        storefrontSiteUrl: "https://shop.34.18.200.58.sslip.io",
+        storefrontApiBase: "https://api.vympel.kz/api/public",
+        crmApiBase: "https://x7m2q9k4n6p8.vympel.kz/api/crm",
+        mediaOrigins: "https://api.vympel.kz",
+        storefrontSiteUrl: "https://preview.vympel.kz",
         deploymentEnvironment: "staging",
         release: $commit,
         telemetryEnabled: false,
@@ -84,7 +85,8 @@ grep -q 'linux/arm64:' "$output_path"
 grep -q 'NEXT_PUBLIC_TELEMETRY_ENABLED: false' "$output_path"
 grep -q 'SITE_INDEXING_ENABLED: false' "$output_path"
 grep -q 'NEXT_PUBLIC_APP_RELEASE: "1111111111111111111111111111111111111111"' "$output_path"
-grep -q 'NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.34.18.200.58.sslip.io/api/public"' "$output_path"
+grep -q 'NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.vympel.kz/api/public"' "$output_path"
+grep -q 'NEXT_PUBLIC_CRM_API_BASE: "https://x7m2q9k4n6p8.vympel.kz/api/crm"' "$output_path"
 grep -q 'placeholder_acknowledged: false' "$output_path"
 grep -q 'expected_latest_change: 2026-08-16-01-about-instagram-post-cms' "$output_path"
 grep -q 'linux_arm64_runtime: passed' "$output_path"

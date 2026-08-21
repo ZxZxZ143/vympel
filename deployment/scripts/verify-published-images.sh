@@ -105,6 +105,26 @@ for image in vympel-backend vympel-storefront vympel-crm; do
           exit 1
         fi
 
+        if [ "$image" = "vympel-crm" ]; then
+          expected_crm_api_base=$(jq -er '.publicBuildConfiguration.crmApiBase' "$metadata_path")
+          legacy_crm_api_base=https://api.34.18.200.58.sslip.io/api/crm
+          if ! grep -R -a -F -q "$expected_crm_api_base" \
+            "$scan_dir/app/.next" "$scan_dir/app/server.js"; then
+            echo "CRM bundle does not contain the published NEXT_PUBLIC_CRM_API_BASE on linux/$architecture" >&2
+            cleanup_bundle_scan
+            trap - EXIT HUP INT TERM
+            exit 1
+          fi
+          if [ "$expected_crm_api_base" != "$legacy_crm_api_base" ] && \
+             grep -R -a -F -q "$legacy_crm_api_base" \
+               "$scan_dir/app/.next" "$scan_dir/app/server.js"; then
+            echo "CRM bundle still contains the superseded sslip.io API origin on linux/$architecture" >&2
+            cleanup_bundle_scan
+            trap - EXIT HUP INT TERM
+            exit 1
+          fi
+        fi
+
         cleanup_bundle_scan
         trap - EXIT HUP INT TERM
         ;;
