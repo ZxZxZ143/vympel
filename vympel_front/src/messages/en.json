@@ -127,9 +127,7 @@
   },
   "bannerCarousel": {
     "aria": "Promotional banners",
-    "fallbackAlt": "Romanson promotional banner",
-    "pauseAutoplay": "Pause automatic banner rotation",
-    "resumeAutoplay": "Resume automatic banner rotation"
+    "fallbackAlt": "Romanson promotional banner"
   },
   "benefits": {
     "title": "Benefits",
