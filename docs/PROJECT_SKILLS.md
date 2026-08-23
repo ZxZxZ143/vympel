@@ -2349,4 +2349,4 @@
 
 ## Last Updated
 
-2026-08-22 - Documented the Home-only autoplay lifecycle with no visual toggle, pointer-versus-keyboard focus behavior, drag/reInit/visibility recovery, complete cleanup ownership, regression tests, and browser-verification policy.
+2026-08-23 - Revalidated the Home-only autoplay lifecycle and exact standalone bundle against the canonical SHA-only preview release gates before main integration; no release or deployment convention changed.

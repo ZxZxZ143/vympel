@@ -1165,4 +1165,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-08-22 - Removed the Home hero Play/Pause control, centralized its reduced-motion-aware hover/focus/drag/reInit autoplay lifecycle, documented cleanup and focus-modality behavior, and refreshed storefront test coverage to 35 files / 146 tests.
+2026-08-23 - Revalidated the Home carousel change for main integration against the canonical SHA-only preview image-publication contract; the three-image, no-mutable-alias, and no-VM-deployment boundaries are unchanged.
