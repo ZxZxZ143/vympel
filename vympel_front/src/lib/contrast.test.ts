@@ -15,9 +15,8 @@ function contrast(foreground: string, background = "#ffffff") {
 
 describe("audited solid-background contrast tokens", () => {
     it("keeps request guidance above 4.5:1", () => expect(contrast("#555555")).toBeGreaterThanOrEqual(4.5));
-    it("keeps search close and both carousel states above 3:1", () => {
+    it("keeps search close and inactive carousel dots above 3:1", () => {
         expect(contrast("#33363f")).toBeGreaterThanOrEqual(3);
         expect(contrast("#8c909f")).toBeGreaterThanOrEqual(3);
-        expect(contrast("#33363f")).toBeGreaterThanOrEqual(3);
     });
 });

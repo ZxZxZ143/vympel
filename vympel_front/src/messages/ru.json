@@ -127,9 +127,7 @@
   },
   "bannerCarousel": {
     "aria": "Рекламные баннеры",
-    "fallbackAlt": "Рекламный баннер Romanson",
-    "pauseAutoplay": "Приостановить автоматическую смену баннеров",
-    "resumeAutoplay": "Возобновить автоматическую смену баннеров"
+    "fallbackAlt": "Рекламный баннер Romanson"
   },
   "benefits": {
     "title": "Преимущества",

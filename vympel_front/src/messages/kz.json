@@ -127,9 +127,7 @@
   },
   "bannerCarousel": {
     "aria": "Жарнамалық баннерлер",
-    "fallbackAlt": "Romanson жарнамалық баннері",
-    "pauseAutoplay": "Баннерлердің автоматты ауысуын кідірту",
-    "resumeAutoplay": "Баннерлердің автоматты ауысуын жалғастыру"
+    "fallbackAlt": "Romanson жарнамалық баннері"
   },
   "benefits": {
     "title": "Артықшылықтар",
