@@ -281,7 +281,7 @@ export function RequestProcessingView() {
             <div className="crm-panel__body"><Text tone="muted">{t("common.loading")}</Text></div>
           ) : page?.content.length ? (
             <>
-              <div className="crm-table-wrap">
+              <div className="crm-table-wrap" tabIndex={0}>
                 <table className="crm-table crm-request-table">
                   <thead>
                     <tr>

@@ -59,7 +59,7 @@ class ProductReviewServiceTest {
     void guestReviewIsTrimmedAndCreatedPending() {
         Product product = new Product();
         product.setId(42L);
-        when(productRepository.findById(42L)).thenReturn(Optional.of(product));
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(product));
         when(productReviewRepository.save(any(ProductReview.class))).thenAnswer(invocation -> {
             ProductReview review = invocation.getArgument(0);
             review.setId(7L);
@@ -88,7 +88,7 @@ class ProductReviewServiceTest {
     void publicListRequestsApprovedReviewsOnly() {
         Product product = new Product();
         product.setId(42L);
-        when(productRepository.existsById(42L)).thenReturn(true);
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(product));
         when(productReviewRepository.findAll(
                 any(Specification.class),
                 any(Pageable.class)
@@ -107,7 +107,7 @@ class ProductReviewServiceTest {
     void publicListMapsFilterSortAndPagination() {
         Product product = new Product();
         product.setId(42L);
-        when(productRepository.existsById(42L)).thenReturn(true);
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(product));
         when(productReviewRepository.findAll(
                 any(Specification.class),
                 any(Pageable.class)
@@ -133,7 +133,7 @@ class ProductReviewServiceTest {
 
     @Test
     void publicListRejectsUnsupportedReviewSort() {
-        when(productRepository.existsById(42L)).thenReturn(true);
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(new Product()));
 
         assertThatThrownBy(() -> service.getApproved(
                 42L,
@@ -147,7 +147,7 @@ class ProductReviewServiceTest {
 
     @Test
     void publicListRejectsInvalidRatingFilter() {
-        when(productRepository.existsById(42L)).thenReturn(true);
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(new Product()));
 
         assertThatThrownBy(() -> service.getApproved(
                 42L,

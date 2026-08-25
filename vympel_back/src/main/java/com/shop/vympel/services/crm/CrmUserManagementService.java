@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,12 +45,15 @@ public class CrmUserManagementService {
                 ? userRepository.findAll(pageable)
                 : userRepository.searchForCrm(normalizedSearch, pageable);
 
-        return users.map(this::toResponse);
+        List<Long> userIds = users.getContent().stream().map(User::getId).toList();
+        java.util.Map<Long, List<String>> rolesByUserId = loadRoleCodes(userIds);
+        return users.map(user -> toResponse(user, rolesByUserId.getOrDefault(user.getId(), List.of())));
     }
 
     @Transactional(readOnly = true)
     public CrmManagedUserResponse getUser(Long id) {
-        return toResponse(getUserOrThrow(id));
+        return toResponse(userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found")));
     }
 
     @Transactional(readOnly = true)
@@ -85,7 +89,7 @@ public class CrmUserManagementService {
 
     @Transactional
     public CrmManagedUserResponse updateUser(Long id, CrmUserUpdateRequest request) {
-        User user = getUserOrThrow(id);
+        User user = getUserForUpdateOrThrow(id);
         Set<String> currentRoles = getRoleCodes(user.getId());
         Set<String> nextRoles = request.roles() == null ? currentRoles : normalizeRoles(request.roles());
         Boolean currentEnabled = user.getEnabled();
@@ -123,7 +127,7 @@ public class CrmUserManagementService {
 
     @Transactional
     public CrmManagedUserResponse updateRoles(Long id, Set<String> roles) {
-        User user = getUserOrThrow(id);
+        User user = getUserForUpdateOrThrow(id);
         Set<String> currentRoles = getRoleCodes(user.getId());
         Set<String> nextRoles = normalizeRoles(roles);
         ensureLastActiveAdminSurvives(user, currentRoles, nextRoles, user.getEnabled());
@@ -138,7 +142,7 @@ public class CrmUserManagementService {
 
     @Transactional
     public CrmManagedUserResponse updateStatus(Long id, Boolean enabled) {
-        User user = getUserOrThrow(id);
+        User user = getUserForUpdateOrThrow(id);
         if (enabled == null) {
             throw new IllegalArgumentException("enabled is required");
         }
@@ -156,8 +160,8 @@ public class CrmUserManagementService {
         return toResponse(savedUser);
     }
 
-    private User getUserOrThrow(Long id) {
-        return userRepository.findById(id)
+    private User getUserForUpdateOrThrow(Long id) {
+        return userRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
@@ -180,12 +184,20 @@ public class CrmUserManagementService {
         boolean currentlyActiveAdmin = Boolean.TRUE.equals(user.getEnabled()) && currentRoles.contains("ADMIN");
         boolean nextActiveAdmin = Boolean.TRUE.equals(nextEnabled) && nextRoles.contains("ADMIN");
 
-        if (currentlyActiveAdmin && !nextActiveAdmin && userRoleRepository.countActiveAdmins() <= 1) {
-            throw new IllegalArgumentException("Cannot remove or disable the last active admin");
+        if (currentlyActiveAdmin && !nextActiveAdmin) {
+            roleRepository.findByCodeForUpdate("ADMIN")
+                    .orElseThrow(() -> new IllegalStateException("ADMIN role is missing"));
+            if (userRoleRepository.countActiveAdmins() <= 1) {
+                throw new IllegalArgumentException("Cannot remove or disable the last active admin");
+            }
         }
     }
 
     private CrmManagedUserResponse toResponse(User user) {
+        return toResponse(user, getRoleCodes(user.getId()).stream().sorted().toList());
+    }
+
+    private CrmManagedUserResponse toResponse(User user, List<String> roleCodes) {
         return new CrmManagedUserResponse(
                 user.getId(),
                 user.getEmail(),
@@ -193,13 +205,22 @@ public class CrmUserManagementService {
                 user.getLastName(),
                 user.getPhone(),
                 user.getEnabled(),
-                getRoleCodes(user.getId())
-                        .stream()
-                        .sorted()
-                        .toList(),
+                roleCodes,
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
+    }
+
+    private java.util.Map<Long, List<String>> loadRoleCodes(List<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        java.util.Map<Long, List<String>> result = new HashMap<>();
+        userRoleRepository.findAllWithRoleByUserIds(userIds).forEach(userRole -> result
+                .computeIfAbsent(userRole.getUser().getId(), ignored -> new java.util.ArrayList<>())
+                .add(userRole.getRole().getCode()));
+        result.values().forEach(roles -> roles.sort(Comparator.naturalOrder()));
+        return result;
     }
 
     private Set<String> getRoleCodes(Long userId) {

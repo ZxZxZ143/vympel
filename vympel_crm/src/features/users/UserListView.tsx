@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { crmApi } from "@/shared/api/client";
@@ -9,6 +8,7 @@ import { ManagedUser, Page } from "@/shared/api/types";
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { useI18n } from "@/shared/i18n/useI18n";
 import { Button } from "@/shared/ui/Button";
+import { ButtonLink } from "@/shared/ui/ButtonLink";
 import { Text } from "@/shared/ui/Text";
 
 type UserSearchFormValues = {
@@ -17,23 +17,30 @@ type UserSearchFormValues = {
 
 export function UserListView() {
   const { locale, t, messages } = useI18n();
-  const [page, setPage] = useState<Page<ManagedUser> | null>(null);
+  const [pageState, setPageState] = useState<{ search: string; page: Page<ManagedUser> } | null>(null);
   const { handleSubmit, register } = useForm<UserSearchFormValues>({
     defaultValues: {
       search: "",
     },
   });
   const [submittedSearch, setSubmittedSearch] = useState("");
-  const [error, setError] = useState(false);
+  const [errorSearch, setErrorSearch] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     crmApi
       .users({ search: submittedSearch })
       .then((nextPage) => {
-        setPage(nextPage);
-        setError(false);
+        if (!active) return;
+        setPageState({ search: submittedSearch, page: nextPage });
+        setErrorSearch(null);
       })
-      .catch(() => setError(true));
+      .catch(() => {
+        if (active) setErrorSearch(submittedSearch);
+      });
+    return () => {
+      active = false;
+    };
   }, [submittedSearch]);
 
   const submitSearch = (values: UserSearchFormValues) => {
@@ -41,21 +48,26 @@ export function UserListView() {
   };
 
   const replaceUser = (user: ManagedUser) => {
-    setPage((current) => {
-      if (!current) {
+    setPageState((current) => {
+      if (!current || current.search !== submittedSearch) {
         return current;
       }
 
       return {
         ...current,
-        content: current.content.map((item) => (item.id === user.id ? user : item)),
+        page: {
+          ...current.page,
+          content: current.page.content.map((item) => (item.id === user.id ? user : item)),
+        },
       };
     });
   };
 
-  if (error) {
+  if (errorSearch === submittedSearch) {
     return <Text className="crm-form-error">{t("common.error")}</Text>;
   }
+
+  const page = pageState?.search === submittedSearch ? pageState.page : null;
 
   return (
     <section className="crm-page">
@@ -74,9 +86,7 @@ export function UserListView() {
               {t("common.search")}
             </Button>
           </form>
-          <Link href="/users/new">
-            <Button>{t("users.addUser")}</Button>
-          </Link>
+          <ButtonLink href="/users/new">{t("users.addUser")}</ButtonLink>
         </div>
 
         {!page ? (
@@ -88,7 +98,7 @@ export function UserListView() {
             <Text tone="muted">{t("common.empty")}</Text>
           </div>
         ) : (
-          <div className="crm-table-wrap">
+          <div className="crm-table-wrap" tabIndex={0}>
             <table className="crm-table">
               <thead>
                 <tr>
@@ -189,9 +199,7 @@ function UserRow({
       <td>{formatDate(user.updatedAt, locale)}</td>
       <td>
         <div className="crm-inline-actions">
-          <Link href={`/users/${user.id}`}>
-            <Button variant="secondary">{t("common.edit")}</Button>
-          </Link>
+          <ButtonLink href={`/users/${user.id}`} variant="secondary">{t("common.edit")}</ButtonLink>
           <Button variant={user.enabled ? "danger" : "secondary"} isLoading={busy} onClick={toggleStatus}>
             {user.enabled ? t("users.block") : t("users.unblock")}
           </Button>

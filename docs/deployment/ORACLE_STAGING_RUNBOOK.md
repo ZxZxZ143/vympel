@@ -214,6 +214,11 @@ Review the rendered file before reloading. It blocks public `/actuator/*`, prese
 
 ## First start and finite migration
 
+Before any migration of a target that already contains durable data, run
+`sudo sh deployment/scripts/backup-check.sh /etc/vympel/staging.env`. A
+separately witnessed first boot may omit it only when both the database and
+object-storage bucket are newly created and empty; record that fact.
+
 Start the complete stack:
 
 ```bash
@@ -246,8 +251,20 @@ Only after the owner chooses final domains:
 2. Confirm public DNS resolution from outside OCI.
 3. Confirm HTTP routes on port 80.
 4. Install Certbot using the current [official Nginx instructions](https://certbot.eff.org/instructions?os=snap&ws=nginx).
-5. Run `sudo certbot --nginx -d "$STOREFRONT_DOMAIN" -d "$CRM_DOMAIN" -d "$API_DOMAIN"`.
-6. Run `sudo nginx -t`, inspect redirects/security headers, and test `sudo certbot renew --dry-run`.
+5. Install `apache2-utils`, create `/var/lib/letsencrypt` (0755) and
+   `/etc/nginx/auth` (0750), then create the VM-only credential with
+   `sudo htpasswd -cB /etc/nginx/auth/vympel-crm.htpasswd vympel-preview`.
+6. Issue storefront/API TLS with
+   `sudo certbot --nginx -d "$STOREFRONT_DOMAIN" -d "$API_DOMAIN"`.
+7. Issue CRM TLS without generating a competing Nginx block:
+   `sudo certbot certonly --webroot -w /var/lib/letsencrypt -d "$CRM_DOMAIN"`.
+8. Render `infrastructure/reverse-proxy/host-crm-https.server.template` to
+   `/etc/nginx/conf.d/vympel-crm-https.conf` using only `$CRM_DOMAIN`,
+   `$TLS_CERT_DIR` (`/etc/letsencrypt/live/$CRM_DOMAIN`) and
+   `$CRM_HTPASSWD_PATH` (`/etc/nginx/auth/vympel-crm.htpasswd`). Copy those two
+   exact paths into `/etc/vympel/staging.env`.
+9. Run `sudo nginx -t`, inspect Basic/Bearer route separation and redirects,
+   then test `sudo certbot renew --dry-run`.
 
 Do not request certificates before DNS resolves. Do not commit `/etc/letsencrypt`, private keys, or rendered host configuration.
 
@@ -257,7 +274,10 @@ After TLS:
 
 ```bash
 curl --fail --show-error "https://$STOREFRONT_DOMAIN/ru"
-curl --fail --show-error "https://$CRM_DOMAIN/login"
+test "$(curl --silent --output /dev/null --write-out '%{http_code}' "https://$CRM_DOMAIN/login")" = 401
+read -rsp 'CRM Basic Auth password: ' CRM_BASIC_PASSWORD && echo
+curl --fail --show-error --user "vympel-preview:$CRM_BASIC_PASSWORD" "https://$CRM_DOMAIN/login"
+unset CRM_BASIC_PASSWORD
 curl --fail --show-error "https://$API_DOMAIN/api/public/ping"
 test "$(curl --silent --output /dev/null --write-out '%{http_code}' "https://$API_DOMAIN/actuator/health")" = 404
 ```
@@ -314,9 +334,10 @@ Upgrade:
 
 1. Require green remote CI and a digest-complete release manifest with ARM64 proof.
 2. Back up PostgreSQL and MinIO and verify the backup files are non-empty.
-3. Update only `RELEASE_TAG` and the exact matching public contract in `/etc/vympel/staging.env`.
-4. Pull, inspect the ARM64 manifest, run the Liquibase history gate, and `up -d --no-build --wait`.
-5. Run all smoke tests.
+3. Run `sudo sh deployment/scripts/backup-check.sh /etc/vympel/staging.env` and stop on any stale, failed, or mismatched evidence.
+4. Update only `RELEASE_TAG` and the exact matching public contract in `/etc/vympel/staging.env`.
+5. Pull, inspect the ARM64 manifest, run the Liquibase history gate, and `up -d --no-build --wait`.
+6. Run all smoke tests.
 
 Rollback is application-only to a previously verified compatible image set. Liquibase rollback is forward-fix-only:
 

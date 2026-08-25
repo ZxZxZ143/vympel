@@ -13,6 +13,16 @@ import java.util.List;
 @Repository
 public class PublicProductSummaryRepository {
     private static final String SUMMARIES_SQL = """
+            with recursive public_category as (
+                select category.id
+                from category
+                where category.parent_id is null and category.active = true
+                union all
+                select child.id
+                from category child
+                join public_category parent on parent.id = child.parent_id
+                where child.active = true
+            )
             select p.id as product_id,
                    coalesce(nullif(trim(local_name.name), ''), nullif(trim(ru_name.name), ''), p.model) as product_name,
                    p.model as model,
@@ -64,7 +74,8 @@ public class PublicProductSummaryRepository {
                            category.code
                        ) as category_name
                 from product_category product_category
-                join category category on category.id = product_category.category_id and category.active = true
+                join public_category public_scope on public_scope.id = product_category.category_id
+                join category category on category.id = public_scope.id
                 left join category_i18n local_category
                        on local_category.category_id = category.id and local_category.lang = :language
                 left join category_i18n ru_category

@@ -14,7 +14,6 @@ import com.shop.vympel.logging.SecurityAuditLogger;
 import com.shop.vympel.mappers.UserMapper;
 import com.shop.vympel.security.jwt.JwtService;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -31,6 +29,24 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
+    private final String dummyPasswordHash;
+
+    public AuthServiceImpl(
+            UserRepository userRepository,
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService,
+            UserRoleRepository userRoleRepository,
+            RoleRepository roleRepository
+    ) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.userRoleRepository = userRoleRepository;
+        this.roleRepository = roleRepository;
+        this.dummyPasswordHash = passwordEncoder.encode("vympel-dummy-login-password");
+    }
 
     @Override
     @Transactional
@@ -64,17 +80,9 @@ public class AuthServiceImpl implements AuthService {
     public AuthenticatedUser authenticate(LoginByEmailRequest req) throws BadCredentialsException {
         String email = req.getEmail() == null ? null : req.getEmail().trim().toLowerCase();
         User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
-        if (user == null) {
-            SecurityAuditLogger.loginFailed(email, "invalid_credentials");
-            throw new BadCredentialsException("Invalid email or password");
-        }
-
-        if (!Boolean.TRUE.equals(user.getEnabled())) {
-            SecurityAuditLogger.loginFailed(email, "account_unavailable");
-            throw new BadCredentialsException("Invalid email or password");
-        }
-
-        if (passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+        String passwordHash = user == null ? dummyPasswordHash : user.getPasswordHash();
+        boolean passwordMatches = passwordEncoder.matches(req.getPassword(), passwordHash);
+        if (user != null && Boolean.TRUE.equals(user.getEnabled()) && passwordMatches) {
             List<String> roleCodes = userRoleRepository
                     .findByUserId(user.getId())
                     .stream()
@@ -85,7 +93,12 @@ public class AuthServiceImpl implements AuthService {
             return new AuthenticatedUser(user.getId(), roleCodes);
         }
 
-        SecurityAuditLogger.loginFailed(email, "invalid_credentials");
+        SecurityAuditLogger.loginFailed(
+                email,
+                user != null && !Boolean.TRUE.equals(user.getEnabled())
+                        ? "account_unavailable"
+                        : "invalid_credentials"
+        );
         throw new BadCredentialsException("Invalid email or password");
     }
 

@@ -244,6 +244,7 @@ for image in vympel-backend vympel-storefront vympel-crm; do
 done
 
 sudo sh deployment/scripts/check-liquibase-history.sh "$ENV_FILE"
+sudo sh deployment/scripts/backup-check.sh "$ENV_FILE"
 sudo docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
 ```
 
@@ -252,14 +253,16 @@ index/child digests with the published release manifest. Stop if the frontend
 contract contains placeholders, localhost/loopback URLs, or differs from the
 real environment. If the Liquibase history check requests accountable
 acceptance, stop and follow `LIQUIBASE_HISTORY_RECONCILIATION.md`.
+The backup evidence command is mandatory for every existing target. A
+separately witnessed first boot may omit it only when both the database and
+object-storage bucket are newly created and empty; record that fact.
 
 ## 6. Install host Nginx
 
-The checked-in HTTP-first template records the older three-upstream routing
-shape and must not be installed unchanged for the protected CRM origin. In a
-separately authorized VM/Nginx task, preserve the existing forwarding,
-timeouts, upload limits, request IDs, and Actuator denial while applying these
-location boundaries on `x7m2q9k4n6p8.vympel.kz`:
+The checked-in HTTP-first template keeps the CRM host closed over clear-text
+HTTP (apart from the ACME webroot). The reviewed post-certificate CRM server is
+`infrastructure/reverse-proxy/host-crm-https.server.template`; install it by the
+exact procedure in section 8. Its location boundaries are:
 
 - `/` -> Basic Auth -> `127.0.0.1:3001` CRM frontend.
 - Exact `/api/crm/auth/login`, `/api/crm/auth/refresh`, and
@@ -273,9 +276,7 @@ location boundaries on `x7m2q9k4n6p8.vympel.kz`:
 Do not store the Basic Auth password or htpasswd contents in the repository,
 release manifest, image metadata, or build arguments.
 
-For the preserved sslip rollback topology only, the existing template renders
-the three domain placeholders as follows. Do not use this command to replace
-the protected-origin location design described above:
+Render the HTTP-first configuration before certificate issuance:
 
 ```bash
 . /etc/vympel/gcp-staging.env
@@ -329,14 +330,32 @@ from outside Google Cloud. When HTTP routing is correct:
 . /etc/vympel/gcp-staging.env
 sudo snap install --classic certbot
 sudo ln -s /snap/bin/certbot /usr/local/bin/certbot
-sudo certbot --nginx \
-  -d "$STOREFRONT_DOMAIN" -d "$CRM_DOMAIN" -d "$API_DOMAIN"
+sudo apt-get update && sudo apt-get install -y apache2-utils
+sudo install -d -m 0755 /var/lib/letsencrypt
+sudo install -d -m 0750 /etc/nginx/auth
+sudo htpasswd -cB /etc/nginx/auth/vympel-crm.htpasswd vympel-preview
+
+# Certbot may own the storefront/API HTTPS blocks. CRM uses webroot-only
+# issuance so Certbot does not generate a conflicting unprotected CRM block.
+sudo certbot --nginx -d "$STOREFRONT_DOMAIN" -d "$API_DOMAIN"
+sudo certbot certonly --webroot -w /var/lib/letsencrypt -d "$CRM_DOMAIN"
+
+TLS_CERT_DIR="/etc/letsencrypt/live/$CRM_DOMAIN"
+CRM_HTPASSWD_PATH=/etc/nginx/auth/vympel-crm.htpasswd
+sudo env CRM_DOMAIN="$CRM_DOMAIN" TLS_CERT_DIR="$TLS_CERT_DIR" \
+  CRM_HTPASSWD_PATH="$CRM_HTPASSWD_PATH" \
+  envsubst '$CRM_DOMAIN $TLS_CERT_DIR $CRM_HTPASSWD_PATH' \
+  < /opt/vympel/infrastructure/reverse-proxy/host-crm-https.server.template \
+  | sudo tee /etc/nginx/conf.d/vympel-crm-https.conf >/dev/null
 sudo nginx -t
 sudo certbot renew --dry-run
 ```
 
-Verify storefront `/ru`, CRM `/login`, API `/api/public/ping`, media reads, CORS,
-cookies, and that public `/actuator` returns 404.
+Verify unauthenticated CRM UI/auth requests return 401, Basic-authenticated UI
+and exact login/refresh/logout route correctly, Bearer API routes preserve the
+Bearer header without Basic Auth, storefront `/ru`, API `/api/public/ping`,
+media reads, CORS/cookies, and public `/actuator` returns 404. Also copy the
+exact `TLS_CERT_DIR` and `CRM_HTPASSWD_PATH` values into the deployment env.
 
 ## 9. One-time ADMIN bootstrap
 
@@ -360,6 +379,7 @@ cd /opt/vympel
 COMPOSE_FILE=infrastructure/compose/compose.single-vm-staging.yml
 ENV_FILE=/etc/vympel/gcp-staging.env
 sudoedit /etc/vympel/gcp-staging.env
+sudo sh deployment/scripts/backup-check.sh "$ENV_FILE"
 sudo docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" pull
 sudo docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" \
   up -d --no-build --remove-orphans --wait --wait-timeout 600

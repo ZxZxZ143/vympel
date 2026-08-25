@@ -27,7 +27,7 @@ type ProductFormProps = {
   productId?: number;
 };
 
-type ProductFormState = {
+export type ProductFormState = {
   nameRu: string;
   nameEn: string;
   nameKz: string;
@@ -72,7 +72,7 @@ type CollectionFormState = {
   descriptionKz: string;
 };
 
-const emptyForm: ProductFormState = {
+export const emptyForm: ProductFormState = {
   nameRu: "",
   nameEn: "",
   nameKz: "",
@@ -121,7 +121,6 @@ const russianCharacteristicLabels: Record<string, string> = localizedMessages.ru
 const supportedImageExtensionsByType = new Map([
   ["image/jpeg", new Set(["jpg", "jpeg"])],
   ["image/png", new Set(["png"])],
-  ["image/webp", new Set(["webp"])],
   ["image/gif", new Set(["gif"])],
 ]);
 const maxImageCount = 10;
@@ -808,7 +807,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                 id="productPhotos"
                 className="crm-input"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/png,image/gif"
                 multiple
                 disabled={photoUploading || Boolean(photoAction) || saving}
                 onChange={updateSelectedImages}
@@ -1154,7 +1153,7 @@ function isValidOptionalUrl(value: string) {
   }
 }
 
-function toPayload(form: ProductFormState, references: References): ProductPayload {
+export function toPayload(form: ProductFormState, references: References): ProductPayload {
   const categoryProfile = getCategoryProfile(references.categories, form.categoryId);
   const selectedBrandCountry = brandCountryFor(references.brands, form.brandId);
   const payload: ProductPayload = {
@@ -1182,28 +1181,16 @@ function toPayload(form: ProductFormState, references: References): ProductPaylo
   };
 
   if (categoryProfile === "wristwatch") {
-    const hasWatchDetails = [
-      form.mechanismId,
-      form.genderId,
-      form.caseMaterialId,
-      form.strapMaterialId,
-      form.glassTypeId,
-      form.caseSizeMm,
-      form.waterResistance,
-      form.stoneInlayId,
-    ].some((value) => value.trim());
-    if (hasWatchDetails) {
-      payload.watchDetails = {
-        mechanismId: optionalNumber(form.mechanismId),
-        genderId: optionalNumber(form.genderId),
-        caseMaterialId: optionalNumber(form.caseMaterialId),
-        strapMaterialId: optionalNumber(form.strapMaterialId),
-        glassTypeId: optionalNumber(form.glassTypeId),
-        caseSizeMm: optionalNumber(form.caseSizeMm),
-        waterResistance: form.waterResistance.trim() || null,
-        stoneInlayId: optionalNumber(form.stoneInlayId),
-      };
-    }
+    payload.watchDetails = {
+      mechanismId: optionalNumber(form.mechanismId),
+      genderId: optionalNumber(form.genderId),
+      caseMaterialId: optionalNumber(form.caseMaterialId),
+      strapMaterialId: optionalNumber(form.strapMaterialId),
+      glassTypeId: optionalNumber(form.glassTypeId),
+      caseSizeMm: optionalNumber(form.caseSizeMm),
+      waterResistance: form.waterResistance.trim() || null,
+      stoneInlayId: optionalNumber(form.stoneInlayId),
+    };
   }
 
   if (categoryProfile === "interior") {

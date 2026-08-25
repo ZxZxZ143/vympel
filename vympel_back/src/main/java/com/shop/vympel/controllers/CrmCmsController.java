@@ -5,6 +5,7 @@ import com.shop.vympel.services.cms.PublicCmsCacheInvalidationService;
 import com.shop.vympel.services.cms.CmsService;
 import com.shop.vympel.services.cms.CmsMediaCleanupService;
 import com.shop.vympel.services.crm.CrmActivityService;
+import com.shop.vympel.services.crm.CrmAuditedMutationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class CrmCmsController {
     private final CrmActivityService crmActivityService;
     private final PublicCmsCacheInvalidationService publicCmsCacheInvalidationService;
     private final CmsMediaCleanupService cmsMediaCleanupService;
+    private final CrmAuditedMutationService crmAuditedMutationService;
 
     @GetMapping("/pages")
     public List<CrmCmsPageSummaryResponse> getPages() {
@@ -43,13 +45,15 @@ public class CrmCmsController {
             @RequestBody @Valid CmsBlockRequest request,
             HttpServletRequest servletRequest
     ) {
-        CrmCmsBlockResponse block = cmsService.createBlock(request);
-        crmActivityService.log(
-                "CMS_BLOCK_CREATED",
-                "CMS_BLOCK",
-                block.id(),
-                metadata("pageKey", block.pageKey(), "blockKey", block.blockKey()),
-                servletRequest
+        CrmCmsBlockResponse block = crmAuditedMutationService.execute(
+                () -> cmsService.createBlock(request),
+                created -> crmActivityService.log(
+                        "CMS_BLOCK_CREATED",
+                        "CMS_BLOCK",
+                        created.id(),
+                        metadata("pageKey", created.pageKey(), "blockKey", created.blockKey()),
+                        servletRequest
+                )
         );
         return withPublicCacheRefresh(block);
     }
@@ -60,26 +64,30 @@ public class CrmCmsController {
             @RequestBody @Valid CmsBlockRequest request,
             HttpServletRequest servletRequest
     ) {
-        CrmCmsBlockResponse block = cmsService.updateBlock(blockId, request);
-        crmActivityService.log(
-                "CMS_BLOCK_UPDATED",
-                "CMS_BLOCK",
-                block.id(),
-                metadata("pageKey", block.pageKey(), "blockKey", block.blockKey()),
-                servletRequest
+        CrmCmsBlockResponse block = crmAuditedMutationService.execute(
+                () -> cmsService.updateBlock(blockId, request),
+                updated -> crmActivityService.log(
+                        "CMS_BLOCK_UPDATED",
+                        "CMS_BLOCK",
+                        updated.id(),
+                        metadata("pageKey", updated.pageKey(), "blockKey", updated.blockKey()),
+                        servletRequest
+                )
         );
         return withPublicCacheRefresh(block);
     }
 
     @DeleteMapping("/blocks/{blockId}")
     public CrmCmsBlockResponse deleteBlock(@PathVariable Long blockId, HttpServletRequest servletRequest) {
-        CrmCmsBlockResponse block = cmsService.deleteBlock(blockId);
-        crmActivityService.log(
-                "CMS_BLOCK_DELETED",
-                "CMS_BLOCK",
-                blockId,
-                metadata("pageKey", block.pageKey(), "blockKey", block.blockKey()),
-                servletRequest
+        CrmCmsBlockResponse block = crmAuditedMutationService.execute(
+                () -> cmsService.deleteBlock(blockId),
+                deleted -> crmActivityService.log(
+                        "CMS_BLOCK_DELETED",
+                        "CMS_BLOCK",
+                        blockId,
+                        metadata("pageKey", deleted.pageKey(), "blockKey", deleted.blockKey()),
+                        servletRequest
+                )
         );
         return withPublicCacheRefresh(block);
     }
@@ -90,44 +98,51 @@ public class CrmCmsController {
             @RequestBody @Valid CmsReorderRequest request,
             HttpServletRequest servletRequest
     ) {
-        CrmCmsBlockResponse block = cmsService.reorderBlock(blockId, request);
-        crmActivityService.log(
-                "CMS_BLOCK_REORDERED",
-                "CMS_BLOCK",
-                block.id(),
-                metadata("sortOrder", block.sortOrder()),
-                servletRequest
+        CrmCmsBlockResponse block = crmAuditedMutationService.execute(
+                () -> cmsService.reorderBlock(blockId, request),
+                reordered -> crmActivityService.log(
+                        "CMS_BLOCK_REORDERED",
+                        "CMS_BLOCK",
+                        reordered.id(),
+                        metadata("sortOrder", reordered.sortOrder()),
+                        servletRequest
+                )
         );
         return withPublicCacheRefresh(block);
     }
 
     @PatchMapping("/blocks/{blockId}/publish")
     public CrmCmsBlockResponse publishBlock(@PathVariable Long blockId, HttpServletRequest servletRequest) {
-        CrmCmsBlockResponse block = cmsService.publishBlock(blockId);
-        crmActivityService.log(
-                "CMS_BLOCK_PUBLISHED",
-                "CMS_BLOCK",
-                block.id(),
-                metadata("blockKey", block.blockKey()),
-                servletRequest
+        CrmCmsBlockResponse block = crmAuditedMutationService.execute(
+                () -> cmsService.publishBlock(blockId),
+                published -> crmActivityService.log(
+                        "CMS_BLOCK_PUBLISHED",
+                        "CMS_BLOCK",
+                        published.id(),
+                        metadata("blockKey", published.blockKey()),
+                        servletRequest
+                )
         );
         return withPublicCacheRefresh(block);
     }
 
     @PatchMapping("/blocks/{blockId}/unpublish")
     public CrmCmsBlockResponse unpublishBlock(@PathVariable Long blockId, HttpServletRequest servletRequest) {
-        CrmCmsBlockResponse block = cmsService.unpublishBlock(blockId);
-        crmActivityService.log(
-                "CMS_BLOCK_UNPUBLISHED",
-                "CMS_BLOCK",
-                block.id(),
-                metadata("blockKey", block.blockKey()),
-                servletRequest
+        CrmCmsBlockResponse block = crmAuditedMutationService.execute(
+                () -> cmsService.unpublishBlock(blockId),
+                unpublished -> crmActivityService.log(
+                        "CMS_BLOCK_UNPUBLISHED",
+                        "CMS_BLOCK",
+                        unpublished.id(),
+                        metadata("blockKey", unpublished.blockKey()),
+                        servletRequest
+                )
         );
         return withPublicCacheRefresh(block);
     }
 
     @PostMapping(value = "/media/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @org.springframework.transaction.annotation.Transactional
     public CmsMediaResponse uploadMedia(
             @RequestPart("file") MultipartFile file,
             HttpServletRequest servletRequest

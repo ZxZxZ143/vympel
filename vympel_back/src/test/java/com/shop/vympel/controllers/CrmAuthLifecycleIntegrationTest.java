@@ -8,11 +8,15 @@ import com.shop.vympel.db.entity.auth.UserRole;
 import com.shop.vympel.db.entity.analytics.ProductAnalyticsEvent;
 import com.shop.vympel.db.entity.features.Brand;
 import com.shop.vympel.db.entity.product.Product;
+import com.shop.vympel.db.entity.product.ProductCategory;
+import com.shop.vympel.db.entity.product.ProductCategoryId;
+import com.shop.vympel.db.repositories.category.CategoryRepository;
 import com.shop.vympel.db.repositories.user.RoleRepository;
 import com.shop.vympel.db.repositories.user.UserRepository;
 import com.shop.vympel.db.repositories.user.UserRoleRepository;
 import com.shop.vympel.db.repositories.analytics.ProductAnalyticsEventRepository;
 import com.shop.vympel.db.repositories.product.ProductRepository;
+import com.shop.vympel.db.repositories.product.ProductCategoryRepository;
 import com.shop.vympel.db.repositories.product.features.BrandRepository;
 import com.shop.vympel.services.product.ProductAnalyticsRetentionService;
 import org.junit.jupiter.api.AfterEach;
@@ -63,6 +67,10 @@ class CrmAuthLifecycleIntegrationTest {
     private ProductAnalyticsEventRepository analyticsEventRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private ProductCategoryRepository productCategoryRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
     @Autowired
     private BrandRepository brandRepository;
     @Autowired
@@ -352,7 +360,19 @@ class CrmAuthLifecycleIntegrationTest {
         analyticsProduct.setStatus("ACTIVE");
         analyticsProduct.setProductType("ACCESSORY");
         analyticsProduct.setBrand(analyticsBrand);
-        return productRepository.saveAndFlush(analyticsProduct);
+        analyticsProduct = productRepository.saveAndFlush(analyticsProduct);
+        var category = categoryRepository.findAllPubliclyVisible().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Visible analytics test category is missing"));
+        ProductCategory assignment = new ProductCategory();
+        ProductCategoryId assignmentId = new ProductCategoryId();
+        assignmentId.setProductId(analyticsProduct.getId());
+        assignmentId.setCategoryId(category.getId());
+        assignment.setId(assignmentId);
+        assignment.setProduct(analyticsProduct);
+        assignment.setCategory(category);
+        productCategoryRepository.saveAndFlush(assignment);
+        return analyticsProduct;
     }
 
     @Test

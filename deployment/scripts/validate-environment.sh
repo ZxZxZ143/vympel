@@ -8,7 +8,7 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ENV_FILE=$1
 [ -f "$ENV_FILE" ] || die "environment file does not exist: $ENV_FILE"
 
-required_keys='REGISTRY RELEASE_TAG STOREFRONT_DOMAIN CRM_DOMAIN API_DOMAIN TLS_CERT_DIR VYMPEL_DB_URL VYMPEL_DB_USERNAME VYMPEL_DB_PASSWORD VYMPEL_JWT_SECRET VYMPEL_RATE_LIMIT_HMAC_SECRET VYMPEL_REDIS_URL VYMPEL_TRUSTED_PROXY_CIDRS VYMPEL_S3_BUCKET VYMPEL_S3_REGION VYMPEL_S3_ENDPOINT VYMPEL_S3_PUBLIC_ENDPOINT VYMPEL_S3_ACCESS_KEY VYMPEL_S3_SECRET_KEY VYMPEL_CORS_ALLOWED_ORIGINS VYMPEL_CMS_PUBLIC_REVALIDATE_URL VYMPEL_CMS_REVALIDATE_SECRET NEXT_PUBLIC_BASE_API_PUBLIC NEXT_PUBLIC_CRM_API_BASE NEXT_PUBLIC_MEDIA_ORIGINS NEXT_PUBLIC_SITE_URL STOREFRONT_HEALTH_URL CRM_HEALTH_URL API_HEALTH_URL'
+required_keys='REGISTRY RELEASE_TAG STOREFRONT_DOMAIN CRM_DOMAIN API_DOMAIN TLS_CERT_DIR CRM_HTPASSWD_PATH BACKUP_EVIDENCE_PATH BACKUP_EVIDENCE_SHA256 RESTORE_REHEARSAL_ID VYMPEL_DB_URL VYMPEL_DB_USERNAME VYMPEL_DB_PASSWORD VYMPEL_JWT_SECRET VYMPEL_RATE_LIMIT_HMAC_SECRET VYMPEL_REDIS_URL VYMPEL_TRUSTED_PROXY_CIDRS VYMPEL_S3_BUCKET VYMPEL_S3_REGION VYMPEL_S3_ENDPOINT VYMPEL_S3_PUBLIC_ENDPOINT VYMPEL_S3_ACCESS_KEY VYMPEL_S3_SECRET_KEY VYMPEL_CORS_ALLOWED_ORIGINS VYMPEL_CRM_TRUSTED_ORIGINS VYMPEL_CMS_PUBLIC_REVALIDATE_URL VYMPEL_CMS_REVALIDATE_SECRET NEXT_PUBLIC_BASE_API_PUBLIC NEXT_PUBLIC_CRM_API_BASE NEXT_PUBLIC_MEDIA_ORIGINS NEXT_PUBLIC_SITE_URL STOREFRONT_HEALTH_URL CRM_HEALTH_URL API_HEALTH_URL'
 
 for key in $required_keys; do
   value=$(require_env_value "$ENV_FILE" "$key")
@@ -36,6 +36,26 @@ cms_secret=$(require_env_value "$ENV_FILE" VYMPEL_CMS_REVALIDATE_SECRET)
 
 cors=$(require_env_value "$ENV_FILE" VYMPEL_CORS_ALLOWED_ORIGINS)
 printf '%s' "$cors" | grep -q '\*' && die "credentialed CORS must not contain a wildcard"
+crm_trusted_origins=$(require_env_value "$ENV_FILE" VYMPEL_CRM_TRUSTED_ORIGINS)
+printf '%s' "$crm_trusted_origins" | grep -q '\*' && die "CRM trusted origins must not contain a wildcard"
+old_ifs=$IFS
+IFS=','
+for trusted_origin in $crm_trusted_origins; do
+  trusted_origin=$(printf '%s' "$trusted_origin" | awk '{$1=$1; print}')
+  printf ',%s,' "$cors" | grep -Fq ",$trusted_origin," \
+    || die "every CRM trusted origin must also be present in VYMPEL_CORS_ALLOWED_ORIGINS"
+done
+IFS=$old_ifs
+
+crm_api_base=$(require_env_value "$ENV_FILE" NEXT_PUBLIC_CRM_API_BASE)
+crm_api_origin=${crm_api_base%/api/crm}
+[ "$crm_api_origin" != "$crm_api_base" ] \
+  || die "NEXT_PUBLIC_CRM_API_BASE must end with /api/crm"
+crm_browser_origin="https://$(require_env_value "$ENV_FILE" CRM_DOMAIN)"
+[ "$crm_api_origin" = "$crm_browser_origin" ] \
+  || die "NEXT_PUBLIC_CRM_API_BASE must use the protected CRM origin"
+[ "$crm_trusted_origins" = "$crm_browser_origin" ] \
+  || die "VYMPEL_CRM_TRUSTED_ORIGINS must equal only the protected CRM browser origin"
 
 if grep -Eiq '^NEXT_PUBLIC_[A-Z0-9_]*(SECRET|PASSWORD|TOKEN|PRIVATE_KEY|ACCESS_KEY)=' "$ENV_FILE"; then
   die "a secret-bearing key is exposed through NEXT_PUBLIC_*"
@@ -52,5 +72,10 @@ tls_dir=$(require_env_value "$ENV_FILE" TLS_CERT_DIR)
 [ -d "$tls_dir" ] || die "TLS_CERT_DIR does not exist: $tls_dir"
 [ -r "$tls_dir/fullchain.pem" ] || die "TLS full chain is unreadable"
 [ -r "$tls_dir/privkey.pem" ] || die "TLS private key is unreadable"
+
+crm_htpasswd=$(require_env_value "$ENV_FILE" CRM_HTPASSWD_PATH)
+[ -f "$crm_htpasswd" ] || die "CRM_HTPASSWD_PATH must be a regular file: $crm_htpasswd"
+[ -r "$crm_htpasswd" ] || die "CRM htpasswd file is unreadable"
+[ -s "$crm_htpasswd" ] || die "CRM htpasswd file is empty"
 
 printf '%s\n' "Environment validation passed for immutable release $release_tag."

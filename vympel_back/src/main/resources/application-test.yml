@@ -36,6 +36,8 @@ storage:
 app:
   cors:
     allowed-origins: "http://localhost:3000,http://localhost:3001"
+  crm:
+    trusted-origins: "http://localhost:3001"
   cms:
     public-revalidate:
       enabled: false

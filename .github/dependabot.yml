@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ["*"] }
+  - package-ecosystem: npm
+    directory: /vympel_front
+    schedule: { interval: weekly }
+    groups:
+      storefront: { patterns: ["*"] }
+  - package-ecosystem: npm
+    directory: /vympel_crm
+    schedule: { interval: weekly }
+    groups:
+      crm: { patterns: ["*"] }
+  - package-ecosystem: gradle
+    directory: /vympel_back
+    schedule: { interval: weekly }
+    groups:
+      backend: { patterns: ["*"] }
+  - package-ecosystem: docker
+    directory: /vympel_back
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: /vympel_front
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: /vympel_crm
+    schedule: { interval: weekly }

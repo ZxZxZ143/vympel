@@ -25,6 +25,7 @@ import {
   ManagedUser,
   Page,
   Product,
+  ProductListItem,
   ProductBulkCreatePayload,
   ProductBulkCreateResult,
   ProductPopularityAnalytics,
@@ -75,6 +76,7 @@ export const crmApiBase = requireCrmApiBase();
 
 type RequestOptions = RequestInit & {
   withAuth?: boolean;
+  timeoutMs?: number;
 };
 
 type ApiErrorPayload = {
@@ -86,6 +88,17 @@ type ApiErrorPayload = {
 };
 
 let refreshPromise: Promise<string> | null = null;
+const CRM_REFRESH_LOCK = "vympel-crm-refresh-cookie-rotation";
+const CRM_API_TIMEOUT_MS = 15_000;
+const CRM_API_UPLOAD_TIMEOUT_MS = 60_000;
+
+async function withCrossTabRefreshLock<T>(refresh: () => Promise<T>): Promise<T> {
+  const lockManager = typeof navigator === "undefined" ? undefined : navigator.locks;
+  if (!lockManager) {
+    return refresh();
+  }
+  return lockManager.request(CRM_REFRESH_LOCK, { mode: "exclusive" }, refresh);
+}
 
 function createHeaders(options: RequestOptions, accessToken?: string | null) {
   const headers = new Headers(options.headers);
@@ -105,12 +118,20 @@ function createHeaders(options: RequestOptions, accessToken?: string | null) {
 }
 
 async function performFetch(path: string, options: RequestOptions, accessToken?: string | null) {
+  const timeoutSignal = AbortSignal.timeout(options.timeoutMs ?? CRM_API_TIMEOUT_MS);
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, timeoutSignal])
+    : timeoutSignal;
+  const fetchOptions: RequestOptions = { ...options };
+  delete fetchOptions.withAuth;
+  delete fetchOptions.timeoutMs;
   try {
     return await fetch(`${crmApiBase}${path}`, {
-      ...options,
+      ...fetchOptions,
       headers: createHeaders(options, accessToken),
       cache: "no-store",
       credentials: "include",
+      signal,
     });
   } catch (error) {
     reportTelemetry({
@@ -193,7 +214,7 @@ async function refreshAccessToken(): Promise<string> {
   }
 
   const hadAccessToken = getAccessToken() !== null;
-  refreshPromise = (async () => {
+  refreshPromise = withCrossTabRefreshLock(async () => {
     const response = await performFetch("/auth/refresh", { method: "POST", withAuth: false });
 
     if (!response.ok) {
@@ -203,7 +224,7 @@ async function refreshAccessToken(): Promise<string> {
     const auth = await readResponse<AuthResponse>(response);
     saveSession(auth.accessToken);
     return auth.accessToken;
-  })()
+  })
     .catch((error: unknown) => {
       if (!(error instanceof CrmApiError) || error.status !== 401) {
         throw error;
@@ -375,7 +396,7 @@ export const crmApi = {
       query.set("status", params.status);
     }
 
-    return crmFetch<Page<Product>>(`/products?${query.toString()}`);
+    return crmFetch<Page<ProductListItem>>(`/products?${query.toString()}`);
   },
   product(id: number, lang: string) {
     return crmFetch<Product>(`/products/${id}?lang=${encodeURIComponent(lang)}`);
@@ -390,6 +411,7 @@ export const crmApi = {
     return crmFetch<ProductBulkCreateResult>(`/products/bulk?lang=${encodeURIComponent(lang)}`, {
       method: "POST",
       body: JSON.stringify(payload),
+      timeoutMs: CRM_API_UPLOAD_TIMEOUT_MS,
     });
   },
   updateProduct(id: number, payload: ProductPayload, lang: string) {
@@ -434,6 +456,7 @@ export const crmApi = {
     return crmFetch<Product>(`/products/${id}/images?lang=${encodeURIComponent(lang)}`, {
       method: "POST",
       body: formData,
+      timeoutMs: CRM_API_UPLOAD_TIMEOUT_MS,
     });
   },
   reorderProductImages(id: number, imageIds: number[], lang: string) {
@@ -538,6 +561,7 @@ export const crmApi = {
     return crmFetch<CmsMedia>("/cms/media/upload", {
       method: "POST",
       body: formData,
+      timeoutMs: CRM_API_UPLOAD_TIMEOUT_MS,
     });
   },
   users(params: { page?: number; size?: number; search?: string }) {

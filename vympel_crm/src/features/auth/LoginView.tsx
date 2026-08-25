@@ -106,7 +106,10 @@ export function LoginView() {
         notifications.error(message);
         return;
       }
-      const message = getCrmErrorMessage(error, t("login.failed"));
+      const loginFailed = t("login.failed");
+      const message = getCrmErrorMessage(error, loginFailed, loginFailed, {
+        BAD_CREDENTIALS: loginFailed,
+      });
       setError(message);
       notifications.error(message);
     } finally {
@@ -160,7 +163,7 @@ export function LoginView() {
               />
             </Field>
 
-            {error && <Text className="crm-form-error">{error}</Text>}
+            {error && <Text className="crm-form-error" role="alert">{error}</Text>}
 
             <Button type="submit" isLoading={loading} disabled={loading || retryAfterSeconds > 0}>
               {loading

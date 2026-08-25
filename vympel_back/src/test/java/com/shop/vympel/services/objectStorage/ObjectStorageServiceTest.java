@@ -20,6 +20,9 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +46,8 @@ class ObjectStorageServiceTest {
     @Mock
     private ProductRepository productRepository;
     @Mock
+    private ObjectStorageDeletionOutboxService objectStorageDeletionOutboxService;
+    @Mock
     private MultipartFile file;
     @Mock
     private MultipartFile secondFile;
@@ -63,6 +68,7 @@ class ObjectStorageServiceTest {
                         true
                 ),
                 mediaRepository,
+                objectStorageDeletionOutboxService,
                 productRepository
         );
     }
@@ -151,10 +157,24 @@ class ObjectStorageServiceTest {
 
         service.deleteProductImage(10L, 1L);
 
-        verify(s3).deleteObject(any(DeleteObjectRequest.class));
+        verify(objectStorageDeletionOutboxService).enqueue("products/1.jpg");
+        verify(s3, never()).deleteObject(any(DeleteObjectRequest.class));
         verify(mediaRepository).delete(first);
         assertEquals(0, second.getPosition());
         assertTrue(second.getMain());
+    }
+
+    @Test
+    void deletingProductQueuesEveryStoredImageBeforeDatabaseCascade() {
+        Product product = product(10L);
+        Media first = image(1L, product, 0, true, "products/first.jpg");
+        Media second = image(2L, product, 1, false, "products/second.jpg");
+        when(mediaRepository.findAllByProductIdForUpdate(10L)).thenReturn(List.of(first, second));
+
+        service.enqueueProductImagesForDeletion(10L);
+
+        verify(objectStorageDeletionOutboxService).enqueue("products/first.jpg");
+        verify(objectStorageDeletionOutboxService).enqueue("products/second.jpg");
     }
 
     @Test
@@ -172,6 +192,7 @@ class ObjectStorageServiceTest {
 
         assertEquals("PRODUCT_FINAL_IMAGE_DELETE_FORBIDDEN", exception.getCode());
         verify(s3, never()).deleteObject(any(DeleteObjectRequest.class));
+        verify(objectStorageDeletionOutboxService, never()).enqueue(any());
         verify(mediaRepository, never()).delete(image);
     }
 
@@ -209,11 +230,7 @@ class ObjectStorageServiceTest {
 
     @Test
     void cmsUploadAcceptsValidBoundedPngAndUsesCollisionResistantKey() throws Exception {
-        byte[] png = new byte[24];
-        byte[] signature = {(byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a};
-        System.arraycopy(signature, 0, png, 0, signature.length);
-        png[19] = 100;
-        png[23] = 50;
+        byte[] png = imageBytes("png");
         when(file.isEmpty()).thenReturn(false);
         when(file.getContentType()).thenReturn("image/png");
         when(file.getOriginalFilename()).thenReturn("banner.png");
@@ -225,6 +242,32 @@ class ObjectStorageServiceTest {
         assertTrue(stored.objectKey().startsWith("cms/"));
         assertTrue(stored.objectKey().endsWith(".png"));
         verify(s3).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void productUploadRejectsSpoofedImageContentBeforeStorageWrite() throws Exception {
+        Product product = product(10L);
+        when(productRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(product));
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("image/jpeg");
+        when(file.getOriginalFilename()).thenReturn("watch.jpg");
+        when(file.getSize()).thenReturn(4L);
+        when(file.getBytes()).thenReturn(new byte[]{1, 2, 3, 4});
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.uploadProductImage(List.of(file), 10L));
+
+        verify(s3, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void webpUploadIsRejectedUntilARealBoundedDecoderIsAvailable() throws Exception {
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("image/webp");
+
+        assertThrows(IllegalArgumentException.class, () -> service.uploadCmsImage(file));
+
+        verify(s3, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
     private Product product(Long id) {
@@ -245,10 +288,19 @@ class ObjectStorageServiceTest {
     }
 
     private void mockImage(MultipartFile image, String filename, String contentType) throws Exception {
+        byte[] bytes = imageBytes("image/jpeg".equals(contentType) ? "jpeg" : "png");
         when(image.isEmpty()).thenReturn(false);
         when(image.getContentType()).thenReturn(contentType);
         when(image.getOriginalFilename()).thenReturn(filename);
-        when(image.getSize()).thenReturn(4L);
-        when(image.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[]{1, 2, 3, 4}));
+        when(image.getSize()).thenReturn((long) bytes.length);
+        when(image.getBytes()).thenReturn(bytes);
+        when(image.getInputStream()).thenReturn(new ByteArrayInputStream(bytes));
+    }
+
+    private byte[] imageBytes(String format) throws Exception {
+        BufferedImage image = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        assertTrue(ImageIO.write(image, format, output));
+        return output.toByteArray();
     }
 }

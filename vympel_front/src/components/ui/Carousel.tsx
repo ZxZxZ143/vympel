@@ -238,7 +238,7 @@ function CarouselPrevious({
 
     const classes = cn(
         {
-            ["absolute size-8 rounded-full"]: !setClassName,
+            ["absolute z-10 size-8 rounded-full"]: !setClassName,
             ["top-1/2 -left-12 -translate-y-1/2"]: !setClassName && orientation === "horizontal",
             ["-top-12 left-1/2 -translate-x-1/2 rotate-90"]: !setClassName && orientation === "vertical",
         },
@@ -247,6 +247,7 @@ function CarouselPrevious({
 
     return setClassName ? (
         <button
+            type="button"
             data-slot="carousel-previous"
             className={classes}
             disabled={!canScrollPrev}
@@ -299,7 +300,7 @@ function CarouselNext({
 
     const classes = cn(
         {
-            ["absolute size-8 rounded-full"]: !setClassName,
+            ["absolute z-10 size-8 rounded-full"]: !setClassName,
             ["top-1/2 -right-12 -translate-y-1/2"]: !setClassName && orientation === "horizontal",
             ["-bottom-12 left-1/2 -translate-x-1/2 rotate-90"]: !setClassName && orientation === "vertical",
         },
@@ -308,6 +309,7 @@ function CarouselNext({
 
     return setClassName ? (
         <button
+            type="button"
             data-slot="carousel-next"
             className={classes}
             disabled={!canScrollNext}

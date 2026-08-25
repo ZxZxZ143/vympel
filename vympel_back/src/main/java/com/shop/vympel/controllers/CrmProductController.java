@@ -8,6 +8,7 @@ import com.shop.vympel.dtos.product.ProductBulkCreateRequest;
 import com.shop.vympel.dtos.product.ProductBulkCreateResponse;
 import com.shop.vympel.dtos.product.ProductCreateRequest;
 import com.shop.vympel.dtos.product.ProductResponse;
+import com.shop.vympel.dtos.product.CrmProductListItemResponse;
 import com.shop.vympel.dtos.product.ProductUpdateRequest;
 import com.shop.vympel.dtos.product.image.ProductImageOrderRequest;
 import com.shop.vympel.enums.Language;
@@ -37,6 +38,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/crm/products")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CrmProductController {
     private static final int CRM_PAGE_MAX_SIZE = 100;
 
@@ -46,7 +48,7 @@ public class CrmProductController {
     private final ObjectStorageService objectStorageService;
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getProducts(
+    public ResponseEntity<Page<CrmProductListItemResponse>> getProducts(
             @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(defaultValue = "ru") String lang,
             @RequestParam(required = false) String search,
@@ -91,6 +93,9 @@ public class CrmProductController {
     }
 
     @PostMapping("/bulk")
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED
+    )
     public ProductBulkCreateResponse createProductsBulk(
             @RequestBody @Valid ProductBulkCreateRequest req,
             @RequestParam(defaultValue = "ru") String lang,

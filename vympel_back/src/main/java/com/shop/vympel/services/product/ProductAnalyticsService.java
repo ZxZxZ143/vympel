@@ -36,7 +36,7 @@ public class ProductAnalyticsService {
     @Transactional
     public ProductAnalyticsTrackResponse track(ProductAnalyticsTrackRequest request, HttpServletRequest servletRequest) {
         ProductAnalyticsEventType eventType = parseEventType(request.eventType());
-        Product product = productRepository.findById(request.productId())
+        Product product = productRepository.findPubliclyVisibleById(request.productId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (abuseProtectionService.isDuplicateAnalytics(request, servletRequest)) {

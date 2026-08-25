@@ -92,14 +92,14 @@ public class InteriorClockDetailServiceImpl {
 
     private void applyUpdate(InteriorClockDetail detail, InteriorClockDetailUpdateRequest request, Country requiredCountry) {
         detail.setProductionCountry(requiredCountry);
-        if (request.getCaseMaterialId() != null) detail.setCaseMaterial(material(request.getCaseMaterialId()));
-        if (request.getColorId() != null) detail.setColor(interiorFeature(request.getColorId()));
-        if (request.getStyleId() != null) detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
-        if (request.getMechanismTypeId() != null) detail.setMechanismType(interiorFeature(request.getMechanismTypeId()));
-        if (request.getPowerTypeId() != null) detail.setPowerType(interiorFeature(request.getPowerTypeId()));
-        if (request.getDimensions() != null) detail.setDimensions(trimToNull(request.getDimensions()));
-        if (request.getWeightGrams() != null) detail.setWeightGrams(request.getWeightGrams());
-        if (request.getWarrantyMonths() != null) detail.setWarrantyMonths(request.getWarrantyMonths());
+        detail.setCaseMaterial(materialOrNull(request.getCaseMaterialId()));
+        detail.setColor(interiorFeatureOrNull(request.getColorId()));
+        detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
+        detail.setMechanismType(interiorFeatureOrNull(request.getMechanismTypeId()));
+        detail.setPowerType(interiorFeatureOrNull(request.getPowerTypeId()));
+        detail.setDimensions(trimToNull(request.getDimensions()));
+        detail.setWeightGrams(request.getWeightGrams());
+        detail.setWarrantyMonths(request.getWarrantyMonths());
     }
 
     private InteriorClockDetail alignCountry(InteriorClockDetail detail, Country requiredCountry) {

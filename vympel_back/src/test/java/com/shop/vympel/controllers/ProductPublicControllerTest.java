@@ -2,6 +2,7 @@ package com.shop.vympel.controllers;
 
 import com.shop.vympel.dtos.catalog.CatalogProductQuery;
 import com.shop.vympel.dtos.product.ProductShortResponse;
+import com.shop.vympel.dtos.product.PublicProductResponse;
 import com.shop.vympel.dtos.product.ProductRecommendationResponse;
 import com.shop.vympel.dtos.product.ProductBatchSummaryRequest;
 import com.shop.vympel.dtos.review.PublicProductReviewResponse;
@@ -61,6 +62,17 @@ class ProductPublicControllerTest {
                 productBatchSummaryService,
                 org.mockito.Mockito.mock(com.shop.vympel.security.ratelimit.AbuseProtectionService.class)
         );
+    }
+
+    @Test
+    void productDetailUsesPublicVisibilityLookup() {
+        PublicProductResponse response = org.mockito.Mockito.mock(PublicProductResponse.class);
+        when(productService.getPublic(42L, Language.RU)).thenReturn(response);
+
+        assertThat(controller.getProduct(42L, Language.RU).getBody()).isSameAs(response);
+
+        verify(productService).getPublic(42L, Language.RU);
+        verify(productService, never()).get(42L, Language.RU);
     }
 
     @Test

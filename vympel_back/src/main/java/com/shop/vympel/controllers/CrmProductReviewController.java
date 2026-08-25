@@ -27,6 +27,7 @@ import java.util.Map;
 @RequestMapping("/api/crm/reviews")
 @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CrmProductReviewController {
     private static final int CRM_PAGE_MAX_SIZE = 100;
 

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- CMS previews render dynamic MinIO, public, and blob URLs. */
 "use client";
 
-import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { crmApi } from "@/shared/api/client";
 import { getCrmErrorMessage } from "@/shared/api/errors";
@@ -95,7 +95,6 @@ const linkOpenBehaviors: CmsLinkOpenBehavior[] = ["SAME_TAB", "NEW_TAB"];
 const supportedImageExtensionsByType: Record<string, string[]> = {
   "image/jpeg": [".jpg", ".jpeg"],
   "image/png": [".png"],
-  "image/webp": [".webp"],
   "image/gif": [".gif"],
 };
 const maxImageSizeBytes = 10 * 1024 * 1024;
@@ -159,6 +158,8 @@ export function CmsView() {
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [imageVariantVisibility, setImageVariantVisibility] = useState<Record<string, boolean>>({});
   const [blockPendingDelete, setBlockPendingDelete] = useState<CmsBlock | null>(null);
+  const pagesRequestSequenceRef = useRef(0);
+  const pageRequestSequenceRef = useRef(0);
   const {
     control,
     handleSubmit,
@@ -189,16 +190,20 @@ export function CmsView() {
   }, [page, selectedBlockId]);
 
   const loadPages = useCallback(async () => {
+    const sequence = ++pagesRequestSequenceRef.current;
     setLoading(true);
     try {
       const nextPages = await crmApi.cmsPages();
+      if (sequence !== pagesRequestSequenceRef.current) return;
       setPages(nextPages);
       setSelectedPageKey((current) => current || nextPages[0]?.pageKey || "");
       setError(null);
     } catch (error) {
-      setError(getCrmErrorMessage(error, t("cms.loadError")));
+      if (sequence === pagesRequestSequenceRef.current) {
+        setError(getCrmErrorMessage(error, t("cms.loadError")));
+      }
     } finally {
-      setLoading(false);
+      if (sequence === pagesRequestSequenceRef.current) setLoading(false);
     }
   }, [t]);
 
@@ -207,9 +212,11 @@ export function CmsView() {
       return;
     }
 
+    const sequence = ++pageRequestSequenceRef.current;
     setPageLoading(true);
     try {
       const nextPage = await crmApi.cmsPage(pageKey);
+      if (sequence !== pageRequestSequenceRef.current) return;
       setPage(nextPage);
       setSelectedBlockId((current) => {
         if (current && nextPage.blocks.some((block) => block.id === current)) {
@@ -220,9 +227,11 @@ export function CmsView() {
       setIsCreating(false);
       setError(null);
     } catch (error) {
-      setError(getCrmErrorMessage(error, t("cms.loadError")));
+      if (sequence === pageRequestSequenceRef.current) {
+        setError(getCrmErrorMessage(error, t("cms.loadError")));
+      }
     } finally {
-      setPageLoading(false);
+      if (sequence === pageRequestSequenceRef.current) setPageLoading(false);
     }
   }, [t]);
 
@@ -235,6 +244,7 @@ export function CmsView() {
     });
     return () => {
       active = false;
+      pagesRequestSequenceRef.current += 1;
     };
   }, [loadPages]);
 
@@ -247,6 +257,7 @@ export function CmsView() {
     });
     return () => {
       active = false;
+      pageRequestSequenceRef.current += 1;
     };
   }, [loadPage, selectedPageKey]);
 
@@ -492,7 +503,12 @@ export function CmsView() {
           </div>
         </section>
 
-        <form className="crm-panel cms-editor-panel" onSubmit={handleSubmit(save)}>
+        <form
+          className="crm-panel cms-editor-panel"
+          onSubmit={(event) => {
+            void handleSubmit(save)(event);
+          }}
+        >
           <div className="crm-panel__header">
             <div>
               <Heading as="h2" size="title">
@@ -979,7 +995,7 @@ function CmsImageUploadField({
           id={`cmsImage-${slot}`}
           className="crm-input"
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/gif"
           disabled={disabled}
           onChange={selectImage}
         />

@@ -49,7 +49,7 @@ class PublicWriteAbuseProtectionTest {
     void duplicateAnalyticsEventDoesNotCreateDatabaseRow() {
         ProductRepository productRepository = mock(ProductRepository.class);
         Product product = new Product();
-        when(productRepository.findById(42L)).thenReturn(Optional.of(product));
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(product));
         AbuseProtectionService abuse = mock(AbuseProtectionService.class);
         when(abuse.isDuplicateAnalytics(any(), any())).thenReturn(true);
         ProductAnalyticsEventRepository events = mock(ProductAnalyticsEventRepository.class);
@@ -74,7 +74,7 @@ class PublicWriteAbuseProtectionTest {
     void trackedAnalyticsPersistsOnlyBusinessEventGrain() {
         ProductRepository productRepository = mock(ProductRepository.class);
         Product product = new Product();
-        when(productRepository.findById(42L)).thenReturn(Optional.of(product));
+        when(productRepository.findPubliclyVisibleById(42L)).thenReturn(Optional.of(product));
         AbuseProtectionService abuse = mock(AbuseProtectionService.class);
         when(abuse.isDuplicateAnalytics(any(), any())).thenReturn(false);
         ProductAnalyticsEventRepository events = mock(ProductAnalyticsEventRepository.class);

@@ -13,7 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class RateLimitFilterTest {
@@ -43,6 +45,43 @@ class RateLimitFilterTest {
         assertTrue(response.getContentAsString().contains("RATE_LIMIT_EXCEEDED"));
         assertFalse(response.getContentAsString().contains("public-request"));
         assertNull(chain.getRequest());
+        verify(service, never()).enforce("global-public-write", "global", "all-public-writes");
+    }
+
+    @Test
+    void acceptedPublicWriteConsumesSourcePolicyBeforeGlobalCapacity() throws Exception {
+        RateLimitProperties properties = new RateLimitProperties();
+        properties.setEnabled(true);
+        RateLimitService service = mock(RateLimitService.class);
+        RateLimitFilter filter = new RateLimitFilter(properties, service, new ClientAddressResolver(properties));
+
+        MockFilterChain chain = new MockFilterChain();
+        filter.doFilter(request("POST", "/api/public/analytics/products/events"),
+                new MockHttpServletResponse(), chain);
+
+        var order = inOrder(service);
+        order.verify(service).enforce("analytics-source", "source", "203.0.113.7");
+        order.verify(service).enforce("global-public-write", "global", "all-public-writes");
+        assertTrue(chain.getRequest() != null);
+    }
+
+    @Test
+    void authenticationAndRefreshNeverConsumePublicWriteCapacity() throws Exception {
+        RateLimitProperties properties = new RateLimitProperties();
+        properties.setEnabled(true);
+        RateLimitService service = mock(RateLimitService.class);
+        RateLimitFilter filter = new RateLimitFilter(properties, service, new ClientAddressResolver(properties));
+
+        for (String path : new String[]{
+                "/api/crm/auth/login",
+                "/api/auth/login/email",
+                "/api/auth/register/email",
+                "/api/crm/auth/refresh"
+        }) {
+            filter.doFilter(request("POST", path), new MockHttpServletResponse(), new MockFilterChain());
+        }
+
+        verify(service, never()).enforce("global-public-write", "global", "all-public-writes");
     }
 
     @Test

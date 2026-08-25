@@ -26,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/crm/users")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CrmUserController {
     private static final int CRM_PAGE_MAX_SIZE = 100;
 

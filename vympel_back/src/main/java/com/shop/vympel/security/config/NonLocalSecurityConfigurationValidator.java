@@ -61,6 +61,20 @@ public class NonLocalSecurityConfigurationValidator
 
         String origins = required(environment, "app.cors.allowed-origins", "CORS origins", errors);
         validateCors(origins, errors);
+        String crmTrustedOrigins = required(
+                environment,
+                "app.crm.trusted-origins",
+                "CRM trusted origins",
+                errors
+        );
+        validateCors(crmTrustedOrigins, errors);
+        if (crmTrustedOrigins != null && originSet(crmTrustedOrigins).size() != 1) {
+            errors.add("CRM trusted origins must contain exactly one protected CRM browser origin");
+        }
+        if (origins != null && crmTrustedOrigins != null
+                && !originSet(origins).containsAll(originSet(crmTrustedOrigins))) {
+            errors.add("CRM trusted origins must be a subset of CORS origins");
+        }
 
         if (!environment.getProperty("security.crm-session.secure", Boolean.class, true)) {
             errors.add("CRM refresh cookie must be Secure outside local/test profiles");
@@ -194,6 +208,13 @@ public class NonLocalSecurityConfigurationValidator
         } catch (IllegalArgumentException ex) {
             errors.add("CORS origin is invalid");
         }
+    }
+
+    private static Set<String> originSet(String origins) {
+        return Arrays.stream(origins.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
     private static void rejectLocalhost(String value, String label, List<String> errors) {

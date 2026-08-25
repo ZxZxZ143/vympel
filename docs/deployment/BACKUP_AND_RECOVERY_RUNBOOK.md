@@ -9,7 +9,7 @@
 
 ## Release gate
 
-The production environment file must identify the latest database backup and restore-rehearsal evidence. `deployment/scripts/backup-check.sh production <env-file>` rejects missing/placeholding evidence. A backup is not proven until a restore has succeeded in an isolated target and application-level checks have read the restored data and media.
+The deployment environment file must identify the latest database backup and restore-rehearsal evidence. `deployment/scripts/backup-check.sh <env-file>` rejects missing, stale, mismatched, or placeholder evidence. A backup is not proven until a restore has succeeded in an isolated target after the backup was created and application-level checks have read the restored data and media.
 
 ## Restore rehearsal
 

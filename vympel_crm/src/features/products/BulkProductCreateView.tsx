@@ -17,6 +17,7 @@ import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { messages as localizedMessages } from "@/shared/i18n/messages";
 import { useI18n } from "@/shared/i18n/useI18n";
 import { Button } from "@/shared/ui/Button";
+import { ButtonLink } from "@/shared/ui/ButtonLink";
 import { Field } from "@/shared/ui/Field";
 import { Heading } from "@/shared/ui/Heading";
 import { Text } from "@/shared/ui/Text";
@@ -348,9 +349,7 @@ export function BulkProductCreateView() {
               <Button type="button" disabled={!pendingCategoryId} onClick={selectCategory}>
                 {t("products.categoryFirstSubmit")}
               </Button>
-              <Link href="/products">
-                <Button type="button" variant="secondary">{t("common.cancel")}</Button>
-              </Link>
+              <ButtonLink href="/products" variant="secondary">{t("common.cancel")}</ButtonLink>
             </div>
           </div>
         </FormPanel>
@@ -439,7 +438,7 @@ export function BulkProductCreateView() {
         <FormPanel title={t("products.bulkRowsSection")}>
           <div className="crm-grid">
             <Text tone="muted">{t("products.bulkRowsHelp")}</Text>
-            <div className="crm-table-wrap">
+            <div className="crm-table-wrap" tabIndex={0}>
               <table className="crm-table">
                 <thead>
                   <tr>
@@ -550,7 +549,7 @@ export function BulkProductCreateView() {
             <div className="crm-inline-actions">
               <Button type="button" variant="secondary" disabled={saving} onClick={addRow}>{t("products.bulkAddRow")}</Button>
               <Button type="submit" isLoading={saving}>{saving ? t("common.loading") : t("products.bulkSubmit")}</Button>
-              <Link href="/products"><Button type="button" variant="secondary" disabled={saving}>{t("common.cancel")}</Button></Link>
+              <ButtonLink href="/products" variant="secondary" disabled={saving}>{t("common.cancel")}</ButtonLink>
             </div>
           </div>
         </FormPanel>
@@ -561,7 +560,7 @@ export function BulkProductCreateView() {
               <Text>{t("products.bulkCreatedCount")}: {result.createdCount}</Text>
               <Text>{t("products.bulkFailedCount")}: {result.failedCount}</Text>
               {result.createdProducts.length > 0 && (
-                <div className="crm-table-wrap">
+                <div className="crm-table-wrap" tabIndex={0}>
                   <table className="crm-table">
                     <thead>
                       <tr>

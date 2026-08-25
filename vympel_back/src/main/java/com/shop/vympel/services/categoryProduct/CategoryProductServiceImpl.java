@@ -44,7 +44,7 @@ public class CategoryProductServiceImpl implements CategoryProductService {
     @Override
     @Transactional
     public void linkWithProduct(Long categoryId, Product product) throws IllegalArgumentException {
-        Category category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findPubliclyVisibleById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         ProductCategory productCategory = new ProductCategory();
@@ -91,6 +91,8 @@ public class CategoryProductServiceImpl implements CategoryProductService {
     @Override
     @Transactional
     public Page<ProductShortResponse> getAllByCategoryId(Long categoryId, Pageable pageable) {
+        categoryRepository.findPubliclyVisibleById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         return publicProductQueryService
                 .findAll(activeProductsInCategories(Set.of(categoryId)), pageable)
                 .map(productMapper::toShortResponse);
@@ -101,7 +103,7 @@ public class CategoryProductServiceImpl implements CategoryProductService {
     public Page<ProductShortResponse> getAllByCategoryCode(String categoryCode, Pageable pageable) {
         String normalizedCategoryCode = normalizeCategoryCode(categoryCode);
 
-        Category rootCategory = categoryRepository.findByCode(normalizedCategoryCode)
+        Category rootCategory = categoryRepository.findPubliclyVisibleByCode(normalizedCategoryCode)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Category not found by code: " + normalizedCategoryCode
                 ));
@@ -122,6 +124,7 @@ public class CategoryProductServiceImpl implements CategoryProductService {
             subquery.select(productCategory.get("product").get("id"));
             subquery.where(
                     cb.equal(productCategory.get("product").get("id"), root.get("id")),
+                    cb.isTrue(productCategory.get("category").get("active")),
                     productCategory.get("category").get("id").in(categoryIds)
             );
             predicates.add(cb.exists(subquery));
@@ -143,7 +146,7 @@ public class CategoryProductServiceImpl implements CategoryProductService {
     }
 
     private void collectCategoryIdsRecursive(Category category, Set<Long> ids) {
-        if (category == null || category.getId() == null) {
+        if (category == null || category.getId() == null || !Boolean.TRUE.equals(category.getActive())) {
             return;
         }
 
@@ -151,7 +154,7 @@ public class CategoryProductServiceImpl implements CategoryProductService {
             return;
         }
 
-        List<Category> children = categoryRepository.findByParentId(category.getId());
+        List<Category> children = categoryRepository.findByParentIdAndActiveTrue(category.getId());
 
         for (Category child : children) {
             collectCategoryIdsRecursive(child, ids);

@@ -391,16 +391,15 @@ public class ProductCatalogService {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("status"), "ACTIVE"));
 
-            if (!context.getScopeCategoryIds().isEmpty()) {
-                Subquery<Long> subquery = criteriaQuery.subquery(Long.class);
-                Root<ProductCategory> productCategory = subquery.from(ProductCategory.class);
-                subquery.select(productCategory.get("product").get("id"));
-                subquery.where(
-                        cb.equal(productCategory.get("product").get("id"), root.get("id")),
-                        productCategory.get("category").get("id").in(context.getScopeCategoryIds())
-                );
-                predicates.add(cb.exists(subquery));
-            }
+            Subquery<Long> subquery = criteriaQuery.subquery(Long.class);
+            Root<ProductCategory> productCategory = subquery.from(ProductCategory.class);
+            List<Predicate> categoryPredicates = new ArrayList<>();
+            categoryPredicates.add(cb.equal(productCategory.get("product").get("id"), root.get("id")));
+            categoryPredicates.add(cb.isTrue(productCategory.get("category").get("active")));
+            categoryPredicates.add(productCategory.get("category").get("id").in(context.getScopeCategoryIds()));
+            subquery.select(productCategory.get("product").get("id"));
+            subquery.where(categoryPredicates.toArray(Predicate[]::new));
+            predicates.add(cb.exists(subquery));
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };

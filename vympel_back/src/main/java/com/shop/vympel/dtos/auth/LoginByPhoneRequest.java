@@ -14,5 +14,6 @@ public class LoginByPhoneRequest {
     private String phone;
 
     @NotBlank
+    @Size(max = 255)
     private String password;
 }

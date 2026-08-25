@@ -125,6 +125,11 @@ storage:
     api-attempt-timeout: "${VYMPEL_S3_API_ATTEMPT_TIMEOUT:5s}"
 
 app:
+  storage-deletion:
+    enabled: "${VYMPEL_STORAGE_DELETION_ENABLED:true}"
+    poll-interval: "${VYMPEL_STORAGE_DELETION_POLL_INTERVAL_MS:5000}"
+    batch-size: "${VYMPEL_STORAGE_DELETION_BATCH_SIZE:20}"
+    stale-claim-timeout: "${VYMPEL_STORAGE_DELETION_STALE_CLAIM_TIMEOUT:5m}"
   analytics:
     retention-days: "${VYMPEL_ANALYTICS_RETENTION_DAYS:180}"
     cleanup-enabled: "${VYMPEL_ANALYTICS_CLEANUP_ENABLED:true}"
@@ -140,6 +145,15 @@ app:
     total-size-cap: "${APP_LOG_TOTAL_SIZE_CAP:256MB}"
   cors:
     allowed-origins: "${VYMPEL_CORS_ALLOWED_ORIGINS:}"
+  crm:
+    trusted-origins: "${VYMPEL_CRM_TRUSTED_ORIGINS:}"
+    activity-retention:
+      retention-days: "${VYMPEL_CRM_ACTIVITY_RETENTION_DAYS:365}"
+      cleanup-enabled: "${VYMPEL_CRM_ACTIVITY_CLEANUP_ENABLED:true}"
+      cleanup-dry-run: "${VYMPEL_CRM_ACTIVITY_CLEANUP_DRY_RUN:false}"
+      cleanup-cron: "${VYMPEL_CRM_ACTIVITY_CLEANUP_CRON:0 15 4 * * *}"
+      cleanup-batch-size: "${VYMPEL_CRM_ACTIVITY_CLEANUP_BATCH_SIZE:1000}"
+      cleanup-max-batches: "${VYMPEL_CRM_ACTIVITY_CLEANUP_MAX_BATCHES:20}"
   security:
     allow-localhost-services: "${VYMPEL_ALLOW_LOCALHOST_SERVICES:false}"
     allow-insecure-service-transport: "${VYMPEL_ALLOW_INSECURE_SERVICE_TRANSPORT:false}"

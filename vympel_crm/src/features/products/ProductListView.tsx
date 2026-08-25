@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { crmApi } from "@/shared/api/client";
 import { getCrmErrorMessage } from "@/shared/api/errors";
-import { Page, Product, ProductStatus } from "@/shared/api/types";
+import { Page, ProductListItem, ProductStatus } from "@/shared/api/types";
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { useI18n } from "@/shared/i18n/useI18n";
 import { Button } from "@/shared/ui/Button";
+import { ButtonLink } from "@/shared/ui/ButtonLink";
 import { Text } from "@/shared/ui/Text";
 import { subscribeToProductListChanges } from "@/features/products/productListRefresh";
 
@@ -26,7 +26,7 @@ type ProductQuickEditFormValues = {
 export function ProductListView() {
   const { locale, t, messages } = useI18n();
   const notifications = useNotifications();
-  const [page, setPage] = useState<Page<Product> | null>(null);
+  const [page, setPage] = useState<Page<ProductListItem> | null>(null);
   const { handleSubmit, register } = useForm<ProductSearchFormValues>({
     defaultValues: {
       search: "",
@@ -36,8 +36,10 @@ export function ProductListView() {
   const [status, setStatus] = useState<ProductStatus | "">("");
   const [pageIndex, setPageIndex] = useState(0);
   const [error, setError] = useState(false);
+  const loadSequenceRef = useRef(0);
 
   const loadProducts = useCallback(async () => {
+    const sequence = ++loadSequenceRef.current;
     try {
       const nextPage = await crmApi.products({
         lang: locale,
@@ -46,42 +48,28 @@ export function ProductListView() {
         search: submittedSearch,
         status,
       });
-      setPage(nextPage);
-      setError(false);
+      if (sequence === loadSequenceRef.current) {
+        setPage(nextPage);
+        setError(false);
+      }
     } catch {
-      setError(true);
-      notifications.error(t("products.listRefreshError"));
+      if (sequence === loadSequenceRef.current) {
+        setError(true);
+        notifications.error(t("products.listRefreshError"));
+      }
     }
   }, [locale, notifications, pageIndex, status, submittedSearch, t]);
 
   useEffect(() => {
-    let alive = true;
-
-    crmApi
-      .products({
-        lang: locale,
-        page: pageIndex,
-        size: PAGE_SIZE,
-        search: submittedSearch,
-        status,
-      })
-      .then((nextPage) => {
-        if (alive) {
-          setPage(nextPage);
-          setError(false);
-        }
-      })
-      .catch(() => {
-        if (alive) {
-          setError(true);
-          notifications.error(t("products.listRefreshError"));
-        }
-      });
-
+    let active = true;
+    queueMicrotask(() => {
+      if (active) void loadProducts();
+    });
     return () => {
-      alive = false;
+      active = false;
+      loadSequenceRef.current += 1;
     };
-  }, [locale, notifications, pageIndex, status, submittedSearch, t]);
+  }, [loadProducts]);
 
   useEffect(
     () => subscribeToProductListChanges(() => {
@@ -100,7 +88,7 @@ export function ProductListView() {
     setStatus(nextStatus as ProductStatus | "");
   };
 
-  const replaceProduct = (product: Product) => {
+  const replaceProduct = (product: ProductListItem) => {
     setPage((current) => {
       if (!current) {
         return current;
@@ -148,12 +136,8 @@ export function ProductListView() {
             </div>
           </form>
           <div className="crm-inline-actions">
-            <Link href="/products/new">
-              <Button>{t("products.addProduct")}</Button>
-            </Link>
-            <Link href="/products/bulk">
-              <Button variant="secondary">{t("products.bulkAddProduct")}</Button>
-            </Link>
+            <ButtonLink href="/products/new">{t("products.addProduct")}</ButtonLink>
+            <ButtonLink href="/products/bulk" variant="secondary">{t("products.bulkAddProduct")}</ButtonLink>
           </div>
         </div>
 
@@ -166,7 +150,7 @@ export function ProductListView() {
             <Text tone="muted">{t("common.empty")}</Text>
           </div>
         ) : (
-          <div className="crm-table-wrap">
+          <div className="crm-table-wrap" tabIndex={0}>
             <table className="crm-table">
               <thead>
                 <tr>
@@ -230,10 +214,10 @@ function ProductRow({
   onProductsRefresh,
   t,
 }: {
-  product: Product;
+  product: ProductListItem;
   locale: string;
   statusLabel: string;
-  onProductChange: (product: Product) => void;
+  onProductChange: (product: ProductListItem) => void;
   onProductsRefresh: () => Promise<void>;
   t: (key: string) => string;
 }) {
@@ -363,9 +347,7 @@ function ProductRow({
       </td>
       <td>
         <div className="crm-inline-actions">
-          <Link href={`/products/${product.id}`}>
-            <Button variant="secondary">{t("common.edit")}</Button>
-          </Link>
+          <ButtonLink href={`/products/${product.id}`} variant="secondary">{t("common.edit")}</ButtonLink>
           <Button variant="danger" isLoading={busy === "archive"} disabled={busy !== null && busy !== "archive"} onClick={archive}>
             {t("common.delete")}
           </Button>

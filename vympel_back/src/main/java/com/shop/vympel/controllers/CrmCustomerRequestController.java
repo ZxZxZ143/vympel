@@ -29,6 +29,7 @@ import java.util.Map;
 @RequestMapping("/api/crm/requests")
 @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CrmCustomerRequestController {
     private static final int CRM_PAGE_MAX_SIZE = 100;
     private static final Sort DEFAULT_SORT = Sort.by(

@@ -45,6 +45,7 @@ public class CrmAuthController {
     private final LoginBackoffService loginBackoffService;
 
     @PostMapping("/login")
+    @org.springframework.transaction.annotation.Transactional
     public AuthResponse login(
             @RequestBody @Valid LoginByEmailRequest req,
             HttpServletRequest request,

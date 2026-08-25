@@ -50,11 +50,12 @@ function accessHeader(init?: RequestInit) {
 
 describe("CRM API authentication lifecycle", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     vi.stubGlobal("window", windowMock);
     storage.clear();
     saveSession("reset-notification-state");
     clearSession();
-    vi.restoreAllMocks();
   });
 
   it("preserves the valid session on 403 and raises a forbidden signal", async () => {
@@ -74,6 +75,20 @@ describe("CRM API authentication lifecycle", () => {
     expect(expired).not.toHaveBeenCalled();
     window.removeEventListener(FORBIDDEN_EVENT, forbidden);
     window.removeEventListener(SESSION_EXPIRED_EVENT, expired);
+  });
+
+  it("bounds API waits with a caller-compatible abort timeout", async () => {
+    const aborted = AbortSignal.abort(new DOMException("Timed out", "TimeoutError"));
+    const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(aborted);
+    const fetchMock = vi.fn((_input: string | URL | Request, init?: RequestInit) =>
+      Promise.reject(init?.signal?.reason ?? new Error("missing signal"))
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(crmApi.me()).rejects.toMatchObject({ name: "TimeoutError" });
+
+    expect(timeout).toHaveBeenCalledWith(15_000);
+    expect(fetchMock.mock.calls[0]?.[1]?.signal).toBe(aborted);
   });
 
   it("exposes safe retry timing for a throttled login without touching session state", async () => {
@@ -144,6 +159,20 @@ describe("CRM API authentication lifecycle", () => {
 
     await expect(Promise.all([first, second])).resolves.toHaveLength(2);
     expect(refreshCalls).toBe(1);
+  });
+
+  it("serializes refresh-cookie rotation through the browser-wide Web Lock", async () => {
+    const request = vi.fn(async (_name: string, _options: LockOptions, callback: () => Promise<string>) => callback());
+    vi.stubGlobal("navigator", { locks: { request } });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(200, { accessToken: "locked-access" })));
+
+    await expect(crmApi.restoreSession()).resolves.toBe("locked-access");
+
+    expect(request).toHaveBeenCalledWith(
+      "vympel-crm-refresh-cookie-rotation",
+      { mode: "exclusive" },
+      expect.any(Function),
+    );
   });
 
   it("clears the access token once when refresh fails without recursion", async () => {

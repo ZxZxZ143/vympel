@@ -19,6 +19,7 @@ public record CmsBlockRequest(
         @NotNull CmsBlockType blockType,
         @PositiveOrZero Integer sortOrder,
         CmsBlockStatus status,
+        @Size(max = 32768)
         @Pattern(regexp = "^[^<>]*$", message = "Settings must not contain HTML") String settingsJson,
         Long mediaId,
         Long mediaKzId,
@@ -27,8 +28,9 @@ public record CmsBlockRequest(
         Long mobileMediaKzId,
         Long mobileMediaEnId,
         @NotNull CmsLinkType linkType,
+        @Size(max = 2048)
         @Pattern(regexp = "^[^<>]*$", message = "Link target must not contain HTML") String linkTarget,
         @NotNull CmsLinkOpenBehavior linkOpenBehavior,
-        Map<String, @Valid CmsTranslationRequest> translations
+        @Size(max = 3) Map<String, @Valid CmsTranslationRequest> translations
 ) {
 }

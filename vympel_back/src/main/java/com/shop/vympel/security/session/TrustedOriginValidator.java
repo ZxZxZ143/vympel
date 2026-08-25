@@ -15,7 +15,7 @@ public class TrustedOriginValidator {
     private final Set<String> allowedOrigins;
 
     public TrustedOriginValidator(
-            @Value("${app.cors.allowed-origins}") String allowedOrigins
+            @Value("${app.crm.trusted-origins}") String allowedOrigins
     ) {
         this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)

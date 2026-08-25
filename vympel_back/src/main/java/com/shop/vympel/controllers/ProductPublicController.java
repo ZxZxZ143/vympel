@@ -4,7 +4,7 @@ import com.shop.vympel.dtos.catalog.CatalogFiltersResponse;
 import com.shop.vympel.dtos.catalog.CatalogProductQuery;
 import com.shop.vympel.dtos.product.ProductQuickSearchResponse;
 import com.shop.vympel.dtos.product.ProductRecommendationResponse;
-import com.shop.vympel.dtos.product.ProductResponse;
+import com.shop.vympel.dtos.product.PublicProductResponse;
 import com.shop.vympel.dtos.product.ProductShortResponse;
 import com.shop.vympel.dtos.product.ProductBatchSummaryRequest;
 import com.shop.vympel.dtos.product.ProductBatchSummaryResponse;
@@ -78,13 +78,13 @@ public class ProductPublicController {
     private final AbuseProtectionService abuseProtectionService;
 
     @GetMapping("/{lang}/{id}")
-    public ResponseEntity<ProductResponse> getProduct(
+    public ResponseEntity<PublicProductResponse> getProduct(
             @PathVariable Long id,
             @PathVariable Language lang
     ) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(productService.get(id, lang));
+                .body(productService.getPublic(id, lang));
     }
 
     @PostMapping("/batch-summary/{lang}")

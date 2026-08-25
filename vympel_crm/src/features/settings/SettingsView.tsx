@@ -10,9 +10,22 @@ import { Text } from "@/shared/ui/Text";
 export function SettingsView() {
   const { t } = useI18n();
   const [user, setUser] = useState<CrmUser | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    crmApi.me().then(setUser).catch(() => setUser(null));
+    let active = true;
+    crmApi.me()
+      .then((nextUser) => {
+        if (!active) return;
+        setUser(nextUser);
+        setError(false);
+      })
+      .catch(() => {
+        if (active) setError(true);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -38,8 +51,14 @@ export function SettingsView() {
           </Heading>
         </div>
         <div className="crm-panel__body crm-grid">
-          <Text>{user?.email ?? t("common.loading")}</Text>
-          <Text tone="muted">{user?.roles.join(", ") ?? t("common.loading")}</Text>
+          {error ? (
+            <Text className="crm-form-error">{t("common.error")}</Text>
+          ) : (
+            <>
+              <Text>{user?.email ?? t("common.loading")}</Text>
+              <Text tone="muted">{user?.roles.join(", ") ?? t("common.loading")}</Text>
+            </>
+          )}
         </div>
       </section>
     </section>
