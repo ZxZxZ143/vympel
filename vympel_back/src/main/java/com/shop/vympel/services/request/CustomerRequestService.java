@@ -108,7 +108,7 @@ public class CustomerRequestService {
 
     @Transactional
     public CrmCustomerRequestResponse updateStatus(Long id, String rawStatus, Authentication authentication) {
-        CustomerRequest request = getExisting(id);
+        CustomerRequest request = getExistingForUpdate(id);
         CustomerRequestStatus status = parseRequiredStatus(rawStatus);
         request.setStatus(status);
 
@@ -125,7 +125,7 @@ public class CustomerRequestService {
 
     @Transactional
     public CrmCustomerRequestResponse updateComment(Long id, String rawComment) {
-        CustomerRequest request = getExisting(id);
+        CustomerRequest request = getExistingForUpdate(id);
         String comment = normalize(rawComment);
         requireNoHtml(comment, "Comment must not contain HTML");
         request.setAdminComment(comment);
@@ -134,6 +134,11 @@ public class CustomerRequestService {
 
     private CustomerRequest getExisting(Long id) {
         return customerRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Request not found"));
+    }
+
+    private CustomerRequest getExistingForUpdate(Long id) {
+        return customerRequestRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Request not found"));
     }
 

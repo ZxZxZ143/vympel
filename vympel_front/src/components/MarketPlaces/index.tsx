@@ -27,7 +27,7 @@ const MarketPlaces = () => {
                             className="relative flex h-38 w-full items-center justify-center px-8 sm:h-50 lg:h-55.5">
 
                             <div
-                                className="absolute inset-0 z-20 flex h-full w-full items-end justify-end rounded-2xl bg-card-marketplace-hover/17 p-5 opacity-100 transition-opacity md:p-7 md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
+                                className="absolute inset-0 z-20 flex h-full w-full items-end justify-end rounded-2xl bg-card-marketplace-hover/60 p-5 opacity-100 transition-opacity md:p-7 md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
                                 <div className="flex items-center gap-4">
                                     <Text weight="semibold" size="bodyLg" colors="inverse">
                                         {t("go")}

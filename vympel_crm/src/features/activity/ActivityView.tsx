@@ -14,13 +14,20 @@ export function ActivityView() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    let active = true;
     crmApi
       .activity({ size: 50 })
       .then((nextPage) => {
+        if (!active) return;
         setPage(nextPage);
         setError(false);
       })
-      .catch(() => setError(true));
+      .catch(() => {
+        if (active) setError(true);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const events = useMemo(() => {
@@ -76,7 +83,7 @@ export function ActivityView() {
             <Text tone="muted">{t("common.empty")}</Text>
           </div>
         ) : (
-          <div className="crm-table-wrap">
+          <div className="crm-table-wrap" tabIndex={0}>
             <table className="crm-table">
               <thead>
                 <tr>

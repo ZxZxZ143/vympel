@@ -65,8 +65,12 @@ class CrmSessionSecurityTest {
 
         MockHttpServletRequest untrusted = new MockHttpServletRequest();
         untrusted.addHeader("Origin", "https://crm.vympel.example.evil.test");
+        MockHttpServletRequest storefront = new MockHttpServletRequest();
+        storefront.addHeader("Origin", "https://shop.vympel.example");
         assertThatExceptionOfType(AccessDeniedException.class)
                 .isThrownBy(() -> validator.validate(untrusted));
+        assertThatExceptionOfType(AccessDeniedException.class)
+                .isThrownBy(() -> validator.validate(storefront));
         assertThatExceptionOfType(AccessDeniedException.class)
                 .isThrownBy(() -> validator.validate(new MockHttpServletRequest()));
     }

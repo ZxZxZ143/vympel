@@ -18,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/crm/collections")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CrmCollectionController {
     private final CrmCollectionService crmCollectionService;
     private final CrmActivityService crmActivityService;

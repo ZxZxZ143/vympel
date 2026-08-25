@@ -47,10 +47,15 @@ public class CatalogCategoryProfileService {
     @Transactional(readOnly = true)
     public CatalogCategoryContext resolveContext(String categoryCode) {
         if (categoryCode == null || categoryCode.isBlank()) {
-            return new CatalogCategoryContext(null, CatalogCategoryProfile.GENERIC, null, List.of());
+            return new CatalogCategoryContext(
+                    null,
+                    CatalogCategoryProfile.GENERIC,
+                    null,
+                    categoryRepository.findAllPubliclyVisible().stream().map(Category::getId).toList()
+            );
         }
 
-        Category category = categoryRepository.getByCode(normalizeCode(categoryCode))
+        Category category = categoryRepository.findPubliclyVisibleByCode(normalizeCode(categoryCode))
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + categoryCode));
 
         CatalogCategoryProfile profile = profileFor(category);
@@ -68,6 +73,16 @@ public class CatalogCategoryProfileService {
             throw new IllegalArgumentException("Category id is required");
         }
         return categoryRepository.findById(categoryId)
+                .map(this::profileFor)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + categoryId));
+    }
+
+    @Transactional(readOnly = true)
+    public CatalogCategoryProfile profileForPublicCategoryId(Long categoryId) {
+        if (categoryId == null) {
+            throw new IllegalArgumentException("Category id is required");
+        }
+        return categoryRepository.findPubliclyVisibleById(categoryId)
                 .map(this::profileFor)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + categoryId));
     }
@@ -109,14 +124,14 @@ public class CatalogCategoryProfileService {
     }
 
     private List<Long> descendantIds(Category root) {
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAllPubliclyVisible();
         Set<Long> ids = new HashSet<>();
         collectDescendants(root, categories, ids);
         return ids.stream().toList();
     }
 
     private void collectDescendants(Category category, List<Category> categories, Set<Long> ids) {
-        if (category == null || category.getId() == null || !ids.add(category.getId())) {
+        if (category == null || category.getId() == null || !Boolean.TRUE.equals(category.getActive()) || !ids.add(category.getId())) {
             return;
         }
 
@@ -125,6 +140,7 @@ public class CatalogCategoryProfileService {
                         .map(Category::getId)
                         .filter(category.getId()::equals)
                         .isPresent())
+                .filter(candidate -> Boolean.TRUE.equals(candidate.getActive()))
                 .forEach(child -> collectDescendants(child, categories, ids));
     }
 }

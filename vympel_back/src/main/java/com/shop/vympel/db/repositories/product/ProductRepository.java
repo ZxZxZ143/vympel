@@ -21,6 +21,25 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Query("select product from Product product where product.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") Long id);
 
+    @Query(value = """
+            with recursive visible_category as (
+                select category.id
+                from category
+                where category.parent_id is null and category.active = true
+                union all
+                select child.id
+                from category child
+                join visible_category parent on parent.id = child.parent_id
+                where child.active = true
+            )
+            select distinct product.*
+            from product
+            join product_category on product_category.product_id = product.id
+            join visible_category on visible_category.id = product_category.category_id
+            where product.id = :id and product.status = 'ACTIVE'
+            """, nativeQuery = true)
+    Optional<Product> findPubliclyVisibleById(@Param("id") Long id);
+
     @NonNull
     Page<Product> findAll(@NonNull Pageable pageable);
 

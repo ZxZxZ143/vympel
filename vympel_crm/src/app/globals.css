@@ -11,7 +11,7 @@
   --crm-color-action: #3d3d3d;
   --crm-color-action-hover: #2b2d34;
   --crm-color-success: #24a563;
-  --crm-color-danger: #bf5252;
+  --crm-color-danger: #b84a4a;
   --crm-color-warning: #a66a1f;
   --crm-color-chip: #f4f4f4;
 
@@ -488,6 +488,11 @@ a {
 .crm-table-wrap {
   max-width: 100%;
   overflow-x: auto;
+}
+
+.crm-table-wrap:focus-visible {
+  outline: 2px solid var(--crm-color-action);
+  outline-offset: 2px;
 }
 
 .crm-table {

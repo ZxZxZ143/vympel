@@ -16,8 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +46,53 @@ public class CrmReferenceService {
 
     @Transactional(readOnly = true)
     public CrmReferencesResponse getReferences(Language language) {
+        List<Collection> collections = collectionRepository.findAllWithBrand();
+        List<WatchMechanism> mechanisms = watchMechanismRepository.findAll();
+        List<Gender> genders = genderRepository.findAll();
+        List<Material> materials = materialRepository.findAll();
+        List<GlassType> glassTypes = glassTypeRepository.findAll();
+        List<StoneInlay> stoneInlays = stoneInlayRepository.findAll();
+        List<Country> countries = supportedCatalogDomainService.countries();
+        List<InteriorFeature> colors = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("COLOR");
+        List<InteriorFeature> styles = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("STYLE");
+        List<InteriorFeature> interiorMechanisms = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("MECHANISM");
+        List<InteriorFeature> powerSources = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("POWER");
+        List<InteriorFeature> allInteriorFeatures = new ArrayList<>();
+        allInteriorFeatures.addAll(colors);
+        allInteriorFeatures.addAll(styles);
+        allInteriorFeatures.addAll(interiorMechanisms);
+        allInteriorFeatures.addAll(powerSources);
+
+        Map<Long, String> collectionNames = translatedNames(
+                collectionI18nRepository, collections, Collection::getId, language,
+                CollectionI18nId::new, CollectionI18n::getId
+        );
+        Map<Long, String> mechanismNames = translatedNames(
+                mechanismI18nRepository, mechanisms, WatchMechanism::getId, language,
+                WatchMechanismI18nId::new, WatchMechanismI18n::getId
+        );
+        Map<Long, String> genderNames = translatedNames(
+                genderI18nRepository, genders, Gender::getId, language,
+                GenderI18nId::new, GenderI18n::getId
+        );
+        Map<Long, String> materialNames = translatedNames(
+                materialI18nRepository, materials, Material::getId, language,
+                MaterialI18nId::new, MaterialI18n::getId
+        );
+        Map<Long, String> glassTypeNames = translatedNames(
+                glassTypeI18nRepository, glassTypes, GlassType::getId, language,
+                GlassTypeI18nId::new, GlassTypeI18n::getId
+        );
+        Map<Long, String> stoneInlayNames = translatedNames(
+                stoneInlayI18nRepository, stoneInlays, StoneInlay::getId, language,
+                StoneInlayI18nId::new, StoneInlayI18n::getId
+        );
+        Map<Long, String> interiorNames = translatedNames(
+                interiorFeatureI18nRepository, allInteriorFeatures, InteriorFeature::getId,
+                language, InteriorFeatureI18nId::new, InteriorFeatureI18n::getId
+        );
+        Map<Long, String> countryNames = countryNames(countries, language);
+
         return new CrmReferencesResponse(
                 categoryService.getAll(language),
                 supportedCatalogDomainService.assignments()
@@ -52,31 +103,102 @@ public class CrmReferenceService {
                                 assignment.definition().brandCode(),
                                 assignment.country().getId(),
                                 assignment.country().getCode(),
-                                countryName(assignment.country(), language)
+                                countryNames.getOrDefault(assignment.country().getId(), assignment.country().getCode())
                         ))
                         .sorted(Comparator.comparing(CrmBrandReferenceOptionResponse::name))
                         .toList(),
-                collectionRepository.findAll()
-                        .stream()
+                collections.stream()
                         .map(collection -> option(
                                 collection.getId(),
-                                collectionName(collection, language),
+                                collectionNames.getOrDefault(
+                                        collection.getId(),
+                                        fallbackName(collection.getName(), collection.getCode())
+                                ),
                                 collection.getCode(),
                                 collection.getBrand() == null ? null : collection.getBrand().getId()
                         ))
                         .sorted(Comparator.comparing(CrmReferenceOptionResponse::name))
                         .toList(),
-                mapCodedOptions(watchMechanismRepository.findAll(), WatchMechanism::getId, WatchMechanism::getCode, this::mechanismName),
-                mapCodedOptions(genderRepository.findAll(), Gender::getId, Gender::getCode, this::genderName),
-                mapCodedOptions(materialRepository.findAll(), Material::getId, Material::getCode, this::materialName),
-                mapCodedOptions(glassTypeRepository.findAll(), GlassType::getId, GlassType::getCode, this::glassTypeName),
-                mapCodedOptions(stoneInlayRepository.findAll(), StoneInlay::getId, StoneInlay::getCode, this::stoneInlayName),
-                mapCodedOptions(supportedCatalogDomainService.countries(), Country::getId, Country::getCode, country -> countryName(country, language)),
-                mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("COLOR"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language)),
-                mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("STYLE"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language)),
-                mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("MECHANISM"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language)),
-                mapCodedOptions(interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("POWER"), InteriorFeature::getId, InteriorFeature::getCode, feature -> interiorFeatureName(feature, language))
+                mapCodedOptions(mechanisms, WatchMechanism::getId, WatchMechanism::getCode,
+                        mechanism -> mechanismNames.getOrDefault(mechanism.getId(), mechanism.getCode())),
+                mapCodedOptions(genders, Gender::getId, Gender::getCode,
+                        gender -> genderNames.getOrDefault(gender.getId(), gender.getCode())),
+                mapCodedOptions(materials, Material::getId, Material::getCode,
+                        material -> materialNames.getOrDefault(material.getId(), material.getCode())),
+                mapCodedOptions(glassTypes, GlassType::getId, GlassType::getCode,
+                        glass -> glassTypeNames.getOrDefault(glass.getId(), glass.getCode())),
+                mapCodedOptions(stoneInlays, StoneInlay::getId, StoneInlay::getCode,
+                        stone -> stoneInlayNames.getOrDefault(stone.getId(), stone.getCode())),
+                mapCodedOptions(countries, Country::getId, Country::getCode,
+                        country -> countryNames.getOrDefault(country.getId(), country.getCode())),
+                mapCodedOptions(colors, InteriorFeature::getId, InteriorFeature::getCode,
+                        feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode())),
+                mapCodedOptions(styles, InteriorFeature::getId, InteriorFeature::getCode,
+                        feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode())),
+                mapCodedOptions(interiorMechanisms, InteriorFeature::getId, InteriorFeature::getCode,
+                        feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode())),
+                mapCodedOptions(powerSources, InteriorFeature::getId, InteriorFeature::getCode,
+                        feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode()))
         );
+    }
+
+    private <R, T extends EntityI18n, ID extends EmbeddableId> Map<Long, String> translatedNames(
+            JpaRepository<T, ID> repository,
+            List<R> references,
+            Function<R, Long> idGetter,
+            Language language,
+            Supplier<ID> idFactory,
+            Function<T, ID> translationIdGetter
+    ) {
+        if (references.isEmpty()) {
+            return Map.of();
+        }
+        List<String> languages = Language.RU == language
+                ? List.of(Language.RU.getValue())
+                : List.of(language.getValue(), Language.RU.getValue());
+        List<ID> ids = new ArrayList<>();
+        for (R reference : references) {
+            for (String lang : languages) {
+                ID id = idFactory.get();
+                id.setId(idGetter.apply(reference));
+                id.setLang(lang);
+                ids.add(id);
+            }
+        }
+        Map<Long, String> names = new LinkedHashMap<>();
+        repository.findAllById(ids).stream()
+                .sorted((left, right) -> Boolean.compare(
+                        language.getValue().equals(translationIdGetter.apply(right).getLang()),
+                        language.getValue().equals(translationIdGetter.apply(left).getLang())
+                ))
+                .forEach(value -> names.putIfAbsent(translationIdGetter.apply(value).getId(), value.getName()));
+        return names;
+    }
+
+    private Map<Long, String> countryNames(List<Country> countries, Language language) {
+        if (countries.isEmpty()) {
+            return Map.of();
+        }
+        List<String> languages = Language.RU == language
+                ? List.of(Language.RU.getValue())
+                : List.of(language.getValue(), Language.RU.getValue());
+        List<CountryI18nId> ids = new ArrayList<>();
+        for (Country country : countries) {
+            for (String lang : languages) {
+                CountryI18nId id = new CountryI18nId();
+                id.setCountryId(country.getId());
+                id.setLang(lang);
+                ids.add(id);
+            }
+        }
+        Map<Long, String> names = new LinkedHashMap<>();
+        countryI18nRepository.findAllById(ids).stream()
+                .sorted((left, right) -> Boolean.compare(
+                        language.getValue().equals(right.getId().getLang()),
+                        language.getValue().equals(left.getId().getLang())
+                ))
+                .forEach(value -> names.putIfAbsent(value.getId().getCountryId(), value.getName()));
+        return names;
     }
 
     private <T> List<CrmReferenceOptionResponse> mapCodedOptions(
@@ -102,80 +224,5 @@ public class CrmReferenceService {
 
     private String fallbackName(String name, String code) {
         return name == null || name.isBlank() ? code : name;
-    }
-
-    private String collectionName(Collection collection, Language language) {
-        return collectionI18nRepository.findById(collectionI18nId(collection.getId(), language))
-                .or(() -> collectionI18nRepository.findById(collectionI18nId(collection.getId(), Language.RU)))
-                .map(CollectionI18n::getName)
-                .orElse(fallbackName(collection.getName(), collection.getCode()));
-    }
-
-    private String mechanismName(WatchMechanism mechanism) {
-        WatchMechanismI18nId id = new WatchMechanismI18nId();
-        id.setMechanismId(mechanism.getId());
-        id.setLang(Language.RU.getValue());
-        return translatedName(mechanismI18nRepository, id, mechanism.getCode());
-    }
-
-    private String genderName(Gender gender) {
-        GenderI18nId id = new GenderI18nId();
-        id.setGenderId(gender.getId());
-        id.setLang(Language.RU.getValue());
-        return translatedName(genderI18nRepository, id, gender.getCode());
-    }
-
-    private String materialName(Material material) {
-        MaterialI18nId id = new MaterialI18nId();
-        id.setMaterialId(material.getId());
-        id.setLang(Language.RU.getValue());
-        return translatedName(materialI18nRepository, id, material.getCode());
-    }
-
-    private String glassTypeName(GlassType glassType) {
-        GlassTypeI18nId id = new GlassTypeI18nId();
-        id.setGlassTypeId(glassType.getId());
-        id.setLang(Language.RU.getValue());
-        return translatedName(glassTypeI18nRepository, id, glassType.getCode());
-    }
-
-    private String stoneInlayName(StoneInlay stoneInlay) {
-        StoneInlayI18nId id = new StoneInlayI18nId();
-        id.setStoneInlayId(stoneInlay.getId());
-        id.setLang(Language.RU.getValue());
-        return translatedName(stoneInlayI18nRepository, id, stoneInlay.getCode());
-    }
-
-    private String countryName(Country country, Language language) {
-        CountryI18nId id = new CountryI18nId();
-        id.setCountryId(country.getId());
-        id.setLang(language.getValue());
-        return countryI18nRepository.findById(id)
-                .map(CountryI18n::getName)
-                .orElse(country.getCode());
-    }
-
-    private String interiorFeatureName(InteriorFeature feature, Language language) {
-        InteriorFeatureI18nId id = new InteriorFeatureI18nId();
-        id.setFeatureId(feature.getId());
-        id.setLang(language.getValue());
-        return translatedName(interiorFeatureI18nRepository, id, feature.getCode());
-    }
-
-    private CollectionI18nId collectionI18nId(Long collectionId, Language language) {
-        CollectionI18nId id = new CollectionI18nId();
-        id.setCollectionId(collectionId);
-        id.setLang(language.getValue());
-        return id;
-    }
-
-    private <T extends EntityI18n, ID extends EmbeddableId> String translatedName(
-            JpaRepository<T, ID> repository,
-            ID id,
-            String fallback
-    ) {
-        return repository.findById(id)
-                .map(EntityI18n::getName)
-                .orElse(fallback);
     }
 }

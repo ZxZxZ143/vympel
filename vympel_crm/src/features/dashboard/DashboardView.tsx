@@ -9,26 +9,35 @@ import { Text } from "@/shared/ui/Text";
 
 export function DashboardView() {
   const { locale, t, messages } = useI18n();
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [error, setError] = useState(false);
+  const [dashboardState, setDashboardState] = useState<{ locale: string; dashboard: Dashboard } | null>(null);
+  const [errorLocale, setErrorLocale] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     crmApi
       .dashboard(locale)
       .then((nextDashboard) => {
-        setDashboard(nextDashboard);
-        setError(false);
+        if (!active) return;
+        setDashboardState({ locale, dashboard: nextDashboard });
+        setErrorLocale(null);
       })
-      .catch(() => setError(true));
+      .catch(() => {
+        if (active) setErrorLocale(locale);
+      });
+    return () => {
+      active = false;
+    };
   }, [locale]);
 
-  if (error) {
+  if (errorLocale === locale) {
     return <Text className="crm-form-error">{t("common.error")}</Text>;
   }
 
-  if (!dashboard) {
+  if (!dashboardState || dashboardState.locale !== locale) {
     return <Text tone="muted">{t("common.loading")}</Text>;
   }
+
+  const dashboard = dashboardState.dashboard;
 
   const metrics = [
     ["dashboard.totalProducts", dashboard.totalProducts],
@@ -61,7 +70,7 @@ export function DashboardView() {
             {t("dashboard.recentProducts")}
           </Heading>
         </div>
-        <div className="crm-table-wrap">
+        <div className="crm-table-wrap" tabIndex={0}>
           <table className="crm-table">
             <thead>
               <tr>
@@ -105,7 +114,7 @@ export function DashboardView() {
             {t("dashboard.recentActivity")}
           </Heading>
         </div>
-        <div className="crm-table-wrap">
+        <div className="crm-table-wrap" tabIndex={0}>
           <table className="crm-table">
             <thead>
               <tr>

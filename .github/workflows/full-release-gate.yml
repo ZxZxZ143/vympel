@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Parse workflow and deployment YAML
         run: >-
           ruby -e 'require "psych"; ARGV.each { |path| Psych.parse_file(path); puts "parsed #{path}" }'
@@ -48,6 +48,8 @@ jobs:
         run: for script in deployment/scripts/*.sh; do sh -n "$script"; done
       - name: Test Liquibase history compatibility gate
         run: sh deployment/rehearsals/liquibase-history-compatibility.sh
+      - name: Test backup evidence gate contract
+        run: sh deployment/rehearsals/backup-evidence-contract.sh
       - name: Test published multi-architecture manifest contract
         run: sh deployment/rehearsals/published-manifest-contract.sh
       - name: Validate Prometheus and alert examples
@@ -139,7 +141,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [backend, storefront, crm, shared-deployment-gates]
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Create immutable release metadata
         run: |
           release_tag=UNRELEASED
@@ -161,7 +163,7 @@ jobs:
             --arg generatedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             '{commit: $commit, imageTag: $commit, ref: $ref, generatedAt: $generatedAt, deployPerformed: false}' \
             > release-metadata/full-release-gate.json
-      - uses: actions/upload-artifact@v4.6.2
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: full-release-gate-${{ github.sha }}
           path: |

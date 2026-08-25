@@ -18,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class ProductAnalyticsController {
     private final ProductAnalyticsService productAnalyticsService;
     private final CrmActivityService crmActivityService;

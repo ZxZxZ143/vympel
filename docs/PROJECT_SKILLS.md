@@ -2347,6 +2347,62 @@
 * **Fix:** Spell out the fixed Compose file arguments at each invocation, including cleanup, execution, and status checks.
 * **How to avoid:** Do not encode multiple shell arguments in one string. Use explicit arguments or a correctly quoted array in a shell that supports arrays.
 
+### Ignore stale CRM responses by request identity
+
+* **When to use:** A CRM screen refetches when filters, pagination, focus, or mutations change while an earlier request can still be in flight.
+* **How:** Build an immutable request key from the inputs, capture it before the request, and commit loading/data/error state only when it still matches the latest key. Abort where possible, but keep the identity guard because completion and abort can race. Start effect-owned async work from `queueMicrotask` when the lint contract forbids synchronous state transitions inside effects.
+* **Why:** A slow earlier page or filter response must never overwrite the user's newer selection or clear its loading/error state.
+
+### Bound every CRM request
+
+* **When to use:** Calling the protected backend through `src/shared/api/client.ts`.
+* **How:** Compose caller cancellation with the client deadline; use 15 seconds for ordinary JSON requests and 60 seconds for multipart uploads. Preserve the one-retry refresh contract and clear every timeout/listener in `finally`.
+* **Why:** Hung API calls otherwise leave buttons, lists, and session bootstrap permanently loading and can leak listeners across retries.
+
+### Use semantic link buttons
+
+* **When to use:** A CRM action navigates to another route while visually matching a button.
+* **How:** Render `ButtonLink`/an anchor directly. Reserve `Button` for an actual button; never nest a Next `Link` inside `Button` or vice versa.
+* **Why:** Nested interactive controls create invalid HTML, duplicate focus targets, unreliable activation, and hydration/accessibility failures.
+
+### Make responsive data tables keyboard-scrollable
+
+* **When to use:** A `.crm-table-wrap` provides horizontal overflow on narrow screens.
+* **How:** Give the wrapper `tabIndex={0}` and retain the global `:focus-visible` outline. Confirm `scrollWidth` stays inside the page and run axe at a phone viewport.
+* **Why:** A scroll container that only responds to touch or a mouse wheel makes hidden columns unreachable to keyboard users.
+
+### Use transactional deletion outboxes for database-owned media
+
+* **When to use:** Deleting a product, CMS entity, or media row that owns an S3/MinIO object.
+* **How:** Lock/read every object key, enqueue deletion jobs inside the same database transaction before cascade deletion, and let a bounded retrying worker delete objects after commit. Treat missing objects as idempotent success and retain failed jobs for retry/inspection.
+* **Why:** Direct S3 deletion before commit loses files on database rollback; direct deletion after commit silently orphans objects when storage is unavailable.
+
+### Keep audit events atomic and localized
+
+* **When to use:** Adding a protected mutation or a new audit event code.
+* **How:** Persist integrity-sensitive audit rows in the mutation transaction, then add the event to RU/KZ/EN `activity.event` messages. Keep the message regression test's emitted-event list synchronized with backend event literals.
+* **Why:** A successful mutation without its audit record breaks accountability, while exposing raw event codes makes the CRM activity feed unusable.
+
+### Verify contrast on always-visible image overlays
+
+* **When to use:** White CTA text/icons sit over a CMS, marketplace, or product image, especially when a hover overlay becomes permanently visible on mobile.
+* **How:** Use an opacity that preserves at least WCAG AA against the lightest underlying image (the marketplace CTA uses 60% black), then run axe at the actual mobile breakpoint. Treat axe's obscured/indeterminate nodes separately from proven violations.
+* **Why:** A subtle desktop hover tint can become an unreadable persistent mobile control when the same component changes opacity by breakpoint.
+
+### ❌ Using Liquibase tags unsupported by the pinned runtime
+
+* **What happened:** The interrupted storage-outbox migration used `addCheckConstraint`, which the project's Liquibase parser did not accept.
+* **Root cause:** The migration assumed a tag available in another Liquibase edition/version instead of validating against the pinned backend runtime.
+* **Fix:** Express the PostgreSQL check with a guarded SQL statement and provide explicit rollback SQL; verify it in the real migration/restore rehearsal.
+* **How to avoid:** Validate new changelog constructs with the project Liquibase contract and a fresh PostgreSQL restore rehearsal, not XML syntax alone.
+
+### ❌ Treating image format declarations as decoding support
+
+* **What happened:** Validation accepted WebP based on MIME/extension even when the server-side decoder could not actually parse the file.
+* **Root cause:** Header allow-listing was mistaken for safe image decoding.
+* **Fix:** Restrict accepted formats to those verified by the decoder and fail closed on malformed, mismatched, or undecodable bytes.
+* **How to avoid:** Never advertise or accept an image format until representative valid and adversarial files pass the exact runtime decoder.
+
 ## Last Updated
 
-2026-08-23 - Revalidated the Home-only autoplay lifecycle and exact standalone bundle against the canonical SHA-only preview release gates before main integration; no release or deployment convention changed.
+2026-08-25 - Recorded the completed adversarial-review patterns for stale async state, request deadlines, semantic controls, keyboard-scrollable tables, atomic audit/storage deletion, image validation, migration compatibility, and mobile contrast verification.

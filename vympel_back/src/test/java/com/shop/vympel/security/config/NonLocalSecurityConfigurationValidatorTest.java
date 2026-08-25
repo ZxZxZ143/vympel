@@ -97,6 +97,29 @@ class NonLocalSecurityConfigurationValidatorTest {
     }
 
     @Test
+    void crmTrustedOriginsMustBeSeparateAndWithinCorsAllowList() {
+        MockEnvironment environment = validProductionEnvironment()
+                .withProperty("app.crm.trusted-origins", "https://other.example.com");
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> NonLocalSecurityConfigurationValidator.validate(environment));
+        assertTrue(exception.getMessage().contains("CRM trusted origins"));
+    }
+
+    @Test
+    void crmTrustedOriginsMustContainOnlyTheProtectedCrmOrigin() {
+        MockEnvironment environment = validProductionEnvironment()
+                .withProperty(
+                        "app.crm.trusted-origins",
+                        "https://crm.example.com,https://shop.example.com"
+                );
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> NonLocalSecurityConfigurationValidator.validate(environment));
+        assertTrue(exception.getMessage().contains("exactly one protected CRM browser origin"));
+    }
+
+    @Test
     void validProductionLikeConfigurationPasses() {
         assertDoesNotThrow(() -> NonLocalSecurityConfigurationValidator.validate(validProductionEnvironment()));
     }
@@ -118,6 +141,7 @@ class NonLocalSecurityConfigurationValidatorTest {
                 .withProperty("storage.s3.access-key", "prod-access-9X")
                 .withProperty("storage.s3.secret-key", "S3!strong-secret-8Q")
                 .withProperty("app.cors.allowed-origins", "https://shop.example.com,https://crm.example.com")
+                .withProperty("app.crm.trusted-origins", "https://crm.example.com")
                 .withProperty("security.crm-session.secure", "true")
                 .withProperty("app.cms.public-revalidate.enabled", "true")
                 .withProperty("app.cms.public-revalidate.required", "true")

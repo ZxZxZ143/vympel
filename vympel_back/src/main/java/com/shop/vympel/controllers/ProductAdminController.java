@@ -18,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/product")
 @AllArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class ProductAdminController {
 
     private final ProductService productService;

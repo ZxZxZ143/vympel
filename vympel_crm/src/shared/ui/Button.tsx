@@ -1,7 +1,7 @@
-import { ButtonHTMLAttributes, PropsWithChildren } from "react";
+import { ButtonHTMLAttributes, forwardRef, PropsWithChildren } from "react";
 import { cx } from "@/shared/utils/cx";
 
-type ButtonVariant = "primary" | "secondary" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "danger";
 
 type ButtonProps = PropsWithChildren<
   {
@@ -10,7 +10,16 @@ type ButtonProps = PropsWithChildren<
   } & ButtonHTMLAttributes<HTMLButtonElement>
 >;
 
-export function Button({
+export function buttonClassName(variant: ButtonVariant = "primary", className?: string) {
+  return cx(
+    "crm-button",
+    variant === "secondary" && "crm-button--secondary",
+    variant === "danger" && "crm-button--danger",
+    className
+  );
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   variant = "primary",
   isLoading = false,
   disabled,
@@ -18,21 +27,17 @@ export function Button({
   children,
   type = "button",
   ...props
-}: ButtonProps) {
+}: ButtonProps, ref) {
   return (
     <button
+      ref={ref}
       type={type}
       disabled={disabled || isLoading}
-      className={cx(
-        "crm-button",
-        variant === "secondary" && "crm-button--secondary",
-        variant === "danger" && "crm-button--danger",
-        className
-      )}
+      className={buttonClassName(variant, className)}
       {...props}
     >
       <span className={cx(isLoading && "crm-button__label--loading")}>{children}</span>
       {isLoading ? <span className="crm-button__spinner" aria-hidden="true" /> : null}
     </button>
   );
-}
+});

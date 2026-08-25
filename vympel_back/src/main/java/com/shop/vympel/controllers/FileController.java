@@ -17,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/file")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class FileController {
     private final ObjectStorageService objectStorageService;
     private final CrmActivityService crmActivityService;

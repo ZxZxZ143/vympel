@@ -15,6 +15,16 @@ import java.util.Optional;
 @Repository
 public class ProductRecommendationRepository {
     private static final String SOURCE_SQL = """
+            with recursive visible_category as (
+                select category.id
+                from category
+                where category.parent_id is null and category.active = true
+                union all
+                select child.id
+                from category child
+                join visible_category parent on parent.id = child.parent_id
+                where child.active = true
+            )
             select p.id as product_id,
                    p.brand_id as brand_id,
                    p.price as price,
@@ -22,12 +32,25 @@ public class ProductRecommendationRepository {
                    c.parent_id as parent_category_id
             from product p
             join product_category pc on pc.product_id = p.id
-            join category c on c.id = pc.category_id
+            join visible_category on visible_category.id = pc.category_id
+            join category c on c.id = visible_category.id
             where p.id = :productId
-            order by case when c.active then 0 else 1 end, pc.category_id
+              and p.status = 'ACTIVE'
+              and c.active = true
+            order by pc.category_id
             """;
 
     private static final String RANKED_CANDIDATES_SQL = """
+            with recursive visible_category as (
+                select category.id
+                from category
+                where category.parent_id is null and category.active = true
+                union all
+                select child.id
+                from category child
+                join visible_category parent on parent.id = child.parent_id
+                where child.active = true
+            )
             select p.id as product_id,
                    min(
                        case
@@ -72,10 +95,10 @@ public class ProductRecommendationRepository {
                    ) as recommendation_stage
             from product p
             join product_category pc on pc.product_id = p.id
+            join visible_category on visible_category.id = pc.category_id
             join category c on c.id = pc.category_id
             where p.id <> :sourceProductId
               and p.status = 'ACTIVE'
-              and c.active = true
               and exists (
                   select 1
                   from product_i18n accessible_name
@@ -100,6 +123,16 @@ public class ProductRecommendationRepository {
             """;
 
     private static final String CARDS_SQL = """
+            with recursive visible_category as (
+                select category.id
+                from category
+                where category.parent_id is null and category.active = true
+                union all
+                select child.id
+                from category child
+                join visible_category parent on parent.id = child.parent_id
+                where child.active = true
+            )
             select p.id as product_id,
                    coalesce(nullif(trim(local_name.name), ''), nullif(trim(ru_name.name), ''), p.model) as product_name,
                    p.model as model,
@@ -151,9 +184,8 @@ public class ProductRecommendationRepository {
               and exists (
                   select 1
                   from product_category visible_product_category
-                  join category visible_category on visible_category.id = visible_product_category.category_id
+                  join visible_category on visible_category.id = visible_product_category.category_id
                   where visible_product_category.product_id = p.id
-                    and visible_category.active = true
               )
               and coalesce(nullif(trim(local_name.name), ''), nullif(trim(ru_name.name), '')) is not null
             """;

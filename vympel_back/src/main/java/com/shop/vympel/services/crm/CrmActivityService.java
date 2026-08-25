@@ -6,6 +6,7 @@ import com.shop.vympel.db.repositories.audit.CrmActivityRepository;
 import com.shop.vympel.db.repositories.user.UserRepository;
 import com.shop.vympel.dtos.crm.CrmActivityResponse;
 import com.shop.vympel.logging.CrmActionFileLogger;
+import com.shop.vympel.security.ratelimit.ClientAddressResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class CrmActivityService {
     private final CrmActivityRepository crmActivityRepository;
     private final UserRepository userRepository;
+    private final ClientAddressResolver clientAddressResolver;
 
     @Transactional
     public void log(
@@ -39,7 +41,7 @@ public class CrmActivityService {
         activity.setEntityType(entityType);
         activity.setEntityId(entityId);
         activity.setMetadata(metadata);
-        activity.setIpAddress(limit(resolveIpAddress(request), 64));
+        activity.setIpAddress(limit(request == null ? null : clientAddressResolver.resolve(request), 64));
         activity.setUserAgent(limit(request == null ? null : request.getHeader("User-Agent"), 512));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -93,19 +95,6 @@ public class CrmActivityService {
         } catch (NumberFormatException ex) {
             return null;
         }
-    }
-
-    private String resolveIpAddress(HttpServletRequest request) {
-        if (request == null) {
-            return null;
-        }
-
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
-        }
-
-        return request.getRemoteAddr();
     }
 
     private String limit(String value, int maxLength) {

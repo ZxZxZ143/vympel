@@ -39,6 +39,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -119,6 +120,47 @@ class ProductServiceImplTest {
     }
 
     @Test
+    void productDeletionQueuesStoredImagesBeforeDeletingDatabaseGraph() {
+        Product product = new Product();
+        product.setId(42L);
+        when(productRepository.findByIdForUpdate(42L)).thenReturn(Optional.of(product));
+
+        assertTrue(productService.delete(42L));
+
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(objectStorageService, productRepository);
+        order.verify(objectStorageService).enqueueProductImagesForDeletion(42L);
+        order.verify(productRepository).delete(product);
+    }
+
+    @Test
+    void hiddenProductIsNotReturnedByPublicDetailLookup() {
+        when(productRepository.findPubliclyVisibleById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> productService.getPublic(999L, Language.RU)
+        );
+        verify(productRepository, never()).findById(999L);
+    }
+
+    @Test
+    void quickProductMutationsUseSerializedLookup() {
+        when(productRepository.findByIdForUpdate(42L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> productService.updatePrice(42L, 100, Language.RU));
+        assertThrows(ResourceNotFoundException.class,
+                () -> productService.updateStock(42L, 5, Language.RU));
+        assertThrows(ResourceNotFoundException.class,
+                () -> productService.updateMarketplaceLinks(42L, null, null, Language.RU));
+        assertThrows(ResourceNotFoundException.class,
+                () -> productService.updatePromotion(42L, "NOT_PROMOTED", Language.RU));
+
+        verify(productRepository, times(4)).findByIdForUpdate(42L);
+        verify(productRepository, never()).findById(42L);
+    }
+
+    @Test
     void crmSearchUsesFindAllWhenSearchIsBlank() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<com.shop.vympel.db.entity.product.Product> page = new PageImpl<>(List.of(), pageable, 0);
@@ -185,7 +227,7 @@ class ProductServiceImplTest {
         brand.setId(1L);
         com.shop.vympel.db.entity.features.Country country = new com.shop.vympel.db.entity.features.Country();
         country.setId(2L);
-        when(catalogCategoryProfileService.profileForCategoryId(2L)).thenReturn(CatalogCategoryProfile.GENERIC);
+        when(catalogCategoryProfileService.profileForPublicCategoryId(2L)).thenReturn(CatalogCategoryProfile.GENERIC);
         when(supportedCatalogDomainService.requireAssignment(1L, null)).thenReturn(
                 new SupportedCatalogDomainService.Assignment(SupportedBrandCountry.ROMANSON, brand, country)
         );

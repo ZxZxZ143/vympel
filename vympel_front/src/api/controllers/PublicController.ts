@@ -30,6 +30,12 @@ export type ProductAnalyticsEventType =
     | "MARKETPLACE_CLICK";
 
 const inFlightProductBatchSummaries = new Map<string, Promise<IProductBatchSummaryResponse>>();
+const PUBLIC_API_TIMEOUT_MS = 8_000;
+
+function boundedSignal(callerSignal?: AbortSignal, timeoutMs = PUBLIC_API_TIMEOUT_MS): AbortSignal {
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    return callerSignal ? AbortSignal.any([callerSignal, timeoutSignal]) : timeoutSignal;
+}
 
 class PublicController {
     private baseApiUrl: string | undefined = process.env.BASE_API_PUBLIC ?? process.env.NEXT_PUBLIC_BASE_API_PUBLIC
@@ -53,6 +59,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-cache",
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -91,6 +98,7 @@ class PublicController {
                 cache: "no-store",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ids: normalizedIds}),
+                signal: boundedSignal(),
             });
             if (!res.ok) {
                 throw await parseError(res);
@@ -129,7 +137,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-store",
-            signal: AbortSignal.timeout(2500),
+            signal: boundedSignal(undefined, 2_500),
         })
 
         if (!res.ok) {
@@ -165,7 +173,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-cache",
-            signal: params.signal,
+            signal: boundedSignal(params.signal),
         })
 
         if (!res.ok) {
@@ -197,6 +205,7 @@ class PublicController {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -222,6 +231,7 @@ class PublicController {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -250,6 +260,7 @@ class PublicController {
             next: {
                 revalidate: 30,
             },
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -309,6 +320,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-cache",
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -343,7 +355,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-cache",
-            signal: params.signal,
+            signal: boundedSignal(params.signal, 3_000),
         })
 
         if (!res.ok) {
@@ -371,6 +383,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-cache",
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -403,6 +416,7 @@ class PublicController {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(params),
+                signal: boundedSignal(undefined, 5_000),
             })
 
             return res.ok;
@@ -429,6 +443,7 @@ class PublicController {
                 revalidate: 30,
                 tags: ["cms", `cms:${pageKey}`],
             },
+            signal: boundedSignal(),
         })
 
         if (!res.ok) {
@@ -476,7 +491,8 @@ class PublicController {
                 method: "GET",
                 next: {
                     revalidate: 3600,
-                }
+                },
+                signal: boundedSignal(),
             })
 
             if (!res.ok) {
@@ -504,7 +520,8 @@ class PublicController {
                 method: "GET",
                 next: {
                     revalidate: 3600,
-                }
+                },
+                signal: boundedSignal(),
             })
 
             if (!res.ok) {

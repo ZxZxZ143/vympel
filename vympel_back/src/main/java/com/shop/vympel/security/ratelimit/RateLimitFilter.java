@@ -54,13 +54,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         String source = clientAddressResolver.resolve(request);
         try {
-            if (match.publicWrite()) {
-                rateLimitService.enforce("global-public-write", "global", "all-public-writes");
-            }
             if ("public-review".equals(match.policy())) {
                 rateLimitService.enforce("public-review-source", "source", source);
             }
             rateLimitService.enforce(match.policy(), match.identityCategory(), source + match.identitySuffix());
+            if (match.publicWrite()) {
+                rateLimitService.enforce("global-public-write", "global", "all-public-writes");
+            }
             filterChain.doFilter(request, response);
         } catch (RateLimitExceededException ex) {
             GlobalErrorHandler.writeRateLimitError(response, request, ex.getRetryAfterSeconds());
@@ -74,16 +74,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         if ("POST".equals(method) && "/api/crm/auth/login".equals(path)) {
-            return new PolicyMatch("crm-login-source", "source", "", true);
+            return new PolicyMatch("crm-login-source", "source", "", false);
         }
         if ("POST".equals(method) && "/api/auth/login/email".equals(path)) {
-            return new PolicyMatch("customer-login-source", "source", "", true);
+            return new PolicyMatch("customer-login-source", "source", "", false);
         }
         if ("POST".equals(method) && "/api/auth/register/email".equals(path)) {
-            return new PolicyMatch("registration-source", "source", "", true);
+            return new PolicyMatch("registration-source", "source", "", false);
         }
         if ("POST".equals(method) && "/api/crm/auth/refresh".equals(path)) {
-            return new PolicyMatch("refresh-source", "source", "", true);
+            return new PolicyMatch("refresh-source", "source", "", false);
         }
         if ("POST".equals(method) && "/api/crm/auth/logout".equals(path)) {
             return new PolicyMatch("logout-source", "source", "", false);

@@ -19,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/collection")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class CollectionAdminController {
     private final CollectionServiceImpl collectionService;
     private final CrmActivityService crmActivityService;

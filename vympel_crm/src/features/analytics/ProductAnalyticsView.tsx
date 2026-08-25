@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { crmApi } from "@/shared/api/client";
 import { getCrmErrorMessage } from "@/shared/api/errors";
@@ -24,42 +24,33 @@ export function ProductAnalyticsView() {
   const [analytics, setAnalytics] = useState<ProductPopularityAnalytics | null>(null);
   const [promotionBusyId, setPromotionBusyId] = useState<number | null>(null);
   const [error, setError] = useState(false);
+  const loadSequenceRef = useRef(0);
 
-  const loadAnalytics = useCallback(() => {
+  const loadAnalytics = useCallback(async () => {
+    const sequence = ++loadSequenceRef.current;
     setAnalytics(null);
     setError(false);
-    crmApi
-      .productPopularityAnalytics({ lang: locale, period })
-      .then((nextAnalytics) => {
+    try {
+      const nextAnalytics = await crmApi.productPopularityAnalytics({ lang: locale, period });
+      if (sequence === loadSequenceRef.current) {
         setAnalytics(nextAnalytics);
         setError(false);
-      })
-      .catch(() => setError(true));
+      }
+    } catch {
+      if (sequence === loadSequenceRef.current) setError(true);
+    }
   }, [locale, period]);
 
   useEffect(() => {
-    let alive = true;
-
-    crmApi
-      .productPopularityAnalytics({ lang: locale, period })
-      .then((nextAnalytics) => {
-        if (!alive) {
-          return;
-        }
-
-        setAnalytics(nextAnalytics);
-        setError(false);
-      })
-      .catch(() => {
-        if (alive) {
-          setError(true);
-        }
-      });
-
+    let active = true;
+    queueMicrotask(() => {
+      if (active) void loadAnalytics();
+    });
     return () => {
-      alive = false;
+      active = false;
+      loadSequenceRef.current += 1;
     };
-  }, [locale, period]);
+  }, [loadAnalytics]);
 
   const changePeriod = (nextPeriod: ProductAnalyticsPeriod) => {
     setAnalytics(null);
@@ -176,7 +167,7 @@ function AnalyticsTable({
           <Text tone="muted">{t("common.empty")}</Text>
         </div>
       ) : (
-        <div className="crm-table-wrap">
+        <div className="crm-table-wrap" tabIndex={0}>
           <table className="crm-table">
             <thead>
               <tr>

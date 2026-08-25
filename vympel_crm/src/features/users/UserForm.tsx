@@ -234,7 +234,7 @@ function validateForm(form: UserFormState, isEdit: boolean, t: (key: string) => 
     return t("users.requiredError");
   }
 
-  if (!isEdit && form.password.trim().length < 6) {
+  if (!isEdit && form.password.trim().length < 16) {
     return t("users.passwordError");
   }
 

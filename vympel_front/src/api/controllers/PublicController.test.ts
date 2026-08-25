@@ -4,10 +4,28 @@ import {PublicApiController} from "./PublicController";
 import {LocaleEnum} from "@/i18n/routing";
 
 afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
 });
 
 describe("PublicController product batch summary", () => {
+    it("bounds server-side API waits with an abort timeout", async () => {
+        (PublicApiController as unknown as {baseApiUrl: string}).baseApiUrl = "https://example.test/api/public";
+        const aborted = AbortSignal.abort(new DOMException("Timed out", "TimeoutError"));
+        const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(aborted);
+        const fetchMock = vi.fn((_input: string | URL | Request, init?: RequestInit) => {
+            return Promise.reject(init?.signal?.reason ?? new Error("missing signal"));
+        });
+        vi.stubGlobal("fetch", fetchMock);
+
+        await expect(PublicApiController.getProduct(42, LocaleEnum.RU)).rejects.toMatchObject({
+            name: "TimeoutError",
+        });
+
+        expect(timeout).toHaveBeenCalledWith(8_000);
+        expect(fetchMock.mock.calls[0]?.[1]?.signal).toBe(aborted);
+    });
+
     it("uses one bounded POST request for the whole collection and deduplicates ids", async () => {
         (PublicApiController as unknown as {baseApiUrl: string}).baseApiUrl = "https://example.test/api/public";
         const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({

@@ -30,6 +30,8 @@ storage:
 app:
   cors:
     allowed-origins: "${VYMPEL_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}"
+  crm:
+    trusted-origins: "${VYMPEL_CRM_TRUSTED_ORIGINS:http://localhost:3001}"
   cms:
     public-revalidate:
       enabled: "${VYMPEL_CMS_PUBLIC_REVALIDATE_ENABLED:true}"

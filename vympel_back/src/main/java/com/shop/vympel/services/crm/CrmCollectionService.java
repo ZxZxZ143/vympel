@@ -18,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,18 +31,20 @@ public class CrmCollectionService {
 
     @Transactional(readOnly = true)
     public List<CrmCollectionResponse> getAll(Language language) {
-        return collectionRepository.findAll()
-                .stream()
-                .map(collection -> toResponse(collection, language))
+        List<Collection> collections = collectionRepository.findAllWithBrand();
+        Map<CollectionI18nId, CollectionI18n> translations = loadTranslations(collections, language);
+        return collections.stream()
+                .map(collection -> toResponse(collection, language, translations))
                 .sorted(Comparator.comparing(CrmCollectionResponse::name))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<CrmCollectionResponse> getByBrand(Long brandId, Language language) {
-        return collectionRepository.findAllByBrand_Id(brandId)
-                .stream()
-                .map(collection -> toResponse(collection, language))
+        List<Collection> collections = collectionRepository.findAllWithBrandByBrandId(brandId);
+        Map<CollectionI18nId, CollectionI18n> translations = loadTranslations(collections, language);
+        return collections.stream()
+                .map(collection -> toResponse(collection, language, translations))
                 .sorted(Comparator.comparing(CrmCollectionResponse::name))
                 .toList();
     }
@@ -72,6 +76,22 @@ public class CrmCollectionService {
 
     public CrmCollectionResponse toResponse(Collection collection, Language language) {
         CollectionI18n translation = findTranslation(collection, language);
+        return toResponse(collection, translation);
+    }
+
+    private CrmCollectionResponse toResponse(
+            Collection collection,
+            Language language,
+            Map<CollectionI18nId, CollectionI18n> translations
+    ) {
+        CollectionI18n translation = translations.get(id(collection.getId(), language));
+        if (translation == null) {
+            translation = translations.get(id(collection.getId(), Language.RU));
+        }
+        return toResponse(collection, translation);
+    }
+
+    private CrmCollectionResponse toResponse(Collection collection, CollectionI18n translation) {
         Brand brand = collection.getBrand();
         String legacyName = collection.getName() == null || collection.getName().isBlank()
                 ? collection.getCode()
@@ -88,6 +108,21 @@ public class CrmCollectionService {
                 collection.getCreatedAt(),
                 collection.getUpdatedAt()
         );
+    }
+
+    private Map<CollectionI18nId, CollectionI18n> loadTranslations(
+            List<Collection> collections,
+            Language language
+    ) {
+        if (collections.isEmpty()) {
+            return Map.of();
+        }
+        Map<CollectionI18nId, CollectionI18n> result = new HashMap<>();
+        collectionI18nRepository.findAllByIdCollectionIdInAndIdLangIn(
+                collections.stream().map(Collection::getId).toList(),
+                new java.util.LinkedHashSet<>(List.of(language.getValue(), Language.RU.getValue()))
+        ).forEach(translation -> result.put(translation.getId(), translation));
+        return result;
     }
 
     private CollectionI18n findTranslation(Collection collection, Language language) {

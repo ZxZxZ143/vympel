@@ -2,8 +2,16 @@ package com.shop.vympel.db;
 
 import com.shop.vympel.db.repositories.cms.CmsMediaRepository;
 import com.shop.vympel.dtos.cms.CmsReorderRequest;
+import com.shop.vympel.dtos.crm.CrmManagedUserResponse;
+import com.shop.vympel.dtos.crm.CrmUserCreateRequest;
+import com.shop.vympel.enums.Language;
+import com.shop.vympel.services.crm.CrmUserManagementService;
 import com.shop.vympel.services.cms.CmsService;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
+import com.shop.vympel.services.product.ProductService;
+import com.shop.vympel.db.repositories.product.ProductRecommendationRepository;
+import com.shop.vympel.services.request.CustomerRequestService;
+import com.shop.vympel.services.review.ProductReviewService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Set;
+import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,6 +63,21 @@ class RefreshSessionMigrationTest {
 
     @Autowired
     private ObjectStorageService objectStorageService;
+
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private CustomerRequestService customerRequestService;
+
+    @Autowired
+    private CrmUserManagementService crmUserManagementService;
+
+    @Autowired
+    private ProductReviewService productReviewService;
+
+    @Autowired
+    private ProductRecommendationRepository productRecommendationRepository;
 
     @Test
     void liquibaseBuildsRefreshSessionSchemaOnDisposablePostgres() {
@@ -471,6 +496,220 @@ class RefreshSessionMigrationTest {
         )).containsExactly(10, 20, 30);
     }
 
+    @Test
+    void concurrentProductFieldUpdatesPreserveBothCommittedChanges() throws Exception {
+        Long productId = insertHydratableDraftProduct("CONCURRENT-PRODUCT-" + System.nanoTime(), 4);
+        int nextPrice = 18;
+        int nextStock = 7;
+        try {
+            runConcurrently(
+                    () -> productService.updatePrice(productId, nextPrice, Language.RU).getPrice(),
+                    () -> productService.updateStock(productId, nextStock, Language.RU).getStockQuantity()
+            );
+
+            assertThat(jdbcTemplate.queryForObject(
+                    "select price::integer from product where id = ?", Integer.class, productId
+            )).isEqualTo(nextPrice);
+            assertThat(jdbcTemplate.queryForObject(
+                    "select stock_quantity from product where id = ?", Integer.class, productId
+            )).isEqualTo(nextStock);
+        } finally {
+            jdbcTemplate.update("delete from product where id = ?", productId);
+        }
+    }
+
+    @Test
+    void concurrentCustomerRequestEditsPreserveStatusAndComment() throws Exception {
+        Long requestId = jdbcTemplate.queryForObject(
+                """
+                insert into customer_request (email, status, created_at, updated_at)
+                values (?, 'NEW', now(), now()) returning id
+                """,
+                Long.class,
+                "concurrency-" + System.nanoTime() + "@example.test"
+        );
+        try {
+            runConcurrently(
+                    () -> customerRequestService.updateStatus(requestId, "IN_PROGRESS", null).status(),
+                    () -> customerRequestService.updateComment(requestId, "serialized comment").adminComment()
+            );
+
+            assertThat(jdbcTemplate.queryForObject(
+                    "select status from customer_request where id = ?", String.class, requestId
+            )).isEqualTo("IN_PROGRESS");
+            assertThat(jdbcTemplate.queryForObject(
+                    "select admin_comment from customer_request where id = ?", String.class, requestId
+            )).isEqualTo("serialized comment");
+        } finally {
+            jdbcTemplate.update("delete from customer_request where id = ?", requestId);
+        }
+    }
+
+    @Test
+    void concurrentLastAdminDisablesLeaveOneActiveAdministrator() throws Exception {
+        long suffix = System.nanoTime();
+        CrmManagedUserResponse first = crmUserManagementService.createUser(new CrmUserCreateRequest(
+                "concurrent-admin-a-" + suffix + "@example.test", "A-secure-password-1234",
+                null, null, null, Set.of("ADMIN"), true
+        ));
+        CrmManagedUserResponse second = crmUserManagementService.createUser(new CrmUserCreateRequest(
+                "concurrent-admin-b-" + suffix + "@example.test", "B-secure-password-1234",
+                null, null, null, Set.of("ADMIN"), true
+        ));
+        List<Long> originalAdmins = jdbcTemplate.queryForList(
+                """
+                select distinct u.id
+                from users u
+                join user_role ur on ur.user_id = u.id
+                join role r on r.id = ur.role_id
+                where u.enabled = true and r.code = 'ADMIN' and u.id not in (?, ?)
+                """,
+                Long.class,
+                first.id(), second.id()
+        );
+        originalAdmins.forEach(id -> jdbcTemplate.update("update users set enabled = false where id = ?", id));
+        try {
+            List<Boolean> results = runConcurrently(
+                    () -> attemptAdminDisable(first.id()),
+                    () -> attemptAdminDisable(second.id())
+            );
+
+            assertThat(results).containsExactlyInAnyOrder(true, false);
+            assertThat(jdbcTemplate.queryForObject(
+                    """
+                    select count(*) from users u
+                    join user_role ur on ur.user_id = u.id
+                    join role r on r.id = ur.role_id
+                    where u.enabled = true and r.code = 'ADMIN'
+                    """,
+                    Long.class
+            )).isEqualTo(1L);
+        } finally {
+            originalAdmins.forEach(id -> jdbcTemplate.update("update users set enabled = true where id = ?", id));
+            jdbcTemplate.update("delete from user_role where user_id in (?, ?)", first.id(), second.id());
+            jdbcTemplate.update("delete from users where id in (?, ?)", first.id(), second.id());
+        }
+    }
+
+    @Test
+    void concurrentRoleReplacementNeverMergesDisjointRequestedRoleSets() throws Exception {
+        long suffix = System.nanoTime();
+        CrmManagedUserResponse guardAdmin = crmUserManagementService.createUser(new CrmUserCreateRequest(
+                "concurrent-role-guard-" + suffix + "@example.test", "Role-guard-password-1234",
+                null, null, null, Set.of("ADMIN"), true
+        ));
+        CrmManagedUserResponse user = crmUserManagementService.createUser(new CrmUserCreateRequest(
+                "concurrent-role-" + suffix + "@example.test", "Role-secure-password-1234",
+                null, null, null, Set.of("MANAGER"), true
+        ));
+        try {
+            runConcurrently(
+                    () -> crmUserManagementService.updateRoles(user.id(), Set.of("ADMIN")).roles(),
+                    () -> crmUserManagementService.updateRoles(user.id(), Set.of("MANAGER")).roles()
+            );
+
+            List<String> finalRoles = jdbcTemplate.queryForList(
+                    """
+                    select r.code from user_role ur
+                    join role r on r.id = ur.role_id
+                    where ur.user_id = ? order by r.code
+                    """,
+                    String.class,
+                    user.id()
+            );
+            assertThat(finalRoles).isIn(List.of("ADMIN"), List.of("MANAGER"));
+        } finally {
+            jdbcTemplate.update("delete from user_role where user_id in (?, ?)", user.id(), guardAdmin.id());
+            jdbcTemplate.update("delete from users where id in (?, ?)", user.id(), guardAdmin.id());
+        }
+    }
+
+    @Test
+    void concurrentReviewDeleteAndApproveCannotRepublishDeletedReview() throws Exception {
+        Long productId = insertHydratableDraftProduct("CONCURRENT-REVIEW-" + System.nanoTime(), 1);
+        Long reviewId = jdbcTemplate.queryForObject(
+                """
+                insert into product_review (
+                    product_id, author_name, author_type, rating, status, created_at, updated_at
+                ) values (?, 'Concurrency', 'GUEST', 5, 'PENDING', now(), now()) returning id
+                """,
+                Long.class,
+                productId
+        );
+        try {
+            runConcurrently(
+                    () -> attemptReviewModeration(() -> productReviewService.approve(reviewId, Language.RU, null)),
+                    () -> attemptReviewModeration(() -> productReviewService.delete(reviewId, Language.RU, null))
+            );
+
+            assertThat(jdbcTemplate.queryForObject(
+                    "select status from product_review where id = ?", String.class, reviewId
+            )).isEqualTo("DELETED");
+        } finally {
+            jdbcTemplate.update("delete from product where id = ?", productId);
+        }
+    }
+
+    @Test
+    void recommendationsExcludeActiveChildrenBelowAnInactiveAncestor() {
+        long suffix = System.nanoTime();
+        Long hiddenParentId = jdbcTemplate.queryForObject(
+                "insert into category (code, active) values (?, false) returning id",
+                Long.class,
+                "HIDDEN-PARENT-" + suffix
+        );
+        Long hiddenChildId = jdbcTemplate.queryForObject(
+                "insert into category (code, parent_id, active) values (?, ?, true) returning id",
+                Long.class,
+                "ACTIVE-CHILD-" + suffix, hiddenParentId
+        );
+        Long candidateId = insertHydratableDraftProduct("HIDDEN-RECOMMENDATION-" + suffix, 3);
+        jdbcTemplate.update("update product set status = 'ACTIVE' where id = ?", candidateId);
+        jdbcTemplate.update("delete from product_category where product_id = ?", candidateId);
+        jdbcTemplate.update(
+                "insert into product_category (product_id, category_id) values (?, ?)",
+                candidateId, hiddenChildId
+        );
+        Long visibleCategoryId = jdbcTemplate.queryForObject(
+                "select min(id) from category where parent_id is null and active = true",
+                Long.class
+        );
+        Long brandId = jdbcTemplate.queryForObject("select brand_id from product where id = ?", Long.class, candidateId);
+        var source = new ProductRecommendationRepository.SourceProduct(
+                -1L, brandId, BigDecimal.ONE, visibleCategoryId, null
+        );
+        try {
+            assertThat(productRecommendationRepository.findRankedCandidateIds(
+                    source, "ru", BigDecimal.ZERO, BigDecimal.TEN, 12
+            )).extracting(ProductRecommendationRepository.RankedCandidate::productId)
+                    .doesNotContain(candidateId);
+            assertThat(productRecommendationRepository.findCardsByIds(List.of(candidateId), "ru"))
+                    .isEmpty();
+        } finally {
+            jdbcTemplate.update("delete from product where id = ?", candidateId);
+            jdbcTemplate.update("delete from category where id = ?", hiddenChildId);
+            jdbcTemplate.update("delete from category where id = ?", hiddenParentId);
+        }
+    }
+
+    private boolean attemptAdminDisable(Long userId) {
+        try {
+            crmUserManagementService.updateStatus(userId, false);
+            return true;
+        } catch (IllegalArgumentException expected) {
+            return false;
+        }
+    }
+
+    private boolean attemptReviewModeration(ConcurrentOperation<?> moderation) throws Exception {
+        try {
+            moderation.run();
+            return true;
+        } catch (IllegalArgumentException expected) {
+            return false;
+        }
+    }
+
     private Long insertDraftProduct(String sku, Long brandId, int stockQuantity) {
         return jdbcTemplate.queryForObject(
                 """
@@ -480,6 +719,33 @@ class RefreshSessionMigrationTest {
                 Long.class,
                 sku, brandId, stockQuantity
         );
+    }
+
+    private Long insertHydratableDraftProduct(String sku, int stockQuantity) {
+        Long brandId = jdbcTemplate.queryForObject("select min(id) from brand", Long.class);
+        Long productId = insertDraftProduct(sku, brandId, stockQuantity);
+        jdbcTemplate.update(
+                "insert into product_i18n (product_id, lang, name) values (?, 'ru', ?)",
+                productId, "Concurrent product " + productId
+        );
+        Long descriptionId = jdbcTemplate.queryForObject(
+                "insert into product_description (product_id) values (?) returning id",
+                Long.class,
+                productId
+        );
+        jdbcTemplate.update(
+                """
+                insert into product_description_i18n (description_id, lang, content_md)
+                values (?, 'ru', 'Concurrency description')
+                """,
+                descriptionId
+        );
+        Long categoryId = jdbcTemplate.queryForObject("select min(id) from category", Long.class);
+        jdbcTemplate.update(
+                "insert into product_category (product_id, category_id) values (?, ?)",
+                productId, categoryId
+        );
+        return productId;
     }
 
     private <T> List<T> runConcurrently(ConcurrentOperation<T> first, ConcurrentOperation<T> second) throws Exception {

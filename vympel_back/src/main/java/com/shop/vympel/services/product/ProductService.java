@@ -2,6 +2,8 @@ package com.shop.vympel.services.product;
 
 import com.shop.vympel.dtos.product.ProductCreateRequest;
 import com.shop.vympel.dtos.product.ProductResponse;
+import com.shop.vympel.dtos.product.PublicProductResponse;
+import com.shop.vympel.dtos.product.CrmProductListItemResponse;
 import com.shop.vympel.dtos.product.ProductShortResponse;
 import com.shop.vympel.dtos.product.ProductUpdateRequest;
 import com.shop.vympel.enums.Language;
@@ -18,11 +20,13 @@ public interface ProductService {
 
     public ProductResponse get(Long id, Language language);
 
+    public PublicProductResponse getPublic(Long id, Language language);
+
     public Page<ProductShortResponse> getAll(Pageable pageable, Language language, Long categoryId);
 
     public Page<ProductShortResponse> getAllByCategoryCode(Pageable pageable, Language language, String categoryCode);
 
-    public Page<ProductResponse> getAllForCrm(Pageable pageable, Language language, String search, String status);
+    public Page<CrmProductListItemResponse> getAllForCrm(Pageable pageable, Language language, String search, String status);
 
     public ProductResponse updatePrice(Long id, Integer price, Language language);
 

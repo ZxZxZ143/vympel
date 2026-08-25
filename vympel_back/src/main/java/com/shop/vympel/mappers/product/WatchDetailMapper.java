@@ -20,7 +20,7 @@ public interface WatchDetailMapper {
     @Mapping(target = "stoneInlay", source = "stoneInlayId", qualifiedByName = "toStoneInlay")
     WatchDetail toEntity(WatchDetailCreateRequest req);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "product", ignore = true)
 

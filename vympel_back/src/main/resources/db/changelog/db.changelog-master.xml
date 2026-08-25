@@ -46,4 +46,5 @@
     <include file="db/changelog/2026-07-30-02-appella-and-contact-banners.xml" relativeToChangelogFile="false" />
     <include file="db/changelog/2026-08-02-01-supported-brand-country-domain.xml" relativeToChangelogFile="false" />
     <include file="db/changelog/2026-08-16-01-about-instagram-post-cms.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-08-23-01-object-storage-deletion-outbox.xml" relativeToChangelogFile="false" />
 </databaseChangeLog>

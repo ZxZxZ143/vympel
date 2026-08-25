@@ -121,6 +121,11 @@ export type Product = {
   promotionUpdatedAt?: string | null;
 };
 
+export type ProductListItem = Pick<
+  Product,
+  "id" | "sku" | "name" | "model" | "price" | "stockQuantity" | "status" | "kaspiUrl" | "wildberriesUrl"
+>;
+
 export type ProductStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
 
 export type ProductType = "WATCH" | "APPLE_CASE" | "ACCESSORY" | "WALL_CLOCK" | "FLOOR_CLOCK";

@@ -13,7 +13,7 @@ public record CrmUserCreateRequest(
         String email,
 
         @NotBlank
-        @Size(min = 6, max = 255)
+        @Size(min = 16, max = 255)
         String password,
 
         @Size(max = 100)

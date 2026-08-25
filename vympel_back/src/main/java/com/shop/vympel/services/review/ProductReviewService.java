@@ -54,7 +54,7 @@ public class ProductReviewService {
             ProductReviewCreateRequest request,
             Authentication authentication
     ) {
-        var product = productRepository.findById(productId)
+        var product = productRepository.findPubliclyVisibleById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         User author = authenticatedUser(authentication);
 
@@ -85,9 +85,8 @@ public class ProductReviewService {
             String rawSort,
             Pageable pageable
     ) {
-        if (!productRepository.existsById(productId)) {
-            throw new ResourceNotFoundException("Product not found");
-        }
+        productRepository.findPubliclyVisibleById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         validateOptionalRating(rating);
 
@@ -155,8 +154,15 @@ public class ProductReviewService {
             specification = specification.and((root, query, cb) -> cb.lessThan(root.get("createdAt"), until));
         }
 
-        return productReviewRepository.findAll(specification, pageable)
-                .map(review -> toCrmResponse(review, language));
+        Page<ProductReview> reviews = productReviewRepository.findAll(specification, pageable);
+        Map<Long, String> productNames = productNameService.getNamesByProductIds(
+                reviews.getContent().stream().map(review -> review.getProduct().getId()).distinct().toList(),
+                language
+        );
+        return reviews.map(review -> toCrmResponse(
+                review,
+                productNames.getOrDefault(review.getProduct().getId(), review.getProduct().getModel())
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -217,7 +223,7 @@ public class ProductReviewService {
             Language language,
             Authentication authentication
     ) {
-        ProductReview review = productReviewRepository.findById(reviewId)
+        ProductReview review = productReviewRepository.findByIdForUpdate(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
 
         if (review.getStatus() == ProductReviewStatus.DELETED && targetStatus != ProductReviewStatus.DELETED) {
@@ -320,11 +326,15 @@ public class ProductReviewService {
     }
 
     private CrmProductReviewResponse toCrmResponse(ProductReview review, Language language) {
+        return toCrmResponse(review, productNameService.getById(review.getProduct().getId(), language).getName());
+    }
+
+    private CrmProductReviewResponse toCrmResponse(ProductReview review, String productName) {
         User moderator = review.getModeratedBy();
         return new CrmProductReviewResponse(
                 review.getId(),
                 review.getProduct().getId(),
-                productNameService.getById(review.getProduct().getId(), language).getName(),
+                productName,
                 review.getProduct().getModel(),
                 review.getProduct().getSku(),
                 review.getRating(),

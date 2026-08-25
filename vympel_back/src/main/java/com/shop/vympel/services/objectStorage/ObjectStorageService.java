@@ -14,6 +14,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -22,6 +24,10 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
@@ -38,18 +44,19 @@ public class ObjectStorageService {
     private final S3Client s3;
     private final StorageProps props;
     private final MediaRepository mediaRepository;
+    private final ObjectStorageDeletionOutboxService objectStorageDeletionOutboxService;
     private final ProductRepository productRepository;
     private static final Map<String, Set<String>> SUPPORTED_IMAGE_EXTENSIONS = Map.of(
             "image/jpeg", Set.of("jpg", "jpeg"),
             "image/png", Set.of("png"),
-            "image/webp", Set.of("webp"),
             "image/gif", Set.of("gif")
     );
     private static final int MAX_FILES_PER_UPLOAD = 10;
     private static final long MAX_IMAGE_SIZE_BYTES = 10L * 1024L * 1024L;
     private static final int MAX_ORIGINAL_FILENAME_LENGTH = 180;
-    private static final int MAX_IMAGE_DIMENSION = 12_000;
-    private static final long MAX_IMAGE_PIXELS = 40_000_000L;
+    private static final int MAX_IMAGE_DIMENSION = 10_000;
+    private static final long MAX_IMAGE_PIXELS = 25_000_000L;
+    private static final long MAX_TOTAL_DECODED_PIXELS = 50_000_000L;
 
     public record StoredObject(
             String objectKey,
@@ -98,6 +105,7 @@ public class ObjectStorageService {
 
                 s3.putObject(uploadRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
                 uploadedKeys.add(key);
+                registerRollbackCleanup(key);
 
                 Media newMedia = new Media();
                 newMedia.setProduct(product);
@@ -144,7 +152,7 @@ public class ObjectStorageService {
 
         String contentType = normalizedContentType(file);
         byte[] bytes = file.getBytes();
-        validateCmsImageContent(bytes, contentType);
+        validateImageContent(bytes, contentType);
         String originalName = safeName(file.getOriginalFilename());
         String extension = validatedExtension(file, contentType);
         String key = ObjectStoragePath.CMS.getValue() + "/" + UUID.randomUUID() + "." + extension;
@@ -157,6 +165,7 @@ public class ObjectStorageService {
 
         try {
             s3.putObject(uploadRequest, RequestBody.fromBytes(bytes));
+            registerRollbackCleanup(key);
         } catch (RuntimeException ex) {
             log.error(
                     "CMS image upload failed contentType={} sizeBytes={}",
@@ -176,12 +185,11 @@ public class ObjectStorageService {
         );
     }
 
-    private void validateCmsImageContent(byte[] bytes, String contentType) {
+    private void validateImageContent(byte[] bytes, String contentType) {
         ImageDimensions dimensions = switch (contentType) {
             case "image/png" -> pngDimensions(bytes);
             case "image/gif" -> gifDimensions(bytes);
             case "image/jpeg" -> jpegDimensions(bytes);
-            case "image/webp" -> webpDimensions(bytes);
             default -> null;
         };
         if (dimensions == null || dimensions.width() <= 0 || dimensions.height() <= 0) {
@@ -191,6 +199,82 @@ public class ObjectStorageService {
                 || dimensions.height() > MAX_IMAGE_DIMENSION
                 || (long) dimensions.width() * dimensions.height() > MAX_IMAGE_PIXELS) {
             throw new IllegalArgumentException("Image dimensions are too large");
+        }
+        validateRasterDecode(bytes, contentType, dimensions);
+    }
+
+    private void validateRasterDecode(byte[] bytes, String contentType, ImageDimensions expected) {
+        requireContainerTerminator(bytes, contentType);
+        try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            if (input == null) {
+                throw new IllegalArgumentException("Image content cannot be decoded");
+            }
+            var readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) {
+                throw new IllegalArgumentException("Image content cannot be decoded");
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(input, false, true);
+                String format = reader.getFormatName().toLowerCase(Locale.ROOT);
+                String expectedFormat = switch (contentType) {
+                    case "image/png" -> "png";
+                    case "image/gif" -> "gif";
+                    case "image/jpeg" -> "jpeg";
+                    default -> "";
+                };
+                if (!format.equals(expectedFormat)
+                        || (!"image/gif".equals(contentType)
+                        && (reader.getWidth(0) != expected.width() || reader.getHeight(0) != expected.height()))) {
+                    throw new IllegalArgumentException("Image content does not match its declared type");
+                }
+                int frameCount = reader.getNumImages(true);
+                if (frameCount < 1 || frameCount > 100) {
+                    throw new IllegalArgumentException("Animated image contains too many frames");
+                }
+                long totalDecodedPixels = 0L;
+                for (int frame = 0; frame < frameCount; frame++) {
+                    int width = reader.getWidth(frame);
+                    int height = reader.getHeight(frame);
+                    long framePixels = (long) width * height;
+                    totalDecodedPixels += framePixels;
+                    if (width <= 0 || height <= 0
+                            || width > MAX_IMAGE_DIMENSION
+                            || height > MAX_IMAGE_DIMENSION
+                            || framePixels > MAX_IMAGE_PIXELS
+                            || totalDecodedPixels > MAX_TOTAL_DECODED_PIXELS) {
+                        throw new IllegalArgumentException("Image content cannot be decoded safely");
+                    }
+                    var decodedFrame = reader.read(frame);
+                    if (decodedFrame == null) {
+                        throw new IllegalArgumentException("Image content cannot be decoded safely");
+                    }
+                    decodedFrame.flush();
+                }
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException | RuntimeException ex) {
+            if (ex instanceof IllegalArgumentException illegalArgumentException) {
+                throw illegalArgumentException;
+            }
+            throw new IllegalArgumentException("Image content cannot be decoded", ex);
+        }
+    }
+
+    private void requireContainerTerminator(byte[] bytes, String contentType) {
+        boolean complete = switch (contentType) {
+            case "image/png" -> bytes.length >= 12
+                    && readIntBigEndian(bytes, bytes.length - 12) == 0
+                    && "IEND".equals(ascii(bytes, bytes.length - 8, 4));
+            case "image/jpeg" -> bytes.length >= 2
+                    && unsigned(bytes[bytes.length - 2]) == 0xff
+                    && unsigned(bytes[bytes.length - 1]) == 0xd9;
+            case "image/gif" -> bytes.length >= 1 && unsigned(bytes[bytes.length - 1]) == 0x3b;
+            default -> false;
+        };
+        if (!complete) {
+            throw new IllegalArgumentException("Image container is truncated or has trailing data");
         }
     }
 
@@ -232,33 +316,6 @@ public class ObjectStorageService {
         return null;
     }
 
-    private ImageDimensions webpDimensions(byte[] bytes) {
-        if (bytes.length < 30 || !ascii(bytes, 0, 4).equals("RIFF") || !ascii(bytes, 8, 4).equals("WEBP")) {
-            return null;
-        }
-        String chunk = ascii(bytes, 12, 4);
-        if ("VP8X".equals(chunk)) {
-            return new ImageDimensions(readUnsigned24LittleEndian(bytes, 24) + 1, readUnsigned24LittleEndian(bytes, 27) + 1);
-        }
-        if ("VP8 ".equals(chunk)
-                && unsigned(bytes[23]) == 0x9d && unsigned(bytes[24]) == 0x01 && unsigned(bytes[25]) == 0x2a) {
-            return new ImageDimensions(
-                    readUnsignedShortLittleEndian(bytes, 26) & 0x3fff,
-                    readUnsignedShortLittleEndian(bytes, 28) & 0x3fff
-            );
-        }
-        if ("VP8L".equals(chunk) && unsigned(bytes[20]) == 0x2f) {
-            int b1 = unsigned(bytes[21]);
-            int b2 = unsigned(bytes[22]);
-            int b3 = unsigned(bytes[23]);
-            int b4 = unsigned(bytes[24]);
-            int width = 1 + b1 + ((b2 & 0x3f) << 8);
-            int height = 1 + ((b2 & 0xc0) >> 6) + (b3 << 2) + ((b4 & 0x0f) << 10);
-            return new ImageDimensions(width, height);
-        }
-        return null;
-    }
-
     private boolean isJpegStartOfFrame(int marker) {
         return marker >= 0xc0 && marker <= 0xcf
                 && marker != 0xc4 && marker != 0xc8 && marker != 0xcc;
@@ -288,13 +345,6 @@ public class ObjectStorageService {
     private int readUnsignedShortLittleEndian(byte[] bytes, int offset) {
         if (offset + 2 > bytes.length) return -1;
         return unsigned(bytes[offset]) | (unsigned(bytes[offset + 1]) << 8);
-    }
-
-    private int readUnsigned24LittleEndian(byte[] bytes, int offset) {
-        if (offset + 3 > bytes.length) return -1;
-        return unsigned(bytes[offset])
-                | (unsigned(bytes[offset + 1]) << 8)
-                | (unsigned(bytes[offset + 2]) << 16);
     }
 
     private int unsigned(byte value) {
@@ -394,7 +444,7 @@ public class ObjectStorageService {
             );
         }
 
-        delete(target.getUrl());
+        objectStorageDeletionOutboxService.enqueue(target.getUrl());
         target.setMain(false);
         mediaRepository.saveAndFlush(target);
         mediaRepository.delete(target);
@@ -406,6 +456,14 @@ public class ObjectStorageService {
         applyCanonicalProductImageOrder(remaining);
 
         return getProductImages(productId);
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    public void enqueueProductImagesForDeletion(Long productId) {
+        mediaRepository.findAllByProductIdForUpdate(productId).stream()
+                .map(Media::getUrl)
+                .filter(key -> key != null && !key.isBlank())
+                .forEach(objectStorageDeletionOutboxService::enqueue);
     }
 
     public String getPublicLink(String key) {
@@ -489,6 +547,21 @@ public class ObjectStorageService {
         }
     }
 
+    private void registerRollbackCleanup(String key) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()
+                || !TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
+                    cleanupUploadedObjects(List.of(key));
+                }
+            }
+        });
+    }
+
     private String safeName(String name) {
         if (name == null) return "file";
         String sanitized = name.replaceAll("[^a-zA-Z0-9._-]", "_");
@@ -516,6 +589,11 @@ public class ObjectStorageService {
         }
 
         validatedExtension(file, normalizedContentType);
+        try {
+            validateImageContent(file.getBytes(), normalizedContentType);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("Image content cannot be read", ex);
+        }
     }
 
     private String normalizedContentType(MultipartFile file) {
