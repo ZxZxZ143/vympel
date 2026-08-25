@@ -1165,4 +1165,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-08-25 - Completed the resumed full-application adversarial review: documented transactional storage deletion, atomic audit/concurrency hardening, bounded CRM requests, stale-response protection, semantic CRM controls, localized activity events, carousel stacking, and verified mobile accessibility/contrast behavior.
+2026-08-25 - Merged the completed full-application adversarial hardening into `main` and revalidated the backend, storefront, and CRM test/build gates; the documented transactional storage deletion, audit/concurrency, request lifecycle, semantic-control, localization, carousel, and accessibility architecture is now the main-branch baseline.

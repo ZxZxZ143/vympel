@@ -2405,4 +2405,4 @@
 
 ## Last Updated
 
-2026-08-25 - Recorded the completed adversarial-review patterns for stale async state, request deadlines, semantic controls, keyboard-scrollable tables, atomic audit/storage deletion, image validation, migration compatibility, and mobile contrast verification.
+2026-08-25 - Merged the completed adversarial-review patterns into `main` and revalidated full backend tests, both frontend lint/type/test suites, both Next.js production builds, and the backend production JAR; no additional merge-specific lesson was required because the merge was conflict-free.
