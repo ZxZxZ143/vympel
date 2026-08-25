@@ -3,8 +3,7 @@
 import {ReactNode, useRef, useState} from "react";
 import {useTranslations} from "use-intl";
 
-import {IProductDetails, IProductDescription} from "@/api/types/ProductTypes";
-import ProductDescription from "@/components/ProductPage/ProductDescription";
+import {IProductDetails} from "@/api/types/ProductTypes";
 import ProductReviews, {type ProductReviewsProps} from "@/components/ProductPage/ProductReviews";
 import ProductSpecs from "@/components/ProductPage/ProductSpecs";
 import ArrowRight from "@/assets/icons/ArrowRight";
@@ -17,7 +16,7 @@ import {PUBLIC_CATEGORY_CODES, routes} from "@/config/routes";
 
 type Props = {
     product: IProductDetails;
-    description?: IProductDescription | null;
+    descriptionContent: ReactNode;
     reviews: ProductReviewsProps;
 };
 
@@ -33,7 +32,7 @@ type TabId = (typeof tabs)[number]["id"];
 
 const paymentMethodKeys = ["cash", "cards", "transfer"] as const;
 
-const ProductInfoTabs = ({product, description, reviews}: Props) => {
+const ProductInfoTabs = ({product, descriptionContent, reviews}: Props) => {
     const t = useTranslations("product");
     const [activeTab, setActiveTab] = useState<TabId>("description");
     const tabRefs = useRef(new Map<TabId, HTMLButtonElement>());
@@ -151,7 +150,7 @@ const ProductInfoTabs = ({product, description, reviews}: Props) => {
                             >
                                 {brandName}
                             </Heading>
-                            <ProductDescription description={description}/>
+                            {descriptionContent}
                             <div className="mt-[var(--spacing-product-details-links-offset)] flex min-w-0 flex-col gap-y-4 sm:flex-row sm:flex-wrap sm:gap-x-[var(--spacing-product-description-link-gap)]">
                                 <Link href={brandCatalogHref} className="flex min-h-11 min-w-0 items-center gap-4">
                                     <Text

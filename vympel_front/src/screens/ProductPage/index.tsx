@@ -6,6 +6,7 @@ import {Link} from "@/i18n/navigation";
 import {PublicApiController} from "@/api/controllers/PublicController";
 import ProductGallery from "@/components/ProductPage/ProductGallery";
 import ProductSummary from "@/components/ProductPage/ProductSummary";
+import ProductDescription from "@/components/ProductPage/ProductDescription";
 import ProductInfoTabs from "@/components/ProductPage/ProductInfoTabs";
 import ProductSearchForm from "@/components/ProductPage/ProductSearchForm";
 import {AsyncProductRecommendations} from "@/components/ProductPage/ProductRecommendations";
@@ -181,7 +182,7 @@ const ProductPage = async ({
                 <div className="bg-primary-bg">
                     <ProductInfoTabs
                         product={product}
-                        description={product.description}
+                        descriptionContent={<ProductDescription description={product.description}/>}
                         reviews={{
                             productId: product.id,
                             initialReviewsPage: reviewsResult.reviews,
