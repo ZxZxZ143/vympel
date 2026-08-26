@@ -48,12 +48,22 @@ type MarkdownEditorProps = {
 
 type EditorMode = "write" | "preview";
 
+type ToolbarActionId =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "heading"
+  | "bulletList"
+  | "numberedList"
+  | "link"
+  | "blockquote";
+
 type ToolbarAction = {
+  id: ToolbarActionId;
   label: string;
   visual: string;
   className?: string;
   active: boolean;
-  run: () => void;
 };
 
 export function MarkdownEditor({ id, label, value, maxLength, labels, onChange }: MarkdownEditorProps) {
@@ -109,57 +119,85 @@ export function MarkdownEditor({ id, label, value, maxLength, labels, onChange }
     setSelection({ start: textarea.selectionStart, end: textarea.selectionEnd });
   };
 
+  const runToolbarAction = (action: ToolbarActionId) => {
+    switch (action) {
+      case "bold":
+        apply((start, end) => toggleInlineMarkdown(value, start, end, "**"));
+        return;
+      case "italic":
+        apply((start, end) => toggleInlineMarkdown(value, start, end, "_"));
+        return;
+      case "underline":
+        apply((start, end) => toggleInlineMarkdown(value, start, end, "<u>", "</u>"));
+        return;
+      case "heading":
+        apply((start, end) => toggleHeadingMarkdown(value, start, end));
+        return;
+      case "bulletList":
+        apply((start, end) => toggleUnorderedListMarkdown(value, start, end));
+        return;
+      case "numberedList":
+        apply((start, end) => toggleOrderedListMarkdown(value, start, end));
+        return;
+      case "link":
+        apply((start, end) => insertMarkdownLink(value, start, end, labels.link));
+        return;
+      case "blockquote":
+        apply((start, end) => toggleBlockquoteMarkdown(value, start, end));
+    }
+  };
+
   const toolbarActions: ToolbarAction[] = [
     {
+      id: "bold",
       label: labels.bold,
       visual: "B",
       className: "crm-markdown-editor__format--bold",
       active: isInlineMarkdownActive(value, selection.start, selection.end, "**"),
-      run: () => apply((start, end) => toggleInlineMarkdown(value, start, end, "**")),
     },
     {
+      id: "italic",
       label: labels.italic,
       visual: "I",
       className: "crm-markdown-editor__format--italic",
       active: isInlineMarkdownActive(value, selection.start, selection.end, "_"),
-      run: () => apply((start, end) => toggleInlineMarkdown(value, start, end, "_")),
     },
     {
+      id: "underline",
       label: labels.underline,
       visual: "U",
       className: "crm-markdown-editor__format--underline",
       active: isInlineMarkdownActive(value, selection.start, selection.end, "<u>", "</u>"),
-      run: () => apply((start, end) => toggleInlineMarkdown(value, start, end, "<u>", "</u>")),
     },
     {
+      id: "heading",
       label: labels.heading,
       visual: "H2",
       active: activeLines.length > 0 && activeLines.every((line) => /^\s*#{1,6}\s+/.test(line)),
-      run: () => apply((start, end) => toggleHeadingMarkdown(value, start, end)),
     },
     {
+      id: "bulletList",
       label: labels.bulletList,
       visual: `• ${labels.bulletList}`,
       active: activeLines.length > 0 && activeLines.every((line) => /^\s*[-+*]\s+/.test(line)),
-      run: () => apply((start, end) => toggleUnorderedListMarkdown(value, start, end)),
     },
     {
+      id: "numberedList",
       label: labels.numberedList,
       visual: `1. ${labels.numberedList}`,
       active: activeLines.length > 0 && activeLines.every((line) => /^\s*\d+[.)]\s+/.test(line)),
-      run: () => apply((start, end) => toggleOrderedListMarkdown(value, start, end)),
     },
     {
+      id: "link",
       label: labels.link,
       visual: labels.link,
       active: false,
-      run: () => apply((start, end) => insertMarkdownLink(value, start, end, labels.link)),
     },
     {
+      id: "blockquote",
       label: labels.blockquote,
       visual: `“ ${labels.blockquote}`,
       active: activeLines.length > 0 && activeLines.every((line) => /^\s*>\s?/.test(line)),
-      run: () => apply((start, end) => toggleBlockquoteMarkdown(value, start, end)),
     },
   ];
 
@@ -203,7 +241,7 @@ export function MarkdownEditor({ id, label, value, maxLength, labels, onChange }
                   title={action.label}
                   data-active={action.active}
                   onMouseDown={(event) => event.preventDefault()}
-                  onClick={action.run}
+                  onClick={() => runToolbarAction(action.id)}
                 >
                   {action.visual}
                 </button>

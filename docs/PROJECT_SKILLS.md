@@ -11,7 +11,7 @@
 ### RHF-owned Markdown editor with pure transforms
 
 * **When to use:** Editing RU/EN/KZ product descriptions in CRM.
-* **How:** Keep RHF/`useWatch` as the only value owner and pass each string into `src/shared/markdown/MarkdownEditor`. Toolbar actions operate on textarea selection ranges through pure tested helpers, return the next selection, and never convert the value to HTML/editor JSON. Use `_` for toolbar italic so it composes unambiguously inside `**bold**`; use sanitized `<u>` for underline; continue/exit Markdown lists on Enter; lazy-load the sanitizer-backed preview only after Preview is opened.
+* **How:** Keep RHF/`useWatch` as the only value owner and pass each string into `src/shared/markdown/MarkdownEditor`. Toolbar actions operate on textarea selection ranges through pure tested helpers, return the next selection, and never convert the value to HTML/editor JSON. Keep render-time toolbar descriptors data-only and invoke ref-using edits from the actual click handler; do not store ref-closing callbacks in the array mapped during render. Use `_` for toolbar italic so it composes unambiguously inside `**bold**`; use sanitized `<u>` for underline; continue/exit Markdown lists on Enter; lazy-load the sanitizer-backed preview only after Preview is opened.
 * **Why:** Administrators do not need to memorize syntax, existing Markdown remains editable, multilingual save/reopen is lossless, and the editor does not introduce parallel form state or a proprietary storage format.
 
 ### Localized App Router screens
@@ -1307,6 +1307,13 @@
 * **Fix:** Use the established React Markdown/unified pipeline, an explicit allowed tag/attribute/protocol schema, `script`/`style` stripping, safe React link rendering, and adversarial server-render tests. Parse raw HTML only to support sanitized `<u>`.
 * **How to avoid:** Never render product copy with arbitrary `dangerouslySetInnerHTML`, never trust CRM authorship as sanitization, and keep storefront/CRM preview schemas aligned.
 
+### Capturing textarea refs in render-time toolbar descriptors
+
+* **What happened:** The CRM editor passed local Windows lint but the Linux release gate's `react-hooks/refs` analysis rejected `toolbarActions.map(...)` because each descriptor stored a callback that closed over the textarea ref through `applyEdit`.
+* **Root cause:** Ref-using event behavior was embedded in data consumed during render, so React's compiler-aware lint could not prove that the ref was accessed only after user interaction.
+* **Fix:** Keep toolbar descriptors to an action id, label, visual, and active state; dispatch the id from `onClick` into the ref-using edit function.
+* **How to avoid:** Arrays mapped during render must remain data-only when their behavior eventually accesses a ref. Run the same CI lint after editor changes, even if another local environment reports clean output.
+
 ### Calling array methods on unnormalized API data
 
 * **What happened:** `ProductReviews` could crash at runtime with `Cannot read properties of undefined (reading 'length')` when the reviews response was missing or arrived as a legacy array/new paginated shape instead of the assumed Spring `Page.content` shape.
@@ -1865,7 +1872,7 @@
 | `react-hook-form` | ^7.71.1 public / ^7.80.0 CRM | frontend/CRM | Use RHF for form values. The public app has Zod available; the CRM app currently has no schema resolver, so keep localized validation helpers in the component unless a resolver is intentionally added. |
 | `react-markdown` / unified plugins | 10.1.0 / GFM 4.0.1 / breaks 4.0.0 / raw 7.0.0 / sanitize 6.0.0 | frontend/CRM | Product underline requires raw `<u>` parsing, but `rehype-raw` must always be immediately followed by the aligned explicit sanitizer schema. Keep the storefront parser server-side and CRM preview dynamically loaded. Regenerate locks with npm 10.9.8 and prove Linux `npm ci`; Windows-only lock generation can drop required platform-conditional records. |
 | `radix-ui` | ^1.6.0 | frontend | shadcn Tooltip imports primitives from the monolithic `radix-ui` package; keep Tooltip styling in `src/components/ui/tooltip.tsx` aligned with VYMPEL tokens. |
-| `org.springframework.boot` | 4.0.2 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. |
+| `org.springframework.boot` | 4.0.8 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. The 4.0.8 dependency management resolves Spring Framework 7.0.9 and Jackson 3.1.5; do not pin older managed Spring/Jackson artifacts around it. |
 | `spring-boot-starter-data-redis` | Spring Boot managed | backend | Production abuse state uses atomic Lua counter/expiry operations. Redis must be shared, TLS-protected, authenticated/ACL-scoped, monitored, and configured with deliberate persistence/memory/eviction behavior. |
 | `logback-classic` | Spring Boot managed | backend | File appenders are configured in `logback-spring.xml`; use project `SensitiveDataMaskingLayout`, valid Logback classes for the managed version, and finite context tests after config changes. |
 | `liquibase-core` | managed plus starter | backend | Schema is migration-owned; do not rely on Hibernate auto-DDL. |
@@ -2043,6 +2050,12 @@
 * **When to use:** Updating either Next application's lockfile on a workstation whose npm major differs from the `node:22-alpine` dependency stage.
 * **How:** Regenerate and clean-install with npm 10.9.8 (the current container version), then require the Linux Docker/build-only gate before publication. Preserve platform-conditional optional peer records such as `@emnapi/core`, `@emnapi/runtime`, and the nested `@swc/helpers`; do not accept a host-only `npm ci` as proof.
 * **Why:** npm 12 can normalize those records away while still passing on Windows. npm 10 in the Linux dependency stage then rejects the lockfile as out of sync before application build, as run `31380881311` demonstrated.
+
+### Keep package managers out of standalone Next runtime images
+
+* **When to use:** Building the storefront or CRM production image from the shared pinned Node Alpine base.
+* **How:** Keep npm in dependency/build stages only. In the runtime stage, upgrade the fixed Alpine `libcrypto3`/`libssl3` packages, remove `/usr/local/lib/node_modules/npm` plus the npm/npx launchers, then copy the standalone app and run it as `node`. Validate the final image with the release workflow's Trivy `os,library` HIGH/CRITICAL policy; an application-level `npm audit` does not cover base-image tooling or OS packages.
+* **Why:** The standalone server needs `node`, not a package manager. RC.12 showed that unused bundled npm dependencies and stale base OpenSSL packages can block publication even when both application production audits are clean.
 
 ### Run accessibility scans against configured real data
 
@@ -2434,4 +2447,4 @@
 
 ## Last Updated
 
-2026-08-25 - Added the safe product Markdown pipeline, server-rendered storefront slot, multilingual RHF-owned CRM editor/preview transforms, sanitizer and persistence tests, responsive UI rules, dependency gotchas, and pinned npm 10/Linux lockfile verification lessons.
+2026-08-27 - Recorded the CI-safe data-only Markdown toolbar pattern, Spring Boot 4.0.8 managed security upgrade, RC.12 release-gate failure, and standalone Next runtime hardening for npm and Alpine OpenSSL findings.
