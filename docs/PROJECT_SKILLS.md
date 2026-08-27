@@ -2453,4 +2453,4 @@
 
 ## Last Updated
 
-2026-08-28 - Recorded and live-verified the optional category-detail pattern: nullable accessory storage and contracts, upsert-on-edit for missing detail rows, explicit-null clearing, tri-state boolean preservation, optional interior production country, create-category field clearing, and storefront suppression of absent specs.
+2026-08-28 - Recorded the merged optional category-detail pattern and reconfirmed that releasable source changes must be published as one backend/storefront/CRM set under the same immutable full-commit-SHA version, after the repository's full release gate passes.

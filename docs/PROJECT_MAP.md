@@ -1171,4 +1171,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-08-28 - Added fully optional accessory characteristics across PostgreSQL/Liquibase, backend DTOs/services, individual and bulk CRM forms, RU/KZ/EN copy, and storefront specs; verified empty accessory, wristwatch, and interior-clock create/edit/reload flows against the migrated local stack, with missing public specs hidden.
+2026-08-28 - Merged the fully optional product-characteristics release into `main` across PostgreSQL/Liquibase, backend contracts/services, CRM individual and bulk flows, localized storefront specs, and regression coverage; retained the established three-image, immutable full-commit-SHA GHCR publication contract.
