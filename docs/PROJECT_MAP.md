@@ -1170,4 +1170,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-08-27 - Resumed the Markdown release after RC.12, fixed the CRM render-time refs lint defect, moved the backend to Spring Boot 4.0.8, and hardened both Next runtime images by patching Alpine OpenSSL and removing unused npm/npx tooling.
+2026-08-27 - Resumed the Markdown release after RC.12, fixed the CRM render-time refs lint defect, moved the backend to Spring Boot 4.0.8, hardened both Next runtime images, and reconfirmed the complete local Docker stack builds and reaches healthy storefront/CRM runtime state on ports 3200/3201.

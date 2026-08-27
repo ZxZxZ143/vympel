@@ -2447,4 +2447,4 @@
 
 ## Last Updated
 
-2026-08-27 - Recorded the CI-safe data-only Markdown toolbar pattern, Spring Boot 4.0.8 managed security upgrade, RC.12 release-gate failure, and standalone Next runtime hardening for npm and Alpine OpenSSL findings.
+2026-08-27 - Recorded the CI-safe data-only Markdown toolbar pattern, Spring Boot 4.0.8 managed security upgrade, RC.12 release-gate failure, standalone Next runtime hardening, and a successful full local Docker rebuild/healthy startup on the documented 3200/3201 ports.
