@@ -2451,6 +2451,12 @@
 * **Fix:** Restrict accepted formats to those verified by the decoder and fail closed on malformed, mismatched, or undecodable bytes.
 * **How to avoid:** Never advertise or accept an image format until representative valid and adversarial files pass the exact runtime decoder.
 
+### Rebaseline total-bundle budgets from measured approved functionality
+
+* **When to use:** The deterministic production build exceeds a raw-total bundle ceiling after an approved dependency-heavy feature, and removing that functionality is not part of the task.
+* **How:** Compare the failing commit with its parent gate, record the exact built total and the feature that changed the baseline, then raise the ceiling only to the next narrow boundary. The CRM rich-text plus optional-characteristics build measured 1.437 MiB, so its ceiling is 1.45 MiB rather than a broad round-number increase.
+* **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
+
 ## Last Updated
 
-2026-08-28 - Recorded the merged optional category-detail pattern and reconfirmed that releasable source changes must be published as one backend/storefront/CRM set under the same immutable full-commit-SHA version, after the repository's full release gate passes.
+2026-08-28 - Recorded the merged optional category-detail pattern, immutable three-image publication rule, and measured CRM bundle-budget rebaseline from 1.40 to 1.45 MiB after the prior rich-text main had already reached 1.43 MiB.

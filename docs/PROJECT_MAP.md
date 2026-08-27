@@ -1107,7 +1107,7 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 
 ### Optimized static assets and budgets
 
-`vympel_front/scripts/optimize-public-images.py` owns the exact 25-file WebP pipeline; it validates dimensions/decoding and does not touch runtime object-storage media. `2026-07-19-02-public-image-webp.xml` updates matching CMS `PUBLIC_PATH` records. `scripts/check-performance-budgets.mjs` plus `performance-budget-allowlist.json` enforces the repository public total, per-raster limit, and both built Next JS totals. `npm run test:budgets:ci` is the finite local/CI command.
+`vympel_front/scripts/optimize-public-images.py` owns the exact 25-file WebP pipeline; it validates dimensions/decoding and does not touch runtime object-storage media. `2026-07-19-02-public-image-webp.xml` updates matching CMS `PUBLIC_PATH` records. `scripts/check-performance-budgets.mjs` plus `performance-budget-allowlist.json` enforces the repository public total, per-raster limit, and both built Next JS totals. The CRM raw `.next/static/chunks` ceiling is 1.45 MiB, rebaselined from 1.40 MiB after the approved rich-text editor and optional product-characteristics flows measured 1.437 MiB together; the narrow ceiling leaves about 13 KiB of headroom. `npm run test:budgets:ci` is the finite local/CI command.
 
 ### Liveness, readiness, and Actuator exposure
 
@@ -1171,4 +1171,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-08-28 - Merged the fully optional product-characteristics release into `main` across PostgreSQL/Liquibase, backend contracts/services, CRM individual and bulk flows, localized storefront specs, and regression coverage; retained the established three-image, immutable full-commit-SHA GHCR publication contract.
+2026-08-28 - Merged the fully optional product-characteristics release into `main`, retained the immutable three-image GHCR contract, and rebaselined the CRM raw static-JS budget from 1.40 to 1.45 MiB after the prior rich-text release had already exceeded the obsolete ceiling.
