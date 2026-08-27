@@ -2,6 +2,18 @@
 
 ## Frontend Patterns That Work
 
+### Sanitized product Markdown with a server-rendered slot
+
+* **When to use:** Rendering administrator-authored product descriptions on the storefront.
+* **How:** Keep the stored/API value as Markdown in `content_md`; render it with `react-markdown`, `remark-gfm`, and `remark-breaks`, then parse raw HTML only through `rehype-raw` immediately followed by the explicit `rehype-sanitize` allow-list that includes `<u>` and safe link protocols. Build `ProductDescription` on the server and pass it into client-side `ProductInfoTabs` as a `ReactNode` slot so the parser does not enter the tabs bundle.
+* **Why:** Existing plain text and Markdown work immediately, underline is supported safely, arbitrary database HTML cannot execute, and interactive product tabs stay lean.
+
+### RHF-owned Markdown editor with pure transforms
+
+* **When to use:** Editing RU/EN/KZ product descriptions in CRM.
+* **How:** Keep RHF/`useWatch` as the only value owner and pass each string into `src/shared/markdown/MarkdownEditor`. Toolbar actions operate on textarea selection ranges through pure tested helpers, return the next selection, and never convert the value to HTML/editor JSON. Keep render-time toolbar descriptors data-only and invoke ref-using edits from the actual click handler; do not store ref-closing callbacks in the array mapped during render. Use `_` for toolbar italic so it composes unambiguously inside `**bold**`; use sanitized `<u>` for underline; continue/exit Markdown lists on Enter; lazy-load the sanitizer-backed preview only after Preview is opened.
+* **Why:** Administrators do not need to memorize syntax, existing Markdown remains editable, multilingual save/reopen is lossless, and the editor does not introduce parallel form state or a proprietary storage format.
+
 ### Localized App Router screens
 
 * **When to use:** When adding or changing user-facing pages in the frontend.
@@ -734,6 +746,12 @@
 * **How:** Update the backend contract first, then update frontend API client/types/hooks/components.
 * **Why:** Prevents mismatch between request/response shapes.
 
+### Markdown string contract across CRM, backend, and storefront
+
+* **When to use:** Adding product-description formatting or editor capabilities.
+* **How:** Preserve `description.desc_ru/desc_en/desc_kz` as strings through CRM payloads, backend mapping, `product_description_i18n.content_md`, public DTOs, and storefront rendering. Add formatting at the CRM authoring and storefront rendering edges; do not add a migration or change DTO shapes unless the stored representation genuinely changes.
+* **Why:** Existing plain text/Markdown data benefits immediately and save/reopen/render behavior stays compatible across all locales.
+
 ### Fail-closed storefront indexing gate
 
 * **When to use:** Every storefront build, staging rehearsal, or public-domain promotion.
@@ -1282,6 +1300,20 @@
 * **Fix:** Render CMS title/subtitle/description/button text as escaped React text and preserve formatting only through normal text wrapping/newlines where the component supports it.
 * **How to avoid:** Do not use `dangerouslySetInnerHTML` for CMS fields unless a sanitizer, allowed-markup contract, and tests are introduced first.
 
+### Rendering product Markdown as raw HTML
+
+* **What happened:** Product Markdown markers were shown literally, while enabling raw HTML directly would have created an XSS path from database content.
+* **Root cause:** The product description used escaped text plus `whitespace-pre-line`, with no Markdown parser or approved HTML policy.
+* **Fix:** Use the established React Markdown/unified pipeline, an explicit allowed tag/attribute/protocol schema, `script`/`style` stripping, safe React link rendering, and adversarial server-render tests. Parse raw HTML only to support sanitized `<u>`.
+* **How to avoid:** Never render product copy with arbitrary `dangerouslySetInnerHTML`, never trust CRM authorship as sanitization, and keep storefront/CRM preview schemas aligned.
+
+### Capturing textarea refs in render-time toolbar descriptors
+
+* **What happened:** The CRM editor passed local Windows lint but the Linux release gate's `react-hooks/refs` analysis rejected `toolbarActions.map(...)` because each descriptor stored a callback that closed over the textarea ref through `applyEdit`.
+* **Root cause:** Ref-using event behavior was embedded in data consumed during render, so React's compiler-aware lint could not prove that the ref was accessed only after user interaction.
+* **Fix:** Keep toolbar descriptors to an action id, label, visual, and active state; dispatch the id from `onClick` into the ref-using edit function.
+* **How to avoid:** Arrays mapped during render must remain data-only when their behavior eventually accesses a ref. Run the same CI lint after editor changes, even if another local environment reports clean output.
+
 ### Calling array methods on unnormalized API data
 
 * **What happened:** `ProductReviews` could crash at runtime with `Cannot read properties of undefined (reading 'length')` when the reviews response was missing or arrived as a legacy array/new paginated shape instead of the assumed Spring `Page.content` shape.
@@ -1617,6 +1649,7 @@
 
 * **How to run all tests:** No single full-project test command is configured; run backend tests with `cd vympel_back && .\gradlew.bat test`, public frontend tests with `cd vympel_front && npm run test`, and CRM tests with `cd vympel_crm && npm test`.
 * **How to run frontend tests:** `cd vympel_front && npm run test` and `cd vympel_crm && npm test` run finite Vitest suites.
+* **How to verify product Markdown:** Run storefront `npm run test -- src/components/ProductPage/ProductDescription/index.test.tsx`; run CRM `npm run test -- src/shared/markdown/editorTransforms.test.ts src/features/products/ProductForm.test.ts`; then run both full lint/typecheck/test/build gates, full plus production-only npm audits, and clean pinned-Linux Docker dependency-stage builds.
 * **How to verify real public 404 responses:** Run `cd vympel_front && npm run build`, then `npm run test:production-status`. The finite script owns ephemeral mock/Next processes, asserts status and rendered content for valid and missing routes in ru/kz/en, checks a temporary backend 500 is not converted to 404, and verifies both ports close during cleanup.
 * **How to verify storefront accessibility/SEO changes:** From `vympel_front`, run `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:security`, an indexing-enabled production `npm run build`, `npm run test:production-status`, `npm run test:budgets:ci`, and `npm run test:sharp-security`. The production-status matrix verifies RU/KZ/EN rendered HTML, route-specific title/description, favicon 200/ICO, product marketplace-anchor absence, the named 28px summary spacing token, clean catalog/product links, legacy redirects, self-canonical/hreflang, matching OG/Twitter, private noindex behavior, missing/out-of-range 404, and transient failure as non-404. For bounded browser checks, hold the script with `BROWSER_VERIFY_HOLD=true`, use Chromium/axe at 320/375/768/1023/1280, test keyboard/Escape/focus return/modal trapping/tabs/autoplay/reduced motion, then stop the exact process. Axe `incomplete` results are limitations, not passes.
 * **How to verify CMS changes:** Run backend tests with `cd vympel_back && .\gradlew.bat test`, public test/lint/typecheck/build, and CRM test/lint/build. `CmsMediaCleanupTransactionServiceTest` covers references, grace, retry, object-then-row success, and stale claims; `RefreshSessionMigrationTest` covers all six slots; `CmsMediaDryRunIntegrationTest` proves a configured-DB dry run does not change row count. Public signature/allow-list/targets and CRM partial-success mapping have Vitest coverage. A bounded production Next probe should assert 200/401/409 and close its exact port. Browser-check authenticated `/cms` only when a managed stack exists; never delete dry-run candidates merely to make a test pass.
@@ -1794,6 +1827,7 @@
 * Public destructive dialogs: `AlertDialogContent` supports `closeLabel` and `showCloseButton`; pass a localized close label when the close icon is visible, and keep explicit cancel/confirm buttons for destructive cart actions.
 * Public request dialog: Match the request-dialog Figma direction with centered 20px-radius content, desktop 50px x / 40px y padding, 24px/500 title, 16px/400 labels, pill inputs with `#D2D2D2` borders and black focus, full-width `#525252` submit button, responsive mobile padding, and localized success/error/loading states. The phone field uses the Kazakhstan `+7 XXX XXX XX XX` mask and submits normalized `+7XXXXXXXXXX`; email-or-phone validation must still require at least one valid contact method.
 * Product details tabs/specs/reviews: Use global product details tokens rather than arbitrary values. The description/spec grid and both children must be `min-width: 0`; administrator-entered description/feature text uses `.product-long-copy` so even unbroken strings wrap inside the column. Characteristic labels/values stay one visual row where possible. Warranty/delivery/payment tabs should use the localized 20px info-block copy and `Подробнее` arrow links to their detail pages. Reviews remain localized, approved-only, and inside the fifth tab.
+* Product Markdown: Use `.product-markdown` for paragraph/list/heading/blockquote/link/code rhythm and keep `.product-long-copy` overflow protection. Desktop headings must stay at or below 32px and mobile headings at or below 24px so admin copy cannot overpower the product page.
 * VYMPEL motion: Use `--duration-vympel-fast/base/slow`, `--ease-vympel`, and `transition-vympel*` for search/dropdown/filter/category motion; global `prefers-reduced-motion` must keep motion near-instant for reduced-motion users. Catalog hover must use underline/color motion rather than translate or height-changing effects.
 * Product contact banner: Use `/contact_banner.png`, `--color-connect-*`, `--spacing-connect-banner-*`, `Button` `connectBanner` variant/size, desktop `Heading size="h1xl"`/60px, mobile `text-4xl` fallback for fit, and `Text` colors `connectButton`/`connectSide`.
 * About page: Use `/about-us-banner.png` full-width and the existing manual Embla carousel/dots. Published ordered CMS `INSTAGRAM_POST` cards replace the entire static set; only zero usable posts render `/insta-1.webp`, `/insta-2.png`, `/insta-3.webp`, and `/insta-4.webp`. Keep localized `aboutPage.*` strings, `Heading`/`Text`, and `.about-*` globals for section rhythm, company cards, and Instagram sizing. Company cards must be `min-width: 0`, one-column on mobile, and use fixed-size number badges so long headings/body copy wrap inside the card instead of clipping or creating body overflow.
@@ -1802,6 +1836,7 @@
 * Info page store block: Reuse `StoreLocationBlock`; `/shop.png` is 1318x940 and should render at the 659/470 ratio without distortion, next to localized contact rows on desktop and stacked on mobile.
 * CRM layout: Use a dark tokenized sidebar, white surfaces, compact metric panels, table-first product management, and responsive collapse to a single-column shell below tablet width.
 * CRM forms: Use React Hook Form, `/api/crm/references`, localized validation, and existing payload helpers. Product create requires only category/RU name/model/price/stock/brand; keep optional translations/descriptions/details truly optional and never serialize blank numeric ids as `0`.
+* CRM Markdown editor: Use `.crm-markdown-editor*` and `.crm-markdown-content`, localized labels in `messages.ts`, wrapping toolbar controls with visible hover/focus/pressed states, Write/Preview modes, a 10,000-character count, and one editor for each RU/EN/KZ product-description field. Do not reuse it for collection/CMS plain-text fields unless their storage/rendering contract is intentionally changed too.
 * CRM product lists: Keep unfiltered DRAFT/ACTIVE/ARCHIVED products visible, default newest-first, reset to page zero on search/status changes, and expose page counts plus previous/next controls. Search covers ID/model/SKU/status/brand/category/localized name through backend queries. Use no-store requests/responses plus mutation/focus refetch; never require a server restart to see committed rows.
 * CRM collection forms: Inline collection creation in `ProductForm` uses `.crm-form-section`, localized loading/success/error messages, and updates local references so the new collection is immediately selectable.
 * CRM product photo forms: Use `.crm-photo-grid`, `.crm-photo-preview`, `.crm-photo-preview__badge`, compact actions, and `--crm-photo-thumb-size`; preview dynamic MinIO/blob URLs with ordinary `<img>` plus an on-error no-photo surface. New products must be created first, uploaded through multipart `files`, then opened at `/products/{id}` so success and retry paths never lose the created record. Reorder, main selection, and deletion always round-trip through backend ownership validation.
@@ -1835,8 +1870,9 @@
 | `@reduxjs/toolkit` | ^2.11.2 | frontend | Store exists but has no reducers yet; do not assume app state is Redux-backed. |
 | `vitest` | ^3.2.7 | frontend | Tests run in the Node environment through `npm run test`; path alias `@` is configured in `vitest.config.ts`. On this Windows sandbox, esbuild process spawn may require the existing scoped permission. |
 | `react-hook-form` | ^7.71.1 public / ^7.80.0 CRM | frontend/CRM | Use RHF for form values. The public app has Zod available; the CRM app currently has no schema resolver, so keep localized validation helpers in the component unless a resolver is intentionally added. |
+| `react-markdown` / unified plugins | 10.1.0 / GFM 4.0.1 / breaks 4.0.0 / raw 7.0.0 / sanitize 6.0.0 | frontend/CRM | Product underline requires raw `<u>` parsing, but `rehype-raw` must always be immediately followed by the aligned explicit sanitizer schema. Keep the storefront parser server-side and CRM preview dynamically loaded. Regenerate locks with npm 10.9.8 and prove Linux `npm ci`; Windows-only lock generation can drop required platform-conditional records. |
 | `radix-ui` | ^1.6.0 | frontend | shadcn Tooltip imports primitives from the monolithic `radix-ui` package; keep Tooltip styling in `src/components/ui/tooltip.tsx` aligned with VYMPEL tokens. |
-| `org.springframework.boot` | 4.0.2 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. |
+| `org.springframework.boot` | 4.0.8 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. The 4.0.8 dependency management resolves Spring Framework 7.0.9 and Jackson 3.1.5; do not pin older managed Spring/Jackson artifacts around it. |
 | `spring-boot-starter-data-redis` | Spring Boot managed | backend | Production abuse state uses atomic Lua counter/expiry operations. Redis must be shared, TLS-protected, authenticated/ACL-scoped, monitored, and configured with deliberate persistence/memory/eviction behavior. |
 | `logback-classic` | Spring Boot managed | backend | File appenders are configured in `logback-spring.xml`; use project `SensitiveDataMaskingLayout`, valid Logback classes for the managed version, and finite context tests after config changes. |
 | `liquibase-core` | managed plus starter | backend | Schema is migration-owned; do not rely on Hibernate auto-DDL. |
@@ -2014,6 +2050,12 @@
 * **When to use:** Updating either Next application's lockfile on a workstation whose npm major differs from the `node:22-alpine` dependency stage.
 * **How:** Regenerate and clean-install with npm 10.9.8 (the current container version), then require the Linux Docker/build-only gate before publication. Preserve platform-conditional optional peer records such as `@emnapi/core`, `@emnapi/runtime`, and the nested `@swc/helpers`; do not accept a host-only `npm ci` as proof.
 * **Why:** npm 12 can normalize those records away while still passing on Windows. npm 10 in the Linux dependency stage then rejects the lockfile as out of sync before application build, as run `31380881311` demonstrated.
+
+### Keep package managers out of standalone Next runtime images
+
+* **When to use:** Building the storefront or CRM production image from the shared pinned Node Alpine base.
+* **How:** Keep npm in dependency/build stages only. In the runtime stage, upgrade the fixed Alpine `libcrypto3`/`libssl3` packages, remove `/usr/local/lib/node_modules/npm` plus the npm/npx launchers, then copy the standalone app and run it as `node`. Validate the final image with the release workflow's Trivy `os,library` HIGH/CRITICAL policy; an application-level `npm audit` does not cover base-image tooling or OS packages.
+* **Why:** The standalone server needs `node`, not a package manager. RC.12 showed that unused bundled npm dependencies and stale base OpenSSL packages can block publication even when both application production audits are clean.
 
 ### Run accessibility scans against configured real data
 
@@ -2405,4 +2447,4 @@
 
 ## Last Updated
 
-2026-08-25 - Merged the completed adversarial-review patterns into `main` and revalidated full backend tests, both frontend lint/type/test suites, both Next.js production builds, and the backend production JAR; no additional merge-specific lesson was required because the merge was conflict-free.
+2026-08-27 - Recorded the CI-safe data-only Markdown toolbar pattern, Spring Boot 4.0.8 managed security upgrade, RC.12 release-gate failure, standalone Next runtime hardening, and a successful full local Docker rebuild/healthy startup on the documented 3200/3201 ports.

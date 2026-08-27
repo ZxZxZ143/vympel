@@ -489,6 +489,172 @@
     word-break: break-word;
 }
 
+.product-markdown {
+    font-family: var(--font-sans), sans-serif;
+    font-size: var(--text-base);
+    font-weight: 300;
+    line-height: 1.55;
+}
+
+.product-markdown > :first-child {
+    margin-top: 0;
+}
+
+.product-markdown > :last-child {
+    margin-bottom: 0;
+}
+
+.product-markdown p,
+.product-markdown ul,
+.product-markdown ol,
+.product-markdown blockquote,
+.product-markdown pre {
+    margin: 0 0 1.5rem;
+}
+
+.product-markdown h1,
+.product-markdown h2,
+.product-markdown h3,
+.product-markdown h4,
+.product-markdown h5,
+.product-markdown h6 {
+    color: var(--color-text-heading-primary);
+    font-family: var(--font-sans), sans-serif;
+    font-weight: 500;
+    line-height: 1.25;
+    margin: 2rem 0 1rem;
+    overflow-wrap: anywhere;
+}
+
+.product-markdown h1 {
+    font-size: 2rem;
+}
+
+.product-markdown h2 {
+    font-size: 1.75rem;
+}
+
+.product-markdown h3 {
+    font-size: 1.5rem;
+}
+
+.product-markdown h4,
+.product-markdown h5,
+.product-markdown h6 {
+    font-size: 1.25rem;
+}
+
+.product-markdown ul,
+.product-markdown ol {
+    padding-inline-start: 1.75rem;
+}
+
+.product-markdown ul {
+    list-style: disc;
+}
+
+.product-markdown ol {
+    list-style: decimal;
+}
+
+.product-markdown li + li {
+    margin-top: 0.5rem;
+}
+
+.product-markdown li > p {
+    margin-bottom: 0.5rem;
+}
+
+.product-markdown a {
+    color: var(--color-text-product-secondary);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+}
+
+.product-markdown a:hover {
+    text-decoration-thickness: 2px;
+}
+
+.product-markdown a:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+
+.product-markdown blockquote {
+    border-inline-start: 3px solid var(--color-border-default);
+    color: var(--color-text-secondary);
+    padding-inline-start: 1rem;
+}
+
+.product-markdown hr {
+    border: 0;
+    border-top: 1px solid var(--color-border-default);
+    margin: 2rem 0;
+}
+
+.product-markdown code {
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-border-default) 35%, transparent);
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: 0.875em;
+    padding: 0.12em 0.3em;
+}
+
+.product-markdown pre {
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-border-default) 28%, transparent);
+    padding: 1rem;
+}
+
+.product-markdown pre code {
+    background: transparent;
+    padding: 0;
+}
+
+.product-markdown u {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.12em;
+}
+
+@media (max-width: 639px) {
+    .product-markdown p,
+    .product-markdown ul,
+    .product-markdown ol,
+    .product-markdown blockquote,
+    .product-markdown pre {
+        margin-bottom: 1.25rem;
+    }
+
+    .product-markdown h1,
+    .product-markdown h2,
+    .product-markdown h3,
+    .product-markdown h4,
+    .product-markdown h5,
+    .product-markdown h6 {
+        margin: 1.5rem 0 0.75rem;
+    }
+
+    .product-markdown h1 {
+        font-size: 1.5rem;
+    }
+
+    .product-markdown h2 {
+        font-size: 1.375rem;
+    }
+
+    .product-markdown h3,
+    .product-markdown h4,
+    .product-markdown h5,
+    .product-markdown h6 {
+        font-size: 1.125rem;
+    }
+}
+
 .product-gallery {
     display: grid;
     width: 100%;

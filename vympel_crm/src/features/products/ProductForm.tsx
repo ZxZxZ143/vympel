@@ -11,6 +11,7 @@ import { CollectionPayload, CrmCollection, Feature, Product, ProductImage, Produ
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { messages as localizedMessages } from "@/shared/i18n/messages";
 import { useI18n } from "@/shared/i18n/useI18n";
+import { MarkdownEditor, type MarkdownEditorLabels } from "@/shared/markdown/MarkdownEditor";
 import { Button } from "@/shared/ui/Button";
 import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import { Field } from "@/shared/ui/Field";
@@ -166,6 +167,22 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionSuccess, setCollectionSuccess] = useState<string | null>(null);
   const isEdit = productId !== undefined;
+  const markdownEditorLabels: MarkdownEditorLabels = {
+    write: t("products.markdownWrite"),
+    preview: t("products.markdownPreview"),
+    toolbar: t("products.markdownToolbar"),
+    bold: t("products.markdownBold"),
+    italic: t("products.markdownItalic"),
+    underline: t("products.markdownUnderline"),
+    heading: t("products.markdownHeading"),
+    bulletList: t("products.markdownBulletList"),
+    numberedList: t("products.markdownNumberedList"),
+    link: t("products.markdownLink"),
+    blockquote: t("products.markdownBlockquote"),
+    help: t("products.markdownHelp"),
+    previewEmpty: t("products.markdownPreviewEmpty"),
+    characterCount: t("products.markdownCharacterCount"),
+  };
   const selectedImagePreviews = useMemo(
     () => selectedImages.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
     [selectedImages]
@@ -680,10 +697,10 @@ export function ProductForm({ productId }: ProductFormProps) {
 
         <FormPanel title={t("products.descriptionSection")}>
           <Text tone="muted" size="small">{t("products.descriptionOptionalHint")}</Text>
-          <div className="crm-grid crm-grid--form">
-            <TextAreaField id="descriptionRu" label={t("products.descriptionRu")} value={form.descriptionRu} maxLength={10000} onChange={(value) => updateField("descriptionRu", value)} />
-            <TextAreaField id="descriptionEn" label={t("products.descriptionEn")} value={form.descriptionEn} maxLength={10000} onChange={(value) => updateField("descriptionEn", value)} />
-            <TextAreaField id="descriptionKz" label={t("products.descriptionKz")} value={form.descriptionKz} maxLength={10000} onChange={(value) => updateField("descriptionKz", value)} />
+          <div className="crm-grid crm-product-description-editors">
+            <MarkdownEditor id="descriptionRu" label={t("products.descriptionRu")} value={form.descriptionRu} maxLength={10000} labels={markdownEditorLabels} onChange={(value) => updateField("descriptionRu", value)} />
+            <MarkdownEditor id="descriptionEn" label={t("products.descriptionEn")} value={form.descriptionEn} maxLength={10000} labels={markdownEditorLabels} onChange={(value) => updateField("descriptionEn", value)} />
+            <MarkdownEditor id="descriptionKz" label={t("products.descriptionKz")} value={form.descriptionKz} maxLength={10000} labels={markdownEditorLabels} onChange={(value) => updateField("descriptionKz", value)} />
           </div>
         </FormPanel>
 
@@ -1294,7 +1311,7 @@ function clearCategoryDetailFields(form: ProductFormState): ProductFormState {
   return form;
 }
 
-function productToForm(product: Product): ProductFormState {
+export function productToForm(product: Product): ProductFormState {
   return {
     ...emptyForm,
     nameRu: product.productName?.name_ru ?? product.name ?? "",
