@@ -42,7 +42,7 @@ public class WatchDetailServiceImpl implements WatchDetailService {
     @Transactional
     public WatchDetail create(WatchDetailCreateRequest watchDetailCreateRequest, Product product) {
         if (watchDetailCreateRequest == null) {
-            throw new IllegalArgumentException("watchDetails is required for wristwatch categories");
+            throw new IllegalArgumentException("watchDetails request is required");
         }
         WatchDetail watchDetail = watchDetailMapper.toEntity(watchDetailCreateRequest);
         watchDetail.setProduct(product);

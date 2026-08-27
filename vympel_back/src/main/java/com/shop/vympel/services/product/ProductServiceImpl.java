@@ -10,7 +10,6 @@ import com.shop.vympel.dtos.product.ProductShortResponse;
 import com.shop.vympel.dtos.product.ProductUpdateRequest;
 import com.shop.vympel.dtos.product.description.DescriptionCreateRequest;
 import com.shop.vympel.dtos.product.description.ProductNameCreateRequest;
-import com.shop.vympel.dtos.product.details.InteriorClockDetailCreateRequest;
 import com.shop.vympel.enums.Language;
 import com.shop.vympel.enums.ProductPromotionMode;
 import com.shop.vympel.exceptions.BusinessRuleViolationException;
@@ -18,6 +17,7 @@ import com.shop.vympel.exceptions.ResourceNotFoundException;
 import com.shop.vympel.mappers.product.EntityReferenceMapper;
 import com.shop.vympel.mappers.product.ProductMapper;
 import com.shop.vympel.services.categoryProduct.CategoryProductService;
+import com.shop.vympel.services.accessoryDetail.AccessoryDetailService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
 import com.shop.vympel.services.catalog.SupportedCatalogDomainService;
@@ -53,6 +53,7 @@ public class ProductServiceImpl implements ProductService {
     private final SKUService SKUService;
     private final WatchDetailServiceImpl watchDetailService;
     private final InteriorClockDetailServiceImpl interiorClockDetailService;
+    private final AccessoryDetailService accessoryDetailService;
     private final CatalogCategoryProfileService catalogCategoryProfileService;
     private final SupportedCatalogDomainService supportedCatalogDomainService;
     private final ProductDescriptionService productDescriptionService;
@@ -232,6 +233,7 @@ public class ProductServiceImpl implements ProductService {
         productResponse.setInteriorClockDetails(
                 interiorClockDetailService.getInteriorClockDetailByIdOrNull(product.getId(), language)
         );
+        productResponse.setAccessoryDetails(accessoryDetailService.getByProductIdOrNull(product.getId(), language));
 
         productResponse.setDescription(
                 productDescriptionService
@@ -474,7 +476,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void validateCreateDetails(ProductCreateRequest req, CatalogCategoryProfile profile) {
-        validateUnexpectedDetails(profile, req.getWatchDetails() != null, req.getInteriorClockDetails() != null);
+        validateUnexpectedDetails(
+                profile,
+                req.getWatchDetails() != null,
+                req.getInteriorClockDetails() != null,
+                req.getAccessoryDetails() != null
+        );
     }
 
     private void validateUpdateDetails(
@@ -483,14 +490,20 @@ public class ProductServiceImpl implements ProductService {
             Language language,
             CatalogCategoryProfile profile
     ) {
-        validateUnexpectedDetails(profile, req.getWatchDetails() != null, req.getInteriorClockDetails() != null);
+        validateUnexpectedDetails(
+                profile,
+                req.getWatchDetails() != null,
+                req.getInteriorClockDetails() != null,
+                req.getAccessoryDetails() != null
+        );
 
     }
 
     private void validateUnexpectedDetails(
             CatalogCategoryProfile profile,
             boolean hasWatchDetails,
-            boolean hasInteriorClockDetails
+            boolean hasInteriorClockDetails,
+            boolean hasAccessoryDetails
     ) {
         if (profile != CatalogCategoryProfile.WRISTWATCH && hasWatchDetails) {
             throw new IllegalArgumentException("watchDetails are allowed only for wristwatch categories");
@@ -498,6 +511,10 @@ public class ProductServiceImpl implements ProductService {
 
         if (profile != CatalogCategoryProfile.INTERIOR_CLOCK && hasInteriorClockDetails) {
             throw new IllegalArgumentException("interiorClockDetails are allowed only for interior clock categories");
+        }
+
+        if (profile != CatalogCategoryProfile.ACCESSORY && hasAccessoryDetails) {
+            throw new IllegalArgumentException("accessoryDetails are allowed only for accessory categories");
         }
     }
 
@@ -523,11 +540,13 @@ public class ProductServiceImpl implements ProductService {
             return;
         }
 
-        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK) {
-            InteriorClockDetailCreateRequest details = req.getInteriorClockDetails() == null
-                    ? new InteriorClockDetailCreateRequest()
-                    : req.getInteriorClockDetails();
-            interiorClockDetailService.create(details, product, brandCountry.country());
+        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK && req.getInteriorClockDetails() != null) {
+            interiorClockDetailService.create(req.getInteriorClockDetails(), product, brandCountry.country());
+            return;
+        }
+
+        if (profile == CatalogCategoryProfile.ACCESSORY && req.getAccessoryDetails() != null) {
+            accessoryDetailService.create(req.getAccessoryDetails(), product);
         }
     }
 
@@ -541,8 +560,12 @@ public class ProductServiceImpl implements ProductService {
             watchDetailService.update(req.getWatchDetails(), product);
         }
 
-        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK) {
+        if (profile == CatalogCategoryProfile.INTERIOR_CLOCK && req.getInteriorClockDetails() != null) {
             interiorClockDetailService.update(req.getInteriorClockDetails(), product, brandCountry.country());
+        }
+
+        if (profile == CatalogCategoryProfile.ACCESSORY && req.getAccessoryDetails() != null) {
+            accessoryDetailService.update(req.getAccessoryDetails(), product);
         }
     }
 

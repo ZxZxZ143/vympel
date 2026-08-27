@@ -47,7 +47,7 @@ public class InteriorClockDetailServiceImpl {
     @Transactional
     public InteriorClockDetail create(InteriorClockDetailCreateRequest request, Product product, Country requiredCountry) {
         if (request == null) {
-            throw new IllegalArgumentException("interiorClockDetails is required for interior clock categories");
+            throw new IllegalArgumentException("interiorClockDetails request is required");
         }
 
         InteriorClockDetail detail = new InteriorClockDetail();
@@ -60,9 +60,7 @@ public class InteriorClockDetailServiceImpl {
     @Transactional
     public InteriorClockDetail update(InteriorClockDetailUpdateRequest request, Product product, Country requiredCountry) {
         if (request == null) {
-            return interiorClockDetailRepository.findByProduct_Id(product.getId())
-                    .map(detail -> alignCountry(detail, requiredCountry))
-                    .orElseGet(() -> create(new InteriorClockDetailCreateRequest(), product, requiredCountry));
+            throw new IllegalArgumentException("interiorClockDetails request is required");
         }
 
         validateSubmittedCountry(request.getProductionCountryId(), requiredCountry);
@@ -79,7 +77,7 @@ public class InteriorClockDetailServiceImpl {
     }
 
     private void applyCreate(InteriorClockDetail detail, InteriorClockDetailCreateRequest request, Country requiredCountry) {
-        detail.setProductionCountry(requiredCountry);
+        detail.setProductionCountry(request.getProductionCountryId() == null ? null : requiredCountry);
         detail.setCaseMaterial(materialOrNull(request.getCaseMaterialId()));
         detail.setColor(interiorFeatureOrNull(request.getColorId()));
         detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
@@ -91,7 +89,7 @@ public class InteriorClockDetailServiceImpl {
     }
 
     private void applyUpdate(InteriorClockDetail detail, InteriorClockDetailUpdateRequest request, Country requiredCountry) {
-        detail.setProductionCountry(requiredCountry);
+        detail.setProductionCountry(request.getProductionCountryId() == null ? null : requiredCountry);
         detail.setCaseMaterial(materialOrNull(request.getCaseMaterialId()));
         detail.setColor(interiorFeatureOrNull(request.getColorId()));
         detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
@@ -100,15 +98,6 @@ public class InteriorClockDetailServiceImpl {
         detail.setDimensions(trimToNull(request.getDimensions()));
         detail.setWeightGrams(request.getWeightGrams());
         detail.setWarrantyMonths(request.getWarrantyMonths());
-    }
-
-    private InteriorClockDetail alignCountry(InteriorClockDetail detail, Country requiredCountry) {
-        if (detail.getProductionCountry() != null
-                && detail.getProductionCountry().getId().equals(requiredCountry.getId())) {
-            return detail;
-        }
-        detail.setProductionCountry(requiredCountry);
-        return interiorClockDetailRepository.save(detail);
     }
 
     private void validateSubmittedCountry(Long submittedCountryId, Country requiredCountry) {

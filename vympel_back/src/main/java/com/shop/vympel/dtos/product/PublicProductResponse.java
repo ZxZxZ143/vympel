@@ -2,6 +2,7 @@ package com.shop.vympel.dtos.product;
 
 import com.shop.vympel.dtos.category.CategoryResponse;
 import com.shop.vympel.dtos.product.description.DescriptionResponse;
+import com.shop.vympel.dtos.product.details.AccessoryDetailResponse;
 import com.shop.vympel.dtos.product.details.InteriorClockDetailResponse;
 import com.shop.vympel.dtos.product.details.WatchDetailResponse;
 import com.shop.vympel.dtos.product.features.BrandResponse;
@@ -26,6 +27,7 @@ public record PublicProductResponse(
         DescriptionResponse description,
         WatchDetailResponse watchDetails,
         InteriorClockDetailResponse interiorClockDetails,
+        AccessoryDetailResponse accessoryDetails,
         String kaspiUrl,
         String wildberriesUrl,
         Double ratingAverage,
@@ -48,6 +50,7 @@ public record PublicProductResponse(
                 response.getDescription(),
                 response.getWatchDetails(),
                 response.getInteriorClockDetails(),
+                response.getAccessoryDetails(),
                 response.getKaspiUrl(),
                 response.getWildberriesUrl(),
                 response.getRatingAverage(),

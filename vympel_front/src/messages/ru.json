@@ -434,7 +434,14 @@
       "powerType": "Тип питания",
       "dimensions": "Габариты",
       "weight": "Вес",
-      "warrantyMonths": "Гарантия"
+      "warrantyMonths": "Гарантия",
+      "claspType": "Тип застежки",
+      "accessoryCaseMaterial": "Материал корпуса",
+      "insertMaterial": "Материал вставки",
+      "hasInsert": "Наличие вставки",
+      "length": "Длина",
+      "yes": "Да",
+      "no": "Нет"
     },
     "currencySymbol": "₸",
     "breadcrumbSeparator": " — ",

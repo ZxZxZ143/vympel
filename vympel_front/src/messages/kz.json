@@ -434,7 +434,14 @@
       "powerType": "Қуат түрі",
       "dimensions": "Өлшемдері",
       "weight": "Салмақ",
-      "warrantyMonths": "Кепілдік"
+      "warrantyMonths": "Кепілдік",
+      "claspType": "Ілгек түрі",
+      "accessoryCaseMaterial": "Корпус материалы",
+      "insertMaterial": "Кірістірме материалы",
+      "hasInsert": "Кірістірменің болуы",
+      "length": "Ұзындығы",
+      "yes": "Иә",
+      "no": "Жоқ"
     },
     "currencySymbol": "₸",
     "breadcrumbSeparator": " — ",

@@ -2,6 +2,7 @@ package com.shop.vympel.dtos.product;
 
 import com.shop.vympel.dtos.product.description.DescriptionCreateRequest;
 import com.shop.vympel.dtos.product.description.ProductNameCreateRequest;
+import com.shop.vympel.dtos.product.details.AccessoryDetailCreateRequest;
 import com.shop.vympel.dtos.product.details.InteriorClockDetailCreateRequest;
 import com.shop.vympel.dtos.product.details.WatchDetailCreateRequest;
 import jakarta.validation.Valid;
@@ -58,6 +59,9 @@ public class ProductCreateRequest {
 
     @Valid
     private InteriorClockDetailCreateRequest interiorClockDetails;
+
+    @Valid
+    private AccessoryDetailCreateRequest accessoryDetails;
 
     @Size(max = 2048)
     private String kaspiUrl;

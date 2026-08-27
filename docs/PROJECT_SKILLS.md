@@ -740,6 +740,12 @@
 
 ## Fullstack Integration Patterns
 
+### Optional category-detail groups
+
+* **When to use:** When product technical characteristics can be wholly absent, partially populated, added to a legacy product later, or completely cleared.
+* **How:** Keep database detail columns nullable; accept nullable DTO members; validate only submitted reference ids; upsert a submitted one-to-one detail group on update; preserve boolean `false`; and send explicit null members from individual edit forms so clears differ from an omitted group. Public spec builders must filter null, undefined, and blank strings without filtering meaningful `false` or numeric zero.
+* **Why:** This supports empty and partial products without invented defaults while keeping save/reload/clear semantics deterministic across CRM, backend, and storefront.
+
 ### API contract first
 
 * **When to use:** When frontend depends on backend DTOs, routes, schemas, or response shapes.
@@ -1856,7 +1862,7 @@
 * Cart destructive actions: Single-item delete and full-cart clear must use VYMPEL-styled shadcn/Radix confirmation dialogs with localized copy and rounded project buttons. Do not use browser `confirm()`.
 * WhatsApp checkout: Keep order handoff in `src/utils/cartCheckout.ts`; the article/SKU line belongs at the end of each product item block, after line total, before the next item or order total.
 * Favorites page: Use standard `Navigation`/breadcrumbs, 40px top page spacing, `Heading`, existing `GoodCard`, `SectionWithTitle`, and `GoodsCarouselWithImage`; keep the gap before `Похожие товары` on `--spacing-favorites-section-gap` (120px), not an inline magic number. Favorite cards should use `.brand-product-grid.favorites-product-grid` so the reusable 270px card sizing/gaps are preserved while the grid starts from the left edge of the content area instead of centering a short row.
-* CRM category-specific specs: Product creation starts with category selection. Wristwatch children inherit optional watch fields; interior-clock categories render optional interior fields; partial detail groups are valid for drafts; accessories render the no-specs hint and never submit wristwatch controls.
+* CRM category-specific specs: Product creation starts with category selection. Wristwatch children inherit optional watch fields; interior-clock categories render optional interior fields including an optional production-country selector limited to the selected brand's canonical country; accessories render optional clasp type, case/insert materials, tri-state insert presence, color, and free-text length. The individual form submits the selected profile's detail object with explicit nulls so clearing the last saved value persists; bulk forms omit empty groups and preserve explicit boolean `false`. Category switching during create clears every previous profile field; edit keeps the existing category locked and the backend blocks cross-profile moves.
 * CRM bulk creation UI: Keep the first screen as category selection, then shared common fields, then a dense row table with add/duplicate/remove controls and row-level errors.
 * CRM analytics UI: Use compact metric cards and tables for product popularity; period controls should be select/segmented-control style, and promotion actions should be ordinary mutation buttons with loading/disabled states.
 
@@ -2447,4 +2453,4 @@
 
 ## Last Updated
 
-2026-08-27 - Recorded the CI-safe data-only Markdown toolbar pattern, Spring Boot 4.0.8 managed security upgrade, RC.12 release-gate failure, standalone Next runtime hardening, and a successful full local Docker rebuild/healthy startup on the documented 3200/3201 ports.
+2026-08-28 - Recorded and live-verified the optional category-detail pattern: nullable accessory storage and contracts, upsert-on-edit for missing detail rows, explicit-null clearing, tri-state boolean preservation, optional interior production country, create-category field clearing, and storefront suppression of absent specs.

@@ -543,7 +543,14 @@
       "powerType": "Power type",
       "dimensions": "Dimensions",
       "weight": "Weight",
-      "warrantyMonths": "Warranty"
+      "warrantyMonths": "Warranty",
+      "claspType": "Clasp type",
+      "accessoryCaseMaterial": "Case material",
+      "insertMaterial": "Insert material",
+      "hasInsert": "Has insert",
+      "length": "Length",
+      "yes": "Yes",
+      "no": "No"
     },
     "currencySymbol": "₸",
     "breadcrumbSeparator": " — ",

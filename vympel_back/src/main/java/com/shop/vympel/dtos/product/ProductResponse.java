@@ -4,6 +4,7 @@ import com.shop.vympel.dtos.category.CategoryResponse;
 import com.shop.vympel.dtos.product.description.DescriptionCreateRequest;
 import com.shop.vympel.dtos.product.description.DescriptionResponse;
 import com.shop.vympel.dtos.product.description.ProductNameCreateRequest;
+import com.shop.vympel.dtos.product.details.AccessoryDetailResponse;
 import com.shop.vympel.dtos.product.details.InteriorClockDetailResponse;
 import com.shop.vympel.dtos.product.details.WatchDetailResponse;
 import com.shop.vympel.dtos.product.features.BrandResponse;
@@ -45,6 +46,8 @@ public class ProductResponse {
     private WatchDetailResponse watchDetails;
 
     private InteriorClockDetailResponse interiorClockDetails;
+
+    private AccessoryDetailResponse accessoryDetails;
 
     private String kaspiUrl;
 

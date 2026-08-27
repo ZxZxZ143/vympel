@@ -44,6 +44,7 @@ type CommonFormState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
+  productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
   interiorStyleId: string;
@@ -52,6 +53,12 @@ type CommonFormState = {
   dimensions: string;
   weightGrams: string;
   warrantyMonths: string;
+  accessoryClaspType: string;
+  accessoryCaseMaterialId: string;
+  accessoryInsertMaterialId: string;
+  accessoryHasInsert: string;
+  accessoryColorId: string;
+  accessoryLength: string;
   kaspiUrl: string;
   wildberriesUrl: string;
 };
@@ -79,6 +86,7 @@ type BulkRowState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
+  productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
   interiorStyleId: string;
@@ -87,6 +95,12 @@ type BulkRowState = {
   dimensions: string;
   weightGrams: string;
   warrantyMonths: string;
+  accessoryClaspType: string;
+  accessoryCaseMaterialId: string;
+  accessoryInsertMaterialId: string;
+  accessoryHasInsert: string;
+  accessoryColorId: string;
+  accessoryLength: string;
   kaspiUrl: string;
   wildberriesUrl: string;
 };
@@ -112,6 +126,7 @@ const emptyCommon: CommonFormState = {
   caseSizeMm: "",
   waterResistance: "",
   stoneInlayId: "",
+  productionCountryId: "",
   interiorCaseMaterialId: "",
   interiorColorId: "",
   interiorStyleId: "",
@@ -120,6 +135,12 @@ const emptyCommon: CommonFormState = {
   dimensions: "",
   weightGrams: "",
   warrantyMonths: "",
+  accessoryClaspType: "",
+  accessoryCaseMaterialId: "",
+  accessoryInsertMaterialId: "",
+  accessoryHasInsert: "",
+  accessoryColorId: "",
+  accessoryLength: "",
   kaspiUrl: "",
   wildberriesUrl: "",
 };
@@ -148,6 +169,7 @@ function createEmptyRow(): BulkRowState {
     caseSizeMm: "",
     waterResistance: "",
     stoneInlayId: "",
+    productionCountryId: "",
     interiorCaseMaterialId: "",
     interiorColorId: "",
     interiorStyleId: "",
@@ -156,6 +178,12 @@ function createEmptyRow(): BulkRowState {
     dimensions: "",
     weightGrams: "",
     warrantyMonths: "",
+    accessoryClaspType: "",
+    accessoryCaseMaterialId: "",
+    accessoryInsertMaterialId: "",
+    accessoryHasInsert: "",
+    accessoryColorId: "",
+    accessoryLength: "",
     kaspiUrl: "",
     wildberriesUrl: "",
   };
@@ -204,7 +232,11 @@ export function BulkProductCreateView() {
   const commonBrandCountry = references ? brandCountryFor(references.brands, common.brandId) : null;
   const isWristwatchCategory = categoryProfile === "wristwatch";
   const isInteriorClockCategory = categoryProfile === "interior";
-  const showNoCategorySpecsHint = categoryProfile === "accessory" || categoryProfile === "generic";
+  const isAccessoryCategory = categoryProfile === "accessory";
+  const showNoCategorySpecsHint = categoryProfile === "generic";
+  const commonProductionCountryOptions = commonBrandCountry
+    ? references?.countries.filter((country) => country.id === commonBrandCountry.countryId) ?? []
+    : [];
 
   const visibleCollections = useMemo(() => {
     if (!references) {
@@ -246,7 +278,7 @@ export function BulkProductCreateView() {
     setValue("common", {
       ...getValues("common"),
       [field]: value,
-      ...(field === "brandId" ? { collectionId: "" } : {}),
+      ...(field === "brandId" ? { collectionId: "", productionCountryId: "" } : {}),
     } as CommonFormState, { shouldDirty: true });
   };
 
@@ -259,7 +291,7 @@ export function BulkProductCreateView() {
       return {
         ...row,
         [field]: value,
-        ...(field === "brandId" ? { collectionId: "" } : {}),
+        ...(field === "brandId" ? { collectionId: "", productionCountryId: "" } : {}),
       };
     }), { shouldDirty: true });
     setRowErrors((current) => {
@@ -308,7 +340,7 @@ export function BulkProductCreateView() {
 
     try {
       const nextResult = await crmApi.createProductsBulk(
-        toBulkPayload(categoryId, values.common, values.rows, categoryProfile, references),
+        toBulkPayload(categoryId, values.common, values.rows, categoryProfile),
         locale
       );
       setResult(nextResult);
@@ -413,7 +445,7 @@ export function BulkProductCreateView() {
 
           {isInteriorClockCategory && (
             <div className="crm-grid crm-grid--form">
-              <ReadOnlyField id="bulkProductionCountry" label={t("products.productionCountry")} value={commonBrandCountry?.countryName ?? ""} placeholder={t("common.selectPlaceholder")} />
+              <ReferenceSelect id="bulkProductionCountryId" label={t("products.productionCountry")} value={common.productionCountryId} options={commonProductionCountryOptions} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("productionCountryId", value)} optional />
               <ReferenceSelect id="bulkInteriorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={common.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
               <ReferenceSelect id="bulkInteriorColorId" label={t("products.interiorColor")} value={common.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorColorId", value)} />
               <ReferenceSelect id="bulkInteriorStyleId" label={t("products.interiorStyle")} value={common.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorStyleId", value)} optional />
@@ -422,6 +454,21 @@ export function BulkProductCreateView() {
               <TextField id="bulkDimensions" label={t("products.dimensions")} value={common.dimensions} onChange={(value) => updateCommon("dimensions", value)} />
               <NumberField id="bulkWeightGrams" label={t("products.weightGrams")} value={common.weightGrams} onChange={(value) => updateCommon("weightGrams", value)} />
               <NumberField id="bulkWarrantyMonths" label={t("products.warrantyMonths")} value={common.warrantyMonths} onChange={(value) => updateCommon("warrantyMonths", value)} />
+            </div>
+          )}
+
+          {isAccessoryCategory && (
+            <div className="crm-grid crm-grid--form">
+              <TextField id="bulkAccessoryClaspType" label={t("products.accessoryClaspType")} value={common.accessoryClaspType} onChange={(value) => updateCommon("accessoryClaspType", value)} />
+              <ReferenceSelect id="bulkAccessoryCaseMaterialId" label={t("products.accessoryCaseMaterial")} value={common.accessoryCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <ReferenceSelect id="bulkAccessoryInsertMaterialId" label={t("products.accessoryInsertMaterial")} value={common.accessoryInsertMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <SelectField id="bulkAccessoryHasInsert" label={t("products.accessoryHasInsert")} value={common.accessoryHasInsert} onChange={(value) => updateCommon("accessoryHasInsert", value)}>
+                <option value="">{t("common.selectPlaceholder")}</option>
+                <option value="true">{messages.common.yes}</option>
+                <option value="false">{messages.common.no}</option>
+              </SelectField>
+              <ReferenceSelect id="bulkAccessoryColorId" label={t("products.accessoryColor")} value={common.accessoryColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryColorId", value)} optional />
+              <TextField id="bulkAccessoryLength" label={t("products.accessoryLength")} value={common.accessoryLength} onChange={(value) => updateCommon("accessoryLength", value)} />
             </div>
           )}
 
@@ -457,6 +504,9 @@ export function BulkProductCreateView() {
                   {rows.map((row, index) => {
                     const rowBrandId = row.brandId || common.brandId;
                     const rowBrandCountry = brandCountryFor(references.brands, rowBrandId);
+                    const rowProductionCountryOptions = rowBrandCountry
+                      ? references.countries.filter((country) => country.id === rowBrandCountry.countryId)
+                      : [];
                     const rowCollections = references.collections.filter((collection) => {
                       if (!rowBrandId || collection.brandId === undefined || collection.brandId === null) {
                         return true;
@@ -525,7 +575,7 @@ export function BulkProductCreateView() {
 
                               {isInteriorClockCategory && (
                                 <div className="crm-grid crm-grid--form">
-                                  <ReadOnlyField id={`rowProductionCountry-${row.key}`} label={t("products.productionCountry")} value={rowBrandCountry?.countryName ?? ""} placeholder={t("products.bulkUseCommonDefault")} />
+                                  <ReferenceSelect id={`rowProductionCountryId-${row.key}`} label={t("products.productionCountry")} value={row.productionCountryId} options={rowProductionCountryOptions} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "productionCountryId", value)} optional />
                                   <ReferenceSelect id={`rowInteriorCaseMaterialId-${row.key}`} label={t("products.interiorCaseMaterial")} value={row.interiorCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
                                   <ReferenceSelect id={`rowInteriorColorId-${row.key}`} label={t("products.interiorColor")} value={row.interiorColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorColorId", value)} optional />
                                   <ReferenceSelect id={`rowInteriorStyleId-${row.key}`} label={t("products.interiorStyle")} value={row.interiorStyleId} options={references.interiorStyles} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorStyleId", value)} optional />
@@ -534,6 +584,21 @@ export function BulkProductCreateView() {
                                   <TextField id={`rowDimensions-${row.key}`} label={t("products.dimensions")} value={row.dimensions} onChange={(value) => updateRow(index, "dimensions", value)} />
                                   <NumberField id={`rowWeightGrams-${row.key}`} label={t("products.weightGrams")} value={row.weightGrams} onChange={(value) => updateRow(index, "weightGrams", value)} />
                                   <NumberField id={`rowWarrantyMonths-${row.key}`} label={t("products.warrantyMonths")} value={row.warrantyMonths} onChange={(value) => updateRow(index, "warrantyMonths", value)} />
+                                </div>
+                              )}
+
+                              {isAccessoryCategory && (
+                                <div className="crm-grid crm-grid--form">
+                                  <TextField id={`rowAccessoryClaspType-${row.key}`} label={t("products.accessoryClaspType")} value={row.accessoryClaspType} onChange={(value) => updateRow(index, "accessoryClaspType", value)} />
+                                  <ReferenceSelect id={`rowAccessoryCaseMaterialId-${row.key}`} label={t("products.accessoryCaseMaterial")} value={row.accessoryCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+                                  <ReferenceSelect id={`rowAccessoryInsertMaterialId-${row.key}`} label={t("products.accessoryInsertMaterial")} value={row.accessoryInsertMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+                                  <SelectField id={`rowAccessoryHasInsert-${row.key}`} label={t("products.accessoryHasInsert")} value={row.accessoryHasInsert} onChange={(value) => updateRow(index, "accessoryHasInsert", value)}>
+                                    <option value="">{t("products.bulkUseCommonDefault")}</option>
+                                    <option value="true">{messages.common.yes}</option>
+                                    <option value="false">{messages.common.no}</option>
+                                  </SelectField>
+                                  <ReferenceSelect id={`rowAccessoryColorId-${row.key}`} label={t("products.accessoryColor")} value={row.accessoryColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryColorId", value)} optional />
+                                  <TextField id={`rowAccessoryLength-${row.key}`} label={t("products.accessoryLength")} value={row.accessoryLength} onChange={(value) => updateRow(index, "accessoryLength", value)} />
                                 </div>
                               )}
                             </div>
@@ -604,14 +669,6 @@ function TextField({ id, label, value, onChange }: { id: string; label: string; 
   return (
     <Field htmlFor={id} label={label}>
       <input id={id} className="crm-input" value={value} onChange={(event) => onChange(event.target.value)} />
-    </Field>
-  );
-}
-
-function ReadOnlyField({ id, label, value, placeholder }: { id: string; label: string; value: string; placeholder: string }) {
-  return (
-    <Field htmlFor={id} label={label}>
-      <input id={id} className="crm-input" value={value} placeholder={placeholder} readOnly aria-readonly="true" />
     </Field>
   );
 }
@@ -723,10 +780,8 @@ function toBulkPayload(
   categoryId: string,
   common: CommonFormState,
   rows: BulkRowState[],
-  categoryProfile: ReturnType<typeof getCategoryProfile>,
-  references: References
+  categoryProfile: ReturnType<typeof getCategoryProfile>
 ): ProductBulkCreatePayload {
-  const commonBrandCountry = brandCountryFor(references.brands, common.brandId);
   const payload: ProductBulkCreatePayload = {
     categoryId: Number(categoryId),
     common: {
@@ -737,7 +792,7 @@ function toBulkPayload(
       kaspiUrl: common.kaspiUrl.trim() || null,
       wildberriesUrl: common.wildberriesUrl.trim() || null,
     },
-    rows: rows.map((row) => rowToPayload(row, common, categoryProfile, references)),
+    rows: rows.map((row) => rowToPayload(row, common, categoryProfile)),
   };
 
   if ([common.descriptionRu, common.descriptionEn, common.descriptionKz].some((value) => value.trim())) {
@@ -757,9 +812,9 @@ function toBulkPayload(
     };
   }
 
-  if (categoryProfile === "interior" && (hasInteriorDetails(common) || commonBrandCountry !== null)) {
+  if (categoryProfile === "interior" && hasInteriorDetails(common)) {
     payload.common.interiorClockDetails = {
-      productionCountryId: commonBrandCountry?.countryId,
+      productionCountryId: optionalNumber(common.productionCountryId),
       caseMaterialId: optionalNumber(common.interiorCaseMaterialId),
       colorId: optionalNumber(common.interiorColorId),
       styleId: optionalNumber(common.interiorStyleId),
@@ -771,17 +826,28 @@ function toBulkPayload(
     };
   }
 
+  if (categoryProfile === "accessory" && hasAccessoryDetails(common)) {
+    payload.common.accessoryDetails = {
+      claspType: common.accessoryClaspType.trim() || null,
+      caseMaterialId: optionalNumber(common.accessoryCaseMaterialId),
+      insertMaterialId: optionalNumber(common.accessoryInsertMaterialId),
+      hasInsert: optionalBoolean(common.accessoryHasInsert),
+      colorId: optionalNumber(common.accessoryColorId),
+      length: common.accessoryLength.trim() || null,
+    };
+  }
+
   return payload;
 }
 
 function rowToPayload(
   row: BulkRowState,
   common: CommonFormState,
-  categoryProfile: ReturnType<typeof getCategoryProfile>,
-  references: References
+  categoryProfile: ReturnType<typeof getCategoryProfile>
 ): ProductBulkCreatePayload["rows"][number] {
-  const effectiveBrandId = row.brandId || common.brandId;
-  const rowBrandCountry = brandCountryFor(references.brands, effectiveBrandId);
+  const productionCountryId = row.brandId
+    ? row.productionCountryId
+    : firstNonBlank(row.productionCountryId, common.productionCountryId);
   const payload: ProductBulkCreatePayload["rows"][number] = {
     productName: {
       name_ru: row.nameRu.trim(),
@@ -821,9 +887,9 @@ function rowToPayload(
     };
   }
 
-  if (categoryProfile === "interior" && (hasResolvedInteriorDetails(row, common) || rowBrandCountry !== null)) {
+  if (categoryProfile === "interior" && (hasResolvedInteriorDetails(row, common) || productionCountryId.trim())) {
     payload.interiorClockDetails = {
-      productionCountryId: rowBrandCountry?.countryId,
+      productionCountryId: optionalNumber(productionCountryId),
       caseMaterialId: optionalNumber(firstNonBlank(row.interiorCaseMaterialId, common.interiorCaseMaterialId)),
       colorId: optionalNumber(firstNonBlank(row.interiorColorId, common.interiorColorId)),
       styleId: optionalNumber(firstNonBlank(row.interiorStyleId, common.interiorStyleId)),
@@ -832,6 +898,17 @@ function rowToPayload(
       dimensions: firstNonBlank(row.dimensions, common.dimensions).trim() || null,
       weightGrams: optionalNumber(firstNonBlank(row.weightGrams, common.weightGrams)),
       warrantyMonths: optionalNumber(firstNonBlank(row.warrantyMonths, common.warrantyMonths)),
+    };
+  }
+
+  if (categoryProfile === "accessory" && hasResolvedAccessoryDetails(row, common)) {
+    payload.accessoryDetails = {
+      claspType: firstNonBlank(row.accessoryClaspType, common.accessoryClaspType).trim() || null,
+      caseMaterialId: optionalNumber(firstNonBlank(row.accessoryCaseMaterialId, common.accessoryCaseMaterialId)),
+      insertMaterialId: optionalNumber(firstNonBlank(row.accessoryInsertMaterialId, common.accessoryInsertMaterialId)),
+      hasInsert: optionalBoolean(firstNonBlank(row.accessoryHasInsert, common.accessoryHasInsert)),
+      colorId: optionalNumber(firstNonBlank(row.accessoryColorId, common.accessoryColorId)),
+      length: firstNonBlank(row.accessoryLength, common.accessoryLength).trim() || null,
     };
   }
 
@@ -857,6 +934,12 @@ function optionalNumber(value: string) {
   return value.trim() ? Number(value) : undefined;
 }
 
+function optionalBoolean(value: string) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return undefined;
+}
+
 function hasWatchDetails(common: CommonFormState) {
   return [
     common.mechanismId,
@@ -872,6 +955,7 @@ function hasWatchDetails(common: CommonFormState) {
 
 function hasInteriorDetails(common: CommonFormState) {
   return [
+    common.productionCountryId,
     common.interiorCaseMaterialId,
     common.interiorColorId,
     common.interiorMechanismTypeId,
@@ -880,6 +964,17 @@ function hasInteriorDetails(common: CommonFormState) {
     common.dimensions,
     common.weightGrams,
     common.warrantyMonths,
+  ].some((value) => value.trim());
+}
+
+function hasAccessoryDetails(common: CommonFormState) {
+  return [
+    common.accessoryClaspType,
+    common.accessoryCaseMaterialId,
+    common.accessoryInsertMaterialId,
+    common.accessoryHasInsert,
+    common.accessoryColorId,
+    common.accessoryLength,
   ].some((value) => value.trim());
 }
 
@@ -906,6 +1001,17 @@ function hasResolvedInteriorDetails(row: BulkRowState, common: CommonFormState) 
     firstNonBlank(row.dimensions, common.dimensions),
     firstNonBlank(row.weightGrams, common.weightGrams),
     firstNonBlank(row.warrantyMonths, common.warrantyMonths),
+  ].some((value) => value.trim());
+}
+
+function hasResolvedAccessoryDetails(row: BulkRowState, common: CommonFormState) {
+  return [
+    firstNonBlank(row.accessoryClaspType, common.accessoryClaspType),
+    firstNonBlank(row.accessoryCaseMaterialId, common.accessoryCaseMaterialId),
+    firstNonBlank(row.accessoryInsertMaterialId, common.accessoryInsertMaterialId),
+    firstNonBlank(row.accessoryHasInsert, common.accessoryHasInsert),
+    firstNonBlank(row.accessoryColorId, common.accessoryColorId),
+    firstNonBlank(row.accessoryLength, common.accessoryLength),
   ].some((value) => value.trim());
 }
 
