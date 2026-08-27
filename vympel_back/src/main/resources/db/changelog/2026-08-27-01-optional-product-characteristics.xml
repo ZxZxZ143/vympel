@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-08-27-01-optional-product-characteristics" author="codex" dbms="postgresql">
+        <comment>
+            Add fully nullable accessory characteristics. Existing wristwatch and interior-clock
+            technical columns were already made nullable by the 2026-07-01 draft migration.
+        </comment>
+
+        <createTable tableName="accessory_details">
+            <column name="product_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="clasp_type" type="VARCHAR(100)"/>
+            <column name="case_material_id" type="BIGINT"/>
+            <column name="insert_material_id" type="BIGINT"/>
+            <column name="has_insert" type="BOOLEAN"/>
+            <column name="color_id" type="BIGINT"/>
+            <column name="length" type="VARCHAR(100)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="accessory_details" baseColumnNames="product_id"
+                                 referencedTableName="product" referencedColumnNames="id"
+                                 constraintName="fk_accessory_details_product" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="accessory_details" baseColumnNames="case_material_id"
+                                 referencedTableName="material" referencedColumnNames="id"
+                                 constraintName="fk_accessory_details_case_material"/>
+        <addForeignKeyConstraint baseTableName="accessory_details" baseColumnNames="insert_material_id"
+                                 referencedTableName="material" referencedColumnNames="id"
+                                 constraintName="fk_accessory_details_insert_material"/>
+        <addForeignKeyConstraint baseTableName="accessory_details" baseColumnNames="color_id"
+                                 referencedTableName="interior_feature" referencedColumnNames="id"
+                                 constraintName="fk_accessory_details_color"/>
+
+        <createIndex tableName="accessory_details" indexName="idx_accessory_details_case_material">
+            <column name="case_material_id"/>
+        </createIndex>
+        <createIndex tableName="accessory_details" indexName="idx_accessory_details_insert_material">
+            <column name="insert_material_id"/>
+        </createIndex>
+        <createIndex tableName="accessory_details" indexName="idx_accessory_details_color">
+            <column name="color_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="accessory_details"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

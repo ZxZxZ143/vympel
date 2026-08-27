@@ -10,6 +10,7 @@ import com.shop.vympel.db.repositories.product.features.MaterialI18nRepository;
 import com.shop.vympel.db.repositories.product.features.MaterialRepository;
 import com.shop.vympel.db.repositories.product.watchDetail.InteriorClockDetailRepository;
 import com.shop.vympel.dtos.product.details.InteriorClockDetailCreateRequest;
+import com.shop.vympel.dtos.product.details.InteriorClockDetailUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +50,7 @@ class InteriorClockDetailServiceImplTest {
     }
 
     @Test
-    void createAlwaysUsesTheCountryDerivedFromTheBrand() {
+    void createKeepsProductionCountryNullWhenItWasNotSubmitted() {
         Product product = product(1L);
         Country japan = country(2L);
         InteriorClockDetailCreateRequest request = new InteriorClockDetailCreateRequest();
@@ -59,7 +60,7 @@ class InteriorClockDetailServiceImplTest {
 
         ArgumentCaptor<InteriorClockDetail> captor = ArgumentCaptor.forClass(InteriorClockDetail.class);
         verify(interiorClockDetailRepository).save(captor.capture());
-        assertThat(captor.getValue().getProductionCountry()).isSameAs(japan);
+        assertThat(captor.getValue().getProductionCountry()).isNull();
     }
 
     @Test
@@ -74,7 +75,7 @@ class InteriorClockDetailServiceImplTest {
     }
 
     @Test
-    void brandOnlyUpdateRealignsAnExistingInteriorDetail() {
+    void updateClearsAnExistingProductionCountryWhenItIsOmitted() {
         Product product = product(1L);
         Country oldCountry = country(3L);
         Country requiredCountry = country(2L);
@@ -84,9 +85,9 @@ class InteriorClockDetailServiceImplTest {
         when(interiorClockDetailRepository.findByProduct_Id(1L)).thenReturn(Optional.of(detail));
         when(interiorClockDetailRepository.save(detail)).thenReturn(detail);
 
-        service.update(null, product, requiredCountry);
+        service.update(new InteriorClockDetailUpdateRequest(), product, requiredCountry);
 
-        assertThat(detail.getProductionCountry()).isSameAs(requiredCountry);
+        assertThat(detail.getProductionCountry()).isNull();
         verify(interiorClockDetailRepository).save(detail);
     }
 

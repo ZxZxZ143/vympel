@@ -118,6 +118,16 @@ export interface IProductInteriorClockDetails {
     warrantyMonths?: number | null;
 }
 
+export interface IProductAccessoryDetails {
+    productId: number;
+    claspType?: string | null;
+    caseMaterial?: IProductFeature | null;
+    insertMaterial?: IProductFeature | null;
+    hasInsert?: boolean | null;
+    color?: IProductFeature | null;
+    length?: string | null;
+}
+
 export interface ICatalogFilterOption {
     value: string;
     label: string;
@@ -169,6 +179,7 @@ export interface IProductDetails {
     description?: IProductDescription | null;
     watchDetails?: IProductWatchDetails | null;
     interiorClockDetails?: IProductInteriorClockDetails | null;
+    accessoryDetails?: IProductAccessoryDetails | null;
     kaspiUrl?: string | null;
     wildberriesUrl?: string | null;
     ratingAverage?: number | null;

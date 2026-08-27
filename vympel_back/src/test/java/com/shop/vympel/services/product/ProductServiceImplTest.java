@@ -13,6 +13,7 @@ import com.shop.vympel.exceptions.ResourceNotFoundException;
 import com.shop.vympel.mappers.product.EntityReferenceMapper;
 import com.shop.vympel.mappers.product.ProductMapper;
 import com.shop.vympel.services.categoryProduct.CategoryProductService;
+import com.shop.vympel.services.accessoryDetail.AccessoryDetailService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
 import com.shop.vympel.services.catalog.SupportedBrandCountry;
@@ -62,6 +63,8 @@ class ProductServiceImplTest {
     @Mock
     private InteriorClockDetailServiceImpl interiorClockDetailService;
     @Mock
+    private AccessoryDetailService accessoryDetailService;
+    @Mock
     private CatalogCategoryProfileService catalogCategoryProfileService;
     @Mock
     private SupportedCatalogDomainService supportedCatalogDomainService;
@@ -87,6 +90,7 @@ class ProductServiceImplTest {
                 skuService,
                 watchDetailService,
                 interiorClockDetailService,
+                accessoryDetailService,
                 catalogCategoryProfileService,
                 supportedCatalogDomainService,
                 productDescriptionService,
@@ -241,6 +245,7 @@ class ProductServiceImplTest {
         assertEquals(42L, id);
         verify(watchDetailService, never()).create(any(), any());
         verify(interiorClockDetailService, never()).create(any(), any(), any());
+        verify(accessoryDetailService, never()).create(any(), any());
         verify(productNameService).createProductName(product, Language.RU, "Тестовые часы");
         verify(productNameService).createProductName(product, Language.EN, "Тестовые часы");
         verify(productNameService).createProductName(product, Language.KZ, "Тестовые часы");
@@ -248,6 +253,42 @@ class ProductServiceImplTest {
         ArgumentCaptor<DescriptionCreateRequest> descriptions = ArgumentCaptor.forClass(DescriptionCreateRequest.class);
         verify(productDescriptionService, times(3)).addProductDescription(eq(product), any(Language.class), descriptions.capture());
         descriptions.getAllValues().forEach(description -> assertEquals("", description.getDesc()));
+    }
+
+    @Test
+    void accessoryCreationAcceptsAnOmittedCharacteristicsObject() {
+        ProductCreateRequest request = new ProductCreateRequest();
+        ProductNameCreateRequest names = new ProductNameCreateRequest();
+        names.setName_ru("Аксессуар");
+        request.setProductName(names);
+        request.setModel("accessory-1");
+        request.setPrice(100);
+        request.setStockQuantity(0);
+        request.setStatus("DRAFT");
+        request.setProductType("ACCESSORY");
+        request.setBrandId(1L);
+        request.setCategoryId(10L);
+
+        Product product = new Product();
+        product.setId(43L);
+        com.shop.vympel.db.entity.features.Brand brand = new com.shop.vympel.db.entity.features.Brand();
+        brand.setId(1L);
+        com.shop.vympel.db.entity.features.Country country = new com.shop.vympel.db.entity.features.Country();
+        country.setId(2L);
+        when(catalogCategoryProfileService.profileForPublicCategoryId(10L)).thenReturn(CatalogCategoryProfile.ACCESSORY);
+        when(supportedCatalogDomainService.requireAssignment(1L, null)).thenReturn(
+                new SupportedCatalogDomainService.Assignment(SupportedBrandCountry.ROMANSON, brand, country)
+        );
+        when(skuService.skuGen(request)).thenReturn("SKU-ACCESSORY");
+        when(productRepository.findProductBySku("SKU-ACCESSORY")).thenReturn(Optional.empty());
+        when(productMapper.toEntity(request, entityReferenceMapper)).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(product);
+
+        assertEquals(43L, productService.create(request));
+
+        verify(accessoryDetailService, never()).create(any(), any());
+        verify(watchDetailService, never()).create(any(), any());
+        verify(interiorClockDetailService, never()).create(any(), any(), any());
     }
 
     @Test

@@ -51,6 +51,7 @@ export type ProductFormState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
+  productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
   interiorStyleId: string;
@@ -59,6 +60,12 @@ export type ProductFormState = {
   dimensions: string;
   weightGrams: string;
   warrantyMonths: string;
+  accessoryClaspType: string;
+  accessoryCaseMaterialId: string;
+  accessoryInsertMaterialId: string;
+  accessoryHasInsert: string;
+  accessoryColorId: string;
+  accessoryLength: string;
   kaspiUrl: string;
   wildberriesUrl: string;
 };
@@ -96,6 +103,7 @@ export const emptyForm: ProductFormState = {
   caseSizeMm: "",
   waterResistance: "",
   stoneInlayId: "",
+  productionCountryId: "",
   interiorCaseMaterialId: "",
   interiorColorId: "",
   interiorStyleId: "",
@@ -104,6 +112,12 @@ export const emptyForm: ProductFormState = {
   dimensions: "",
   weightGrams: "",
   warrantyMonths: "",
+  accessoryClaspType: "",
+  accessoryCaseMaterialId: "",
+  accessoryInsertMaterialId: "",
+  accessoryHasInsert: "",
+  accessoryColorId: "",
+  accessoryLength: "",
   kaspiUrl: "",
   wildberriesUrl: "",
 };
@@ -234,6 +248,7 @@ export function ProductForm({ productId }: ProductFormProps) {
 
     if (field === "brandId" && form.brandId !== value) {
       next.collectionId = "";
+      next.productionCountryId = "";
     }
 
     if (field === "categoryId" && references) {
@@ -605,7 +620,11 @@ export function ProductForm({ productId }: ProductFormProps) {
   const selectedBrandCountry = brandCountryFor(references.brands, form.brandId);
   const isWristwatchCategory = categoryProfile === "wristwatch";
   const isInteriorClockCategory = categoryProfile === "interior";
-  const showNoCategorySpecsHint = categoryProfile === "accessory" || categoryProfile === "generic";
+  const isAccessoryCategory = categoryProfile === "accessory";
+  const showNoCategorySpecsHint = categoryProfile === "generic";
+  const productionCountryOptions = selectedBrandCountry
+    ? references.countries.filter((country) => country.id === selectedBrandCountry.countryId)
+    : [];
 
   return (
     <section className="crm-page">
@@ -721,7 +740,7 @@ export function ProductForm({ productId }: ProductFormProps) {
 
           {isInteriorClockCategory && (
             <div className="crm-grid crm-grid--form">
-              <ReadOnlyField id="productionCountry" label={t("products.productionCountry")} value={selectedBrandCountry?.countryName ?? ""} placeholder={t("common.selectPlaceholder")} />
+              <ReferenceSelect id="productionCountryId" label={t("products.productionCountry")} value={form.productionCountryId} options={productionCountryOptions} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("productionCountryId", value)} optional />
               <ReferenceSelect id="interiorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={form.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
               <ReferenceSelect id="interiorColorId" label={t("products.interiorColor")} value={form.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorColorId", value)} />
               <ReferenceSelect id="interiorStyleId" label={t("products.interiorStyle")} value={form.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorStyleId", value)} optional />
@@ -730,6 +749,21 @@ export function ProductForm({ productId }: ProductFormProps) {
               <TextField id="dimensions" label={t("products.dimensions")} value={form.dimensions} onChange={(value) => updateField("dimensions", value)} />
               <NumberField id="weightGrams" label={t("products.weightGrams")} value={form.weightGrams} onChange={(value) => updateField("weightGrams", value)} />
               <NumberField id="warrantyMonths" label={t("products.warrantyMonths")} value={form.warrantyMonths} onChange={(value) => updateField("warrantyMonths", value)} />
+            </div>
+          )}
+
+          {isAccessoryCategory && (
+            <div className="crm-grid crm-grid--form">
+              <TextField id="accessoryClaspType" label={t("products.accessoryClaspType")} value={form.accessoryClaspType} maxLength={100} onChange={(value) => updateField("accessoryClaspType", value)} />
+              <ReferenceSelect id="accessoryCaseMaterialId" label={t("products.accessoryCaseMaterial")} value={form.accessoryCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <ReferenceSelect id="accessoryInsertMaterialId" label={t("products.accessoryInsertMaterial")} value={form.accessoryInsertMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <SelectField id="accessoryHasInsert" label={t("products.accessoryHasInsert")} value={form.accessoryHasInsert} onChange={(value) => updateField("accessoryHasInsert", value)}>
+                <option value="">{t("common.selectPlaceholder")}</option>
+                <option value="true">{messages.common.yes}</option>
+                <option value="false">{messages.common.no}</option>
+              </SelectField>
+              <ReferenceSelect id="accessoryColorId" label={t("products.accessoryColor")} value={form.accessoryColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryColorId", value)} optional />
+              <TextField id="accessoryLength" label={t("products.accessoryLength")} value={form.accessoryLength} maxLength={100} onChange={(value) => updateField("accessoryLength", value)} />
             </div>
           )}
 
@@ -986,14 +1020,6 @@ function TextField({ id, label, value, maxLength, onChange }: { id: string; labe
   );
 }
 
-function ReadOnlyField({ id, label, value, placeholder }: { id: string; label: string; value: string; placeholder: string }) {
-  return (
-    <Field htmlFor={id} label={label}>
-      <input id={id} className="crm-input" value={value} placeholder={placeholder} readOnly aria-readonly="true" />
-    </Field>
-  );
-}
-
 function TextAreaField({ id, label, value, maxLength, onChange }: { id: string; label: string; value: string; maxLength?: number; onChange: (value: string) => void }) {
   return (
     <Field htmlFor={id} label={label}>
@@ -1172,7 +1198,6 @@ function isValidOptionalUrl(value: string) {
 
 export function toPayload(form: ProductFormState, references: References): ProductPayload {
   const categoryProfile = getCategoryProfile(references.categories, form.categoryId);
-  const selectedBrandCountry = brandCountryFor(references.brands, form.brandId);
   const payload: ProductPayload = {
     productName: {
       name_ru: form.nameRu.trim(),
@@ -1211,29 +1236,28 @@ export function toPayload(form: ProductFormState, references: References): Produ
   }
 
   if (categoryProfile === "interior") {
-    const hasInteriorDetails = [
-      form.interiorCaseMaterialId,
-      form.interiorColorId,
-      form.interiorStyleId,
-      form.interiorMechanismTypeId,
-      form.powerTypeId,
-      form.dimensions,
-      form.weightGrams,
-      form.warrantyMonths,
-    ].some((value) => value.trim()) || selectedBrandCountry !== null;
-    if (hasInteriorDetails) {
-      payload.interiorClockDetails = {
-        productionCountryId: selectedBrandCountry?.countryId ?? null,
-        caseMaterialId: optionalNumber(form.interiorCaseMaterialId),
-        colorId: optionalNumber(form.interiorColorId),
-        styleId: optionalNumber(form.interiorStyleId),
-        mechanismTypeId: optionalNumber(form.interiorMechanismTypeId),
-        powerTypeId: optionalNumber(form.powerTypeId),
-        dimensions: form.dimensions.trim() || null,
-        weightGrams: optionalNumber(form.weightGrams),
-        warrantyMonths: optionalNumber(form.warrantyMonths),
-      };
-    }
+    payload.interiorClockDetails = {
+      productionCountryId: optionalNumber(form.productionCountryId),
+      caseMaterialId: optionalNumber(form.interiorCaseMaterialId),
+      colorId: optionalNumber(form.interiorColorId),
+      styleId: optionalNumber(form.interiorStyleId),
+      mechanismTypeId: optionalNumber(form.interiorMechanismTypeId),
+      powerTypeId: optionalNumber(form.powerTypeId),
+      dimensions: form.dimensions.trim() || null,
+      weightGrams: optionalNumber(form.weightGrams),
+      warrantyMonths: optionalNumber(form.warrantyMonths),
+    };
+  }
+
+  if (categoryProfile === "accessory") {
+    payload.accessoryDetails = {
+      claspType: form.accessoryClaspType.trim() || null,
+      caseMaterialId: optionalNumber(form.accessoryCaseMaterialId),
+      insertMaterialId: optionalNumber(form.accessoryInsertMaterialId),
+      hasInsert: optionalBoolean(form.accessoryHasInsert),
+      colorId: optionalNumber(form.accessoryColorId),
+      length: form.accessoryLength.trim() || null,
+    };
   }
 
   return payload;
@@ -1241,6 +1265,12 @@ export function toPayload(form: ProductFormState, references: References): Produ
 
 function optionalNumber(value: string) {
   return value.trim() ? Number(value) : null;
+}
+
+function optionalBoolean(value: string) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
 }
 
 function toCollectionPayload(form: CollectionFormState): CollectionPayload {
@@ -1278,7 +1308,7 @@ function mergeCollectionOption(collections: Feature[], option: Feature) {
   return [...withoutDuplicate, option].sort((left, right) => left.name.localeCompare(right.name));
 }
 
-function withSelectedCategory(
+export function withSelectedCategory(
   form: ProductFormState,
   categories: References["categories"],
   categoryId: string
@@ -1299,6 +1329,7 @@ function clearCategoryDetailFields(form: ProductFormState): ProductFormState {
   form.caseSizeMm = "";
   form.waterResistance = "";
   form.stoneInlayId = "";
+  form.productionCountryId = "";
   form.interiorCaseMaterialId = "";
   form.interiorColorId = "";
   form.interiorStyleId = "";
@@ -1307,6 +1338,12 @@ function clearCategoryDetailFields(form: ProductFormState): ProductFormState {
   form.dimensions = "";
   form.weightGrams = "";
   form.warrantyMonths = "";
+  form.accessoryClaspType = "";
+  form.accessoryCaseMaterialId = "";
+  form.accessoryInsertMaterialId = "";
+  form.accessoryHasInsert = "";
+  form.accessoryColorId = "";
+  form.accessoryLength = "";
 
   return form;
 }
@@ -1336,6 +1373,7 @@ export function productToForm(product: Product): ProductFormState {
     caseSizeMm: product.watchDetails?.caseSizeMm ? String(product.watchDetails.caseSizeMm) : "",
     waterResistance: product.watchDetails?.waterResistance ?? "",
     stoneInlayId: product.watchDetails?.stoneInlay?.id ? String(product.watchDetails.stoneInlay.id) : "",
+    productionCountryId: product.interiorClockDetails?.productionCountry?.id ? String(product.interiorClockDetails.productionCountry.id) : "",
     interiorCaseMaterialId: product.interiorClockDetails?.caseMaterial?.id ? String(product.interiorClockDetails.caseMaterial.id) : "",
     interiorColorId: product.interiorClockDetails?.color?.id ? String(product.interiorClockDetails.color.id) : "",
     interiorStyleId: product.interiorClockDetails?.style?.id ? String(product.interiorClockDetails.style.id) : "",
@@ -1344,6 +1382,12 @@ export function productToForm(product: Product): ProductFormState {
     dimensions: product.interiorClockDetails?.dimensions ?? "",
     weightGrams: product.interiorClockDetails?.weightGrams ? String(product.interiorClockDetails.weightGrams) : "",
     warrantyMonths: product.interiorClockDetails?.warrantyMonths ? String(product.interiorClockDetails.warrantyMonths) : "",
+    accessoryClaspType: product.accessoryDetails?.claspType ?? "",
+    accessoryCaseMaterialId: product.accessoryDetails?.caseMaterial?.id ? String(product.accessoryDetails.caseMaterial.id) : "",
+    accessoryInsertMaterialId: product.accessoryDetails?.insertMaterial?.id ? String(product.accessoryDetails.insertMaterial.id) : "",
+    accessoryHasInsert: product.accessoryDetails?.hasInsert === true ? "true" : product.accessoryDetails?.hasInsert === false ? "false" : "",
+    accessoryColorId: product.accessoryDetails?.color?.id ? String(product.accessoryDetails.color.id) : "",
+    accessoryLength: product.accessoryDetails?.length ?? "",
     kaspiUrl: product.kaspiUrl ?? "",
     wildberriesUrl: product.wildberriesUrl ?? "",
   };

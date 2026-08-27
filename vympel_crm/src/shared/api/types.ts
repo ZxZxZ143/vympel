@@ -113,6 +113,15 @@ export type Product = {
     weightGrams?: number | null;
     warrantyMonths?: number | null;
   } | null;
+  accessoryDetails?: {
+    productId: number;
+    claspType?: string | null;
+    caseMaterial?: Feature | null;
+    insertMaterial?: Feature | null;
+    hasInsert?: boolean | null;
+    color?: Feature | null;
+    length?: string | null;
+  } | null;
   kaspiUrl?: string | null;
   wildberriesUrl?: string | null;
   promotionMode?: ProductPromotionMode | null;
@@ -214,6 +223,14 @@ export type ProductPayload = {
     weightGrams?: number | null;
     warrantyMonths?: number | null;
   };
+  accessoryDetails?: {
+    claspType?: string | null;
+    caseMaterialId?: number | null;
+    insertMaterialId?: number | null;
+    hasInsert?: boolean | null;
+    colorId?: number | null;
+    length?: string | null;
+  };
   kaspiUrl?: string | null;
   wildberriesUrl?: string | null;
 };
@@ -226,6 +243,7 @@ export type ProductBulkCommonPayload = {
   description?: ProductDescriptionPayload | null;
   watchDetails?: ProductPayload["watchDetails"];
   interiorClockDetails?: ProductPayload["interiorClockDetails"];
+  accessoryDetails?: ProductPayload["accessoryDetails"];
   kaspiUrl?: string | null;
   wildberriesUrl?: string | null;
 };
@@ -242,6 +260,7 @@ export type ProductBulkRowPayload = {
   description?: ProductDescriptionPayload | null;
   watchDetails?: Partial<NonNullable<ProductPayload["watchDetails"]>> | null;
   interiorClockDetails?: Partial<NonNullable<ProductPayload["interiorClockDetails"]>> | null;
+  accessoryDetails?: Partial<NonNullable<ProductPayload["accessoryDetails"]>> | null;
   kaspiUrl?: string | null;
   wildberriesUrl?: string | null;
 };

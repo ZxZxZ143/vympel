@@ -200,6 +200,13 @@ const ProductInfoTabs = ({product, descriptionContent, reviews}: Props) => {
                                 warrantyMonths: t("details.warrantyMonths"),
                                 grams: t("units.grams"),
                                 months: t("units.months"),
+                                claspType: t("details.claspType"),
+                                accessoryCaseMaterial: t("details.accessoryCaseMaterial"),
+                                insertMaterial: t("details.insertMaterial"),
+                                hasInsert: t("details.hasInsert"),
+                                length: t("details.length"),
+                                yes: t("details.yes"),
+                                no: t("details.no"),
                             }}
                         />
                     </div>

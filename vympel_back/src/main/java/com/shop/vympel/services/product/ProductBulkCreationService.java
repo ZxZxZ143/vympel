@@ -1,6 +1,8 @@
 package com.shop.vympel.services.product;
 
 import com.shop.vympel.dtos.product.*;
+import com.shop.vympel.dtos.product.details.AccessoryDetailCreateRequest;
+import com.shop.vympel.dtos.product.details.AccessoryDetailUpdateRequest;
 import com.shop.vympel.dtos.product.details.InteriorClockDetailCreateRequest;
 import com.shop.vympel.dtos.product.details.InteriorClockDetailUpdateRequest;
 import com.shop.vympel.dtos.product.details.WatchDetailCreateRequest;
@@ -65,6 +67,10 @@ public class ProductBulkCreationService {
         product.setInteriorClockDetails(mergeInteriorClockDetails(
                 common.getInteriorClockDetails(),
                 row.getInteriorClockDetails()
+        ));
+        product.setAccessoryDetails(mergeAccessoryDetails(
+                common.getAccessoryDetails(),
+                row.getAccessoryDetails()
         ));
         product.setKaspiUrl(firstNonBlank(row.getKaspiUrl(), common.getKaspiUrl()));
         product.setWildberriesUrl(firstNonBlank(row.getWildberriesUrl(), common.getWildberriesUrl()));
@@ -142,6 +148,24 @@ public class ProductBulkCreationService {
         merged.setDimensions(firstNonBlank(row == null ? null : row.getDimensions(), common == null ? null : common.getDimensions()));
         merged.setWeightGrams(firstNonNull(row == null ? null : row.getWeightGrams(), common == null ? null : common.getWeightGrams()));
         merged.setWarrantyMonths(firstNonNull(row == null ? null : row.getWarrantyMonths(), common == null ? null : common.getWarrantyMonths()));
+        return merged;
+    }
+
+    private AccessoryDetailCreateRequest mergeAccessoryDetails(
+            AccessoryDetailCreateRequest common,
+            AccessoryDetailUpdateRequest row
+    ) {
+        if (common == null && row == null) {
+            return null;
+        }
+
+        AccessoryDetailCreateRequest merged = new AccessoryDetailCreateRequest();
+        merged.setClaspType(firstNonBlank(row == null ? null : row.getClaspType(), common == null ? null : common.getClaspType()));
+        merged.setCaseMaterialId(firstNonNull(row == null ? null : row.getCaseMaterialId(), common == null ? null : common.getCaseMaterialId()));
+        merged.setInsertMaterialId(firstNonNull(row == null ? null : row.getInsertMaterialId(), common == null ? null : common.getInsertMaterialId()));
+        merged.setHasInsert(firstNonNull(row == null ? null : row.getHasInsert(), common == null ? null : common.getHasInsert()));
+        merged.setColorId(firstNonNull(row == null ? null : row.getColorId(), common == null ? null : common.getColorId()));
+        merged.setLength(firstNonBlank(row == null ? null : row.getLength(), common == null ? null : common.getLength()));
         return merged;
     }
 
