@@ -20,6 +20,8 @@ import { Text } from "@/shared/ui/Text";
 import { getCategoryProfile, productTypeForCategory } from "@/features/products/productCategoryProfile";
 import { notifyProductListChanged } from "@/features/products/productListRefresh";
 import { brandCountryFor } from "@/features/products/brandCountry";
+import { KaspiImportDialog } from "@/features/products/KaspiImportDialog";
+import { applyKaspiImportPreview } from "@/features/products/kaspiImport";
 
 const statuses: ProductStatus[] = ["ACTIVE", "DRAFT", "ARCHIVED"];
 const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_CLOCK", "FLOOR_CLOCK"];
@@ -180,6 +182,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [collectionSaving, setCollectionSaving] = useState(false);
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionSuccess, setCollectionSuccess] = useState<string | null>(null);
+  const [kaspiImportOpen, setKaspiImportOpen] = useState(false);
   const isEdit = productId !== undefined;
   const markdownEditorLabels: MarkdownEditorLabels = {
     write: t("products.markdownWrite"),
@@ -630,6 +633,14 @@ export function ProductForm({ productId }: ProductFormProps) {
     <section className="crm-page">
       <Text tone="muted">{t("products.subtitle")}</Text>
 
+      {!isEdit ? (
+        <div className="crm-inline-actions">
+          <Button type="button" onClick={() => setKaspiImportOpen(true)}>
+            {t("products.kaspiImport")}
+          </Button>
+        </div>
+      ) : null}
+
       {error && <Text className="crm-form-error">{error}</Text>}
 
       <form className="crm-page" onSubmit={handleSubmit(submit)}>
@@ -927,6 +938,19 @@ export function ProductForm({ productId }: ProductFormProps) {
           }
         }}
       />
+      {!isEdit ? (
+        <KaspiImportDialog
+          open={kaspiImportOpen}
+          categoryId={Number(form.categoryId)}
+          locale={locale}
+          t={t}
+          onApply={(preview) => {
+            resetProductForm(applyKaspiImportPreview(form, preview), { keepDirty: true });
+            setError(null);
+          }}
+          onOpenChange={setKaspiImportOpen}
+        />
+      ) : null}
     </section>
   );
 }

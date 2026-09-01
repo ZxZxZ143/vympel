@@ -73,6 +73,7 @@ security:
       registration-identity: { capacity: "${VYMPEL_RL_REGISTRATION_IDENTITY_CAPACITY:3}", window-seconds: "${VYMPEL_RL_REGISTRATION_IDENTITY_WINDOW:86400}", fail-open: false }
       refresh-source: { capacity: "${VYMPEL_RL_REFRESH_SOURCE_CAPACITY:60}", window-seconds: "${VYMPEL_RL_REFRESH_SOURCE_WINDOW:60}", fail-open: false }
       logout-source: { capacity: "${VYMPEL_RL_LOGOUT_SOURCE_CAPACITY:60}", window-seconds: "${VYMPEL_RL_LOGOUT_SOURCE_WINDOW:60}", fail-open: true }
+      crm-product-import: { capacity: "${VYMPEL_RL_CRM_PRODUCT_IMPORT_CAPACITY:12}", window-seconds: "${VYMPEL_RL_CRM_PRODUCT_IMPORT_WINDOW:60}", fail-open: false }
       public-review: { capacity: "${VYMPEL_RL_PUBLIC_REVIEW_CAPACITY:5}", window-seconds: "${VYMPEL_RL_PUBLIC_REVIEW_WINDOW:3600}", fail-open: false }
       public-review-source: { capacity: "${VYMPEL_RL_PUBLIC_REVIEW_SOURCE_CAPACITY:8}", window-seconds: "${VYMPEL_RL_PUBLIC_REVIEW_SOURCE_WINDOW:3600}", fail-open: false }
       public-review-duplicate: { capacity: 1, window-seconds: "${VYMPEL_RL_PUBLIC_REVIEW_DUPLICATE_WINDOW:120}", fail-open: false }

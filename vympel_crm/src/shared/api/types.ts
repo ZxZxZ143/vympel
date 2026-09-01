@@ -235,6 +235,100 @@ export type ProductPayload = {
   wildberriesUrl?: string | null;
 };
 
+export type KaspiImportRequest = {
+  url: string;
+  categoryId: number;
+};
+
+export type KaspiImportCategoryProfile = "WRISTWATCH" | "INTERIOR_CLOCK" | "ACCESSORY" | "GENERIC";
+
+export type KaspiImportResolution = "EXACT" | "NORMALIZED" | "ALIAS";
+
+export type KaspiImportUnmappedReason =
+  | "UNKNOWN_LABEL"
+  | "UNSUPPORTED_FOR_CATEGORY"
+  | "UNRESOLVED_VALUE"
+  | "AMBIGUOUS_VALUE"
+  | "INVALID_VALUE"
+  | "DUPLICATE_CONFLICT";
+
+export type KaspiImportValues = {
+  nameRu?: string | null;
+  brandId?: number | null;
+  model?: string | null;
+  price?: number | null;
+  descriptionRu?: string | null;
+  kaspiUrl: string;
+  watchDetails?: {
+    mechanismId?: number | null;
+    genderId?: number | null;
+    caseMaterialId?: number | null;
+    strapMaterialId?: number | null;
+    glassTypeId?: number | null;
+    caseSizeMm?: number | null;
+    waterResistance?: string | null;
+    stoneInlayId?: number | null;
+  } | null;
+  interiorClockDetails?: {
+    productionCountryId?: number | null;
+    caseMaterialId?: number | null;
+    colorId?: number | null;
+    styleId?: number | null;
+    mechanismTypeId?: number | null;
+    powerTypeId?: number | null;
+    dimensions?: string | null;
+    weightGrams?: number | null;
+    warrantyMonths?: number | null;
+  } | null;
+  accessoryDetails?: {
+    claspType?: string | null;
+    caseMaterialId?: number | null;
+    insertMaterialId?: number | null;
+    hasInsert?: boolean | null;
+    colorId?: number | null;
+    length?: string | null;
+  } | null;
+};
+
+export type KaspiImportMappedCharacteristic = {
+  sourceLabel: string;
+  sourceValue: string;
+  targetField: string;
+  resolvedValue: string;
+  resolution: KaspiImportResolution;
+};
+
+export type KaspiImportMappedField = {
+  targetField: string;
+  resolvedValue: string;
+};
+
+export type KaspiImportUnmappedCharacteristic = {
+  sourceLabel: string;
+  sourceValue: string;
+  reason: KaspiImportUnmappedReason;
+};
+
+export type KaspiImportUnresolvedCharacteristic = {
+  sourceLabel: string;
+  sourceValue: string;
+  targetField: string;
+  reason: Exclude<KaspiImportUnmappedReason, "UNKNOWN_LABEL" | "UNSUPPORTED_FOR_CATEGORY">;
+};
+
+export type KaspiImportPreview = {
+  source: "KASPI";
+  sourceUrl: string;
+  categoryId: number;
+  categoryProfile: KaspiImportCategoryProfile;
+  values: KaspiImportValues;
+  mappedFields: KaspiImportMappedField[];
+  mappedCharacteristics: KaspiImportMappedCharacteristic[];
+  unmappedCharacteristics: KaspiImportUnmappedCharacteristic[];
+  unresolvedCharacteristics: KaspiImportUnresolvedCharacteristic[];
+  warnings: string[];
+};
+
 export type ProductBulkCommonPayload = {
   brandId: number;
   collectionId?: number | null;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { Product, References } from "@/shared/api/types";
+import type { KaspiImportPreview, Product, References } from "@/shared/api/types";
 import { emptyForm, productToForm, toPayload, withSelectedCategory } from "./ProductForm";
+import { applyKaspiImportPreview } from "./kaspiImport";
 
 const references: References = {
   categories: [{ id: 1, code: "WATCH_WRIST", name: "Watches", parentId: null }],
@@ -280,3 +281,111 @@ describe("product replacement payload", () => {
     expect(watch.productType).toBe("WATCH");
   });
 });
+
+describe("Kaspi import preview application", () => {
+  it("applies only present mapped fields while preserving category, product type, and absent values", () => {
+    const current = {
+      ...emptyForm,
+      categoryId: "1",
+      productType: "WATCH" as const,
+      nameRu: "Current name",
+      nameEn: "English stays",
+      price: "500",
+      stockQuantity: "9",
+      brandId: "10",
+      collectionId: "33",
+      caseMaterialId: "1",
+      accessoryHasInsert: "true",
+    };
+    const preview = kaspiPreview({
+      nameRu: "Imported name",
+      brandId: 10,
+      price: 0,
+      descriptionRu: "Описание **Markdown**",
+      kaspiUrl: "https://kaspi.kz/shop/p/watch-123",
+      watchDetails: {
+        mechanismId: 5,
+        genderId: null,
+        caseMaterialId: null,
+        strapMaterialId: 3,
+        glassTypeId: 4,
+        caseSizeMm: 0,
+        waterResistance: "5 ATM",
+        stoneInlayId: null,
+      },
+    });
+
+    const applied = applyKaspiImportPreview(current, preview);
+
+    expect(applied).toMatchObject({
+      categoryId: "1",
+      productType: "WATCH",
+      nameRu: "Imported name",
+      nameEn: "English stays",
+      price: "0",
+      stockQuantity: "9",
+      collectionId: "33",
+      caseMaterialId: "1",
+      mechanismId: "5",
+      strapMaterialId: "3",
+      glassTypeId: "4",
+      caseSizeMm: "0",
+      waterResistance: "5 ATM",
+      descriptionRu: "Описание **Markdown**",
+      kaspiUrl: "https://kaspi.kz/shop/p/watch-123",
+    });
+  });
+
+  it("clears brand-dependent values on a changed imported brand and preserves false", () => {
+    const applied = applyKaspiImportPreview({
+      ...emptyForm,
+      categoryId: "10",
+      productType: "ACCESSORY",
+      brandId: "10",
+      collectionId: "33",
+      productionCountryId: "20",
+    }, {
+      ...kaspiPreview({
+        brandId: 11,
+        kaspiUrl: "https://kaspi.kz/shop/p/accessory-123",
+        accessoryDetails: {
+          claspType: null,
+          caseMaterialId: null,
+          insertMaterialId: null,
+          hasInsert: false,
+          colorId: null,
+          length: null,
+        },
+      }),
+      categoryId: 10,
+      categoryProfile: "ACCESSORY",
+    });
+
+    expect(applied.brandId).toBe("11");
+    expect(applied.collectionId).toBe("");
+    expect(applied.productionCountryId).toBe("");
+    expect(applied.accessoryHasInsert).toBe("false");
+  });
+
+  it("refuses a stale preview produced for another selected category", () => {
+    const current = { ...emptyForm, categoryId: "1", nameRu: "Keep me" };
+    const preview = { ...kaspiPreview({ nameRu: "Wrong category", kaspiUrl: "https://kaspi.kz/shop/p/x" }), categoryId: 2 };
+
+    expect(applyKaspiImportPreview(current, preview)).toBe(current);
+  });
+});
+
+function kaspiPreview(values: KaspiImportPreview["values"]): KaspiImportPreview {
+  return {
+    source: "KASPI",
+    sourceUrl: values.kaspiUrl,
+    categoryId: 1,
+    categoryProfile: "WRISTWATCH",
+    values,
+    mappedFields: [],
+    mappedCharacteristics: [],
+    unmappedCharacteristics: [],
+    unresolvedCharacteristics: [],
+    warnings: [],
+  };
+}

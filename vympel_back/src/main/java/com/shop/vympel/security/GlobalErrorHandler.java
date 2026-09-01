@@ -5,6 +5,7 @@ import com.shop.vympel.exceptions.BusinessRuleViolationException;
 import com.shop.vympel.exceptions.InvalidRefreshTokenException;
 import com.shop.vympel.exceptions.InvalidSortException;
 import com.shop.vympel.exceptions.ResourceNotFoundException;
+import com.shop.vympel.exceptions.ProductImportException;
 import com.shop.vympel.logging.RequestCorrelationFilter;
 import com.shop.vympel.logging.SecurityAuditLogger;
 import com.shop.vympel.logging.SensitiveDataMasker;
@@ -44,6 +45,15 @@ import java.util.Map;
 @RestControllerAdvice
 @Slf4j
 public class GlobalErrorHandler {
+
+    @ExceptionHandler(ProductImportException.class)
+    public ResponseEntity<ApiErrorResponse> handleProductImport(
+            ProductImportException ex,
+            HttpServletRequest req
+    ) {
+        log.warn("Product import rejected code={}", ex.getCode());
+        return errorResponse(ex.getStatus(), ex.getCode(), ex.getMessage(), req);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(

@@ -22,6 +22,8 @@ import {
   CustomerRequest,
   CustomerRequestStatus,
   Dashboard,
+  KaspiImportPreview,
+  KaspiImportRequest,
   ManagedUser,
   Page,
   Product,
@@ -91,6 +93,7 @@ let refreshPromise: Promise<string> | null = null;
 const CRM_REFRESH_LOCK = "vympel-crm-refresh-cookie-rotation";
 const CRM_API_TIMEOUT_MS = 15_000;
 const CRM_API_UPLOAD_TIMEOUT_MS = 60_000;
+const CRM_API_IMPORT_TIMEOUT_MS = 30_000;
 
 async function withCrossTabRefreshLock<T>(refresh: () => Promise<T>): Promise<T> {
   const lockManager = typeof navigator === "undefined" ? undefined : navigator.locks;
@@ -405,6 +408,14 @@ export const crmApi = {
     return crmFetch<Product>(`/products?lang=${encodeURIComponent(lang)}`, {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+  importKaspiProduct(payload: KaspiImportRequest, lang: string, signal?: AbortSignal) {
+    return crmFetch<KaspiImportPreview>(`/products/import/kaspi?lang=${encodeURIComponent(lang)}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      signal,
+      timeoutMs: CRM_API_IMPORT_TIMEOUT_MS,
     });
   },
   createProductsBulk(payload: ProductBulkCreatePayload, lang: string) {

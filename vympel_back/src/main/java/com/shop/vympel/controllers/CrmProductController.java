@@ -10,10 +10,13 @@ import com.shop.vympel.dtos.product.ProductCreateRequest;
 import com.shop.vympel.dtos.product.ProductResponse;
 import com.shop.vympel.dtos.product.CrmProductListItemResponse;
 import com.shop.vympel.dtos.product.ProductUpdateRequest;
+import com.shop.vympel.dtos.product.KaspiProductImportRequest;
+import com.shop.vympel.dtos.product.KaspiProductImportResponse;
 import com.shop.vympel.dtos.product.image.ProductImageOrderRequest;
 import com.shop.vympel.enums.Language;
 import com.shop.vympel.services.crm.CrmActivityService;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
+import com.shop.vympel.services.marketplace.kaspi.KaspiProductImportService;
 import com.shop.vympel.services.product.ProductBulkCreationService;
 import com.shop.vympel.services.product.ProductService;
 import com.shop.vympel.utils.PageableUtils;
@@ -46,6 +49,7 @@ public class CrmProductController {
     private final ProductBulkCreationService productBulkCreationService;
     private final CrmActivityService crmActivityService;
     private final ObjectStorageService objectStorageService;
+    private final KaspiProductImportService kaspiProductImportService;
 
     @GetMapping
     public ResponseEntity<Page<CrmProductListItemResponse>> getProducts(
@@ -90,6 +94,16 @@ public class CrmProductController {
         );
 
         return product;
+    }
+
+    @PostMapping("/import/kaspi")
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED
+    )
+    public KaspiProductImportResponse importKaspiProduct(
+            @RequestBody @Valid KaspiProductImportRequest req
+    ) {
+        return kaspiProductImportService.preview(req);
     }
 
     @PostMapping("/bulk")

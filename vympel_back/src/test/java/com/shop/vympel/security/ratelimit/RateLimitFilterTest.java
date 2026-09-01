@@ -107,6 +107,8 @@ class RateLimitFilterTest {
                 new MockHttpServletResponse(), new MockFilterChain());
         filter.doFilter(request("POST", "/api/crm/auth/logout"),
                 new MockHttpServletResponse(), new MockFilterChain());
+        filter.doFilter(request("POST", "/api/crm/products/import/kaspi"),
+                new MockHttpServletResponse(), new MockFilterChain());
         filter.doFilter(request("GET", "/api/public/product/ru/42/recommendations"),
                 new MockHttpServletResponse(), new MockFilterChain());
 
@@ -119,6 +121,7 @@ class RateLimitFilterTest {
         verify(service).enforce("registration-source", "source", "203.0.113.7");
         verify(service).enforce("refresh-source", "source", "203.0.113.7");
         verify(service).enforce("logout-source", "source", "203.0.113.7");
+        verify(service).enforce("crm-product-import", "source", "203.0.113.7");
         verify(service).enforce("public-catalog-read", "source", "203.0.113.7");
     }
 
