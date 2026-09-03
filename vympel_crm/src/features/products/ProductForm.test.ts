@@ -17,6 +17,11 @@ const references: References = {
   interiorStyles: [],
   interiorMechanisms: [],
   interiorPowerTypes: [],
+  watchDialTypes: [],
+  watchDialMarkings: [],
+  watchPowerSources: [],
+  watchWaterResistances: [],
+  watchFeatures: [],
 };
 
 const accessoryReferences: References = {
@@ -55,6 +60,14 @@ describe("product replacement payload", () => {
       caseSizeMm: null,
       waterResistance: null,
       stoneInlayId: null,
+      dialTypeId: null,
+      dialMarkingId: null,
+      powerSourceId: null,
+      waterResistanceId: null,
+      strapColorId: null,
+      dialColorId: null,
+      packageContents: null,
+      featureIds: [],
     });
   });
 
@@ -260,10 +273,26 @@ describe("product replacement payload", () => {
       categoryId: "1",
       mechanismId: "5",
       waterResistance: "5 ATM",
+      dialTypeId: "31",
+      dialMarkingId: "32",
+      powerSourceId: "33",
+      waterResistanceId: "34",
+      strapColorId: "35",
+      dialColorId: "36",
+      packageContents: "Watch and box",
+      featureIds: ["37", "38"],
     }, categories, "10");
 
     expect(accessory.mechanismId).toBe("");
     expect(accessory.waterResistance).toBe("");
+    expect(accessory.dialTypeId).toBe("");
+    expect(accessory.dialMarkingId).toBe("");
+    expect(accessory.powerSourceId).toBe("");
+    expect(accessory.waterResistanceId).toBe("");
+    expect(accessory.strapColorId).toBe("");
+    expect(accessory.dialColorId).toBe("");
+    expect(accessory.packageContents).toBe("");
+    expect(accessory.featureIds).toEqual([]);
     expect(accessory.categoryId).toBe("10");
     expect(accessory.productType).toBe("ACCESSORY");
 

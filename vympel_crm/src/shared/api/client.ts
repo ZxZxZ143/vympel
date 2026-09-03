@@ -19,6 +19,7 @@ import {
   CrmCollection,
   CrmUser,
   CrmRole,
+  Feature,
   CustomerRequest,
   CustomerRequestStatus,
   Dashboard,
@@ -39,6 +40,8 @@ import {
   ProductReviewStatus,
   ProductStatus,
   References,
+  ReferenceCreatePayload,
+  ReferenceCreateType,
   UserPayload,
 } from "@/shared/api/types";
 import { reportTelemetry } from "@/shared/telemetry/telemetry";
@@ -488,6 +491,12 @@ export const crmApi = {
   },
   references(lang: string) {
     return crmFetch<References>(`/references?lang=${encodeURIComponent(lang)}`);
+  },
+  createReference(type: ReferenceCreateType, payload: ReferenceCreatePayload, lang: string) {
+    return crmFetch<Feature>(`/references/${type}?lang=${encodeURIComponent(lang)}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
   collections(params: { lang: string; brandId?: number }) {
     const query = new URLSearchParams({ lang: params.lang });

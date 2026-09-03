@@ -11,6 +11,13 @@ type Labels = {
     caseSize: string;
     waterResistance: string;
     stoneInsert: string;
+    dialType: string;
+    dialMarking: string;
+    powerSource: string;
+    strapColor: string;
+    dialColor: string;
+    packageContents: string;
+    watchFeatures: string;
     millimeter: string;
     color: string;
     style: string;
@@ -79,7 +86,14 @@ export const buildProductSpecRows = (product: IProductDetails, labels: Labels): 
         {label: labels.caseSize, value: details?.caseSizeMm !== null && details?.caseSizeMm !== undefined ? `${details.caseSizeMm} ${labels.millimeter}` : undefined},
         {label: labels.stoneInsert, value: getFeatureName(details?.stoneInlay)},
         {label: labels.mechanismType, value: getFeatureName(details?.mechanism)},
-        {label: labels.waterResistance, value: details?.waterResistance},
+        {label: labels.waterResistance, value: getFeatureName(details?.waterResistanceOption) ?? details?.waterResistance},
+        {label: labels.dialType, value: getFeatureName(details?.dialType)},
+        {label: labels.dialMarking, value: getFeatureName(details?.dialMarking)},
+        {label: labels.powerSource, value: getFeatureName(details?.powerSource)},
+        {label: labels.strapColor, value: getFeatureName(details?.strapColor)},
+        {label: labels.dialColor, value: getFeatureName(details?.dialColor)},
+        {label: labels.packageContents, value: details?.packageContents},
+        {label: labels.watchFeatures, value: details?.features?.map((feature) => feature.name).filter(Boolean).join(", ")},
     ];
 
     const visibleRows: ProductSpecRow[] = [];

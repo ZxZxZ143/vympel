@@ -329,6 +329,9 @@ public class GlobalErrorHandler {
             case "uk_cms_block_page_sort_order" -> new ConstraintError(
                     HttpStatus.CONFLICT, "CMS_BLOCK_ORDER_CONFLICT", "CMS block order conflicts with another block."
             );
+            case "uq_watch_attribute_option_type_code", "uq_watch_attribute_option_i18n_name" -> new ConstraintError(
+                    HttpStatus.CONFLICT, "REFERENCE_DUPLICATE", "A reference value with the same normalized name already exists."
+            );
             default -> null;
         };
     }

@@ -37,8 +37,32 @@ public record KaspiProductImportResponse(
             Long glassTypeId,
             Integer caseSizeMm,
             String waterResistance,
-            Long stoneInlayId
+            Long stoneInlayId,
+            Long dialTypeId,
+            Long dialMarkingId,
+            Long powerSourceId,
+            Long waterResistanceId,
+            Long strapColorId,
+            Long dialColorId,
+            String packageContents,
+            List<Long> featureIds
     ) {
+        public WatchDetails(
+                Long mechanismId,
+                Long genderId,
+                Long caseMaterialId,
+                Long strapMaterialId,
+                Long glassTypeId,
+                Integer caseSizeMm,
+                String waterResistance,
+                Long stoneInlayId
+        ) {
+            this(
+                    mechanismId, genderId, caseMaterialId, strapMaterialId, glassTypeId,
+                    caseSizeMm, waterResistance, stoneInlayId,
+                    null, null, null, null, null, null, null, List.of()
+            );
+        }
     }
 
     public record InteriorClockDetails(

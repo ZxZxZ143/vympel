@@ -100,6 +100,14 @@ export type Product = {
     caseSizeMm?: number | null;
     waterResistance?: string | null;
     stoneInlay?: Feature | null;
+    dialType?: Feature | null;
+    dialMarking?: Feature | null;
+    powerSource?: Feature | null;
+    waterResistanceOption?: Feature | null;
+    strapColor?: Feature | null;
+    dialColor?: Feature | null;
+    packageContents?: string | null;
+    features: Feature[];
   } | null;
   interiorClockDetails?: {
     productId: number;
@@ -211,6 +219,14 @@ export type ProductPayload = {
     caseSizeMm?: number | null;
     waterResistance?: string | null;
     stoneInlayId?: number | null;
+    dialTypeId?: number | null;
+    dialMarkingId?: number | null;
+    powerSourceId?: number | null;
+    waterResistanceId?: number | null;
+    strapColorId?: number | null;
+    dialColorId?: number | null;
+    packageContents?: string | null;
+    featureIds?: number[] | null;
   };
   interiorClockDetails?: {
     productionCountryId?: number | null;
@@ -269,6 +285,14 @@ export type KaspiImportValues = {
     caseSizeMm?: number | null;
     waterResistance?: string | null;
     stoneInlayId?: number | null;
+    dialTypeId?: number | null;
+    dialMarkingId?: number | null;
+    powerSourceId?: number | null;
+    waterResistanceId?: number | null;
+    strapColorId?: number | null;
+    dialColorId?: number | null;
+    packageContents?: string | null;
+    featureIds?: number[] | null;
   } | null;
   interiorClockDetails?: {
     productionCountryId?: number | null;
@@ -418,6 +442,34 @@ export type References = {
   interiorStyles: Feature[];
   interiorMechanisms: Feature[];
   interiorPowerTypes: Feature[];
+  watchDialTypes: Feature[];
+  watchDialMarkings: Feature[];
+  watchPowerSources: Feature[];
+  watchWaterResistances: Feature[];
+  watchFeatures: Feature[];
+};
+
+export type ReferenceCreateType =
+  | "watch-mechanisms"
+  | "genders"
+  | "case-materials"
+  | "strap-materials"
+  | "glass-types"
+  | "stone-inlays"
+  | "colors"
+  | "interior-styles"
+  | "interior-mechanisms"
+  | "interior-power-types"
+  | "watch-dial-types"
+  | "watch-dial-markings"
+  | "watch-power-sources"
+  | "watch-water-resistances"
+  | "watch-features";
+
+export type ReferenceCreatePayload = {
+  ru: string;
+  kz?: string;
+  en?: string;
 };
 
 export type Activity = {

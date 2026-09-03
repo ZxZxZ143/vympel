@@ -1,6 +1,7 @@
 package com.shop.vympel.services.watchDetail;
 
 import com.shop.vympel.db.entity.features.Country;
+import com.shop.vympel.db.entity.features.InteriorFeature;
 import com.shop.vympel.db.entity.product.InteriorClockDetail;
 import com.shop.vympel.db.entity.product.Product;
 import com.shop.vympel.db.repositories.product.features.CountryI18nRepository;
@@ -89,6 +90,23 @@ class InteriorClockDetailServiceImplTest {
 
         assertThat(detail.getProductionCountry()).isNull();
         verify(interiorClockDetailRepository).save(detail);
+    }
+
+    @Test
+    void createRejectsAReferenceFromTheWrongInteriorFeatureDictionary() {
+        InteriorFeature color = new InteriorFeature();
+        color.setId(4L);
+        color.setFeatureType("COLOR");
+        color.setActive(true);
+        when(interiorFeatureRepository.findById(4L)).thenReturn(Optional.of(color));
+
+        InteriorClockDetailCreateRequest request = new InteriorClockDetailCreateRequest();
+        request.setStyleId(4L);
+
+        assertThatThrownBy(() -> service.create(request, product(1L), country(2L)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("active STYLE");
+        verify(interiorClockDetailRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
     private Product product(Long id) {

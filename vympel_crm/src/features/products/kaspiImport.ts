@@ -36,6 +36,19 @@ export function applyKaspiImportPreview(
     assignNumber(next, "caseSizeMm", values.watchDetails.caseSizeMm);
     assignString(next, "waterResistance", values.watchDetails.waterResistance);
     assignNumber(next, "stoneInlayId", values.watchDetails.stoneInlayId);
+    assignNumber(next, "dialTypeId", values.watchDetails.dialTypeId);
+    assignNumber(next, "dialMarkingId", values.watchDetails.dialMarkingId);
+    assignNumber(next, "powerSourceId", values.watchDetails.powerSourceId);
+    assignNumber(next, "waterResistanceId", values.watchDetails.waterResistanceId);
+    if (values.watchDetails.waterResistanceId !== null && values.watchDetails.waterResistanceId !== undefined) {
+      next.waterResistance = "";
+    }
+    assignNumber(next, "strapColorId", values.watchDetails.strapColorId);
+    assignNumber(next, "dialColorId", values.watchDetails.dialColorId);
+    assignString(next, "packageContents", values.watchDetails.packageContents);
+    if (values.watchDetails.featureIds?.length) {
+      next.featureIds = values.watchDetails.featureIds.map(String);
+    }
   }
 
   if (preview.categoryProfile === "INTERIOR_CLOCK" && values.interiorClockDetails) {

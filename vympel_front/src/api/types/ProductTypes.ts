@@ -103,6 +103,14 @@ export interface IProductWatchDetails {
     caseSizeMm?: number | null;
     waterResistance?: string | null;
     stoneInlay?: IProductFeature | null;
+    dialType?: IProductFeature | null;
+    dialMarking?: IProductFeature | null;
+    powerSource?: IProductFeature | null;
+    waterResistanceOption?: IProductFeature | null;
+    strapColor?: IProductFeature | null;
+    dialColor?: IProductFeature | null;
+    packageContents?: string | null;
+    features?: IProductFeature[] | null;
 }
 
 export interface IProductInteriorClockDetails {

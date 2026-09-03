@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { CrmApiError, crmApi } from "@/shared/api/client";
 import { getCrmErrorMessage } from "@/shared/api/errors";
-import { CollectionPayload, CrmCollection, Feature, Product, ProductImage, ProductPayload, ProductStatus, ProductType, References } from "@/shared/api/types";
+import { CollectionPayload, CrmCollection, Feature, Product, ProductImage, ProductPayload, ProductStatus, ProductType, ReferenceCreateType, References } from "@/shared/api/types";
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { messages as localizedMessages } from "@/shared/i18n/messages";
 import { useI18n } from "@/shared/i18n/useI18n";
@@ -22,6 +22,13 @@ import { notifyProductListChanged } from "@/features/products/productListRefresh
 import { brandCountryFor } from "@/features/products/brandCountry";
 import { KaspiImportDialog } from "@/features/products/KaspiImportDialog";
 import { applyKaspiImportPreview } from "@/features/products/kaspiImport";
+import {
+  CreatableReferenceMultiSelect,
+  CreatableReferenceSelect,
+  mergeReferenceOption,
+  ReferenceCreateDialog,
+  type ReferenceCreateTarget,
+} from "@/features/products/CreatableReferenceFields";
 
 const statuses: ProductStatus[] = ["ACTIVE", "DRAFT", "ARCHIVED"];
 const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_CLOCK", "FLOOR_CLOCK"];
@@ -29,6 +36,22 @@ const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_C
 type ProductFormProps = {
   productId?: number;
 };
+
+type CreatableReferenceKey =
+  | "mechanisms"
+  | "genders"
+  | "materials"
+  | "glassTypes"
+  | "stoneInlays"
+  | "interiorColors"
+  | "interiorStyles"
+  | "interiorMechanisms"
+  | "interiorPowerTypes"
+  | "watchDialTypes"
+  | "watchDialMarkings"
+  | "watchPowerSources"
+  | "watchWaterResistances"
+  | "watchFeatures";
 
 export type ProductFormState = {
   nameRu: string;
@@ -53,6 +76,14 @@ export type ProductFormState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
+  dialTypeId: string;
+  dialMarkingId: string;
+  powerSourceId: string;
+  waterResistanceId: string;
+  strapColorId: string;
+  dialColorId: string;
+  packageContents: string;
+  featureIds: string[];
   productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
@@ -105,6 +136,14 @@ export const emptyForm: ProductFormState = {
   caseSizeMm: "",
   waterResistance: "",
   stoneInlayId: "",
+  dialTypeId: "",
+  dialMarkingId: "",
+  powerSourceId: "",
+  waterResistanceId: "",
+  strapColorId: "",
+  dialColorId: "",
+  packageContents: "",
+  featureIds: [],
   productionCountryId: "",
   interiorCaseMaterialId: "",
   interiorColorId: "",
@@ -183,6 +222,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionSuccess, setCollectionSuccess] = useState<string | null>(null);
   const [kaspiImportOpen, setKaspiImportOpen] = useState(false);
+  const [referenceCreateTarget, setReferenceCreateTarget] = useState<ReferenceCreateTarget | null>(null);
   const isEdit = productId !== undefined;
   const markdownEditorLabels: MarkdownEditorLabels = {
     write: t("products.markdownWrite"),
@@ -248,6 +288,7 @@ export function ProductForm({ productId }: ProductFormProps) {
 
   const updateField = <Field extends keyof ProductFormState>(field: Field, value: ProductFormState[Field]) => {
     const next = { ...form, [field]: value };
+    const stringValue = typeof value === "string" ? value : "";
 
     if (field === "brandId" && form.brandId !== value) {
       next.collectionId = "";
@@ -256,9 +297,9 @@ export function ProductForm({ productId }: ProductFormProps) {
 
     if (field === "categoryId" && references) {
       const currentProfile = getCategoryProfile(references.categories, form.categoryId);
-      const nextProfile = getCategoryProfile(references.categories, value);
+      const nextProfile = getCategoryProfile(references.categories, stringValue);
 
-      next.productType = productTypeForCategory(references.categories, value);
+      next.productType = productTypeForCategory(references.categories, stringValue);
 
       if (currentProfile !== nextProfile) {
         clearCategoryDetailFields(next);
@@ -272,7 +313,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     }
 
     if (field === "brandId") {
-      setCollectionValue("brandId", value);
+      setCollectionValue("brandId", stringValue);
       setCollectionSuccess(null);
       setCollectionError(null);
     }
@@ -282,6 +323,29 @@ export function ProductForm({ productId }: ProductFormProps) {
     setCollectionValue(field, value as never, { shouldDirty: true });
     setCollectionSuccess(null);
     setCollectionError(null);
+  };
+
+  const openReferenceCreate = (
+    type: ReferenceCreateType,
+    key: CreatableReferenceKey,
+    title: string,
+    selectCreated: (option: Feature) => void
+  ) => {
+    setReferenceCreateTarget({
+      type,
+      title,
+      onCreated: (option) => {
+        setReferences((current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            [key]: mergeReferenceOption(current[key], option),
+          };
+        });
+        selectCreated(option);
+        notifications.success(t("products.referenceCreate"));
+      },
+    });
   };
 
   const toggleCollectionForm = () => {
@@ -738,25 +802,44 @@ export function ProductForm({ productId }: ProductFormProps) {
           <Text tone="muted" size="small">{t("products.specsOptionalHint")}</Text>
           {isWristwatchCategory && (
             <div className="crm-grid crm-grid--form">
-              <ReferenceSelect id="mechanismId" label={t("products.mechanism")} value={form.mechanismId} options={references.mechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("mechanismId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="genderId" label={t("products.gender")} value={form.genderId} options={references.genders} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("genderId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="caseMaterialId" label={t("products.caseMaterial")} value={form.caseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("caseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="strapMaterialId" label={t("products.strapMaterial")} value={form.strapMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("strapMaterialId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="glassTypeId" label={t("products.glassType")} value={form.glassTypeId} options={references.glassTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("glassTypeId", value)} displayLabels={russianCharacteristicLabels} />
+              <ReferenceSelect id="mechanismId" label={t("products.mechanism")} value={form.mechanismId} options={references.mechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("mechanismId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("watch-mechanisms", "mechanisms", t("products.mechanism"), (option) => updateField("mechanismId", String(option.id)))} />
+              <ReferenceSelect id="genderId" label={t("products.gender")} value={form.genderId} options={references.genders} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("genderId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("genders", "genders", t("products.gender"), (option) => updateField("genderId", String(option.id)))} />
+              <ReferenceSelect id="caseMaterialId" label={t("products.caseMaterial")} value={form.caseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("caseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.caseMaterial"), (option) => updateField("caseMaterialId", String(option.id)))} />
+              <ReferenceSelect id="strapMaterialId" label={t("products.strapMaterial")} value={form.strapMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("strapMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("strap-materials", "materials", t("products.strapMaterial"), (option) => updateField("strapMaterialId", String(option.id)))} />
+              <ReferenceSelect id="glassTypeId" label={t("products.glassType")} value={form.glassTypeId} options={references.glassTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("glassTypeId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("glass-types", "glassTypes", t("products.glassType"), (option) => updateField("glassTypeId", String(option.id)))} />
               <NumberField id="caseSizeMm" label={t("products.caseSizeMm")} value={form.caseSizeMm} onChange={(value) => updateField("caseSizeMm", value)} />
-              <TextField id="waterResistance" label={t("products.waterResistance")} value={form.waterResistance} onChange={(value) => updateField("waterResistance", value)} />
-              <ReferenceSelect id="stoneInlayId" label={t("products.stoneInlay")} value={form.stoneInlayId} options={references.stoneInlays} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("stoneInlayId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <div className="crm-grid">
+                <ReferenceSelect id="waterResistanceId" label={t("products.waterResistance")} value={form.waterResistanceId} options={references.watchWaterResistances} placeholder={t("common.selectPlaceholder")} onChange={(value) => { updateField("waterResistanceId", value); if (value || form.waterResistance) updateField("waterResistance", ""); }} onAdd={() => openReferenceCreate("watch-water-resistances", "watchWaterResistances", t("products.waterResistance"), (option) => { updateField("waterResistance", ""); updateField("waterResistanceId", String(option.id)); })} />
+                {form.waterResistance && !form.waterResistanceId ? (
+                  <div className="crm-inline-actions">
+                    <Text tone="muted" size="small">
+                      {t("products.legacyWaterResistance").replace("{value}", form.waterResistance)}
+                    </Text>
+                    <Button type="button" variant="secondary" className="crm-button--compact" onClick={() => updateField("waterResistance", "")}>
+                      {t("products.clearLegacyWaterResistance")}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+              <ReferenceSelect id="stoneInlayId" label={t("products.stoneInlay")} value={form.stoneInlayId} options={references.stoneInlays} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("stoneInlayId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("stone-inlays", "stoneInlays", t("products.stoneInlay"), (option) => updateField("stoneInlayId", String(option.id)))} />
+              <ReferenceSelect id="dialTypeId" label={t("products.dialType")} value={form.dialTypeId} options={references.watchDialTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("dialTypeId", value)} onAdd={() => openReferenceCreate("watch-dial-types", "watchDialTypes", t("products.dialType"), (option) => updateField("dialTypeId", String(option.id)))} />
+              <ReferenceSelect id="dialMarkingId" label={t("products.dialMarking")} value={form.dialMarkingId} options={references.watchDialMarkings} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("dialMarkingId", value)} onAdd={() => openReferenceCreate("watch-dial-markings", "watchDialMarkings", t("products.dialMarking"), (option) => updateField("dialMarkingId", String(option.id)))} />
+              <ReferenceSelect id="powerSourceId" label={t("products.watchPowerSource")} value={form.powerSourceId} options={references.watchPowerSources} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("powerSourceId", value)} onAdd={() => openReferenceCreate("watch-power-sources", "watchPowerSources", t("products.watchPowerSource"), (option) => updateField("powerSourceId", String(option.id)))} />
+              <ReferenceSelect id="strapColorId" label={t("products.strapColor")} value={form.strapColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("strapColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.strapColor"), (option) => updateField("strapColorId", String(option.id)))} />
+              <ReferenceSelect id="dialColorId" label={t("products.dialColor")} value={form.dialColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("dialColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.dialColor"), (option) => updateField("dialColorId", String(option.id)))} />
+              <TextField id="packageContents" label={t("products.packageContents")} value={form.packageContents} maxLength={500} onChange={(value) => updateField("packageContents", value)} />
+              <CreatableReferenceMultiSelect id="featureIds" label={t("products.watchFeatures")} value={form.featureIds} options={references.watchFeatures} onChange={(value) => updateField("featureIds", value)} onAdd={() => openReferenceCreate("watch-features", "watchFeatures", t("products.watchFeatures"), (option) => updateField("featureIds", [...new Set([...form.featureIds, String(option.id)])]))} />
             </div>
           )}
 
           {isInteriorClockCategory && (
             <div className="crm-grid crm-grid--form">
               <ReferenceSelect id="productionCountryId" label={t("products.productionCountry")} value={form.productionCountryId} options={productionCountryOptions} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("productionCountryId", value)} optional />
-              <ReferenceSelect id="interiorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={form.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="interiorColorId" label={t("products.interiorColor")} value={form.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorColorId", value)} />
-              <ReferenceSelect id="interiorStyleId" label={t("products.interiorStyle")} value={form.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorStyleId", value)} optional />
-              <ReferenceSelect id="interiorMechanismTypeId" label={t("products.interiorMechanismType")} value={form.interiorMechanismTypeId} options={references.interiorMechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorMechanismTypeId", value)} />
-              <ReferenceSelect id="powerTypeId" label={t("products.powerType")} value={form.powerTypeId} options={references.interiorPowerTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("powerTypeId", value)} />
+              <ReferenceSelect id="interiorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={form.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.interiorCaseMaterial"), (option) => updateField("interiorCaseMaterialId", String(option.id)))} />
+              <ReferenceSelect id="interiorColorId" label={t("products.interiorColor")} value={form.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.interiorColor"), (option) => updateField("interiorColorId", String(option.id)))} />
+              <ReferenceSelect id="interiorStyleId" label={t("products.interiorStyle")} value={form.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorStyleId", value)} onAdd={() => openReferenceCreate("interior-styles", "interiorStyles", t("products.interiorStyle"), (option) => updateField("interiorStyleId", String(option.id)))} />
+              <ReferenceSelect id="interiorMechanismTypeId" label={t("products.interiorMechanismType")} value={form.interiorMechanismTypeId} options={references.interiorMechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("interiorMechanismTypeId", value)} onAdd={() => openReferenceCreate("interior-mechanisms", "interiorMechanisms", t("products.interiorMechanismType"), (option) => updateField("interiorMechanismTypeId", String(option.id)))} />
+              <ReferenceSelect id="powerTypeId" label={t("products.powerType")} value={form.powerTypeId} options={references.interiorPowerTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("powerTypeId", value)} onAdd={() => openReferenceCreate("interior-power-types", "interiorPowerTypes", t("products.powerType"), (option) => updateField("powerTypeId", String(option.id)))} />
               <TextField id="dimensions" label={t("products.dimensions")} value={form.dimensions} onChange={(value) => updateField("dimensions", value)} />
               <NumberField id="weightGrams" label={t("products.weightGrams")} value={form.weightGrams} onChange={(value) => updateField("weightGrams", value)} />
               <NumberField id="warrantyMonths" label={t("products.warrantyMonths")} value={form.warrantyMonths} onChange={(value) => updateField("warrantyMonths", value)} />
@@ -766,14 +849,14 @@ export function ProductForm({ productId }: ProductFormProps) {
           {isAccessoryCategory && (
             <div className="crm-grid crm-grid--form">
               <TextField id="accessoryClaspType" label={t("products.accessoryClaspType")} value={form.accessoryClaspType} maxLength={100} onChange={(value) => updateField("accessoryClaspType", value)} />
-              <ReferenceSelect id="accessoryCaseMaterialId" label={t("products.accessoryCaseMaterial")} value={form.accessoryCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
-              <ReferenceSelect id="accessoryInsertMaterialId" label={t("products.accessoryInsertMaterial")} value={form.accessoryInsertMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <ReferenceSelect id="accessoryCaseMaterialId" label={t("products.accessoryCaseMaterial")} value={form.accessoryCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.accessoryCaseMaterial"), (option) => updateField("accessoryCaseMaterialId", String(option.id)))} />
+              <ReferenceSelect id="accessoryInsertMaterialId" label={t("products.accessoryInsertMaterial")} value={form.accessoryInsertMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.accessoryInsertMaterial"), (option) => updateField("accessoryInsertMaterialId", String(option.id)))} />
               <SelectField id="accessoryHasInsert" label={t("products.accessoryHasInsert")} value={form.accessoryHasInsert} onChange={(value) => updateField("accessoryHasInsert", value)}>
                 <option value="">{t("common.selectPlaceholder")}</option>
                 <option value="true">{messages.common.yes}</option>
                 <option value="false">{messages.common.no}</option>
               </SelectField>
-              <ReferenceSelect id="accessoryColorId" label={t("products.accessoryColor")} value={form.accessoryColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryColorId", value)} optional />
+              <ReferenceSelect id="accessoryColorId" label={t("products.accessoryColor")} value={form.accessoryColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("accessoryColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.accessoryColor"), (option) => updateField("accessoryColorId", String(option.id)))} />
               <TextField id="accessoryLength" label={t("products.accessoryLength")} value={form.accessoryLength} maxLength={100} onChange={(value) => updateField("accessoryLength", value)} />
             </div>
           )}
@@ -959,6 +1042,10 @@ export function ProductForm({ productId }: ProductFormProps) {
           onOpenChange={setKaspiImportOpen}
         />
       ) : null}
+      <ReferenceCreateDialog
+        target={referenceCreateTarget}
+        onClose={() => setReferenceCreateTarget(null)}
+      />
     </section>
   );
 }
@@ -1102,6 +1189,7 @@ function ReferenceSelect({
   displayLabels,
   disabled = false,
   onChange,
+  onAdd,
 }: {
   id: string;
   label: string;
@@ -1112,16 +1200,20 @@ function ReferenceSelect({
   displayLabels?: Record<string, string>;
   disabled?: boolean;
   onChange: (value: string) => void;
+  onAdd?: () => void;
 }) {
   return (
-    <SelectField id={id} label={label} value={value} disabled={disabled} onChange={onChange}>
-      <option value="">{optional ? placeholder : placeholder}</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>
-          {option.code && displayLabels?.[option.code] ? displayLabels[option.code] : option.name}
-        </option>
-      ))}
-    </SelectField>
+    <CreatableReferenceSelect
+      id={id}
+      label={label}
+      value={value}
+      options={options}
+      placeholder={optional ? placeholder : placeholder}
+      displayLabels={displayLabels}
+      disabled={disabled}
+      onChange={onChange}
+      onAdd={onAdd}
+    />
   );
 }
 
@@ -1264,6 +1356,14 @@ export function toPayload(form: ProductFormState, references: References): Produ
       caseSizeMm: optionalNumber(form.caseSizeMm),
       waterResistance: form.waterResistance.trim() || null,
       stoneInlayId: optionalNumber(form.stoneInlayId),
+      dialTypeId: optionalNumber(form.dialTypeId),
+      dialMarkingId: optionalNumber(form.dialMarkingId),
+      powerSourceId: optionalNumber(form.powerSourceId),
+      waterResistanceId: optionalNumber(form.waterResistanceId),
+      strapColorId: optionalNumber(form.strapColorId),
+      dialColorId: optionalNumber(form.dialColorId),
+      packageContents: form.packageContents.trim() || null,
+      featureIds: form.featureIds.map(Number),
     };
   }
 
@@ -1361,6 +1461,14 @@ function clearCategoryDetailFields(form: ProductFormState): ProductFormState {
   form.caseSizeMm = "";
   form.waterResistance = "";
   form.stoneInlayId = "";
+  form.dialTypeId = "";
+  form.dialMarkingId = "";
+  form.powerSourceId = "";
+  form.waterResistanceId = "";
+  form.strapColorId = "";
+  form.dialColorId = "";
+  form.packageContents = "";
+  form.featureIds = [];
   form.productionCountryId = "";
   form.interiorCaseMaterialId = "";
   form.interiorColorId = "";
@@ -1405,6 +1513,14 @@ export function productToForm(product: Product): ProductFormState {
     caseSizeMm: product.watchDetails?.caseSizeMm ? String(product.watchDetails.caseSizeMm) : "",
     waterResistance: product.watchDetails?.waterResistance ?? "",
     stoneInlayId: product.watchDetails?.stoneInlay?.id ? String(product.watchDetails.stoneInlay.id) : "",
+    dialTypeId: product.watchDetails?.dialType?.id ? String(product.watchDetails.dialType.id) : "",
+    dialMarkingId: product.watchDetails?.dialMarking?.id ? String(product.watchDetails.dialMarking.id) : "",
+    powerSourceId: product.watchDetails?.powerSource?.id ? String(product.watchDetails.powerSource.id) : "",
+    waterResistanceId: product.watchDetails?.waterResistanceOption?.id ? String(product.watchDetails.waterResistanceOption.id) : "",
+    strapColorId: product.watchDetails?.strapColor?.id ? String(product.watchDetails.strapColor.id) : "",
+    dialColorId: product.watchDetails?.dialColor?.id ? String(product.watchDetails.dialColor.id) : "",
+    packageContents: product.watchDetails?.packageContents ?? "",
+    featureIds: product.watchDetails?.features?.map((feature) => String(feature.id)) ?? [],
     productionCountryId: product.interiorClockDetails?.productionCountry?.id ? String(product.interiorClockDetails.productionCountry.id) : "",
     interiorCaseMaterialId: product.interiorClockDetails?.caseMaterial?.id ? String(product.interiorClockDetails.caseMaterial.id) : "",
     interiorColorId: product.interiorClockDetails?.color?.id ? String(product.interiorClockDetails.color.id) : "",

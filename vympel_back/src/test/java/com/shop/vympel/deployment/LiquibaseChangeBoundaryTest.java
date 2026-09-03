@@ -10,9 +10,9 @@ class LiquibaseChangeBoundaryTest {
     void derivesTheLatestChangeFromThePackagedMasterChangelog() {
         assertEquals(
                 new LiquibaseChangeBoundary.ChangeIdentity(
-                        "2026-08-31-02-kaspi-product-source-links",
+                        "2026-09-03-01-watch-product-characteristics",
                         "codex",
-                        "db/changelog/2026-08-31-01-stainless-steel-material.xml"
+                        "db/changelog/2026-09-03-01-watch-product-characteristics.xml"
                 ),
                 new LiquibaseChangeBoundary().expectedLatestChange()
         );

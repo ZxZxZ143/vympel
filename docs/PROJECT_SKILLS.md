@@ -911,7 +911,7 @@
 ### CRM product photo upload contract
 
 * **When to use:** Whenever product photo upload, previews, or media response handling changes in the CRM.
-* **How:** Upload files with multipart `files` to `POST /api/crm/products/{id}/images?lang=`, return `ProductResponse` with refreshed `images`, validate the same supported MIME types/10 MB limit on both sides, and keep the frontend API client using `FormData` without setting a JSON `Content-Type`.
+* **How:** Upload files with multipart `files` to `POST /api/crm/products/{id}/images?lang=`, return `ProductResponse` with refreshed `images`, validate the same decoder-proven JPEG/PNG/GIF MIME+extension set and 10 MB limit on both sides, and keep the frontend API client using `FormData` without setting a JSON `Content-Type`. Do not advertise WebP until the backend decoder validates it.
 * **Why:** Product media already lives in MinIO/S3 through `ObjectStorageService`; duplicating upload/storage logic or inventing a second media DTO would create contract drift.
 
 ### CRM reference option labels
@@ -967,6 +967,24 @@
 * **When to use:** When CMS stores a third-party post/reel link that becomes a public external anchor.
 * **How:** Parse and canonicalize at the backend trust boundary using an exact HTTPS host/path/id allow-list; force the required link type/open behavior. Mirror the parser in CRM for immediate feedback and storefront for defense in depth, but never rely on either client as authorization.
 * **Why:** String-prefix checks accept fake hosts and encoded-path tricks, while one canonical stored form makes output, testing, and auditing predictable.
+
+### Transactional creatable reference values
+
+* **When to use:** A CRM product select needs an inline “+ Добавить” path for an allow-listed dictionary.
+* **How:** Keep IDs as form values, POST localized `{ ru, kz?, en? }` to `/api/crm/references/{type}`, normalize duplicates across every locale, serialize equivalent concurrent names with transaction-scoped PostgreSQL advisory locks, and commit the new option plus CRM audit in one transaction. In React, use the shared `CreatableReferenceFields` dialog, guard submit synchronously, merge the response with a functional reference-cache update, and select it through the same RHF/form-state setter in the same batch. Kaspi preview may resolve existing options but must never call this mutation path.
+* **Why:** This prevents case/spacing races, unaudited dictionary writes, stale option lists, and full-page reloads while preserving the form library as the single source of truth.
+
+### Normalized multi-value watch features
+
+* **When to use:** Persisting, importing, bulk-overriding, clearing, or rendering “Особенности часов”.
+* **How:** Reuse `watch_feature` plus `watch_details_feature`; accept a bounded list of positive IDs, validate every active row, deduplicate through the relation key, and replace the owner’s relation set transactionally. `null`/omission preserves the request contract where applicable, while an explicit empty list clears inherited or saved values. Public DTOs return localized feature objects and the storefront joins only their names.
+* **Why:** A relation table supports zero/one/many values, referential integrity, localization, clean clearing, and future querying without comma-separated uncontrolled text.
+
+### Map reliable Kaspi leaf-function labels conservatively
+
+* **When to use:** Kaspi exposes functions as leaf pairs such as `Функции: хронограф` or `Отображение даты: число` instead of one `Особенности часов` list.
+* **How:** Route only explicit function labels (`Функции`, date/calendar, chronograph, stopwatch, alarm, backlight and their known English equivalents) to the feature resolver. Resolve the value first; if it is a display form such as `число`, resolve the known label itself. Never select a label-derived feature for explicit negative values (`нет`, `false`, `none`, and equivalents), and leave unknown labels/values unresolved or unmapped. When several leaf pairs resolve, merge IDs without duplicates and preserve their labels in readable preview source text.
+* **Why:** Real Kaspi pages nest these leaf rows under aggregate headings; using only synthetic “Особенности часов” fixtures misses valid features, while classifying arbitrary unknown characteristics would pollute the product meaning.
 
 ## Figma / UI Implementation Patterns
 
@@ -1685,7 +1703,7 @@
 * **How to verify public responsive work safely:** Use bounded commands such as `cd vympel_front && npm run lint` and `cd vympel_front && npm run build`; do not use dev servers, `next start`, or watch commands as final checks. Responsive source/render review must include very small widths such as 320px.
 * **How to verify shared search changes safely:** Run `cd vympel_front && npm run lint`, `npm run typecheck`, and `npm run build`. Use only a bounded managed production preview when explicit responsive browser measurements are required, stop the process afterward, and never treat `dev`, `start`, or watch commands as final verification.
 * **How to run backend tests:** `cd vympel_back && .\gradlew.bat test`.
-* **How to verify Kaspi import:** Run backend `KaspiUrlGuardTest`, `KaspiProductParserTest`, `KaspiCharacteristicMapperTest`, `KaspiProductImportServiceTest`, `SecureKaspiPageFetcherTest`, `CrmProductControllerKaspiTest`, `MigrationVerificationRunnerTest`, `LiquibaseChangeBoundaryTest`, `MarketplaceUrlPolicyTest`, `RateLimitFilterTest`, and the stainless migration contract test; then run the full backend suite and `bootJar`. Run CRM `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`, including sanitizer-shaped preview text and failed/repeated import cases. Build the backend/CRM images, run the finite migration-only service, and restart the rebuilt services. Verify desktop, short-height, 390px, and 320px dialog geometry with an extreme long-content harness: only the body scrolls, actions/close remain visible, page and horizontal scroll stay zero, and the harness/server are removed afterward. Call the authenticated preview with a real Kaspi product URL, prove preview alone does not persist, then create/edit/archive a disposable draft through the normal product endpoints to prove imported values remain editable and the authoritative save path works.
+* **How to verify Kaspi import:** Run backend `KaspiUrlGuardTest`, `KaspiProductParserTest`, `KaspiCharacteristicMapperTest`, `KaspiProductImportServiceTest`, `SecureKaspiPageFetcherTest`, `CrmProductControllerKaspiTest`, `WatchProductCharacteristicsMigrationContractTest`, `CrmReferenceMutationServiceTest`, `WatchDetailServiceImplTest`, `MigrationVerificationRunnerTest`, `LiquibaseChangeBoundaryTest`, `MarketplaceUrlPolicyTest`, and `RateLimitFilterTest`; then run the full backend suite and `bootJar`. Run CRM `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`, including sanitizer-shaped preview text, creatable-reference success/cancel/double-submit/conflict paths, category isolation, and failed/repeated imports. Run storefront specs tests plus its full gates. Build the local stack and verify the guarded migration against PostgreSQL. In a real authenticated browser, import an actual Kaspi product and confirm both aggregate fields and live leaf pairs (`Функции: хронограф`, `Отображение даты: число`) map; Apply must select the corresponding features while unknown/negative values remain unresolved. Verify only the modal body scrolls, header/footer remain visible, horizontal overflow is zero, created reference options auto-select without reload, save/reopen preserves all fields, and the public product page shows populated values while omitting empty ones.
 * **Where frontend tests live:** Public frontend tests live beside source under `vympel_front/src/**/*.test.ts(x)`; CRM auth tests live at `vympel_crm/src/shared/api/client.test.ts`, `shared/auth/permissions.test.ts`, and `shared/i18n/messages.test.ts`.
 * **Where backend tests live:** `vympel_back/src/test/java`; abuse coverage is under `security/ratelimit`, `security/config/NonLocalSecurityConfigurationValidatorTest`, `security/GlobalErrorHandlerTest`, `services/PublicWriteAbuseProtectionTest`, `controllers/CrmAuthLifecycleIntegrationTest`, and container-backed `security/ratelimit/RedisRateLimitStoreIntegrationTest`.
 * **Mocking approach:** Backend uses Mockito for service contracts and real JWT parsing; the finite CRM auth integration test uses a random-port Spring server, configured PostgreSQL, unique test users, and deterministic cleanup. CRM Vitest uses an in-memory sessionStorage/EventTarget plus deterministic fetch responses to assert concurrency and request counts.
@@ -2480,4 +2498,4 @@
 
 ## Last Updated
 
-2026-09-03 - Recorded viewport-safe Kaspi modal composition, layered import rate/concurrency/deadline bounds, conservative adversarial parsing/mapping, fail-closed importer rollback, derived packaged Liquibase boundaries, and the authenticated preview/create/edit/archive verification pattern.
+2026-09-04 - Recorded transactional creatable-reference and auto-selection patterns, normalized watch-feature replacement/clearing, conservative live Kaspi leaf-function mapping, decoder-proven image upload formats, and the authenticated API/browser verification matrix for optional watch characteristics.

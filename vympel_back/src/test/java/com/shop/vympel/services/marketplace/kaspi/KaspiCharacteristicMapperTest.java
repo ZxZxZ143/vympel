@@ -249,6 +249,75 @@ class KaspiCharacteristicMapperTest {
         assertEquals(18, convertedUnits.values().interiorClockDetails().warrantyMonths());
     }
 
+    @Test
+    void mapsAdditionalWatchDictionariesColorsPackageAndMultipleReliableFeatures() {
+        KaspiProductImportResponse response = mapper.map(
+                product(List.of(
+                        new KaspiCharacteristic("Способ отображения времени", "аналоговый (стрелки)"),
+                        new KaspiCharacteristic("Цифры", "штрихи"),
+                        new KaspiCharacteristic("Источник энергии", "от батарейки"),
+                        new KaspiCharacteristic("Цвет ремешка", "белый"),
+                        new KaspiCharacteristic("Цвет циферблата", "коричневый"),
+                        new KaspiCharacteristic("Комплектация", "часы"),
+                        new KaspiCharacteristic("Особенности часов", "дата, хронограф, подсветка")
+                )),
+                "https://kaspi.kz/shop/p/watch-123", 77L,
+                CatalogCategoryProfile.WRISTWATCH, references()
+        );
+
+        KaspiProductImportResponse.WatchDetails watch = response.values().watchDetails();
+        assertEquals(30L, watch.dialTypeId());
+        assertEquals(31L, watch.dialMarkingId());
+        assertEquals(32L, watch.powerSourceId());
+        assertEquals(41L, watch.strapColorId());
+        assertEquals(42L, watch.dialColorId());
+        assertEquals("часы", watch.packageContents());
+        assertEquals(List.of(50L, 51L, 52L), watch.featureIds());
+    }
+
+    @Test
+    void mapsLiveKaspiLeafFunctionAndDateLabelsWithoutGuessingNegativeFeatures() {
+        KaspiProductImportResponse response = mapper.map(
+                product(List.of(
+                        new KaspiCharacteristic("Функции", "хронограф"),
+                        new KaspiCharacteristic("Отображение даты", "число"),
+                        new KaspiCharacteristic("Подсветка", "нет"),
+                        new KaspiCharacteristic("Будильник", "неизвестно")
+                )),
+                "https://kaspi.kz/shop/p/watch-123", 77L,
+                CatalogCategoryProfile.WRISTWATCH, references()
+        );
+
+        assertEquals(List.of(51L, 50L), response.values().watchDetails().featureIds());
+        assertTrue(response.mappedCharacteristics().stream().anyMatch(item ->
+                item.sourceLabel().equals("Функции")
+                        && item.sourceValue().equals("хронограф; Отображение даты: число")
+                        && item.resolvedValue().equals("Хронограф, Отображение даты")));
+        assertTrue(response.unresolvedCharacteristics().stream().anyMatch(item ->
+                item.sourceLabel().equals("Подсветка") && item.reason().equals("UNRESOLVED_VALUE")));
+        assertTrue(response.unresolvedCharacteristics().stream().anyMatch(item ->
+                item.sourceLabel().equals("Будильник") && item.reason().equals("UNRESOLVED_VALUE")));
+    }
+
+    @Test
+    void leavesUnknownWatchOptionAndFeatureValuesUnresolvedWithoutCreatingOrGuessing() {
+        KaspiProductImportResponse response = mapper.map(
+                product(List.of(
+                        new KaspiCharacteristic("Тип циферблата", "голографический"),
+                        new KaspiCharacteristic("Особенности часов", "телепортация"),
+                        new KaspiCharacteristic("Основные характеристики", "дата")
+                )),
+                "https://kaspi.kz/shop/p/watch-123", 77L,
+                CatalogCategoryProfile.WRISTWATCH, references()
+        );
+
+        assertNull(response.values().watchDetails().dialTypeId());
+        assertTrue(response.values().watchDetails().featureIds().isEmpty());
+        assertEquals(2, response.unresolvedCharacteristics().size());
+        assertTrue(response.unmappedCharacteristics().stream().anyMatch(item ->
+                item.sourceLabel().equals("Основные характеристики") && item.reason().equals("UNKNOWN_LABEL")));
+    }
+
     private KaspiParsedProduct product(List<KaspiCharacteristic> characteristics) {
         return product("Romanson", characteristics);
     }
@@ -280,10 +349,23 @@ class KaspiCharacteristicMapperTest {
                         new CrmReferenceOptionResponse(20L, "Корея", "KR"),
                         new CrmReferenceOptionResponse(21L, "Япония", "JP")
                 ),
-                List.of(new CrmReferenceOptionResponse(7L, "Серебристый", "SILVER")),
+                List.of(
+                        new CrmReferenceOptionResponse(7L, "Серебристый", "SILVER"),
+                        new CrmReferenceOptionResponse(41L, "Белый", "WHITE"),
+                        new CrmReferenceOptionResponse(42L, "Коричневый", "BROWN")
+                ),
                 List.of(),
                 List.of(new CrmReferenceOptionResponse(8L, "Кварцевый", "QUARTZ")),
-                List.of(new CrmReferenceOptionResponse(9L, "Батарейка", "BATTERY"))
+                List.of(new CrmReferenceOptionResponse(9L, "Батарейка", "BATTERY")),
+                List.of(new CrmReferenceOptionResponse(30L, "Аналоговый (стрелки)", "ANALOG")),
+                List.of(new CrmReferenceOptionResponse(31L, "Штрихи", "MARKERS")),
+                List.of(new CrmReferenceOptionResponse(32L, "От батарейки", "BATTERY")),
+                List.of(new CrmReferenceOptionResponse(33L, "WR50 (5 атм)", "WR50")),
+                List.of(
+                        new CrmReferenceOptionResponse(50L, "Отображение даты", "DATE"),
+                        new CrmReferenceOptionResponse(51L, "Хронограф", "CHRONOGRAPH"),
+                        new CrmReferenceOptionResponse(52L, "Подсветка", "BACKLIGHT")
+                )
         );
     }
 }

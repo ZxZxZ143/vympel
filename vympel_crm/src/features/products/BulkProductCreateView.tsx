@@ -11,6 +11,7 @@ import {
   ProductBulkCreateResult,
   ProductStatus,
   ProductType,
+  ReferenceCreateType,
   References,
 } from "@/shared/api/types";
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
@@ -23,10 +24,23 @@ import { Heading } from "@/shared/ui/Heading";
 import { Text } from "@/shared/ui/Text";
 import { getCategoryProfile, productTypeForCategory } from "@/features/products/productCategoryProfile";
 import { brandCountryFor } from "@/features/products/brandCountry";
+import {
+  CreatableReferenceMultiSelect,
+  CreatableReferenceSelect,
+  mergeReferenceOption,
+  ReferenceCreateDialog,
+  type ReferenceCreateTarget,
+} from "@/features/products/CreatableReferenceFields";
 
 const statuses: ProductStatus[] = ["DRAFT", "ARCHIVED"];
 const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_CLOCK", "FLOOR_CLOCK"];
 const russianCharacteristicLabels: Record<string, string> = localizedMessages.ru.products.characteristicLabels;
+
+type CreatableReferenceKey =
+  | "mechanisms" | "genders" | "materials" | "glassTypes" | "stoneInlays"
+  | "interiorColors" | "interiorStyles" | "interiorMechanisms" | "interiorPowerTypes"
+  | "watchDialTypes" | "watchDialMarkings" | "watchPowerSources"
+  | "watchWaterResistances" | "watchFeatures";
 
 type CommonFormState = {
   brandId: string;
@@ -44,6 +58,14 @@ type CommonFormState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
+  dialTypeId: string;
+  dialMarkingId: string;
+  powerSourceId: string;
+  waterResistanceId: string;
+  strapColorId: string;
+  dialColorId: string;
+  packageContents: string;
+  featureIds: string[];
   productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
@@ -86,6 +108,15 @@ type BulkRowState = {
   caseSizeMm: string;
   waterResistance: string;
   stoneInlayId: string;
+  dialTypeId: string;
+  dialMarkingId: string;
+  powerSourceId: string;
+  waterResistanceId: string;
+  strapColorId: string;
+  dialColorId: string;
+  packageContents: string;
+  featureIds: string[];
+  featureIdsOverride: boolean;
   productionCountryId: string;
   interiorCaseMaterialId: string;
   interiorColorId: string;
@@ -126,6 +157,14 @@ const emptyCommon: CommonFormState = {
   caseSizeMm: "",
   waterResistance: "",
   stoneInlayId: "",
+  dialTypeId: "",
+  dialMarkingId: "",
+  powerSourceId: "",
+  waterResistanceId: "",
+  strapColorId: "",
+  dialColorId: "",
+  packageContents: "",
+  featureIds: [],
   productionCountryId: "",
   interiorCaseMaterialId: "",
   interiorColorId: "",
@@ -169,6 +208,15 @@ function createEmptyRow(): BulkRowState {
     caseSizeMm: "",
     waterResistance: "",
     stoneInlayId: "",
+    dialTypeId: "",
+    dialMarkingId: "",
+    powerSourceId: "",
+    waterResistanceId: "",
+    strapColorId: "",
+    dialColorId: "",
+    packageContents: "",
+    featureIds: [],
+    featureIdsOverride: false,
     productionCountryId: "",
     interiorCaseMaterialId: "",
     interiorColorId: "",
@@ -208,6 +256,7 @@ export function BulkProductCreateView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [referenceCreateTarget, setReferenceCreateTarget] = useState<ReferenceCreateTarget | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -298,6 +347,29 @@ export function BulkProductCreateView() {
       const next = { ...current };
       delete next[index];
       return next;
+    });
+  };
+
+  const openReferenceCreate = (
+    type: ReferenceCreateType,
+    key: CreatableReferenceKey,
+    title: string,
+    selectCreated: (option: Feature) => void
+  ) => {
+    setReferenceCreateTarget({
+      type,
+      title,
+      onCreated: (option) => {
+        setReferences((current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            [key]: mergeReferenceOption(current[key], option),
+          };
+        });
+        selectCreated(option);
+        notifications.success(t("products.referenceCreate"));
+      },
     });
   };
 
@@ -432,25 +504,32 @@ export function BulkProductCreateView() {
         <FormPanel title={t("products.specsSection")}>
           {isWristwatchCategory && (
             <div className="crm-grid crm-grid--form">
-              <ReferenceSelect id="bulkMechanismId" label={t("products.mechanism")} value={common.mechanismId} options={references.mechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("mechanismId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="bulkGenderId" label={t("products.gender")} value={common.genderId} options={references.genders} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("genderId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="bulkCaseMaterialId" label={t("products.caseMaterial")} value={common.caseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("caseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="bulkStrapMaterialId" label={t("products.strapMaterial")} value={common.strapMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("strapMaterialId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="bulkGlassTypeId" label={t("products.glassType")} value={common.glassTypeId} options={references.glassTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("glassTypeId", value)} displayLabels={russianCharacteristicLabels} />
+              <ReferenceSelect id="bulkMechanismId" label={t("products.mechanism")} value={common.mechanismId} options={references.mechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("mechanismId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("watch-mechanisms", "mechanisms", t("products.mechanism"), (option) => updateCommon("mechanismId", String(option.id)))} />
+              <ReferenceSelect id="bulkGenderId" label={t("products.gender")} value={common.genderId} options={references.genders} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("genderId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("genders", "genders", t("products.gender"), (option) => updateCommon("genderId", String(option.id)))} />
+              <ReferenceSelect id="bulkCaseMaterialId" label={t("products.caseMaterial")} value={common.caseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("caseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.caseMaterial"), (option) => updateCommon("caseMaterialId", String(option.id)))} />
+              <ReferenceSelect id="bulkStrapMaterialId" label={t("products.strapMaterial")} value={common.strapMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("strapMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("strap-materials", "materials", t("products.strapMaterial"), (option) => updateCommon("strapMaterialId", String(option.id)))} />
+              <ReferenceSelect id="bulkGlassTypeId" label={t("products.glassType")} value={common.glassTypeId} options={references.glassTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("glassTypeId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("glass-types", "glassTypes", t("products.glassType"), (option) => updateCommon("glassTypeId", String(option.id)))} />
               <NumberField id="bulkCaseSizeMm" label={t("products.caseSizeMm")} value={common.caseSizeMm} onChange={(value) => updateCommon("caseSizeMm", value)} />
-              <TextField id="bulkWaterResistance" label={t("products.waterResistance")} value={common.waterResistance} onChange={(value) => updateCommon("waterResistance", value)} />
-              <ReferenceSelect id="bulkStoneInlayId" label={t("products.stoneInlay")} value={common.stoneInlayId} options={references.stoneInlays} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("stoneInlayId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <ReferenceSelect id="bulkWaterResistanceId" label={t("products.waterResistance")} value={common.waterResistanceId} options={references.watchWaterResistances} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("waterResistanceId", value)} onAdd={() => openReferenceCreate("watch-water-resistances", "watchWaterResistances", t("products.waterResistance"), (option) => updateCommon("waterResistanceId", String(option.id)))} />
+              <ReferenceSelect id="bulkStoneInlayId" label={t("products.stoneInlay")} value={common.stoneInlayId} options={references.stoneInlays} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("stoneInlayId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("stone-inlays", "stoneInlays", t("products.stoneInlay"), (option) => updateCommon("stoneInlayId", String(option.id)))} />
+              <ReferenceSelect id="bulkDialTypeId" label={t("products.dialType")} value={common.dialTypeId} options={references.watchDialTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("dialTypeId", value)} onAdd={() => openReferenceCreate("watch-dial-types", "watchDialTypes", t("products.dialType"), (option) => updateCommon("dialTypeId", String(option.id)))} />
+              <ReferenceSelect id="bulkDialMarkingId" label={t("products.dialMarking")} value={common.dialMarkingId} options={references.watchDialMarkings} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("dialMarkingId", value)} onAdd={() => openReferenceCreate("watch-dial-markings", "watchDialMarkings", t("products.dialMarking"), (option) => updateCommon("dialMarkingId", String(option.id)))} />
+              <ReferenceSelect id="bulkPowerSourceId" label={t("products.watchPowerSource")} value={common.powerSourceId} options={references.watchPowerSources} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("powerSourceId", value)} onAdd={() => openReferenceCreate("watch-power-sources", "watchPowerSources", t("products.watchPowerSource"), (option) => updateCommon("powerSourceId", String(option.id)))} />
+              <ReferenceSelect id="bulkStrapColorId" label={t("products.strapColor")} value={common.strapColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("strapColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.strapColor"), (option) => updateCommon("strapColorId", String(option.id)))} />
+              <ReferenceSelect id="bulkDialColorId" label={t("products.dialColor")} value={common.dialColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("dialColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.dialColor"), (option) => updateCommon("dialColorId", String(option.id)))} />
+              <TextField id="bulkPackageContents" label={t("products.packageContents")} value={common.packageContents} maxLength={500} onChange={(value) => updateCommon("packageContents", value)} />
+              <CreatableReferenceMultiSelect id="bulkFeatureIds" label={t("products.watchFeatures")} value={common.featureIds} options={references.watchFeatures} onChange={(value) => updateCommon("featureIds", value)} onAdd={() => openReferenceCreate("watch-features", "watchFeatures", t("products.watchFeatures"), (option) => updateCommon("featureIds", [...new Set([...common.featureIds, String(option.id)])]))} />
             </div>
           )}
 
           {isInteriorClockCategory && (
             <div className="crm-grid crm-grid--form">
               <ReferenceSelect id="bulkProductionCountryId" label={t("products.productionCountry")} value={common.productionCountryId} options={commonProductionCountryOptions} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("productionCountryId", value)} optional />
-              <ReferenceSelect id="bulkInteriorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={common.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} />
-              <ReferenceSelect id="bulkInteriorColorId" label={t("products.interiorColor")} value={common.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorColorId", value)} />
-              <ReferenceSelect id="bulkInteriorStyleId" label={t("products.interiorStyle")} value={common.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorStyleId", value)} optional />
-              <ReferenceSelect id="bulkInteriorMechanismTypeId" label={t("products.interiorMechanismType")} value={common.interiorMechanismTypeId} options={references.interiorMechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorMechanismTypeId", value)} />
-              <ReferenceSelect id="bulkPowerTypeId" label={t("products.powerType")} value={common.powerTypeId} options={references.interiorPowerTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("powerTypeId", value)} />
+              <ReferenceSelect id="bulkInteriorCaseMaterialId" label={t("products.interiorCaseMaterial")} value={common.interiorCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.interiorCaseMaterial"), (option) => updateCommon("interiorCaseMaterialId", String(option.id)))} />
+              <ReferenceSelect id="bulkInteriorColorId" label={t("products.interiorColor")} value={common.interiorColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.interiorColor"), (option) => updateCommon("interiorColorId", String(option.id)))} />
+              <ReferenceSelect id="bulkInteriorStyleId" label={t("products.interiorStyle")} value={common.interiorStyleId} options={references.interiorStyles} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorStyleId", value)} onAdd={() => openReferenceCreate("interior-styles", "interiorStyles", t("products.interiorStyle"), (option) => updateCommon("interiorStyleId", String(option.id)))} />
+              <ReferenceSelect id="bulkInteriorMechanismTypeId" label={t("products.interiorMechanismType")} value={common.interiorMechanismTypeId} options={references.interiorMechanisms} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("interiorMechanismTypeId", value)} onAdd={() => openReferenceCreate("interior-mechanisms", "interiorMechanisms", t("products.interiorMechanismType"), (option) => updateCommon("interiorMechanismTypeId", String(option.id)))} />
+              <ReferenceSelect id="bulkPowerTypeId" label={t("products.powerType")} value={common.powerTypeId} options={references.interiorPowerTypes} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("powerTypeId", value)} onAdd={() => openReferenceCreate("interior-power-types", "interiorPowerTypes", t("products.powerType"), (option) => updateCommon("powerTypeId", String(option.id)))} />
               <TextField id="bulkDimensions" label={t("products.dimensions")} value={common.dimensions} onChange={(value) => updateCommon("dimensions", value)} />
               <NumberField id="bulkWeightGrams" label={t("products.weightGrams")} value={common.weightGrams} onChange={(value) => updateCommon("weightGrams", value)} />
               <NumberField id="bulkWarrantyMonths" label={t("products.warrantyMonths")} value={common.warrantyMonths} onChange={(value) => updateCommon("warrantyMonths", value)} />
@@ -460,14 +539,14 @@ export function BulkProductCreateView() {
           {isAccessoryCategory && (
             <div className="crm-grid crm-grid--form">
               <TextField id="bulkAccessoryClaspType" label={t("products.accessoryClaspType")} value={common.accessoryClaspType} onChange={(value) => updateCommon("accessoryClaspType", value)} />
-              <ReferenceSelect id="bulkAccessoryCaseMaterialId" label={t("products.accessoryCaseMaterial")} value={common.accessoryCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
-              <ReferenceSelect id="bulkAccessoryInsertMaterialId" label={t("products.accessoryInsertMaterial")} value={common.accessoryInsertMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+              <ReferenceSelect id="bulkAccessoryCaseMaterialId" label={t("products.accessoryCaseMaterial")} value={common.accessoryCaseMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.accessoryCaseMaterial"), (option) => updateCommon("accessoryCaseMaterialId", String(option.id)))} />
+              <ReferenceSelect id="bulkAccessoryInsertMaterialId" label={t("products.accessoryInsertMaterial")} value={common.accessoryInsertMaterialId} options={references.materials} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.accessoryInsertMaterial"), (option) => updateCommon("accessoryInsertMaterialId", String(option.id)))} />
               <SelectField id="bulkAccessoryHasInsert" label={t("products.accessoryHasInsert")} value={common.accessoryHasInsert} onChange={(value) => updateCommon("accessoryHasInsert", value)}>
                 <option value="">{t("common.selectPlaceholder")}</option>
                 <option value="true">{messages.common.yes}</option>
                 <option value="false">{messages.common.no}</option>
               </SelectField>
-              <ReferenceSelect id="bulkAccessoryColorId" label={t("products.accessoryColor")} value={common.accessoryColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryColorId", value)} optional />
+              <ReferenceSelect id="bulkAccessoryColorId" label={t("products.accessoryColor")} value={common.accessoryColorId} options={references.interiorColors} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("accessoryColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.accessoryColor"), (option) => updateCommon("accessoryColorId", String(option.id)))} />
               <TextField id="bulkAccessoryLength" label={t("products.accessoryLength")} value={common.accessoryLength} onChange={(value) => updateCommon("accessoryLength", value)} />
             </div>
           )}
@@ -562,25 +641,38 @@ export function BulkProductCreateView() {
 
                               {isWristwatchCategory && (
                                 <div className="crm-grid crm-grid--form">
-                                  <ReferenceSelect id={`rowMechanismId-${row.key}`} label={t("products.mechanism")} value={row.mechanismId} options={references.mechanisms} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "mechanismId", value)} displayLabels={russianCharacteristicLabels} optional />
-                                  <ReferenceSelect id={`rowGenderId-${row.key}`} label={t("products.gender")} value={row.genderId} options={references.genders} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "genderId", value)} displayLabels={russianCharacteristicLabels} optional />
-                                  <ReferenceSelect id={`rowCaseMaterialId-${row.key}`} label={t("products.caseMaterial")} value={row.caseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "caseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
-                                  <ReferenceSelect id={`rowStrapMaterialId-${row.key}`} label={t("products.strapMaterial")} value={row.strapMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "strapMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
-                                  <ReferenceSelect id={`rowGlassTypeId-${row.key}`} label={t("products.glassType")} value={row.glassTypeId} options={references.glassTypes} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "glassTypeId", value)} displayLabels={russianCharacteristicLabels} optional />
+                                  <ReferenceSelect id={`rowMechanismId-${row.key}`} label={t("products.mechanism")} value={row.mechanismId} options={references.mechanisms} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "mechanismId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("watch-mechanisms", "mechanisms", t("products.mechanism"), (option) => updateRow(index, "mechanismId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowGenderId-${row.key}`} label={t("products.gender")} value={row.genderId} options={references.genders} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "genderId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("genders", "genders", t("products.gender"), (option) => updateRow(index, "genderId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowCaseMaterialId-${row.key}`} label={t("products.caseMaterial")} value={row.caseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "caseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.caseMaterial"), (option) => updateRow(index, "caseMaterialId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowStrapMaterialId-${row.key}`} label={t("products.strapMaterial")} value={row.strapMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "strapMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("strap-materials", "materials", t("products.strapMaterial"), (option) => updateRow(index, "strapMaterialId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowGlassTypeId-${row.key}`} label={t("products.glassType")} value={row.glassTypeId} options={references.glassTypes} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "glassTypeId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("glass-types", "glassTypes", t("products.glassType"), (option) => updateRow(index, "glassTypeId", String(option.id)))} />
                                   <NumberField id={`rowCaseSizeMm-${row.key}`} label={t("products.caseSizeMm")} value={row.caseSizeMm} onChange={(value) => updateRow(index, "caseSizeMm", value)} />
-                                  <TextField id={`rowWaterResistance-${row.key}`} label={t("products.waterResistance")} value={row.waterResistance} onChange={(value) => updateRow(index, "waterResistance", value)} />
-                                  <ReferenceSelect id={`rowStoneInlayId-${row.key}`} label={t("products.stoneInlay")} value={row.stoneInlayId} options={references.stoneInlays} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "stoneInlayId", value)} displayLabels={russianCharacteristicLabels} optional />
+                                  <ReferenceSelect id={`rowWaterResistanceId-${row.key}`} label={t("products.waterResistance")} value={row.waterResistanceId} options={references.watchWaterResistances} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "waterResistanceId", value)} onAdd={() => openReferenceCreate("watch-water-resistances", "watchWaterResistances", t("products.waterResistance"), (option) => updateRow(index, "waterResistanceId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowStoneInlayId-${row.key}`} label={t("products.stoneInlay")} value={row.stoneInlayId} options={references.stoneInlays} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "stoneInlayId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("stone-inlays", "stoneInlays", t("products.stoneInlay"), (option) => updateRow(index, "stoneInlayId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowDialTypeId-${row.key}`} label={t("products.dialType")} value={row.dialTypeId} options={references.watchDialTypes} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "dialTypeId", value)} onAdd={() => openReferenceCreate("watch-dial-types", "watchDialTypes", t("products.dialType"), (option) => updateRow(index, "dialTypeId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowDialMarkingId-${row.key}`} label={t("products.dialMarking")} value={row.dialMarkingId} options={references.watchDialMarkings} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "dialMarkingId", value)} onAdd={() => openReferenceCreate("watch-dial-markings", "watchDialMarkings", t("products.dialMarking"), (option) => updateRow(index, "dialMarkingId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowPowerSourceId-${row.key}`} label={t("products.watchPowerSource")} value={row.powerSourceId} options={references.watchPowerSources} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "powerSourceId", value)} onAdd={() => openReferenceCreate("watch-power-sources", "watchPowerSources", t("products.watchPowerSource"), (option) => updateRow(index, "powerSourceId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowStrapColorId-${row.key}`} label={t("products.strapColor")} value={row.strapColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "strapColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.strapColor"), (option) => updateRow(index, "strapColorId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowDialColorId-${row.key}`} label={t("products.dialColor")} value={row.dialColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "dialColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.dialColor"), (option) => updateRow(index, "dialColorId", String(option.id)))} />
+                                  <TextField id={`rowPackageContents-${row.key}`} label={t("products.packageContents")} value={row.packageContents} maxLength={500} onChange={(value) => updateRow(index, "packageContents", value)} />
+                                  <label className="crm-reference-multi__option">
+                                    <input type="checkbox" checked={row.featureIdsOverride} onChange={(event) => updateRow(index, "featureIdsOverride", event.target.checked)} />
+                                    <span>{t("products.watchFeaturesOverride")}</span>
+                                  </label>
+                                  {row.featureIdsOverride ? (
+                                    <CreatableReferenceMultiSelect id={`rowFeatureIds-${row.key}`} label={t("products.watchFeatures")} value={row.featureIds} options={references.watchFeatures} onChange={(value) => updateRow(index, "featureIds", value)} onAdd={() => openReferenceCreate("watch-features", "watchFeatures", t("products.watchFeatures"), (option) => updateRow(index, "featureIds", [...new Set([...row.featureIds, String(option.id)])]))} />
+                                  ) : null}
                                 </div>
                               )}
 
                               {isInteriorClockCategory && (
                                 <div className="crm-grid crm-grid--form">
                                   <ReferenceSelect id={`rowProductionCountryId-${row.key}`} label={t("products.productionCountry")} value={row.productionCountryId} options={rowProductionCountryOptions} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "productionCountryId", value)} optional />
-                                  <ReferenceSelect id={`rowInteriorCaseMaterialId-${row.key}`} label={t("products.interiorCaseMaterial")} value={row.interiorCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
-                                  <ReferenceSelect id={`rowInteriorColorId-${row.key}`} label={t("products.interiorColor")} value={row.interiorColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorColorId", value)} optional />
-                                  <ReferenceSelect id={`rowInteriorStyleId-${row.key}`} label={t("products.interiorStyle")} value={row.interiorStyleId} options={references.interiorStyles} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorStyleId", value)} optional />
-                                  <ReferenceSelect id={`rowInteriorMechanismTypeId-${row.key}`} label={t("products.interiorMechanismType")} value={row.interiorMechanismTypeId} options={references.interiorMechanisms} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorMechanismTypeId", value)} optional />
-                                  <ReferenceSelect id={`rowPowerTypeId-${row.key}`} label={t("products.powerType")} value={row.powerTypeId} options={references.interiorPowerTypes} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "powerTypeId", value)} optional />
+                                  <ReferenceSelect id={`rowInteriorCaseMaterialId-${row.key}`} label={t("products.interiorCaseMaterial")} value={row.interiorCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.interiorCaseMaterial"), (option) => updateRow(index, "interiorCaseMaterialId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowInteriorColorId-${row.key}`} label={t("products.interiorColor")} value={row.interiorColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.interiorColor"), (option) => updateRow(index, "interiorColorId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowInteriorStyleId-${row.key}`} label={t("products.interiorStyle")} value={row.interiorStyleId} options={references.interiorStyles} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorStyleId", value)} onAdd={() => openReferenceCreate("interior-styles", "interiorStyles", t("products.interiorStyle"), (option) => updateRow(index, "interiorStyleId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowInteriorMechanismTypeId-${row.key}`} label={t("products.interiorMechanismType")} value={row.interiorMechanismTypeId} options={references.interiorMechanisms} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "interiorMechanismTypeId", value)} onAdd={() => openReferenceCreate("interior-mechanisms", "interiorMechanisms", t("products.interiorMechanismType"), (option) => updateRow(index, "interiorMechanismTypeId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowPowerTypeId-${row.key}`} label={t("products.powerType")} value={row.powerTypeId} options={references.interiorPowerTypes} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "powerTypeId", value)} onAdd={() => openReferenceCreate("interior-power-types", "interiorPowerTypes", t("products.powerType"), (option) => updateRow(index, "powerTypeId", String(option.id)))} />
                                   <TextField id={`rowDimensions-${row.key}`} label={t("products.dimensions")} value={row.dimensions} onChange={(value) => updateRow(index, "dimensions", value)} />
                                   <NumberField id={`rowWeightGrams-${row.key}`} label={t("products.weightGrams")} value={row.weightGrams} onChange={(value) => updateRow(index, "weightGrams", value)} />
                                   <NumberField id={`rowWarrantyMonths-${row.key}`} label={t("products.warrantyMonths")} value={row.warrantyMonths} onChange={(value) => updateRow(index, "warrantyMonths", value)} />
@@ -590,14 +682,14 @@ export function BulkProductCreateView() {
                               {isAccessoryCategory && (
                                 <div className="crm-grid crm-grid--form">
                                   <TextField id={`rowAccessoryClaspType-${row.key}`} label={t("products.accessoryClaspType")} value={row.accessoryClaspType} onChange={(value) => updateRow(index, "accessoryClaspType", value)} />
-                                  <ReferenceSelect id={`rowAccessoryCaseMaterialId-${row.key}`} label={t("products.accessoryCaseMaterial")} value={row.accessoryCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
-                                  <ReferenceSelect id={`rowAccessoryInsertMaterialId-${row.key}`} label={t("products.accessoryInsertMaterial")} value={row.accessoryInsertMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} optional />
+                                  <ReferenceSelect id={`rowAccessoryCaseMaterialId-${row.key}`} label={t("products.accessoryCaseMaterial")} value={row.accessoryCaseMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryCaseMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.accessoryCaseMaterial"), (option) => updateRow(index, "accessoryCaseMaterialId", String(option.id)))} />
+                                  <ReferenceSelect id={`rowAccessoryInsertMaterialId-${row.key}`} label={t("products.accessoryInsertMaterial")} value={row.accessoryInsertMaterialId} options={references.materials} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryInsertMaterialId", value)} displayLabels={russianCharacteristicLabels} onAdd={() => openReferenceCreate("case-materials", "materials", t("products.accessoryInsertMaterial"), (option) => updateRow(index, "accessoryInsertMaterialId", String(option.id)))} />
                                   <SelectField id={`rowAccessoryHasInsert-${row.key}`} label={t("products.accessoryHasInsert")} value={row.accessoryHasInsert} onChange={(value) => updateRow(index, "accessoryHasInsert", value)}>
                                     <option value="">{t("products.bulkUseCommonDefault")}</option>
                                     <option value="true">{messages.common.yes}</option>
                                     <option value="false">{messages.common.no}</option>
                                   </SelectField>
-                                  <ReferenceSelect id={`rowAccessoryColorId-${row.key}`} label={t("products.accessoryColor")} value={row.accessoryColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryColorId", value)} optional />
+                                  <ReferenceSelect id={`rowAccessoryColorId-${row.key}`} label={t("products.accessoryColor")} value={row.accessoryColorId} options={references.interiorColors} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "accessoryColorId", value)} onAdd={() => openReferenceCreate("colors", "interiorColors", t("products.accessoryColor"), (option) => updateRow(index, "accessoryColorId", String(option.id)))} />
                                   <TextField id={`rowAccessoryLength-${row.key}`} label={t("products.accessoryLength")} value={row.accessoryLength} onChange={(value) => updateRow(index, "accessoryLength", value)} />
                                 </div>
                               )}
@@ -650,6 +742,10 @@ export function BulkProductCreateView() {
           </FormPanel>
         )}
       </form>
+      <ReferenceCreateDialog
+        target={referenceCreateTarget}
+        onClose={() => setReferenceCreateTarget(null)}
+      />
     </section>
   );
 }
@@ -665,10 +761,10 @@ function FormPanel({ title, children }: { title: string; children: ReactNode }) 
   );
 }
 
-function TextField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) {
+function TextField({ id, label, value, maxLength, onChange }: { id: string; label: string; value: string; maxLength?: number; onChange: (value: string) => void }) {
   return (
     <Field htmlFor={id} label={label}>
-      <input id={id} className="crm-input" value={value} onChange={(event) => onChange(event.target.value)} />
+      <input id={id} className="crm-input" value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} />
     </Field>
   );
 }
@@ -709,6 +805,7 @@ function ReferenceSelect({
   displayLabels,
   disabled = false,
   onChange,
+  onAdd,
 }: {
   id: string;
   label: string;
@@ -719,16 +816,20 @@ function ReferenceSelect({
   displayLabels?: Record<string, string>;
   disabled?: boolean;
   onChange: (value: string) => void;
+  onAdd?: () => void;
 }) {
   return (
-    <SelectField id={id} label={label} value={value} disabled={disabled} onChange={onChange}>
-      <option value="">{optional ? placeholder : placeholder}</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>
-          {option.code && displayLabels?.[option.code] ? displayLabels[option.code] : option.name}
-        </option>
-      ))}
-    </SelectField>
+    <CreatableReferenceSelect
+      id={id}
+      label={label}
+      value={value}
+      options={options}
+      placeholder={optional ? placeholder : placeholder}
+      displayLabels={displayLabels}
+      disabled={disabled}
+      onChange={onChange}
+      onAdd={onAdd}
+    />
   );
 }
 
@@ -809,6 +910,14 @@ function toBulkPayload(
       caseSizeMm: optionalNumber(common.caseSizeMm),
       waterResistance: common.waterResistance.trim() || null,
       stoneInlayId: optionalNumber(common.stoneInlayId),
+      dialTypeId: optionalNumber(common.dialTypeId),
+      dialMarkingId: optionalNumber(common.dialMarkingId),
+      powerSourceId: optionalNumber(common.powerSourceId),
+      waterResistanceId: optionalNumber(common.waterResistanceId),
+      strapColorId: optionalNumber(common.strapColorId),
+      dialColorId: optionalNumber(common.dialColorId),
+      packageContents: common.packageContents.trim() || null,
+      featureIds: common.featureIds.map(Number),
     };
   }
 
@@ -884,6 +993,14 @@ function rowToPayload(
       caseSizeMm: optionalNumber(firstNonBlank(row.caseSizeMm, common.caseSizeMm)),
       waterResistance: firstNonBlank(row.waterResistance, common.waterResistance).trim() || null,
       stoneInlayId: optionalNumber(firstNonBlank(row.stoneInlayId, common.stoneInlayId)),
+      dialTypeId: optionalNumber(firstNonBlank(row.dialTypeId, common.dialTypeId)),
+      dialMarkingId: optionalNumber(firstNonBlank(row.dialMarkingId, common.dialMarkingId)),
+      powerSourceId: optionalNumber(firstNonBlank(row.powerSourceId, common.powerSourceId)),
+      waterResistanceId: optionalNumber(firstNonBlank(row.waterResistanceId, common.waterResistanceId)),
+      strapColorId: optionalNumber(firstNonBlank(row.strapColorId, common.strapColorId)),
+      dialColorId: optionalNumber(firstNonBlank(row.dialColorId, common.dialColorId)),
+      packageContents: firstNonBlank(row.packageContents, common.packageContents).trim() || null,
+      featureIds: row.featureIdsOverride ? row.featureIds.map(Number) : undefined,
     };
   }
 
@@ -950,6 +1067,14 @@ function hasWatchDetails(common: CommonFormState) {
     common.caseSizeMm,
     common.waterResistance,
     common.stoneInlayId,
+    common.dialTypeId,
+    common.dialMarkingId,
+    common.powerSourceId,
+    common.waterResistanceId,
+    common.strapColorId,
+    common.dialColorId,
+    common.packageContents,
+    ...common.featureIds,
   ].some((value) => value.trim());
 }
 
@@ -979,7 +1104,7 @@ function hasAccessoryDetails(common: CommonFormState) {
 }
 
 function hasResolvedWatchDetails(row: BulkRowState, common: CommonFormState) {
-  return [
+  return row.featureIdsOverride || [
     firstNonBlank(row.mechanismId, common.mechanismId),
     firstNonBlank(row.genderId, common.genderId),
     firstNonBlank(row.caseMaterialId, common.caseMaterialId),
@@ -988,6 +1113,14 @@ function hasResolvedWatchDetails(row: BulkRowState, common: CommonFormState) {
     firstNonBlank(row.caseSizeMm, common.caseSizeMm),
     firstNonBlank(row.waterResistance, common.waterResistance),
     firstNonBlank(row.stoneInlayId, common.stoneInlayId),
+    firstNonBlank(row.dialTypeId, common.dialTypeId),
+    firstNonBlank(row.dialMarkingId, common.dialMarkingId),
+    firstNonBlank(row.powerSourceId, common.powerSourceId),
+    firstNonBlank(row.waterResistanceId, common.waterResistanceId),
+    firstNonBlank(row.strapColorId, common.strapColorId),
+    firstNonBlank(row.dialColorId, common.dialColorId),
+    firstNonBlank(row.packageContents, common.packageContents),
+    ...(row.featureIdsOverride ? row.featureIds : common.featureIds),
   ].some((value) => value.trim());
 }
 

@@ -57,7 +57,49 @@ public class KaspiCharacteristicMapper {
             "WHITE", "белый", "белая", "белое", "white",
             "GOLD", "золотой", "золотистый", "gold",
             "SILVER", "серебряный", "серебристый", "silver",
+            "BLUE", "синий", "синяя", "синее", "blue",
+            "BROWN", "коричневый", "коричневая", "коричневое", "brown",
+            "GREEN", "зеленый", "зеленая", "зеленое", "green",
+            "RED", "красный", "красная", "красное", "red",
+            "ROSE_GOLD", "розовое золото", "rose gold",
             "WOOD", "дерево", "деревянный", "wood"
+    );
+    private static final Map<String, String> DIAL_TYPE_ALIASES = aliases(
+            "ANALOG", "аналоговый", "аналоговый стрелки", "стрелочный", "analog", "analog hands",
+            "DIGITAL", "цифровой", "электронный", "digital",
+            "ANALOG_DIGITAL", "комбинированный", "аналогово цифровой", "analog digital", "combined"
+    );
+    private static final Map<String, String> DIAL_MARKING_ALIASES = aliases(
+            "MARKERS", "штрихи", "метки", "индексы", "markers", "indexes",
+            "ARABIC", "арабские цифры", "арабские", "arabic numerals",
+            "ROMAN", "римские цифры", "римские", "roman numerals",
+            "NO_MARKS", "без цифр", "без меток", "нет", "no markings",
+            "MIXED", "смешанные", "смешанная", "комбинированные", "mixed"
+    );
+    private static final Map<String, String> WATCH_POWER_ALIASES = aliases(
+            "BATTERY", "от батарейки", "батарейка", "батарея", "battery",
+            "MECHANICAL", "механический", "механический завод", "mechanical",
+            "SOLAR", "солнечная энергия", "солнечная батарея", "solar", "solar energy",
+            "KINETIC", "кинетический аккумулятор", "кинетическая", "kinetic"
+    );
+    private static final Map<String, String> WATER_RESISTANCE_ALIASES = aliases(
+            "WR30", "wr30", "wr 30", "3 атм", "30 м", "30m",
+            "WR50", "wr50", "wr 50", "5 атм", "50 м", "50m",
+            "WR100", "wr100", "wr 100", "10 атм", "100 м", "100m",
+            "WR200", "wr200", "wr 200", "20 атм", "200 м", "200m"
+    );
+    private static final Map<String, String> WATCH_FEATURE_ALIASES = aliases(
+            "DATE", "дата", "отображение даты", "календарь", "date", "date display",
+            "DAY_OF_WEEK", "день недели", "day of week",
+            "CHRONOGRAPH", "хронограф", "chronograph",
+            "STOPWATCH", "секундомер", "stopwatch",
+            "ALARM", "будильник", "alarm",
+            "BACKLIGHT", "подсветка", "backlight",
+            "GMT", "второй часовой пояс", "gmt", "second time zone",
+            "MOON_PHASE", "лунный календарь", "фаза луны", "moon phase",
+            "TACHYMETER", "тахиметр", "tachymeter",
+            "LUME", "светонакопительные стрелки", "светонакопительные метки",
+            "светонакопительные стрелки метки", "люминесцентные метки", "luminous markers"
     );
     private static final Map<String, String> STYLE_ALIASES = aliases(
             "CLASSIC", "классика", "классический", "classic",
@@ -157,7 +199,15 @@ public class KaspiCharacteristicMapper {
                 longValue(candidates, "watchDetails.glassTypeId"),
                 integerValue(candidates, "watchDetails.caseSizeMm"),
                 stringValue(candidates, "watchDetails.waterResistance"),
-                longValue(candidates, "watchDetails.stoneInlayId")
+                longValue(candidates, "watchDetails.stoneInlayId"),
+                longValue(candidates, "watchDetails.dialTypeId"),
+                longValue(candidates, "watchDetails.dialMarkingId"),
+                longValue(candidates, "watchDetails.powerSourceId"),
+                longValue(candidates, "watchDetails.waterResistanceId"),
+                longValue(candidates, "watchDetails.strapColorId"),
+                longValue(candidates, "watchDetails.dialColorId"),
+                stringValue(candidates, "watchDetails.packageContents"),
+                longListValue(candidates, "watchDetails.featureIds")
         ) : null;
         KaspiProductImportResponse.InteriorClockDetails interior = profile == CatalogCategoryProfile.INTERIOR_CLOCK
                 ? new KaspiProductImportResponse.InteriorClockDetails(
@@ -237,6 +287,10 @@ public class KaspiCharacteristicMapper {
             return;
         }
         if (Objects.equals(previous.value(), candidate.value())) return;
+        if ("watchDetails.featureIds".equals(target.path())) {
+            candidates.put(target.path(), mergeFeatureCandidates(previous, candidate));
+            return;
+        }
 
         candidates.remove(target.path());
         conflictedTargets.add(target.path());
@@ -251,6 +305,23 @@ public class KaspiCharacteristicMapper {
             CrmReferencesResponse references,
             List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved
     ) {
+        if (target.dictionary() == Dictionary.WATCH_FEATURE) {
+            FeatureListResolution resolution = resolveWatchFeatureList(label, value, references.watchFeatures());
+            if (resolution.options().isEmpty()) {
+                unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
+                        label, value, target.path(), resolution.reason()
+                ));
+                return null;
+            }
+            return new Candidate(
+                    label,
+                    value,
+                    target.path(),
+                    resolution.options().stream().map(Option::id).toList(),
+                    resolution.options().stream().map(Option::name).reduce((left, right) -> left + ", " + right).orElse(""),
+                    resolution.kind()
+            );
+        }
         if (target.dictionary() != null) {
             Resolution resolution = switch (target.dictionary()) {
                 case MATERIAL -> resolveOptions(value, references.materials(), MATERIAL_ALIASES);
@@ -263,6 +334,11 @@ public class KaspiCharacteristicMapper {
                 case STYLE -> resolveOptions(value, references.interiorStyles(), STYLE_ALIASES);
                 case INTERIOR_MECHANISM -> resolveOptions(value, references.interiorMechanisms(), MECHANISM_ALIASES);
                 case POWER -> resolveOptions(value, references.interiorPowerTypes(), POWER_ALIASES);
+                case DIAL_TYPE -> resolveOptions(value, references.watchDialTypes(), DIAL_TYPE_ALIASES);
+                case DIAL_MARKING -> resolveOptions(value, references.watchDialMarkings(), DIAL_MARKING_ALIASES);
+                case WATCH_POWER -> resolveOptions(value, references.watchPowerSources(), WATCH_POWER_ALIASES);
+                case WATER_RESISTANCE -> resolveOptions(value, references.watchWaterResistances(), WATER_RESISTANCE_ALIASES);
+                case WATCH_FEATURE -> throw new IllegalStateException("Watch features use multi-value resolution");
             };
             if (resolution.option() == null) {
                 unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
@@ -381,6 +457,67 @@ public class KaspiCharacteristicMapper {
         return new Resolution(null, null, "UNRESOLVED_VALUE");
     }
 
+    private FeatureListResolution resolveWatchFeatureList(
+            String label,
+            String raw,
+            List<CrmReferenceOptionResponse> references
+    ) {
+        List<Option> options = references.stream()
+                .map(option -> new Option(option.id(), option.name(), option.code()))
+                .toList();
+        Resolution wholeValue = resolve(raw, options, WATCH_FEATURE_ALIASES);
+        if (wholeValue.option() != null) {
+            return new FeatureListResolution(List.of(wholeValue.option()), wholeValue.kind(), null);
+        }
+
+        Resolution featureLabel = resolve(label, options, WATCH_FEATURE_ALIASES);
+        if (featureLabel.option() != null && indicatesFeaturePresence(raw)) {
+            return new FeatureListResolution(List.of(featureLabel.option()), featureLabel.kind(), null);
+        }
+
+        String[] tokens = raw.split("[,;\\n]+");
+        if (tokens.length < 2) {
+            return new FeatureListResolution(List.of(), null, wholeValue.reason());
+        }
+        Map<Long, Option> resolved = new LinkedHashMap<>();
+        String kind = "EXACT";
+        for (String token : tokens) {
+            Resolution part = resolve(token, options, WATCH_FEATURE_ALIASES);
+            if (part.option() == null) {
+                return new FeatureListResolution(List.of(), null, part.reason());
+            }
+            resolved.putIfAbsent(part.option().id(), part.option());
+            if ("ALIAS".equals(part.kind())) kind = "ALIAS";
+            else if ("NORMALIZED".equals(part.kind()) && !"ALIAS".equals(kind)) kind = "NORMALIZED";
+        }
+        return new FeatureListResolution(List.copyOf(resolved.values()), kind, null);
+    }
+
+    private boolean indicatesFeaturePresence(String raw) {
+        return Set.of(
+                "да", "есть", "имеется", "предусмотрено", "число", "дата", "день", "день месяца",
+                "yes", "true", "available", "number", "date", "day", "day of month", "calendar"
+        ).contains(normalize(raw));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Candidate mergeFeatureCandidates(Candidate previous, Candidate next) {
+        LinkedHashSet<Long> ids = new LinkedHashSet<>((List<Long>) previous.value());
+        ids.addAll((List<Long>) next.value());
+        LinkedHashSet<String> names = new LinkedHashSet<>();
+        for (String name : (previous.resolvedValue() + ", " + next.resolvedValue()).split(",\\s*")) {
+            if (!name.isBlank()) names.add(name);
+        }
+        return new Candidate(
+                previous.sourceLabel(),
+                previous.sourceValue() + "; " + next.sourceLabel() + ": " + next.sourceValue(),
+                previous.targetField(),
+                List.copyOf(ids),
+                String.join(", ", names),
+                "NORMALIZED"
+        );
+    }
+
     private Target targetFor(CatalogCategoryProfile profile, FieldKind kind) {
         return switch (profile) {
             case WRISTWATCH -> switch (kind) {
@@ -390,8 +527,15 @@ public class KaspiCharacteristicMapper {
                 case MECHANISM -> dict("watchDetails.mechanismId", Dictionary.MECHANISM, kind);
                 case GENDER -> dict("watchDetails.genderId", Dictionary.GENDER, kind);
                 case CASE_SIZE -> integer("watchDetails.caseSizeMm", kind);
-                case WATER_RESISTANCE -> string("watchDetails.waterResistance", kind, 50);
+                case WATER_RESISTANCE -> dict("watchDetails.waterResistanceId", Dictionary.WATER_RESISTANCE, kind);
                 case STONE -> dict("watchDetails.stoneInlayId", Dictionary.STONE, kind);
+                case DIAL_TYPE -> dict("watchDetails.dialTypeId", Dictionary.DIAL_TYPE, kind);
+                case DIAL_MARKING -> dict("watchDetails.dialMarkingId", Dictionary.DIAL_MARKING, kind);
+                case POWER -> dict("watchDetails.powerSourceId", Dictionary.WATCH_POWER, kind);
+                case STRAP_COLOR -> dict("watchDetails.strapColorId", Dictionary.COLOR, kind);
+                case DIAL_COLOR -> dict("watchDetails.dialColorId", Dictionary.COLOR, kind);
+                case PACKAGE_CONTENTS -> string("watchDetails.packageContents", kind, 500);
+                case WATCH_FEATURES -> dict("watchDetails.featureIds", Dictionary.WATCH_FEATURE, kind);
                 default -> null;
             };
             case INTERIOR_CLOCK -> switch (kind) {
@@ -467,11 +611,23 @@ public class KaspiCharacteristicMapper {
         addLabels(result, FieldKind.CASE_THICKNESS, "Толщина корпуса", "Case thickness");
         addLabels(result, FieldKind.COLOR, "Цвет", "Color");
         addLabels(result, FieldKind.CASE_COLOR, "Цвет корпуса", "Case color");
+        addLabels(result, FieldKind.STRAP_COLOR, "Цвет ремешка", "Цвет браслета", "Strap color", "Bracelet color");
+        addLabels(result, FieldKind.DIAL_COLOR, "Цвет циферблата", "Цвет дисплея", "Dial color", "Display color");
+        addLabels(result, FieldKind.DIAL_TYPE, "Способ отображения времени", "Тип отображения времени", "Тип циферблата", "Dial type", "Time display type");
+        addLabels(result, FieldKind.DIAL_MARKING, "Цифры", "Разметка циферблата", "Метки циферблата", "Dial markings", "Dial markers");
+        addLabels(result, FieldKind.PACKAGE_CONTENTS, "Комплектация", "Комплект поставки", "Package contents");
+        addLabels(
+                result,
+                FieldKind.WATCH_FEATURES,
+                "Особенности часов", "Функции часов", "Дополнительные функции", "Функции", "Функция",
+                "Отображение даты", "Календарь", "Хронограф", "Секундомер", "Будильник", "Подсветка",
+                "Watch features", "Watch functions", "Date display", "Calendar", "Chronograph", "Stopwatch", "Alarm", "Backlight"
+        );
         addLabels(result, FieldKind.GENDER, "Пол", "Для кого", "Gender");
         addLabels(result, FieldKind.STONE, "Вставка", "Камень", "Инкрустация", "Stone");
         addLabels(result, FieldKind.COUNTRY, "Страна производства", "Страна производитель", "Производитель страна", "Country of origin");
         addLabels(result, FieldKind.STYLE, "Стиль", "Style");
-        addLabels(result, FieldKind.POWER, "Питание", "Источник питания", "Power source");
+        addLabels(result, FieldKind.POWER, "Питание", "Источник энергии", "Источник питания", "Power source", "Energy source");
         addLabels(result, FieldKind.DIMENSIONS, "Размеры", "Габариты", "Dimensions");
         addLabels(result, FieldKind.WEIGHT, "Вес", "Weight");
         addLabels(result, FieldKind.WARRANTY, "Гарантия", "Warranty");
@@ -536,6 +692,12 @@ public class KaspiCharacteristicMapper {
         return candidate == null ? null : (Boolean) candidate.value();
     }
 
+    @SuppressWarnings("unchecked")
+    private static List<Long> longListValue(Map<String, Candidate> values, String path) {
+        Candidate candidate = values.get(path);
+        return candidate == null ? List.of() : (List<Long>) candidate.value();
+    }
+
     private static String clean(String value) {
         if (value == null) return null;
         String cleaned = value.replace('\u00a0', ' ').replaceAll("\\s+", " ").trim();
@@ -544,12 +706,14 @@ public class KaspiCharacteristicMapper {
 
     private enum FieldKind {
         CASE_MATERIAL, STRAP_MATERIAL, GLASS, MECHANISM, WATER_RESISTANCE, CASE_SIZE,
-        CASE_THICKNESS, COLOR, CASE_COLOR, GENDER, STONE, COUNTRY, STYLE, POWER,
+        CASE_THICKNESS, COLOR, CASE_COLOR, STRAP_COLOR, DIAL_COLOR, DIAL_TYPE, DIAL_MARKING,
+        GENDER, STONE, COUNTRY, STYLE, POWER, PACKAGE_CONTENTS, WATCH_FEATURES,
         DIMENSIONS, WEIGHT, WARRANTY, CLASP, INSERT_MATERIAL, HAS_INSERT, LENGTH
     }
 
     private enum Dictionary {
-        MATERIAL, MECHANISM, GENDER, GLASS, STONE, COUNTRY, COLOR, STYLE, INTERIOR_MECHANISM, POWER
+        MATERIAL, MECHANISM, GENDER, GLASS, STONE, COUNTRY, COLOR, STYLE, INTERIOR_MECHANISM, POWER,
+        DIAL_TYPE, DIAL_MARKING, WATCH_POWER, WATER_RESISTANCE, WATCH_FEATURE
     }
 
     private enum ValueType { STRING, INTEGER, BOOLEAN }
@@ -561,6 +725,9 @@ public class KaspiCharacteristicMapper {
     }
 
     private record Resolution(Option option, String kind, String reason) {
+    }
+
+    private record FeatureListResolution(List<Option> options, String kind, String reason) {
     }
 
     private record Candidate(

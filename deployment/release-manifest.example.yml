@@ -31,7 +31,7 @@ images:
       mediaOrigins: OBJECT_STORAGE_ORIGIN_PENDING
 database:
   changelog: classpath:db/changelog/db.changelog-master.xml
-  expectedLatestChange: 2026-08-31-02-kaspi-product-source-links
+  expectedLatestChange: 2026-09-03-01-watch-product-characteristics
   migrationMode: one-time-job
   historicalCompatibility: CONDITIONAL_EXTERNAL_ACCEPTANCE_IF_ROW_PRESENT
   backupEvidence: docs/deployment/BACKUP_RESTORE_REHEARSAL_REPORT.md

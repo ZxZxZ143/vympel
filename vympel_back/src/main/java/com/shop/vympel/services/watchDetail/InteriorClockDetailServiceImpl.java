@@ -79,10 +79,10 @@ public class InteriorClockDetailServiceImpl {
     private void applyCreate(InteriorClockDetail detail, InteriorClockDetailCreateRequest request, Country requiredCountry) {
         detail.setProductionCountry(request.getProductionCountryId() == null ? null : requiredCountry);
         detail.setCaseMaterial(materialOrNull(request.getCaseMaterialId()));
-        detail.setColor(interiorFeatureOrNull(request.getColorId()));
-        detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
-        detail.setMechanismType(interiorFeatureOrNull(request.getMechanismTypeId()));
-        detail.setPowerType(interiorFeatureOrNull(request.getPowerTypeId()));
+        detail.setColor(interiorFeatureOrNull(request.getColorId(), "COLOR"));
+        detail.setStyle(interiorFeatureOrNull(request.getStyleId(), "STYLE"));
+        detail.setMechanismType(interiorFeatureOrNull(request.getMechanismTypeId(), "MECHANISM"));
+        detail.setPowerType(interiorFeatureOrNull(request.getPowerTypeId(), "POWER"));
         detail.setDimensions(trimToNull(request.getDimensions()));
         detail.setWeightGrams(request.getWeightGrams());
         detail.setWarrantyMonths(request.getWarrantyMonths());
@@ -91,10 +91,10 @@ public class InteriorClockDetailServiceImpl {
     private void applyUpdate(InteriorClockDetail detail, InteriorClockDetailUpdateRequest request, Country requiredCountry) {
         detail.setProductionCountry(request.getProductionCountryId() == null ? null : requiredCountry);
         detail.setCaseMaterial(materialOrNull(request.getCaseMaterialId()));
-        detail.setColor(interiorFeatureOrNull(request.getColorId()));
-        detail.setStyle(interiorFeatureOrNull(request.getStyleId()));
-        detail.setMechanismType(interiorFeatureOrNull(request.getMechanismTypeId()));
-        detail.setPowerType(interiorFeatureOrNull(request.getPowerTypeId()));
+        detail.setColor(interiorFeatureOrNull(request.getColorId(), "COLOR"));
+        detail.setStyle(interiorFeatureOrNull(request.getStyleId(), "STYLE"));
+        detail.setMechanismType(interiorFeatureOrNull(request.getMechanismTypeId(), "MECHANISM"));
+        detail.setPowerType(interiorFeatureOrNull(request.getPowerTypeId(), "POWER"));
         detail.setDimensions(trimToNull(request.getDimensions()));
         detail.setWeightGrams(request.getWeightGrams());
         detail.setWarrantyMonths(request.getWarrantyMonths());
@@ -135,8 +135,13 @@ public class InteriorClockDetailServiceImpl {
                 .orElseThrow(() -> new ResourceNotFoundException("Interior feature not found: " + id));
     }
 
-    private InteriorFeature interiorFeatureOrNull(Long id) {
-        return id == null ? null : interiorFeature(id);
+    private InteriorFeature interiorFeatureOrNull(Long id, String expectedType) {
+        if (id == null) return null;
+        InteriorFeature feature = interiorFeature(id);
+        if (!Boolean.TRUE.equals(feature.getActive()) || !expectedType.equals(feature.getFeatureType())) {
+            throw new IllegalArgumentException("Interior feature must reference an active " + expectedType + " value");
+        }
+        return feature;
     }
 
     private FeatureDto countryDto(Country country, Language lang) {

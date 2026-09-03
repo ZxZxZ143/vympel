@@ -11,8 +11,10 @@ const mocks = vi.hoisted(() => ({
   references: vi.fn(),
   importKaspiProduct: vi.fn(),
   createProduct: vi.fn(),
+  createReference: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
+  translate: (key: string) => key,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -22,11 +24,17 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/shared/api/client", () => ({
   CrmApiError: class CrmApiError extends Error {
     code?: string;
+
+    constructor(_status: number, message: string, code?: string) {
+      super(message);
+      this.code = code;
+    }
   },
   crmApi: {
     references: mocks.references,
     importKaspiProduct: mocks.importKaspiProduct,
     createProduct: mocks.createProduct,
+    createReference: mocks.createReference,
   },
 }));
 
@@ -37,7 +45,7 @@ vi.mock("@/shared/feedback/NotificationProvider", () => ({
 vi.mock("@/shared/i18n/useI18n", () => ({
   useI18n: () => ({
     locale: "ru",
-    t: (key: string) => key,
+    t: mocks.translate,
     messages: {
       common: { yes: "common.yes", no: "common.no" },
       products: {
@@ -78,6 +86,11 @@ const references: References = {
   interiorStyles: [],
   interiorMechanisms: [],
   interiorPowerTypes: [],
+  watchDialTypes: [{ id: 31, name: "Аналоговый (стрелки)", code: "ANALOG" }],
+  watchDialMarkings: [{ id: 32, name: "Штрихи", code: "MARKERS" }],
+  watchPowerSources: [{ id: 33, name: "От батарейки", code: "BATTERY" }],
+  watchWaterResistances: [{ id: 34, name: "WR50 (5 атм)", code: "WR50" }],
+  watchFeatures: [{ id: 35, name: "Отображение даты", code: "DATE" }],
 };
 
 const preview: KaspiImportPreview = {
@@ -99,8 +112,16 @@ const preview: KaspiImportPreview = {
       strapMaterialId: 3,
       glassTypeId: 4,
       caseSizeMm: 40,
-      waterResistance: "5 ATM",
+      waterResistance: null,
       stoneInlayId: null,
+      dialTypeId: 31,
+      dialMarkingId: 32,
+      powerSourceId: 33,
+      waterResistanceId: 34,
+      strapColorId: null,
+      dialColorId: null,
+      packageContents: "часы",
+      featureIds: [35],
     },
   },
   mappedFields: [
@@ -217,6 +238,12 @@ describe("Kaspi product import flow", () => {
     expect((document.getElementById("descriptionRu") as HTMLTextAreaElement).value).toBe("Описание **Markdown**");
     expect((screen.getByLabelText("products.caseMaterial") as HTMLSelectElement).value).toBe("1");
     expect((screen.getByLabelText("products.strapMaterial") as HTMLSelectElement).value).toBe("3");
+    expect((screen.getByLabelText("products.dialType") as HTMLSelectElement).value).toBe("31");
+    expect((screen.getByLabelText("products.dialMarking") as HTMLSelectElement).value).toBe("32");
+    expect((screen.getByLabelText("products.watchPowerSource") as HTMLSelectElement).value).toBe("33");
+    expect((screen.getByLabelText("products.waterResistance") as HTMLSelectElement).value).toBe("34");
+    expect((screen.getByLabelText("products.packageContents") as HTMLInputElement).value).toBe("часы");
+    expect((screen.getByLabelText("Отображение даты") as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText("products.category") as HTMLSelectElement).value).toBe("1");
 
     fireEvent.change(screen.getByLabelText("products.nameRu"), { target: { value: "Manually edited" } });
@@ -235,8 +262,80 @@ describe("Kaspi product import flow", () => {
         caseMaterialId: 1,
         strapMaterialId: 3,
         mechanismId: 5,
+        dialTypeId: 31,
+        dialMarkingId: 32,
+        powerSourceId: 33,
+        waterResistanceId: 34,
+        packageContents: "часы",
+        featureIds: [35],
       },
     });
+  });
+
+  it("creates a missing reference once, merges it locally and selects it without a reload", async () => {
+    mocks.createReference.mockResolvedValue({ id: 90, name: "Перламутровый", code: "CRM_TEST" });
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    const dialSelect = screen.getByLabelText("products.dialType") as HTMLSelectElement;
+    fireEvent.click(within(dialSelect.parentElement!).getByRole("button", { name: "products.referenceAdd" }));
+    const dialog = screen.getByRole("dialog", { name: "products.referenceCreateTitle" });
+    fireEvent.change(within(dialog).getByLabelText("products.referenceNameRu"), { target: { value: "Перламутровый" } });
+    fireEvent.submit(within(dialog).getByLabelText("products.referenceNameRu").closest("form")!);
+
+    await waitFor(() => expect(mocks.createReference).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    const selectedDial = await screen.findByLabelText("products.dialType") as HTMLSelectElement;
+    await waitFor(() => expect(Array.from(selectedDial.options).map((option) => option.value)).toContain("90"));
+    await waitFor(() => expect(selectedDial.value).toBe("90"));
+    expect(Array.from(selectedDial.options).some((option) => option.text === "Перламутровый")).toBe(true);
+    expect(mocks.createReference).toHaveBeenCalledWith(
+      "watch-dial-types",
+      { ru: "Перламутровый", kz: "", en: "" },
+      "ru"
+    );
+  });
+
+  it("cancels inline creation without a mutation and can immediately select a created feature", async () => {
+    mocks.createReference.mockResolvedValue({ id: 91, name: "Новый календарь", code: "CRM_FEATURE" });
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    const features = document.getElementById("featureIds")!;
+    fireEvent.click(within(features).getByRole("button", { name: "products.referenceAdd" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getAllByRole("button", { name: "common.cancel" })[1]);
+    expect(mocks.createReference).not.toHaveBeenCalled();
+
+    fireEvent.click(within(features).getByRole("button", { name: "products.referenceAdd" }));
+    const dialog = screen.getByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("products.referenceNameRu"), { target: { value: "Новый календарь" } });
+    fireEvent.submit(within(dialog).getByLabelText("products.referenceNameRu").closest("form")!);
+    expect((await screen.findByLabelText("Новый календарь") as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("prevents a synchronous double submit and keeps a duplicate error in the dialog", async () => {
+    let rejectRequest: ((reason: unknown) => void) | undefined;
+    mocks.createReference.mockImplementation(() => new Promise((_resolve, reject) => {
+      rejectRequest = reject;
+    }));
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    const dialSelect = screen.getByLabelText("products.dialType") as HTMLSelectElement;
+    fireEvent.click(within(dialSelect.parentElement!).getByRole("button", { name: "products.referenceAdd" }));
+    const dialog = screen.getByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("products.referenceNameRu"), { target: { value: " Дубликат " } });
+    const form = within(dialog).getByLabelText("products.referenceNameRu").closest("form")!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(mocks.createReference).toHaveBeenCalledTimes(1);
+    rejectRequest?.(new (await import("@/shared/api/client")).CrmApiError(409, "duplicate", "REFERENCE_DUPLICATE"));
+    expect(await within(dialog).findByText("products.referenceDuplicate")).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
   it("keeps an oversized preview inside a dedicated scroll body with actions outside it", async () => {
