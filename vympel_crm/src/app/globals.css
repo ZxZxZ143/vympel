@@ -905,13 +905,48 @@ a {
 }
 
 .crm-kaspi-dialog {
+  display: flex;
+  min-width: 0;
   width: min(100%, 760px);
+  max-height: calc(100vh - (2 * var(--crm-space-5)));
+  max-height: calc(100dvh - (2 * var(--crm-space-5)));
+  flex-direction: column;
+}
+
+.crm-kaspi-dialog__header {
+  display: grid;
+  min-width: 0;
+  flex: 0 0 auto;
+  gap: var(--crm-space-3);
+  padding-right: var(--crm-space-8);
 }
 
 .crm-kaspi-dialog__body {
+  min-width: 0;
   min-height: 0;
+  flex: 1 1 auto;
   overflow-y: auto;
-  padding-right: var(--crm-space-8);
+  overscroll-behavior: contain;
+  padding-right: var(--crm-space-2);
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-kaspi-dialog__body:focus-visible {
+  outline: 2px solid var(--crm-color-action);
+  outline-offset: 2px;
+}
+
+.crm-kaspi-dialog__form {
+  display: grid;
+  gap: var(--crm-space-3);
+}
+
+.crm-kaspi-dialog > .crm-confirm-dialog__actions {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--crm-color-border-soft);
+  background: var(--crm-color-surface);
+  padding-top: var(--crm-space-4);
 }
 
 .crm-import-preview {
@@ -921,6 +956,7 @@ a {
 
 .crm-import-preview__section {
   display: grid;
+  min-width: 0;
   gap: var(--crm-space-2);
   border: 1px solid var(--crm-color-border-soft);
   border-radius: var(--crm-radius-md);
@@ -946,16 +982,25 @@ a {
   font-size: var(--crm-text-small);
   line-height: var(--crm-line-relaxed);
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 @media (max-width: 640px) {
   .crm-confirm-overlay {
     align-items: end;
-    padding: var(--crm-space-3);
+    padding: max(var(--crm-space-3), env(safe-area-inset-top))
+      max(var(--crm-space-3), env(safe-area-inset-right))
+      max(var(--crm-space-3), env(safe-area-inset-bottom))
+      max(var(--crm-space-3), env(safe-area-inset-left));
   }
 
   .crm-kaspi-dialog {
-    max-height: calc(100dvh - var(--crm-space-6));
+    max-height: calc(100vh - (2 * var(--crm-space-3)));
+    max-height: calc(
+      100dvh
+      - max(var(--crm-space-3), env(safe-area-inset-top))
+      - max(var(--crm-space-3), env(safe-area-inset-bottom))
+    );
     padding: var(--crm-space-4);
   }
 }

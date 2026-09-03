@@ -30,6 +30,7 @@ const errorMessages: Record<string, string> = {
   KASPI_FETCH_FORBIDDEN: "products.kaspiImportForbidden",
   KASPI_PRODUCT_NOT_FOUND: "products.kaspiImportNotFound",
   KASPI_UPSTREAM_RATE_LIMITED: "products.kaspiImportUpstreamLimited",
+  KASPI_IMPORT_BUSY: "products.kaspiImportBusy",
   KASPI_RESPONSE_TOO_LARGE: "products.kaspiImportInvalidResponse",
   KASPI_RESPONSE_INVALID: "products.kaspiImportInvalidResponse",
   KASPI_PARSE_FAILED: "products.kaspiImportParseFailed",
@@ -87,8 +88,12 @@ export function KaspiImportDialog({
   onApply,
 }: KaspiImportDialogProps) {
   const titleId = useId();
+  const descriptionId = useId();
+  const formId = useId();
+  const errorId = useId();
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
+  const scrollBodyRef = useRef<HTMLDivElement>(null);
   const urlRef = useRef<HTMLInputElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -169,6 +174,12 @@ export function KaspiImportDialog({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (open && preview) {
+      scrollBodyRef.current?.focus({ preventScroll: true });
+    }
+  }, [open, preview]);
+
   if (!open || !mounted) return null;
 
   const close = () => {
@@ -218,6 +229,7 @@ export function KaspiImportDialog({
     >
       <section
         ref={dialogRef}
+        aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
         className="crm-confirm-dialog crm-kaspi-dialog"
@@ -235,14 +247,34 @@ export function KaspiImportDialog({
           ×
         </button>
 
-        <div className="crm-confirm-dialog__body crm-kaspi-dialog__body">
+        <header className="crm-kaspi-dialog__header">
           <h2 className="crm-confirm-dialog__title" id={titleId}>{t("products.kaspiImportTitle")}</h2>
+          <Text id={descriptionId} tone="muted" size="small">
+            {t(preview ? "products.kaspiImportPreview" : "products.kaspiImportHelp")}
+          </Text>
+        </header>
+
+        <div
+          ref={scrollBodyRef}
+          aria-label={preview ? t("products.kaspiImportPreview") : undefined}
+          className="crm-confirm-dialog__body crm-kaspi-dialog__body"
+          tabIndex={preview ? 0 : -1}
+        >
           {!preview ? (
-            <>
-              <Text tone="muted" size="small">{t("products.kaspiImportHelp")}</Text>
+            <form
+              className="crm-kaspi-dialog__form"
+              id={formId}
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void importProduct();
+              }}
+            >
               <Field htmlFor="kaspiImportUrl" label={t("products.kaspiImportUrl")}>
                 <input
                   ref={urlRef}
+                  aria-describedby={`${descriptionId}${error ? ` ${errorId}` : ""}`}
+                  aria-invalid={error ? "true" : undefined}
                   id="kaspiImportUrl"
                   className="crm-input"
                   type="url"
@@ -255,11 +287,11 @@ export function KaspiImportDialog({
                   }}
                 />
               </Field>
-            </>
+            </form>
           ) : (
             <ImportPreview preview={preview} t={t} />
           )}
-          {error ? <Text className="crm-form-error" role="alert">{error}</Text> : null}
+          {error ? <Text id={errorId} className="crm-form-error" role="alert">{error}</Text> : null}
         </div>
 
         <div className="crm-confirm-dialog__actions">
@@ -277,7 +309,7 @@ export function KaspiImportDialog({
               {t("products.kaspiImportApply")}
             </Button>
           ) : (
-            <Button isLoading={loading} disabled={!url.trim()} onClick={() => void importProduct()}>
+            <Button form={formId} type="submit" isLoading={loading} disabled={!url.trim()}>
               {loading ? t("products.kaspiImportLoading") : t("products.kaspiImportAction")}
             </Button>
           )}
@@ -291,7 +323,6 @@ export function KaspiImportDialog({
 function ImportPreview({ preview, t }: { preview: KaspiImportPreview; t: (key: string) => string }) {
   return (
     <div className="crm-import-preview">
-      <Text>{t("products.kaspiImportPreview")}</Text>
       <PreviewSection title={t("products.kaspiImportMappedFields")} empty={t("products.kaspiImportEmpty")}>
         {preview.mappedFields.map((item) => (
           <li key={`${item.targetField}-${item.resolvedValue}`}>
@@ -347,14 +378,19 @@ function targetLabel(field: string, t: (key: string) => string) {
 }
 
 function reasonLabel(reason: string, t: (key: string) => string) {
-  const key = reason === "UNKNOWN_LABEL" || reason === "UNSUPPORTED_FOR_CATEGORY"
-    ? "products.kaspiReasonUnsupported"
-    : reason === "AMBIGUOUS_VALUE" || reason === "DUPLICATE_CONFLICT"
-      ? "products.kaspiReasonAmbiguous"
-      : reason === "INVALID_VALUE"
-        ? "products.kaspiReasonInvalid"
-        : "products.kaspiReasonUnresolved";
-  return t(key);
+  if (reason === "UNKNOWN_LABEL" || reason === "UNSUPPORTED_FOR_CATEGORY") {
+    return t("products.kaspiReasonUnsupported");
+  }
+  if (reason === "BRAND_COUNTRY_MISMATCH") {
+    return t("products.kaspiReasonBrandCountryMismatch");
+  }
+  if (reason === "AMBIGUOUS_VALUE" || reason === "DUPLICATE_CONFLICT") {
+    return t("products.kaspiReasonAmbiguous");
+  }
+  if (reason === "INVALID_VALUE") {
+    return t("products.kaspiReasonInvalid");
+  }
+  return t("products.kaspiReasonUnresolved");
 }
 
 export function isValidKaspiProductUrl(raw: string) {

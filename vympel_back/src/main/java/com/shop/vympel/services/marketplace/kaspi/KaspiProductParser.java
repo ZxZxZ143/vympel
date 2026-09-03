@@ -5,6 +5,7 @@ import tools.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import java.util.regex.Pattern;
 
 @Component
 public class KaspiProductParser {
-    private static final Pattern INTEGER_PATTERN = Pattern.compile("(?<!\\d)(\\d[\\d\\s\\u00a0.,]*)(?!\\d)");
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("(?<!\\d)(-?\\d[\\d\\s\\u00a0.,]*)(?!\\d)");
     private static final Set<String> CHARACTERISTIC_CONTAINER_KEYS = Set.of(
             "characteristics", "specifications", "attributes", "properties"
     );
@@ -81,11 +82,11 @@ public class KaspiProductParser {
         }
 
         return new KaspiParsedProduct(
-                clean(parsed.name, 500),
+                clean(parsed.name, 1_000),
                 clean(parsed.brand, 200),
-                clean(parsed.model, 200),
+                clean(parsed.model, 1_000),
                 price,
-                clean(parsed.description, 10_000),
+                clean(parsed.description, 20_000),
                 List.copyOf(parsed.characteristics.values()),
                 List.copyOf(parsed.warnings)
         );
@@ -209,8 +210,16 @@ public class KaspiProductParser {
         for (Element row : document.select(".specifications-list__spec, [class*=specification]")) {
             Element label = row.selectFirst(".specifications-list__spec-term, [class*=term], [class*=label]");
             Element value = row.selectFirst(".specifications-list__spec-definition, [class*=definition], [class*=value]");
-            if (label != null && value != null) addCharacteristic(parsed, label.text(), value.text());
+            if (label != null && value != null && !containsNestedCharacteristicRows(value)) {
+                addCharacteristic(parsed, label.text(), value.text());
+            }
         }
+    }
+
+    private boolean containsNestedCharacteristicRows(Element value) {
+        return value.selectFirst(".specifications-list__spec, [class*=specification][class*=row], "
+                + "[class*=specification][class*=item]") != null
+                || value.selectFirst("dt + dd, table tr") != null;
     }
 
     private void addCharacteristic(ParsedAccumulator parsed, String rawLabel, String rawValue) {
@@ -229,7 +238,11 @@ public class KaspiProductParser {
         if (blank(raw)) return null;
         Matcher matcher = INTEGER_PATTERN.matcher(raw);
         if (!matcher.find()) return null;
-        String digits = matcher.group(1).replaceAll("[^0-9]", "");
+        String token = matcher.group(1).replaceAll("[\\s\\u00a0]", "");
+        if (matcher.find()) return null;
+        if (token.startsWith("-")) return null;
+        String digits = normalizeIntegerPriceToken(token);
+        if (digits == null) return null;
         if (digits.isEmpty()) return null;
         try {
             long value = Long.parseLong(digits);
@@ -237,6 +250,43 @@ public class KaspiProductParser {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    private static String normalizeIntegerPriceToken(String token) {
+        int lastDot = token.lastIndexOf('.');
+        int lastComma = token.lastIndexOf(',');
+        int separator = Math.max(lastDot, lastComma);
+        if (separator < 0) return token.chars().allMatch(Character::isDigit) ? token : null;
+
+        String fraction = token.substring(separator + 1);
+        if ((fraction.length() == 1 || fraction.length() == 2) && fraction.chars().allMatch(ch -> ch == '0')) {
+            return normalizeGroupedInteger(token.substring(0, separator));
+        }
+        if (fraction.length() == 1 || fraction.length() == 2) {
+            return null;
+        }
+        return normalizeGroupedInteger(token);
+    }
+
+    private static String normalizeGroupedInteger(String token) {
+        boolean hasDot = token.indexOf('.') >= 0;
+        boolean hasComma = token.indexOf(',') >= 0;
+        if (hasDot && hasComma) return null;
+        if (!hasDot && !hasComma) return token.chars().allMatch(Character::isDigit) ? token : null;
+
+        String[] groups = token.split(hasDot ? "\\." : ",", -1);
+        if (groups.length < 2 || groups[0].isEmpty() || groups[0].length() > 3
+                || !groups[0].chars().allMatch(Character::isDigit)) {
+            return null;
+        }
+        StringBuilder digits = new StringBuilder(groups[0]);
+        for (int index = 1; index < groups.length; index++) {
+            if (groups[index].length() != 3 || !groups[index].chars().allMatch(Character::isDigit)) {
+                return null;
+            }
+            digits.append(groups[index]);
+        }
+        return digits.toString();
     }
 
     private String scalar(JsonNode node) {
@@ -274,7 +324,10 @@ public class KaspiProductParser {
 
     private static String clean(String value, int maxLength) {
         if (value == null) return null;
-        String cleaned = value.replace('\u00a0', ' ').replaceAll("\\s+", " ").trim();
+        String cleaned = Parser.unescapeEntities(value, false)
+                .replace('\u00a0', ' ')
+                .replaceAll("\\s+", " ")
+                .trim();
         if (cleaned.isBlank()) return null;
         return cleaned.length() <= maxLength ? cleaned : cleaned.substring(0, maxLength).trim();
     }

@@ -86,16 +86,26 @@ public class KaspiCharacteristicMapper {
         Set<String> conflictedTargets = new HashSet<>();
 
         String name = clean(parsed.name());
-        if (name != null) mappedFields.add(new KaspiProductImportResponse.MappedField("nameRu", name));
-        else warnings.add("NAME_NOT_FOUND");
+        if (name == null) {
+            warnings.add("NAME_NOT_FOUND");
+        } else if (name.length() > 255) {
+            unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
+                    "Название", name, "nameRu", "INVALID_VALUE"
+            ));
+            name = null;
+        } else {
+            mappedFields.add(new KaspiProductImportResponse.MappedField("nameRu", name));
+        }
 
         Long brandId = null;
+        Option brandOption = null;
         String brand = clean(parsed.brand());
         if (brand != null) {
             Resolution brandResolution = resolveBrands(brand, references.brands());
             if (brandResolution.option() != null) {
-                brandId = brandResolution.option().id();
-                mappedFields.add(new KaspiProductImportResponse.MappedField("brandId", brandResolution.option().name()));
+                brandOption = brandResolution.option();
+                brandId = brandOption.id();
+                mappedFields.add(new KaspiProductImportResponse.MappedField("brandId", brandOption.name()));
             } else {
                 unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
                         "Бренд", brand, "brandId", brandResolution.reason()
@@ -105,12 +115,24 @@ public class KaspiCharacteristicMapper {
         }
 
         String model = clean(parsed.model());
-        if (model != null) mappedFields.add(new KaspiProductImportResponse.MappedField("model", model));
+        if (model != null && model.length() > 255) {
+            unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
+                    "Модель", model, "model", "INVALID_VALUE"
+            ));
+            model = null;
+        } else if (model != null) {
+            mappedFields.add(new KaspiProductImportResponse.MappedField("model", model));
+        }
         if (parsed.price() != null) {
             mappedFields.add(new KaspiProductImportResponse.MappedField("price", String.valueOf(parsed.price())));
         }
         String description = clean(parsed.description());
-        if (description != null) {
+        if (description != null && description.length() > 10_000) {
+            unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
+                    "Описание", description, "descriptionRu", "INVALID_VALUE"
+            ));
+            description = null;
+        } else if (description != null) {
             mappedFields.add(new KaspiProductImportResponse.MappedField("descriptionRu", description));
         }
         mappedFields.add(new KaspiProductImportResponse.MappedField("kaspiUrl", sourceUrl));
@@ -120,6 +142,7 @@ public class KaspiCharacteristicMapper {
                     characteristic, profile, references, candidates, conflictedTargets, unmapped, unresolved
             );
         }
+        reconcileInteriorCountry(profile, brandOption, references.brands(), candidates, unresolved);
 
         List<KaspiProductImportResponse.MappedCharacteristic> mappedCharacteristics = candidates.values().stream()
                 .map(Candidate::asResponse)
@@ -203,7 +226,11 @@ public class KaspiCharacteristicMapper {
         }
 
         Candidate candidate = resolveTarget(target, label, value, references, unresolved);
-        if (candidate == null || conflictedTargets.contains(target.path())) return;
+        if (candidate == null) return;
+        if (conflictedTargets.contains(target.path())) {
+            unresolved.add(candidate.asUnresolved("DUPLICATE_CONFLICT"));
+            return;
+        }
         Candidate previous = candidates.get(target.path());
         if (previous == null) {
             candidates.put(target.path(), candidate);
@@ -213,9 +240,8 @@ public class KaspiCharacteristicMapper {
 
         candidates.remove(target.path());
         conflictedTargets.add(target.path());
-        unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
-                label, value, target.path(), "DUPLICATE_CONFLICT"
-        ));
+        unresolved.add(previous.asUnresolved("DUPLICATE_CONFLICT"));
+        unresolved.add(candidate.asUnresolved("DUPLICATE_CONFLICT"));
     }
 
     private Candidate resolveTarget(
@@ -253,6 +279,12 @@ public class KaspiCharacteristicMapper {
         String rendered;
         switch (target.valueType()) {
             case STRING -> {
+                if (target.maxLength() != null && value.length() > target.maxLength()) {
+                    unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
+                            label, value, target.path(), "INVALID_VALUE"
+                    ));
+                    return null;
+                }
                 parsedValue = value;
                 rendered = value;
             }
@@ -281,6 +313,29 @@ public class KaspiCharacteristicMapper {
             default -> throw new IllegalStateException("Unsupported value type");
         }
         return new Candidate(label, value, target.path(), parsedValue, rendered, "NORMALIZED");
+    }
+
+    private void reconcileInteriorCountry(
+            CatalogCategoryProfile profile,
+            Option brandOption,
+            List<CrmBrandReferenceOptionResponse> brands,
+            Map<String, Candidate> candidates,
+            List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved
+    ) {
+        if (profile != CatalogCategoryProfile.INTERIOR_CLOCK) return;
+        String path = "interiorClockDetails.productionCountryId";
+        Candidate country = candidates.get(path);
+        if (country == null) return;
+
+        Long brandCountryId = brandOption == null ? null : brands.stream()
+                .filter(brand -> Objects.equals(brand.id(), brandOption.id()))
+                .map(CrmBrandReferenceOptionResponse::countryId)
+                .findFirst()
+                .orElse(null);
+        if (brandCountryId == null || !Objects.equals(brandCountryId, country.value())) {
+            candidates.remove(path);
+            unresolved.add(country.asUnresolved("BRAND_COUNTRY_MISMATCH"));
+        }
     }
 
     private Resolution resolveBrands(String value, List<CrmBrandReferenceOptionResponse> brands) {
@@ -335,7 +390,7 @@ public class KaspiCharacteristicMapper {
                 case MECHANISM -> dict("watchDetails.mechanismId", Dictionary.MECHANISM, kind);
                 case GENDER -> dict("watchDetails.genderId", Dictionary.GENDER, kind);
                 case CASE_SIZE -> integer("watchDetails.caseSizeMm", kind);
-                case WATER_RESISTANCE -> string("watchDetails.waterResistance", kind);
+                case WATER_RESISTANCE -> string("watchDetails.waterResistance", kind, 50);
                 case STONE -> dict("watchDetails.stoneInlayId", Dictionary.STONE, kind);
                 default -> null;
             };
@@ -346,7 +401,7 @@ public class KaspiCharacteristicMapper {
                 case MECHANISM -> dict("interiorClockDetails.mechanismTypeId", Dictionary.INTERIOR_MECHANISM, kind);
                 case POWER -> dict("interiorClockDetails.powerTypeId", Dictionary.POWER, kind);
                 case COUNTRY -> dict("interiorClockDetails.productionCountryId", Dictionary.COUNTRY, kind);
-                case DIMENSIONS, CASE_SIZE -> string("interiorClockDetails.dimensions", kind);
+                case DIMENSIONS, CASE_SIZE -> string("interiorClockDetails.dimensions", kind, 100);
                 case WEIGHT -> integer("interiorClockDetails.weightGrams", kind);
                 case WARRANTY -> integer("interiorClockDetails.warrantyMonths", kind);
                 default -> null;
@@ -355,9 +410,9 @@ public class KaspiCharacteristicMapper {
                 case CASE_MATERIAL -> dict("accessoryDetails.caseMaterialId", Dictionary.MATERIAL, kind);
                 case INSERT_MATERIAL -> dict("accessoryDetails.insertMaterialId", Dictionary.MATERIAL, kind);
                 case COLOR, CASE_COLOR -> dict("accessoryDetails.colorId", Dictionary.COLOR, kind);
-                case CLASP -> string("accessoryDetails.claspType", kind);
+                case CLASP -> string("accessoryDetails.claspType", kind, 100);
                 case HAS_INSERT -> bool("accessoryDetails.hasInsert", kind);
-                case LENGTH, DIMENSIONS -> string("accessoryDetails.length", kind);
+                case LENGTH, DIMENSIONS -> string("accessoryDetails.length", kind, 100);
                 default -> null;
             };
             case GENERIC -> null;
@@ -367,13 +422,17 @@ public class KaspiCharacteristicMapper {
     private static Integer parseInteger(String raw, FieldKind kind) {
         Matcher matcher = NUMBER.matcher(raw.replace('\u00a0', ' '));
         if (!matcher.find()) return null;
+        String numericToken = matcher.group(1);
+        if (matcher.find()) return null;
         try {
-            double number = Double.parseDouble(matcher.group(1).replace(',', '.'));
+            double number = Double.parseDouble(numericToken.replace(',', '.'));
             String normalized = normalize(raw);
             if (kind == FieldKind.WEIGHT && normalized.matches(".*\\b(kg|кг|килограмм).*")) number *= 1000;
             if (kind == FieldKind.WARRANTY && normalized.matches(".*\\b(год|года|лет|year|years).*")) number *= 12;
             if (!Double.isFinite(number) || number > Integer.MAX_VALUE) return null;
-            return (int) Math.round(number);
+            double integer = Math.rint(number);
+            if (Math.abs(number - integer) > 0.000_001d) return null;
+            return (int) integer;
         } catch (NumberFormatException ex) {
             return null;
         }
@@ -442,19 +501,19 @@ public class KaspiCharacteristicMapper {
     }
 
     private static Target dict(String path, Dictionary dictionary, FieldKind kind) {
-        return new Target(path, dictionary, null, kind);
+        return new Target(path, dictionary, null, kind, null);
     }
 
-    private static Target string(String path, FieldKind kind) {
-        return new Target(path, null, ValueType.STRING, kind);
+    private static Target string(String path, FieldKind kind, int maxLength) {
+        return new Target(path, null, ValueType.STRING, kind, maxLength);
     }
 
     private static Target integer(String path, FieldKind kind) {
-        return new Target(path, null, ValueType.INTEGER, kind);
+        return new Target(path, null, ValueType.INTEGER, kind, null);
     }
 
     private static Target bool(String path, FieldKind kind) {
-        return new Target(path, null, ValueType.BOOLEAN, kind);
+        return new Target(path, null, ValueType.BOOLEAN, kind, null);
     }
 
     private static Long longValue(Map<String, Candidate> values, String path) {
@@ -495,7 +554,7 @@ public class KaspiCharacteristicMapper {
 
     private enum ValueType { STRING, INTEGER, BOOLEAN }
 
-    private record Target(String path, Dictionary dictionary, ValueType valueType, FieldKind kind) {
+    private record Target(String path, Dictionary dictionary, ValueType valueType, FieldKind kind, Integer maxLength) {
     }
 
     private record Option(Long id, String name, String code) {
@@ -515,6 +574,12 @@ public class KaspiCharacteristicMapper {
         private KaspiProductImportResponse.MappedCharacteristic asResponse() {
             return new KaspiProductImportResponse.MappedCharacteristic(
                     sourceLabel, sourceValue, targetField, resolvedValue, resolution
+            );
+        }
+
+        private KaspiProductImportResponse.UnresolvedCharacteristic asUnresolved(String reason) {
+            return new KaspiProductImportResponse.UnresolvedCharacteristic(
+                    sourceLabel, sourceValue, targetField, reason
             );
         }
     }

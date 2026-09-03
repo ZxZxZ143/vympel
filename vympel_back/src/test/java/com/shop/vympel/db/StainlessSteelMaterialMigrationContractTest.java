@@ -32,7 +32,7 @@ class StainlessSteelMaterialMigrationContractTest {
     }
 
     @Test
-    void isIncludedAfterThePreviousMigrationAndHasAnFkSafeRollback() throws IOException {
+    void isIncludedAfterThePreviousMigrationAndHasDataPreservingRollbackGuards() throws IOException {
         String master = resourceText(MASTER_CHANGELOG);
         String migration = resourceText(CHANGELOG).replaceAll("\\s+", " ");
         String previous = "db/changelog/2026-08-27-01-optional-product-characteristics.xml";
@@ -40,9 +40,18 @@ class StainlessSteelMaterialMigrationContractTest {
 
         assertTrue(master.indexOf(current) > master.indexOf(previous));
         assertTrue(migration.contains("<rollback>"));
-        assertTrue(migration.contains("DELETE FROM material WHERE code = 'STAINLESS_STEEL';"));
+        assertTrue(migration.contains("Cannot roll back stainless steel material while products reference it"));
+        assertTrue(migration.contains("EXISTS ( SELECT 1 FROM watch_details"));
+        assertTrue(migration.contains("EXISTS ( SELECT 1 FROM interior_clock_details"));
+        assertTrue(migration.contains("EXISTS ( SELECT 1 FROM accessory_details"));
+        assertTrue(migration.contains("DELETE FROM material WHERE code = 'STAINLESS_STEEL'"));
         assertFalse(migration.toLowerCase().contains("cascade"));
         assertFalse(migration.toLowerCase().contains("delete from watch_details"));
+        assertFalse(migration.contains("UPDATE product SET kaspi_url"));
+        assertTrue(migration.contains("Cannot roll back Kaspi product source links without losing product-specific URLs"));
+        assertTrue(migration.contains("RAISE EXCEPTION"));
+        assertTrue(migration.contains("9:2517ba1123db2abefb42e4c5314e1d9a"));
+        assertTrue(migration.contains("9:94bc5749bce8fa965c650bbc774c81ed"));
         assertTrue(migration.contains("DROP CONSTRAINT IF EXISTS chk_product_kaspi_url_canonical"));
         assertTrue(migration.contains("https://(www\\.)?kaspi\\.kz/shop/p/"));
     }

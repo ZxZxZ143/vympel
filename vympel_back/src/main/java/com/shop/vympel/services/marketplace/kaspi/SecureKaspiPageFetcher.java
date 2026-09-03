@@ -3,11 +3,11 @@ package com.shop.vympel.services.marketplace.kaspi;
 import com.shop.vympel.exceptions.ProductImportException;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -17,11 +17,17 @@ import java.net.http.HttpClient;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Flow;
+import java.util.concurrent.Semaphore;
+import java.util.function.LongSupplier;
 
 @Component
 public class SecureKaspiPageFetcher implements KaspiPageFetcher {
@@ -31,29 +37,64 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
 
     private final KaspiUrlGuard urlGuard;
     private final HttpClient httpClient;
+    private final Semaphore fetchPermits;
+    private final LongSupplier nanoTime;
 
     @Autowired
-    public SecureKaspiPageFetcher(KaspiUrlGuard urlGuard) {
+    public SecureKaspiPageFetcher(
+            KaspiUrlGuard urlGuard,
+            @Value("${app.kaspi-import.max-concurrent-fetches:4}") int maximumConcurrentFetches
+    ) {
         this(urlGuard, HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .proxy(new DirectProxySelector())
-                .build());
+                .build(), maximumConcurrentFetches, System::nanoTime);
     }
 
     SecureKaspiPageFetcher(KaspiUrlGuard urlGuard, HttpClient httpClient) {
+        this(urlGuard, httpClient, 4, System::nanoTime);
+    }
+
+    SecureKaspiPageFetcher(KaspiUrlGuard urlGuard, HttpClient httpClient, int maximumConcurrentFetches) {
+        this(urlGuard, httpClient, maximumConcurrentFetches, System::nanoTime);
+    }
+
+    SecureKaspiPageFetcher(
+            KaspiUrlGuard urlGuard,
+            HttpClient httpClient,
+            int maximumConcurrentFetches,
+            LongSupplier nanoTime
+    ) {
+        if (maximumConcurrentFetches < 1) {
+            throw new IllegalArgumentException("maximumConcurrentFetches must be positive");
+        }
         this.urlGuard = urlGuard;
         this.httpClient = httpClient;
+        this.fetchPermits = new Semaphore(maximumConcurrentFetches, true);
+        this.nanoTime = nanoTime;
     }
 
     @Override
     public FetchedPage fetch(String sourceUrl) {
+        if (!fetchPermits.tryAcquire()) {
+            throw failure("KASPI_IMPORT_BUSY", HttpStatus.TOO_MANY_REQUESTS,
+                    "Kaspi import capacity is temporarily busy.");
+        }
+        try {
+            return fetchWithPermit(sourceUrl);
+        } finally {
+            fetchPermits.release();
+        }
+    }
+
+    private FetchedPage fetchWithPermit(String sourceUrl) {
+        long deadline = nanoTime.getAsLong() + REQUEST_TIMEOUT.toNanos();
         URI current = urlGuard.validate(sourceUrl).uri();
         for (int redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
-            HttpResponse<InputStream> response = send(current);
+            HttpResponse<byte[]> response = send(current, remainingTimeout(deadline));
             int status = response.statusCode();
             if (isRedirect(status)) {
-                closeQuietly(response.body());
                 if (redirects == MAX_REDIRECTS) {
                     throw failure("KASPI_REDIRECT_REJECTED", HttpStatus.BAD_GATEWAY,
                             "Kaspi returned too many redirects.");
@@ -62,12 +103,12 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
                 continue;
             }
             if (status != 200) {
-                closeQuietly(response.body());
                 throw upstreamStatus(status);
             }
             validateContentType(response);
+            validateContentEncoding(response);
             validateContentLength(response);
-            return new FetchedPage(current.toString(), readBounded(response.body()));
+            return new FetchedPage(current.toString(), new String(response.body(), StandardCharsets.UTF_8));
         }
         throw failure("KASPI_REDIRECT_REJECTED", HttpStatus.BAD_GATEWAY, "Kaspi redirect was rejected.");
     }
@@ -94,16 +135,25 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
         }
     }
 
-    private HttpResponse<InputStream> send(URI uri) {
+    private Duration remainingTimeout(long deadline) {
+        long remainingNanos = deadline - nanoTime.getAsLong();
+        if (remainingNanos <= 0) {
+            throw failure("KASPI_FETCH_TIMEOUT", HttpStatus.GATEWAY_TIMEOUT,
+                    "Kaspi did not respond in time.");
+        }
+        return Duration.ofNanos(remainingNanos);
+    }
+
+    private HttpResponse<byte[]> send(URI uri, Duration timeout) {
         HttpRequest request = HttpRequest.newBuilder(uri)
-                .timeout(REQUEST_TIMEOUT)
+                .timeout(timeout)
                 .header("Accept", "text/html,application/xhtml+xml")
                 .header("Accept-Encoding", "identity")
                 .header("User-Agent", "VympelCatalogImporter/1.0")
                 .GET()
                 .build();
         try {
-            return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            return httpClient.send(request, ignored -> new BoundedBodySubscriber(MAX_RESPONSE_BYTES));
         } catch (HttpConnectTimeoutException ex) {
             throw new ProductImportException(
                     "KASPI_FETCH_TIMEOUT", HttpStatus.GATEWAY_TIMEOUT, "Kaspi did not respond in time.", ex
@@ -117,6 +167,8 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
                     "KASPI_FETCH_FAILED", HttpStatus.BAD_GATEWAY, "Kaspi could not be reached.", ex
             );
         } catch (IOException ex) {
+            ProductImportException importFailure = findImportFailure(ex);
+            if (importFailure != null) throw importFailure;
             throw new ProductImportException(
                     "KASPI_FETCH_FAILED", HttpStatus.BAD_GATEWAY, "Kaspi could not be fetched.", ex
             );
@@ -132,7 +184,6 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
         String contentType = response.headers().firstValue("content-type").orElse("")
                 .toLowerCase(Locale.ROOT);
         if (!contentType.startsWith("text/html") && !contentType.startsWith("application/xhtml+xml")) {
-            closeQuietly(response.body() instanceof InputStream stream ? stream : null);
             throw failure("KASPI_RESPONSE_INVALID", HttpStatus.BAD_GATEWAY,
                     "Kaspi returned an unsupported response.");
         }
@@ -141,33 +192,19 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
     private void validateContentLength(HttpResponse<?> response) {
         response.headers().firstValueAsLong("content-length").ifPresent(length -> {
             if (length > MAX_RESPONSE_BYTES) {
-                closeQuietly(response.body() instanceof InputStream stream ? stream : null);
                 throw failure("KASPI_RESPONSE_TOO_LARGE", HttpStatus.BAD_GATEWAY,
                         "Kaspi response is too large.");
             }
         });
     }
 
-    private String readBounded(InputStream body) {
-        try (InputStream stream = body; ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[8192];
-            int total = 0;
-            int read;
-            while ((read = stream.read(buffer)) != -1) {
-                total += read;
-                if (total > MAX_RESPONSE_BYTES) {
-                    throw failure("KASPI_RESPONSE_TOO_LARGE", HttpStatus.BAD_GATEWAY,
-                            "Kaspi response is too large.");
-                }
-                output.write(buffer, 0, read);
-            }
-            return output.toString(StandardCharsets.UTF_8);
-        } catch (ProductImportException ex) {
-            throw ex;
-        } catch (IOException ex) {
-            throw new ProductImportException(
-                    "KASPI_FETCH_FAILED", HttpStatus.BAD_GATEWAY, "Kaspi response could not be read.", ex
-            );
+    private void validateContentEncoding(HttpResponse<?> response) {
+        String contentEncoding = response.headers().firstValue("content-encoding").orElse("")
+                .trim()
+                .toLowerCase(Locale.ROOT);
+        if (!contentEncoding.isEmpty() && !"identity".equals(contentEncoding)) {
+            throw failure("KASPI_RESPONSE_INVALID", HttpStatus.BAD_GATEWAY,
+                    "Kaspi returned an unsupported response encoding.");
         }
     }
 
@@ -193,12 +230,70 @@ public class SecureKaspiPageFetcher implements KaspiPageFetcher {
         return new ProductImportException(code, status, message);
     }
 
-    private void closeQuietly(InputStream stream) {
-        if (stream == null) return;
-        try {
-            stream.close();
-        } catch (IOException ignored) {
-            // The response is already being discarded.
+    private ProductImportException findImportFailure(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof ProductImportException importException) return importException;
+            current = current.getCause();
+        }
+        return null;
+    }
+
+    static final class BoundedBodySubscriber implements HttpResponse.BodySubscriber<byte[]> {
+        private final int maximumBytes;
+        private final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        private final CompletableFuture<byte[]> body = new CompletableFuture<>();
+        private Flow.Subscription subscription;
+        private int receivedBytes;
+
+        BoundedBodySubscriber(int maximumBytes) {
+            this.maximumBytes = maximumBytes;
+        }
+
+        @Override
+        public CompletionStage<byte[]> getBody() {
+            return body;
+        }
+
+        @Override
+        public void onSubscribe(Flow.Subscription nextSubscription) {
+            if (subscription != null) {
+                nextSubscription.cancel();
+                return;
+            }
+            subscription = nextSubscription;
+            nextSubscription.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(List<ByteBuffer> buffers) {
+            if (body.isDone()) return;
+            for (ByteBuffer buffer : buffers) {
+                int chunkBytes = buffer.remaining();
+                if (chunkBytes > maximumBytes - receivedBytes) {
+                    subscription.cancel();
+                    body.completeExceptionally(new ProductImportException(
+                            "KASPI_RESPONSE_TOO_LARGE",
+                            HttpStatus.BAD_GATEWAY,
+                            "Kaspi response is too large."
+                    ));
+                    return;
+                }
+                byte[] chunk = new byte[chunkBytes];
+                buffer.get(chunk);
+                output.writeBytes(chunk);
+                receivedBytes += chunkBytes;
+            }
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            body.completeExceptionally(error);
+        }
+
+        @Override
+        public void onComplete() {
+            body.complete(output.toByteArray());
         }
     }
 

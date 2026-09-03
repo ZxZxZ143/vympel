@@ -250,6 +250,7 @@ export type KaspiImportUnmappedReason =
   | "UNRESOLVED_VALUE"
   | "AMBIGUOUS_VALUE"
   | "INVALID_VALUE"
+  | "BRAND_COUNTRY_MISMATCH"
   | "DUPLICATE_CONFLICT";
 
 export type KaspiImportValues = {

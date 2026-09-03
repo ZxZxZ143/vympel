@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KaspiProductParserTest {
@@ -43,6 +45,19 @@ class KaspiProductParserTest {
     }
 
     @Test
+    void decodesHtmlEntitiesAndKeepsUntrustedDescriptionAsPlainImportedData() {
+        String html = "<script type='application/ld+json'>"
+                + "{\"@type\":\"Product\",\"name\":\"A &amp; B\","
+                + "\"description\":\"&lt;img src=x onerror=alert(1)&gt; **safe markdown**\"}"
+                + "</script>";
+
+        KaspiParsedProduct product = parser.parse(html, "https://kaspi.kz/shop/p/entities");
+
+        assertEquals("A & B", product.name());
+        assertEquals("<img src=x onerror=alert(1)> **safe markdown**", product.description());
+    }
+
+    @Test
     void conflictingPricesAreNotGuessed() {
         String html = "<script type='application/ld+json'>{\"@type\":\"Product\",\"name\":\"Watch\","
                 + "\"offers\":{\"price\":\"10000\"}}</script><span itemprop='price'>12000 ₸</span>";
@@ -50,6 +65,43 @@ class KaspiProductParserTest {
 
         assertEquals(null, product.price());
         assertTrue(product.warnings().contains("PRICE_AMBIGUOUS"));
+    }
+
+    @Test
+    void skipsAggregateSpecificationContainersInsteadOfConcatenatingNestedRows() {
+        String html = "<h1>Watch</h1>"
+                + "<div class='specifications-group'>"
+                + "<div class='specifications-row'>"
+                + "<span class='specifications-label'>Конструкция</span>"
+                + "<div class='specifications-value'>"
+                + "<div class='specifications-row'><span class='specifications-label'>Форма</span>"
+                + "<span class='specifications-value'>круг</span></div>"
+                + "<div class='specifications-row'><span class='specifications-label'>Вес</span>"
+                + "<span class='specifications-value'>500 г</span></div>"
+                + "</div></div></div>";
+
+        KaspiParsedProduct product = parser.parse(html, "https://kaspi.kz/shop/p/nested");
+
+        assertTrue(product.characteristics().contains(new KaspiCharacteristic("Форма", "круг")));
+        assertTrue(product.characteristics().contains(new KaspiCharacteristic("Вес", "500 г")));
+        assertFalse(product.characteristics().stream().anyMatch(item -> item.label().equals("Конструкция")));
+        assertFalse(product.characteristics().stream().anyMatch(item -> item.value().contains("Форма круг Вес")));
+    }
+
+    @Test
+    void parsesKazakhstaniIntegerPricesWithoutDecimalCorruption() {
+        assertEquals(119_950, KaspiProductParser.parsePrice("119 950 ₸"));
+        assertEquals(119_950, KaspiProductParser.parsePrice("119\u00a0950 тг"));
+        assertEquals(119_950, KaspiProductParser.parsePrice("119950.00"));
+        assertEquals(119_950, KaspiProductParser.parsePrice("119 950,00 ₸"));
+        assertEquals(119_950, KaspiProductParser.parsePrice("119.950"));
+        assertNull(KaspiProductParser.parsePrice("119950.50"));
+        assertNull(KaspiProductParser.parsePrice("12.34.567 ₸"));
+        assertNull(KaspiProductParser.parsePrice("119.950,000 ₸"));
+        assertNull(KaspiProductParser.parsePrice("-100 ₸"));
+        assertNull(KaspiProductParser.parsePrice("999999999999 ₸"));
+        assertNull(KaspiProductParser.parsePrice("1e9 ₸"));
+        assertNull(KaspiProductParser.parsePrice("от 100000 до 120000 ₸"));
     }
 
     private String fixture(String path) throws IOException {

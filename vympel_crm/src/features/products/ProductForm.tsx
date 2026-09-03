@@ -945,7 +945,15 @@ export function ProductForm({ productId }: ProductFormProps) {
           locale={locale}
           t={t}
           onApply={(preview) => {
-            resetProductForm(applyKaspiImportPreview(form, preview), { keepDirty: true });
+            const importedForm = applyKaspiImportPreview(form, preview);
+            const brandChanged = importedForm.brandId !== form.brandId;
+            resetProductForm(importedForm, { keepDirty: true });
+            if (brandChanged) {
+              resetCollectionForm({ ...emptyCollectionForm, brandId: importedForm.brandId });
+              setCollectionFormOpen(false);
+              setCollectionSuccess(null);
+              setCollectionError(null);
+            }
             setError(null);
           }}
           onOpenChange={setKaspiImportOpen}

@@ -56,7 +56,10 @@ vi.mock("@/shared/i18n/useI18n", () => ({
 
 const references: References = {
   categories: [{ id: 1, code: "WATCH_WRIST", name: "Watches", parentId: null }],
-  brands: [{ id: 10, code: "ROMANSON", name: "Romanson", countryId: 20, countryCode: "KR", countryName: "Korea" }],
+  brands: [
+    { id: 10, code: "ROMANSON", name: "Romanson", countryId: 20, countryCode: "KR", countryName: "Korea" },
+    { id: 11, code: "CASIO", name: "Casio", countryId: 21, countryCode: "JP", countryName: "Japan" },
+  ],
   collections: [{ id: 33, name: "Heritage", code: "HERITAGE", brandId: 10 }],
   mechanisms: [{ id: 5, code: "QUARTZ", name: "Quartz" }],
   genders: [{ id: 6, code: "MEN", name: "Men" }],
@@ -67,7 +70,10 @@ const references: References = {
   ],
   glassTypes: [{ id: 4, code: "MINERAL", name: "Mineral" }],
   stoneInlays: [],
-  countries: [{ id: 20, code: "KR", name: "Korea" }],
+  countries: [
+    { id: 20, code: "KR", name: "Korea" },
+    { id: 21, code: "JP", name: "Japan" },
+  ],
   interiorColors: [],
   interiorStyles: [],
   interiorMechanisms: [],
@@ -135,6 +141,13 @@ describe("Kaspi product import flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
     expect(screen.getByRole("dialog", { name: "products.kaspiImportTitle" })).toBeTruthy();
 
+    const importUrl = screen.getByLabelText("products.kaspiImportUrl") as HTMLInputElement;
+    fireEvent.change(importUrl, { target: { value: "not-a-url" } });
+    fireEvent.submit(importUrl.form!);
+    expect((await screen.findByRole("alert")).textContent).toContain("products.kaspiImportInvalidUrl");
+    expect(importUrl.getAttribute("aria-invalid")).toBe("true");
+    expect(importUrl.getAttribute("aria-describedby")).toContain(screen.getByRole("alert").id);
+
     fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: "https://example.com/product" } });
     fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
     expect((await screen.findByRole("alert")).textContent).toContain("products.kaspiImportInvalidUrl");
@@ -144,7 +157,10 @@ describe("Kaspi product import flow", () => {
     }));
     fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: preview.sourceUrl } });
     fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
-    expect((screen.getByRole("button", { name: "products.kaspiImportLoading" }) as HTMLButtonElement).disabled).toBe(true);
+    const loadingButton = screen.getByRole("button", { name: "products.kaspiImportLoading" }) as HTMLButtonElement;
+    expect(loadingButton.disabled).toBe(true);
+    fireEvent.click(loadingButton);
+    expect(mocks.importKaspiProduct).toHaveBeenCalledTimes(1);
     expect(await screen.findByText("products.kaspiImportMappedCharacteristics")).toBeTruthy();
     expect(screen.getByText("Материал ремешка:")).toBeTruthy();
     expect(screen.getByText("Цвет корпуса:")).toBeTruthy();
@@ -154,6 +170,33 @@ describe("Kaspi product import flow", () => {
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect((screen.getByLabelText("products.nameRu") as HTMLInputElement).value).toBe("Before import");
+  });
+
+  it("keeps the form unchanged when a later import fails after a successful preview", async () => {
+    mocks.importKaspiProduct
+      .mockResolvedValueOnce(preview)
+      .mockRejectedValueOnce(new Error("network detail must not leak"));
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    fireEvent.change(screen.getByLabelText("products.nameRu"), { target: { value: "Manual value" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
+    fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: preview.sourceUrl } });
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
+    const firstDialog = await screen.findByRole("dialog", { name: "products.kaspiImportTitle" });
+    fireEvent.click(within(firstDialog).getAllByRole("button", { name: "common.cancel" })[1]);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
+    fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), {
+      target: { value: "https://kaspi.kz/shop/p/watch-456" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("products.kaspiImportError");
+    expect((screen.getByLabelText("products.nameRu") as HTMLInputElement).value).toBe("Manual value");
   });
 
   it("applies mapped values to the editable RHF form, preserves unresolved values and submits normally", async () => {
@@ -194,5 +237,135 @@ describe("Kaspi product import flow", () => {
         mechanismId: 5,
       },
     });
+  });
+
+  it("keeps an oversized preview inside a dedicated scroll body with actions outside it", async () => {
+    const oversizedPreview: KaspiImportPreview = {
+      ...preview,
+      sourceUrl: `https://kaspi.kz/shop/p/${"very-long-product-segment-".repeat(20)}`,
+      mappedCharacteristics: Array.from({ length: 36 }, (_, index) => ({
+        sourceLabel: `Long mapped characteristic ${index + 1}`,
+        sourceValue: `Long source value ${index + 1} ${"unbroken".repeat(12)}`,
+        targetField: "watchDetails.waterResistance",
+        resolvedValue: `Resolved ${index + 1}`,
+        resolution: "ALIAS" as const,
+      })),
+      unmappedCharacteristics: Array.from({ length: 8 }, (_, index) => ({
+        sourceLabel: `Unsupported ${index + 1}`,
+        sourceValue: `${"long-unmatched-value-".repeat(12)}${index + 1}`,
+        reason: "UNSUPPORTED_FOR_CATEGORY" as const,
+      })),
+    };
+    mocks.importKaspiProduct.mockResolvedValue(oversizedPreview);
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
+    fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: preview.sourceUrl } });
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "products.kaspiImportTitle" });
+    const scrollBody = within(dialog).getByLabelText("products.kaspiImportPreview");
+    const applyButton = within(dialog).getByRole("button", { name: "products.kaspiImportApply" });
+    const actions = applyButton.parentElement;
+
+    expect(scrollBody.classList.contains("crm-kaspi-dialog__body")).toBe(true);
+    expect(scrollBody.getAttribute("tabindex")).toBe("0");
+    expect(scrollBody.contains(actions)).toBe(false);
+    expect(actions?.classList.contains("crm-confirm-dialog__actions")).toBe(true);
+    expect(within(scrollBody).getByText("Long mapped characteristic 36:")).toBeTruthy();
+    expect(within(scrollBody).getByText("Unsupported 8:")).toBeTruthy();
+    await waitFor(() => expect(document.activeElement).toBe(scrollBody));
+  });
+
+  it("keeps untrusted Kaspi description content as text until the sanitized Markdown renderer", async () => {
+    const untrusted = [
+      '<script>alert("script")</script>',
+      '<img src=x onerror="alert(1)">',
+      '<u onclick="alert(2)">Safe underline</u>',
+      '[Unsafe](javascript:alert(3))',
+      '&lt;script&gt;encoded&lt;/script&gt;',
+    ].join("\n");
+    mocks.importKaspiProduct.mockResolvedValue({
+      ...preview,
+      values: { ...preview.values, descriptionRu: untrusted },
+      mappedFields: [
+        ...preview.mappedFields,
+        { targetField: "descriptionRu", resolvedValue: untrusted },
+      ],
+    });
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
+    fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: preview.sourceUrl } });
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "products.kaspiImportTitle" });
+    expect(dialog.textContent).toContain(untrusted);
+    expect(dialog.querySelector("script, img, [onerror], [onclick]")).toBeNull();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "products.kaspiImportApply" }));
+    expect((document.getElementById("descriptionRu") as HTMLTextAreaElement).value).toBe(untrusted);
+  });
+
+  it("resets a stale inline collection draft when import changes the selected brand", async () => {
+    const changedBrandPreview: KaspiImportPreview = {
+      ...preview,
+      values: { ...preview.values, brandId: 11 },
+      mappedFields: [...preview.mappedFields, { targetField: "brandId", resolvedValue: "Casio" }],
+    };
+    mocks.importKaspiProduct.mockResolvedValue(changedBrandPreview);
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    fireEvent.change(screen.getByLabelText("products.brand"), { target: { value: "10" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.collectionCreateOpen" }));
+    fireEvent.change(screen.getByLabelText("products.collectionNameRu"), { target: { value: "Stale collection" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
+    fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: preview.sourceUrl } });
+    fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
+    fireEvent.click(await screen.findByRole("button", { name: "products.kaspiImportApply" }));
+
+    expect((screen.getByLabelText("products.brand") as HTMLSelectElement).value).toBe("11");
+    expect(screen.queryByLabelText("products.collectionNameRu")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "products.collectionCreateOpen" }));
+    expect((screen.getByLabelText("products.collectionBrand") as HTMLSelectElement).value).toBe("11");
+    expect((screen.getByLabelText("products.collectionNameRu") as HTMLInputElement).value).toBe("");
+  });
+
+  it("traps focus, locks background scroll, and restores both after Escape and the close button", async () => {
+    render(<ProductForm />);
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    const trigger = screen.getByRole("button", { name: "products.kaspiImport" });
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    let dialog = screen.getByRole("dialog", { name: "products.kaspiImportTitle" });
+    expect(document.body.style.overflow).toBe("hidden");
+    fireEvent.change(within(dialog).getByLabelText("products.kaspiImportUrl"), {
+      target: { value: preview.sourceUrl },
+    });
+    const buttons = within(dialog).getAllByRole("button");
+    buttons[buttons.length - 1].focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(buttons[0]);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(trigger);
+
+    fireEvent.click(trigger);
+    dialog = screen.getByRole("dialog", { name: "products.kaspiImportTitle" });
+    fireEvent.click(within(dialog).getAllByRole("button", { name: "common.cancel" })[0]);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(document.body.style.overflow).toBe("");
+    expect(document.activeElement).toBe(trigger);
   });
 });

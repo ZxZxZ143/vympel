@@ -14,6 +14,7 @@ import java.util.Set;
 
 @Component
 public class KaspiUrlGuard {
+    private static final int MAX_URL_LENGTH = 2048;
     private static final Set<String> ALLOWED_HOSTS = Set.of("kaspi.kz", "www.kaspi.kz");
     private final HostResolver hostResolver;
 
@@ -26,7 +27,7 @@ public class KaspiUrlGuard {
     }
 
     public ValidatedTarget validate(String rawUrl) {
-        if (rawUrl == null || rawUrl.isBlank()) {
+        if (rawUrl == null || rawUrl.isBlank() || rawUrl.trim().length() > MAX_URL_LENGTH) {
             throw invalid("KASPI_URL_INVALID", "Kaspi URL is required.");
         }
 
@@ -67,6 +68,9 @@ public class KaspiUrlGuard {
         } catch (URISyntaxException ex) {
             throw invalid("KASPI_URL_INVALID", "Kaspi URL is invalid.");
         }
+        if (normalized.toString().length() > MAX_URL_LENGTH) {
+            throw invalid("KASPI_URL_INVALID", "Kaspi URL is too long.");
+        }
 
         InetAddress[] addresses;
         try {
@@ -102,10 +106,16 @@ public class KaspiUrlGuard {
         if (bytes.length == 4) {
             int first = Byte.toUnsignedInt(bytes[0]);
             int second = Byte.toUnsignedInt(bytes[1]);
+            int third = Byte.toUnsignedInt(bytes[2]);
             return first == 0
                     || first == 127
                     || first >= 224
-                    || (first == 100 && second >= 64 && second <= 127);
+                    || (first == 100 && second >= 64 && second <= 127)
+                    || (first == 192 && second == 0 && (third == 0 || third == 2))
+                    || (first == 192 && second == 88 && third == 99)
+                    || (first == 198 && (second == 18 || second == 19))
+                    || (first == 198 && second == 51 && third == 100)
+                    || (first == 203 && second == 0 && third == 113);
         }
         if (bytes.length == 16) {
             if ((bytes[0] & 0xfe) == 0xfc) {
@@ -124,6 +134,15 @@ public class KaspiUrlGuard {
                     return true;
                 }
             }
+            int first = Byte.toUnsignedInt(bytes[0]);
+            int second = Byte.toUnsignedInt(bytes[1]);
+            int third = Byte.toUnsignedInt(bytes[2]);
+            int fourth = Byte.toUnsignedInt(bytes[3]);
+            return (first == 0x20 && second == 0x01
+                    && (third == 0x0d && fourth == 0xb8
+                    || third == 0x00 && (fourth == 0x00 || fourth == 0x02 || fourth == 0x10)))
+                    || (first == 0x20 && second == 0x02)
+                    || (first == 0x00 && second == 0x64 && third == 0xff && fourth == 0x9b);
         }
         return false;
     }
