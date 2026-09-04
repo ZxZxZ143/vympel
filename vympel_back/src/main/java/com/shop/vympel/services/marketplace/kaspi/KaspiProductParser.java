@@ -24,6 +24,9 @@ public class KaspiProductParser {
     private static final Set<String> CHARACTERISTIC_CONTAINER_KEYS = Set.of(
             "characteristics", "specifications", "attributes", "properties"
     );
+    private static final Set<String> MODEL_CHARACTERISTIC_LABELS = Set.of(
+            "model", "модель", "моделі"
+    );
     private final ObjectMapper objectMapper;
 
     public KaspiProductParser(ObjectMapper objectMapper) {
@@ -65,6 +68,7 @@ public class KaspiProductParser {
         readDefinitionLists(document, parsed);
         readTables(document, parsed);
         readKaspiSpecificationRows(document, parsed);
+        promoteExactModelCharacteristic(parsed);
 
         Integer price = null;
         if (parsed.prices.size() == 1) {
@@ -227,6 +231,34 @@ public class KaspiProductParser {
         String value = clean(rawValue, 1000);
         if (blank(label) || blank(value)) return;
         parsed.characteristics.putIfAbsent(label + "\u0000" + value, new KaspiCharacteristic(label, value));
+    }
+
+    private void promoteExactModelCharacteristic(ParsedAccumulator parsed) {
+        List<Map.Entry<String, KaspiCharacteristic>> modelEntries = parsed.characteristics.entrySet().stream()
+                .filter(entry -> MODEL_CHARACTERISTIC_LABELS.contains(normalizeKey(entry.getValue().label())))
+                .toList();
+        if (modelEntries.isEmpty()) return;
+
+        if (!blank(parsed.model)) {
+            modelEntries.stream()
+                    .filter(entry -> parsed.model.equalsIgnoreCase(entry.getValue().value()))
+                    .map(Map.Entry::getKey)
+                    .forEach(parsed.characteristics::remove);
+            return;
+        }
+
+        Map<String, String> distinctModels = new LinkedHashMap<>();
+        modelEntries.forEach(entry -> distinctModels.putIfAbsent(
+                entry.getValue().value().toUpperCase(Locale.ROOT),
+                entry.getValue().value()
+        ));
+        if (distinctModels.size() != 1) {
+            parsed.warnings.add("MODEL_AMBIGUOUS");
+            return;
+        }
+
+        parsed.model = distinctModels.values().iterator().next();
+        modelEntries.stream().map(Map.Entry::getKey).forEach(parsed.characteristics::remove);
     }
 
     private void addPriceCandidate(ParsedAccumulator parsed, String raw) {

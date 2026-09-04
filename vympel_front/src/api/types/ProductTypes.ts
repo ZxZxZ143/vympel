@@ -113,6 +113,21 @@ export interface IProductWatchDetails {
     features?: IProductFeature[] | null;
 }
 
+export interface IProductModelVariant {
+    id: number;
+    name: string;
+    model: string;
+    status: string;
+    mainImage?: IProductImage | null;
+}
+
+export interface IProductModelVariantGroup {
+    model: string;
+    total: number;
+    truncated: boolean;
+    variants: IProductModelVariant[];
+}
+
 export interface IProductInteriorClockDetails {
     productId: number;
     productionCountry?: IProductFeature | null;
@@ -190,6 +205,7 @@ export interface IProductDetails {
     accessoryDetails?: IProductAccessoryDetails | null;
     kaspiUrl?: string | null;
     wildberriesUrl?: string | null;
+    modelVariantGroup?: IProductModelVariantGroup | null;
     ratingAverage?: number | null;
     ratingCount?: number | null;
 }

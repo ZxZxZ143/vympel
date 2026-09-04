@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { CrmApiError, crmApi } from "@/shared/api/client";
 import { getCrmErrorMessage } from "@/shared/api/errors";
-import { CollectionPayload, CrmCollection, Feature, Product, ProductImage, ProductPayload, ProductStatus, ProductType, ReferenceCreateType, References } from "@/shared/api/types";
+import { CollectionPayload, CrmCollection, Feature, Product, ProductImage, ProductModelVariantGroup, ProductPayload, ProductStatus, ProductType, ReferenceCreateType, References } from "@/shared/api/types";
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { messages as localizedMessages } from "@/shared/i18n/messages";
 import { useI18n } from "@/shared/i18n/useI18n";
@@ -29,6 +29,7 @@ import {
   ReferenceCreateDialog,
   type ReferenceCreateTarget,
 } from "@/features/products/CreatableReferenceFields";
+import { ProductModelVariantStrip } from "@/features/products/ProductModelVariantStrip";
 
 const statuses: ProductStatus[] = ["ACTIVE", "DRAFT", "ARCHIVED"];
 const productTypes: ProductType[] = ["WATCH", "APPLE_CASE", "ACCESSORY", "WALL_CLOCK", "FLOOR_CLOCK"];
@@ -198,6 +199,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const form = (useWatch({ control: productControl }) ?? emptyForm) as ProductFormState;
   const [pendingCategoryId, setPendingCategoryId] = useState("");
   const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
+  const [modelVariantGroup, setModelVariantGroup] = useState<ProductModelVariantGroup | null>(null);
   const [persistedStatus, setPersistedStatus] = useState<ProductStatus>("DRAFT");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [photoInputKey, setPhotoInputKey] = useState(0);
@@ -268,9 +270,11 @@ export function ProductForm({ productId }: ProductFormProps) {
         if (product) {
           resetProductForm(productToForm(product));
           setExistingImages(product.images ?? []);
+          setModelVariantGroup(product.modelVariantGroup ?? null);
           setPersistedStatus(product.status);
         } else {
           setExistingImages([]);
+          setModelVariantGroup(null);
           setPersistedStatus("DRAFT");
         }
       })
@@ -440,6 +444,7 @@ export function ProductForm({ productId }: ProductFormProps) {
         savedProduct = await crmApi.createProduct(payload, locale);
       }
       setPersistedStatus(savedProduct.status);
+      setModelVariantGroup(savedProduct.modelVariantGroup ?? null);
       notifyProductListChanged();
 
       if (selectedImages.length > 0) {
@@ -447,6 +452,7 @@ export function ProductForm({ productId }: ProductFormProps) {
         try {
           const productWithImages = await crmApi.uploadProductImages(savedProduct.id, selectedImages, locale);
           setExistingImages(productWithImages.images ?? []);
+          setModelVariantGroup(productWithImages.modelVariantGroup ?? null);
           setSelectedImages([]);
           setPhotoInputKey((current) => current + 1);
           setPhotoError(null);
@@ -470,6 +476,7 @@ export function ProductForm({ productId }: ProductFormProps) {
         savedProduct = await crmApi.updateStatus(savedProduct.id, "ACTIVE", locale);
         setPersistedStatus(savedProduct.status);
         setExistingImages(savedProduct.images ?? []);
+        setModelVariantGroup(savedProduct.modelVariantGroup ?? null);
         notifyProductListChanged();
       }
 
@@ -549,6 +556,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     try {
       const productWithImages = await crmApi.uploadProductImages(productId, selectedImages, locale);
       setExistingImages(productWithImages.images ?? []);
+      setModelVariantGroup(productWithImages.modelVariantGroup ?? null);
       setSelectedImages([]);
       setPhotoInputKey((current) => current + 1);
       notifications.success(t("products.photosUploaded"));
@@ -581,6 +589,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     try {
       const product = await crmApi.reorderProductImages(productId, reordered.map((image) => image.id), locale);
       setExistingImages(product.images ?? []);
+      setModelVariantGroup(product.modelVariantGroup ?? null);
       notifications.success(t("products.photosOrderSaved"));
       notifyProductListChanged();
     } catch (error) {
@@ -606,6 +615,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     try {
       const product = await crmApi.setMainProductImage(productId, imageId, locale);
       setExistingImages(product.images ?? []);
+      setModelVariantGroup(product.modelVariantGroup ?? null);
       notifications.success(t("products.photosMainUpdated"));
       notifyProductListChanged();
     } catch (error) {
@@ -636,6 +646,7 @@ export function ProductForm({ productId }: ProductFormProps) {
     try {
       const product = await crmApi.deleteProductImage(productId, imageId, locale);
       setExistingImages(product.images ?? []);
+      setModelVariantGroup(product.modelVariantGroup ?? null);
       notifications.success(t("products.photosDeleteSuccess"));
       notifyProductListChanged();
     } catch (error) {
@@ -788,6 +799,15 @@ export function ProductForm({ productId }: ProductFormProps) {
             )}
           </div>
         </FormPanel>
+
+        {isEdit && modelVariantGroup && modelVariantGroup.total > 1 ? (
+          <FormPanel title={t("products.modelFamily")}>
+            <ProductModelVariantStrip
+              currentProductId={productId!}
+              group={modelVariantGroup}
+            />
+          </FormPanel>
+        ) : null}
 
         <FormPanel title={t("products.descriptionSection")}>
           <Text tone="muted" size="small">{t("products.descriptionOptionalHint")}</Text>

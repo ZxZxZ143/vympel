@@ -61,6 +61,8 @@ public class ProductResponse {
 
     private Instant promotionUpdatedAt;
 
+    private ProductModelVariantGroupResponse modelVariantGroup;
+
     private Double ratingAverage;
 
     private Long ratingCount;

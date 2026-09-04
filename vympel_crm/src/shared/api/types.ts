@@ -70,6 +70,21 @@ export type ProductImage = {
   isMain: boolean;
 };
 
+export type ProductModelVariant = {
+  id: number;
+  name: string;
+  model: string;
+  status: ProductStatus;
+  mainImage?: ProductImage | null;
+};
+
+export type ProductModelVariantGroup = {
+  model: string;
+  total: number;
+  truncated: boolean;
+  variants: ProductModelVariant[];
+};
+
 export type Product = {
   id: number;
   sku: string;
@@ -136,12 +151,15 @@ export type Product = {
   promotionScore?: number | null;
   promotedUntil?: string | null;
   promotionUpdatedAt?: string | null;
+  modelVariantGroup?: ProductModelVariantGroup | null;
 };
 
 export type ProductListItem = Pick<
   Product,
   "id" | "sku" | "name" | "model" | "price" | "stockQuantity" | "status" | "kaspiUrl" | "wildberriesUrl"
->;
+> & {
+  modelVariantGroup?: ProductModelVariantGroup | null;
+};
 
 export type ProductStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
 

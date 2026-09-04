@@ -89,6 +89,30 @@ class KaspiProductParserTest {
     }
 
     @Test
+    void promotesAnExactModelCharacteristicWhenStructuredProductModelIsMissing() {
+        String html = "<h1>Watch</h1><dl><dt> Модель </dt><dd>  TL4247HM R  </dd>"
+                + "<dt>Цвет</dt><dd>коричневый</dd></dl>";
+
+        KaspiParsedProduct product = parser.parse(html, "https://kaspi.kz/shop/p/watch");
+
+        assertEquals("TL4247HM R", product.model());
+        assertFalse(product.characteristics().stream().anyMatch(item -> item.label().equalsIgnoreCase("Модель")));
+        assertTrue(product.characteristics().contains(new KaspiCharacteristic("Цвет", "коричневый")));
+    }
+
+    @Test
+    void doesNotGuessBetweenConflictingExactModelCharacteristics() {
+        String html = "<h1>Watch</h1><dl><dt>Модель</dt><dd>TL4247HM</dd>"
+                + "<dt>Model</dt><dd>TL4247HM R</dd></dl>";
+
+        KaspiParsedProduct product = parser.parse(html, "https://kaspi.kz/shop/p/watch");
+
+        assertNull(product.model());
+        assertTrue(product.warnings().contains("MODEL_AMBIGUOUS"));
+        assertEquals(2, product.characteristics().size());
+    }
+
+    @Test
     void parsesKazakhstaniIntegerPricesWithoutDecimalCorruption() {
         assertEquals(119_950, KaspiProductParser.parsePrice("119 950 ₸"));
         assertEquals(119_950, KaspiProductParser.parsePrice("119\u00a0950 тг"));

@@ -13,7 +13,7 @@ export function applyKaspiImportPreview(
   const values = preview.values;
 
   assignString(next, "nameRu", values.nameRu);
-  assignString(next, "model", values.model);
+  assignTrimmedString(next, "model", values.model);
   assignNumber(next, "price", values.price);
   assignString(next, "descriptionRu", values.descriptionRu);
   assignString(next, "kaspiUrl", values.kaspiUrl);
@@ -85,6 +85,16 @@ function assignString<Field extends keyof ProductFormState>(
 ) {
   if (value !== null && value !== undefined) {
     target[field] = value as ProductFormState[Field];
+  }
+}
+
+function assignTrimmedString<Field extends keyof ProductFormState>(
+  target: ProductFormState,
+  field: Field,
+  value: string | null | undefined,
+) {
+  if (value !== null && value !== undefined) {
+    target[field] = value.trim() as ProductFormState[Field];
   }
 }
 

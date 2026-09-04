@@ -304,6 +304,12 @@
 * **How:** Give the grid and both children `min-width: 0`; apply `.product-long-copy` to user content so normal text and unbroken strings wrap with `overflow-wrap: anywhere`. Do not hide or truncate the full description.
 * **Why:** CSS grid/flex children otherwise retain an intrinsic minimum width and can paint over the characteristics column.
 
+### Compact product-model variant selector
+
+* **When to use:** A product detail response contains two or more products in the same derived model group.
+* **How:** Render a semantic `ul` of canonical localized product links immediately after the product title and before gender in the right summary column. Keep each 60px thumbnail independent, mark only the current link with `aria-current="page"` and a black border/ring, keep siblings neutral, use `overflow-x: auto` inside a `min-width: 0` owner, and hide groups of size one. Load dynamic object-storage thumbnails directly (`next/image` `unoptimized`) like the established gallery so a containerized Next server does not proxy a host-only MinIO URL; replace null or failed media with `ProductImageFallback`.
+* **Why:** Route navigation preserves independent price/stock/media/analytics/cart/favorite identity, while the contained rail remains accessible and cannot widen a phone page.
+
 ### Trigger-independent catalog popovers
 
 * **When to use:** For desktop category, filter, sort, or search dropdowns in the catalog hero toolbar.
@@ -564,6 +570,18 @@
 * **How:** Select bounded IDs first, then call `PublicProductSummaryRepository` once. The projection owns locale/RU name fallback, current price/stock/status, main image key, visible active category, brand/collection, and approved rating aggregate. Keep object-key-to-public-URL conversion in `ObjectStorageService`. Do not replace N+1 with a multi-to-many fetch-join Cartesian product.
 * **Why:** One purpose-specific projection prevents separate name/media/category/rating queries while keeping public visibility consistent across consumers.
 
+### Bounded derived model-variant projection
+
+* **When to use:** Public product detail or a CRM product page needs sibling products that share a real model identity.
+* **How:** Derive identity from exact `brand_id + upper(btrim(model)) + category profile`; never use product names, fuzzy matching, or persistent manual group IDs. Resolve the current CRM page's anchors in one native query, derive category ancestry recursively, choose main-or-first media laterally, localize with requested-language then RU fallback, order current first then product id, expose exact totals, and cap returned siblings at 24. Public mode requires ACTIVE status plus an all-active category path that reaches a root; CRM mode includes every status. Back the candidate lookup with `(brand_id, upper(btrim(model)))` and convert object keys to URLs only after projection.
+* **Why:** Query count stays fixed, public records cannot leak, large families remain bounded, and changing a product's model changes membership immediately without invalidating stored group state.
+
+### Collision-safe generated SKUs for legitimate variants
+
+* **When to use:** Two independently valid product records produce the same human-readable generated SKU.
+* **How:** Keep the first base SKU unchanged. If that value already exists, append a random eight-hex-character suffix, truncating the base first so the stored value remains within 120 characters; bound retries and keep the database uniqueness constraint authoritative. Do not treat an SKU collision as proof that the product itself is a duplicate.
+* **Why:** Color/image variants can share every legacy SKU input while remaining separate inventory records, and suffixing only collisions preserves readable identifiers for ordinary products.
+
 ### Bounded cart and favorites refresh
 
 * **When to use:** Refreshing any locally stored public product collection.
@@ -769,6 +787,12 @@
 * **When to use:** When frontend depends on backend DTOs, routes, schemas, or response shapes.
 * **How:** Update the backend contract first, then update frontend API client/types/hooks/components.
 * **Why:** Prevents mismatch between request/response shapes.
+
+### Independent products with derived variant navigation
+
+* **When to use:** Adding model-family representation to public detail or CRM list/edit flows.
+* **How:** Embed the same lightweight `modelVariantGroup` contract in backend DTOs and both TypeScript mirrors, but keep every sibling as an ordinary product route and mutation target. The CRM list still pages and filters products; it enriches only returned anchors while each strip may reference siblings outside that page. Storefront switching is a normal link, so gallery, price, stock, characteristics, marketplace URLs, SKU, cart, favorites, and analytics load from the destination product. Product-detail fetches remain fresh (`cache: "no-cache"`), so create/model/status/archive/delete/main-image changes need no second cache system.
+* **Why:** Group presentation becomes consistent without merging business identity or corrupting list counts, search semantics, customer state, or view analytics.
 
 ### Markdown string contract across CRM, backend, and storefront
 
@@ -986,6 +1010,12 @@
 * **How:** Route only explicit function labels (`Функции`, date/calendar, chronograph, stopwatch, alarm, backlight and their known English equivalents) to the feature resolver. Resolve the value first; if it is a display form such as `число`, resolve the known label itself. Never select a label-derived feature for explicit negative values (`нет`, `false`, `none`, and equivalents), and leave unknown labels/values unresolved or unmapped. When several leaf pairs resolve, merge IDs without duplicates and preserve their labels in readable preview source text.
 * **Why:** Real Kaspi pages nest these leaf rows under aggregate headings; using only synthetic “Особенности часов” fixtures misses valid features, while classifying arbitrary unknown characteristics would pollute the product meaning.
 
+### Promote exact Kaspi model leaves into the normal product field
+
+* **When to use:** Kaspi omits JSON-LD `model`/`mpn` but exposes a leaf characteristic named exactly `Модель`, `Model`, or `Моделі`.
+* **How:** Normalize whitespace, collect only those exact labels, and promote the single distinct value into `KaspiParsedProduct.model`; remove the promoted duplicate characteristic from the unsupported list. If exact labels conflict, leave the model unset, retain the source rows, and emit `MODEL_AMBIGUOUS`. Apply the resolved value through the existing trimmed CRM `model` assignment; never strip suffixes or apply fuzzy model equivalence.
+* **Why:** Live Kaspi preview/apply fills the ordinary product model used by normal persistence and grouping without guessing between genuinely different model identities.
+
 ## Figma / UI Implementation Patterns
 
 ### Pixel-perfect Figma implementation
@@ -1075,6 +1105,27 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### Treating a generated SKU collision as a duplicate product
+
+* **What happened:** Same-model variants with different colors and images shared all legacy SKU inputs, so the second valid product was rejected as “Product already exists.”
+* **Root cause:** The SKU builder does not encode every product characteristic, but create logic assumed its output was a complete product-identity key.
+* **Fix:** Preserve the readable base for the first product and add a bounded collision suffix for later records, with length and service regression tests.
+* **How to avoid:** Keep SKU uniqueness and product semantic identity separate; do not block a valid independent record merely because a lossy generated label collides.
+
+### Sending host-only object-storage URLs through the Next image optimizer
+
+* **What happened:** Variant DTOs contained valid MinIO URLs and the main gallery rendered, but every new selector thumbnail fell back in the Docker test stand.
+* **Root cause:** Next's server-side optimizer resolved `localhost:9100` inside the storefront container, while direct browser media access correctly resolves the host-published port.
+* **Fix:** Follow the product gallery pattern and set dynamic object-storage selector images to `unoptimized`, retaining the on-error fallback.
+* **How to avoid:** Reuse the established dynamic-media loading path and verify actual `naturalWidth` in the containerized browser, not just API JSON or mocked markup.
+
+### Assuming Kaspi model is always present in structured product JSON
+
+* **What happened:** The live page exposed `Модель: TL4247HM R` as a specification leaf; preview listed it as unsupported and Apply left the normal model input blank.
+* **Root cause:** The parser populated model only from JSON-LD `model`/`mpn` and did not promote an exact characteristic label.
+* **Fix:** Promote one unambiguous exact localized model leaf, preserve conflicts as unresolved, and cover both paths in parser tests plus live preview/apply verification.
+* **How to avoid:** Test the real marketplace DOM shape as well as synthetic JSON-LD fixtures, and keep exact-label scalar promotion separate from category-specific characteristic mapping.
 
 ### Blocking a noindex page in robots.txt
 
@@ -2498,4 +2549,4 @@
 
 ## Last Updated
 
-2026-09-04 - Recorded transactional creatable-reference and auto-selection patterns, normalized watch-feature replacement/clearing, conservative live Kaspi leaf-function mapping, decoder-proven image upload formats, and the authenticated API/browser verification matrix for optional watch characteristics.
+2026-09-04 - Recorded exact derived model-group identity, bounded public/CRM projection enrichment, independent variant navigation, black thumbnail selection and direct dynamic-media loading, collision-safe SKU generation, model-driven cache-free regrouping, and exact unambiguous Kaspi model promotion with live three-product verification lessons.

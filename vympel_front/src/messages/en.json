@@ -581,6 +581,12 @@
       "nextThumbnails": "Show next thumbnails",
       "imageCounter": "{current} of {total}"
     },
+    "variants": {
+      "label": "Model variants",
+      "groupAria": "Variants of model {model}",
+      "optionAria": "Open variant {name}",
+      "limited": "Showing {shown} of {total} variants"
+    },
     "summary": {
       "outOfStockTitle": "Out of stock",
       "outOfStockBody": "This model is currently out of stock. You can ask a manager about its availability.",

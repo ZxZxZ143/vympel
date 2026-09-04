@@ -19,9 +19,9 @@ import static org.mockito.Mockito.when;
 class MigrationVerificationRunnerTest {
     private static final LiquibaseChangeBoundary.ChangeIdentity EXPECTED =
             new LiquibaseChangeBoundary.ChangeIdentity(
-                    "2026-09-03-01-watch-product-characteristics",
+                    "2026-09-04-01-product-model-variants",
                     "codex",
-                    "db/changelog/2026-09-03-01-watch-product-characteristics.xml"
+                    "db/changelog/2026-09-04-01-product-model-variants.xml"
             );
     private static final LiquibaseChangeBoundary.ChangeIdentity RUN_ON_CHANGE =
             new LiquibaseChangeBoundary.ChangeIdentity(

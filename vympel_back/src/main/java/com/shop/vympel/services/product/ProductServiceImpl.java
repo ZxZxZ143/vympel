@@ -3,6 +3,7 @@ package com.shop.vympel.services.product;
 import com.shop.vympel.db.entity.product.*;
 import com.shop.vympel.db.repositories.product.ProductRepository;
 import com.shop.vympel.dtos.product.ProductCreateRequest;
+import com.shop.vympel.dtos.product.ProductModelVariantGroupResponse;
 import com.shop.vympel.dtos.product.ProductResponse;
 import com.shop.vympel.dtos.product.PublicProductResponse;
 import com.shop.vympel.dtos.product.CrmProductListItemResponse;
@@ -39,6 +40,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 
 
@@ -61,6 +63,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryProductService categoryProductService;
     private final ObjectStorageService objectStorageService;
     private final ProductReviewService productReviewService;
+    private final ProductModelVariantService productModelVariantService;
 
     @Override
     @Transactional
@@ -73,13 +76,11 @@ public class ProductServiceImpl implements ProductService {
         validateProductNameTranslations(req.getProductName());
         validateCreateDetails(req, categoryProfile);
         normalizeProductNameTranslations(req.getProductName());
+        req.setModel(normalizeModel(req.getModel()));
         req.setStatus(normalizeProductStatus(req.getStatus()));
         ensureStatusCanBePersisted(null, req.getStatus());
 
-        String sku = SKUService.skuGen(req);
-        Product product = productRepository.findProductBySku(sku).orElse(null);
-
-        if (product != null) throw new IllegalArgumentException("Product already exists");
+        String sku = resolveUniqueSku(SKUService.skuGen(req));
 
         req.setKaspiUrl(MarketplaceUrlPolicy.canonicalizeKaspi(req.getKaspiUrl()));
         req.setWildberriesUrl(MarketplaceUrlPolicy.canonicalizeWildberries(req.getWildberriesUrl()));
@@ -145,6 +146,9 @@ public class ProductServiceImpl implements ProductService {
         }
         if (req.getStatus() != null) {
             req.setStatus(normalizeProductStatus(req.getStatus()));
+        }
+        if (req.getModel() != null) {
+            req.setModel(normalizeModel(req.getModel()));
         }
 
         validateCategoryProfileChange(currentCategoryId, targetCategoryId, currentCategoryProfile, targetCategoryProfile);
@@ -214,7 +218,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        return toProductResponse(product, language);
+        return toProductResponse(product, language, true);
     }
 
     @Override
@@ -222,10 +226,17 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findPubliclyVisibleById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        return PublicProductResponse.from(toProductResponse(product, language));
+        return PublicProductResponse.from(
+                toProductResponse(product, language, false),
+                productModelVariantService.getPublicGroup(product.getId(), language)
+        );
     }
 
-    private ProductResponse toProductResponse(Product product, Language language) {
+    private ProductResponse toProductResponse(
+            Product product,
+            Language language,
+            boolean includeCrmVariantGroup
+    ) {
         ProductResponse productResponse = productMapper.toResponse(product, language);
         applyCanonicalInventoryFields(product, productResponse);
 
@@ -262,6 +273,11 @@ public class ProductServiceImpl implements ProductService {
                 objectStorageService.getProductImages(product.getId())
         );
         productReviewService.applyRatingSummary(productResponse);
+        if (includeCrmVariantGroup) {
+            productResponse.setModelVariantGroup(
+                    productModelVariantService.getCrmGroup(product.getId(), language)
+            );
+        }
 
         return productResponse;
     }
@@ -333,9 +349,12 @@ public class ProductServiceImpl implements ProductService {
     private Page<CrmProductListItemResponse> toCrmListPage(Page<Product> products, Language language) {
         List<Long> productIds = products.getContent().stream().map(Product::getId).toList();
         Map<Long, String> names = productNameService.getNamesByProductIds(productIds, language);
+        Map<Long, ProductModelVariantGroupResponse> variantGroups =
+                productModelVariantService.getCrmGroups(productIds, language);
         return products.map(product -> CrmProductListItemResponse.from(
                 product,
-                names.getOrDefault(product.getId(), product.getModel())
+                names.getOrDefault(product.getId(), product.getModel()),
+                variantGroups.getOrDefault(product.getId(), ProductModelVariantGroupResponse.empty())
         ));
     }
 
@@ -453,6 +472,24 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return normalizedStatus;
+    }
+
+    private String normalizeModel(String model) {
+        if (model == null || model.isBlank()) {
+            throw new IllegalArgumentException("Model is required");
+        }
+        return model.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String resolveUniqueSku(String baseSku) {
+        String candidate = baseSku;
+        for (int attempt = 0; attempt < 5; attempt++) {
+            if (productRepository.findProductBySku(candidate).isEmpty()) {
+                return candidate;
+            }
+            candidate = SKUService.withCollisionSuffix(baseSku);
+        }
+        throw new IllegalStateException("Could not generate a unique product SKU");
     }
 
     private void ensureStatusCanBePersisted(Long productId, String status) {

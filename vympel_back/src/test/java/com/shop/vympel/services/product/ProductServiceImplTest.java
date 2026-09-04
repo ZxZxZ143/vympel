@@ -36,6 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,6 +79,8 @@ class ProductServiceImplTest {
     private ObjectStorageService objectStorageService;
     @Mock
     private ProductReviewService productReviewService;
+    @Mock
+    private ProductModelVariantService productModelVariantService;
 
     private ProductServiceImpl productService;
 
@@ -97,8 +100,12 @@ class ProductServiceImplTest {
                 productNameService,
                 categoryProductService,
                 objectStorageService,
-                productReviewService
+                productReviewService,
+                productModelVariantService
         );
+        org.mockito.Mockito.lenient()
+                .when(productModelVariantService.getCrmGroups(any(), any()))
+                .thenReturn(Map.of());
     }
 
     @Test
@@ -212,12 +219,12 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void minimalDraftCreationFallsBackTranslationsAndDoesNotRequireDescriptionsOrDetails() {
+    void minimalDraftCreationFallsBackTranslationsAndDisambiguatesACollidingGeneratedSku() {
         ProductCreateRequest request = new ProductCreateRequest();
         ProductNameCreateRequest names = new ProductNameCreateRequest();
         names.setName_ru("Тестовые часы");
         request.setProductName(names);
-        request.setModel("model-1");
+        request.setModel("  model-1  ");
         request.setPrice(100);
         request.setStockQuantity(0);
         request.setStatus("DRAFT");
@@ -236,13 +243,18 @@ class ProductServiceImplTest {
                 new SupportedCatalogDomainService.Assignment(SupportedBrandCountry.ROMANSON, brand, country)
         );
         when(skuService.skuGen(request)).thenReturn("SKU-TEST");
-        when(productRepository.findProductBySku("SKU-TEST")).thenReturn(Optional.empty());
+        when(skuService.withCollisionSuffix("SKU-TEST")).thenReturn("SKU-TEST-ABC12345");
+        when(productRepository.findProductBySku("SKU-TEST")).thenReturn(Optional.of(new Product()));
+        when(productRepository.findProductBySku("SKU-TEST-ABC12345")).thenReturn(Optional.empty());
         when(productMapper.toEntity(request, entityReferenceMapper)).thenReturn(product);
         when(productRepository.save(product)).thenReturn(product);
 
         Long id = productService.create(request);
 
         assertEquals(42L, id);
+        assertEquals("MODEL-1", request.getModel());
+        assertTrue(product.getSku().startsWith("SKU-TEST-"));
+        assertTrue(product.getSku().length() <= 120);
         verify(watchDetailService, never()).create(any(), any());
         verify(interiorClockDetailService, never()).create(any(), any(), any());
         verify(accessoryDetailService, never()).create(any(), any());

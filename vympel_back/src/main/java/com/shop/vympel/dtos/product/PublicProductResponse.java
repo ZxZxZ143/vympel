@@ -30,10 +30,14 @@ public record PublicProductResponse(
         AccessoryDetailResponse accessoryDetails,
         String kaspiUrl,
         String wildberriesUrl,
+        ProductModelVariantGroupResponse modelVariantGroup,
         Double ratingAverage,
         Long ratingCount
 ) {
-    public static PublicProductResponse from(ProductResponse response) {
+    public static PublicProductResponse from(
+            ProductResponse response,
+            ProductModelVariantGroupResponse modelVariantGroup
+    ) {
         return new PublicProductResponse(
                 response.getId(),
                 response.getSku(),
@@ -53,6 +57,7 @@ public record PublicProductResponse(
                 response.getAccessoryDetails(),
                 response.getKaspiUrl(),
                 response.getWildberriesUrl(),
+                modelVariantGroup,
                 response.getRatingAverage(),
                 response.getRatingCount()
         );

@@ -10,9 +10,9 @@ class LiquibaseChangeBoundaryTest {
     void derivesTheLatestChangeFromThePackagedMasterChangelog() {
         assertEquals(
                 new LiquibaseChangeBoundary.ChangeIdentity(
-                        "2026-09-03-01-watch-product-characteristics",
+                        "2026-09-04-01-product-model-variants",
                         "codex",
-                        "db/changelog/2026-09-03-01-watch-product-characteristics.xml"
+                        "db/changelog/2026-09-04-01-product-model-variants.xml"
                 ),
                 new LiquibaseChangeBoundary().expectedLatestChange()
         );

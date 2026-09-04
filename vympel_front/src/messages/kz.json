@@ -472,6 +472,12 @@
       "nextThumbnails": "Келесі миниатюраларды көрсету",
       "imageCounter": "{current} / {total}"
     },
+    "variants": {
+      "label": "Модель нұсқалары",
+      "groupAria": "{model} моделінің нұсқалары",
+      "optionAria": "{name} нұсқасын ашу",
+      "limited": "{total} нұсқаның {shown} көрсетілді"
+    },
     "summary": {
       "outOfStockTitle": "Қоймада жоқ",
       "outOfStockBody": "Бұл модель қазір қоймада жоқ. Оның қолжетімділігін менеджерден нақтылай аласыз.",

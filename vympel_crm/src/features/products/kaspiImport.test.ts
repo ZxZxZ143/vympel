@@ -98,6 +98,14 @@ describe("applyKaspiImportPreview", () => {
     });
   });
 
+  it("trims an imported model before normal product creation can derive grouping", () => {
+    const current = { ...emptyForm, categoryId: "1", productType: "WATCH" as const };
+
+    const result = applyKaspiImportPreview(current, preview({ model: "  TL4247HM  " }));
+
+    expect(result.model).toBe("TL4247HM");
+  });
+
   it("refuses a preview for a different selected category", () => {
     const current = { ...emptyForm, categoryId: "1", nameRu: "Keep" };
     const mismatched = { ...preview({ nameRu: "Wrong" }), categoryId: 2 };
