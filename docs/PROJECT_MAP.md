@@ -1195,4 +1195,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-09-04 - Prepared the complete Kaspi/import/variant feature set for immutable publication by refreshing both locks to fixed Browserslist 4.28.9 and narrowly rebaselining the measured CRM bundle ceiling to 1.51 MiB; existing architecture and release boundaries remain unchanged.
+2026-09-04 - Prepared the complete Kaspi/import/variant feature set for immutable publication, retained fixed Browserslist 4.28.9, restored npm 10/Linux-required cross-platform optional peer records in both frontend locks after the first main gate caught their removal, and narrowly rebaselined the measured CRM bundle ceiling to 1.51 MiB; existing architecture and release boundaries remain unchanged.

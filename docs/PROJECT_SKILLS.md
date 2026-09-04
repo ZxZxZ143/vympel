@@ -2153,7 +2153,7 @@
 
 * **When to use:** Updating either Next application's lockfile on a workstation whose npm major differs from the `node:22-alpine` dependency stage.
 * **How:** Regenerate and clean-install with npm 10.9.8 (the current container version), then require the Linux Docker/build-only gate before publication. Preserve platform-conditional optional peer records such as `@emnapi/core`, `@emnapi/runtime`, and the nested `@swc/helpers`; do not accept a host-only `npm ci` as proof.
-* **Why:** npm 12 can normalize those records away while still passing on Windows. npm 10 in the Linux dependency stage then rejects the lockfile as out of sync before application build, as run `31380881311` demonstrated.
+* **Why:** A newer host npm can normalize those records away while still passing a normal Windows `npm ci`. npm 10 in the Linux dependency stage then rejects the lockfile as out of sync before application build, as runs `31380881311`, `33892249035`, and `33892249075` demonstrated. After any security-only lock refresh, run a clean disposable Linux Node 22/npm 10 install before committing.
 
 ### Keep package managers out of standalone Next runtime images
 
@@ -2557,4 +2557,4 @@
 
 ## Last Updated
 
-2026-09-04 - Recorded the release-gate response to the Browserslist high-severity advisory and the measured 1.51 MiB CRM bundle rebaseline required by the complete Kaspi/import/variant feature set.
+2026-09-04 - Recorded the Browserslist advisory response, the measured 1.51 MiB CRM bundle rebaseline, and the mandatory Node 22/npm 10 Linux clean-install check that restored cross-platform optional peer records after the first merged release gate failed.
