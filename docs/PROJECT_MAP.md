@@ -1131,7 +1131,7 @@ The working full-Docker values live only in ignored workspace-root `.env`; canon
 
 ### Optimized static assets and budgets
 
-`vympel_front/scripts/optimize-public-images.py` owns the exact 25-file WebP pipeline; it validates dimensions/decoding and does not touch runtime object-storage media. `2026-07-19-02-public-image-webp.xml` updates matching CMS `PUBLIC_PATH` records. `scripts/check-performance-budgets.mjs` plus `performance-budget-allowlist.json` enforces the repository public total, per-raster limit, and both built Next JS totals. The CRM raw `.next/static/chunks` ceiling is 1.45 MiB, rebaselined from 1.40 MiB after the approved rich-text editor and optional product-characteristics flows measured 1.437 MiB together; the narrow ceiling leaves about 13 KiB of headroom. `npm run test:budgets:ci` is the finite local/CI command.
+`vympel_front/scripts/optimize-public-images.py` owns the exact 25-file WebP pipeline; it validates dimensions/decoding and does not touch runtime object-storage media. `2026-07-19-02-public-image-webp.xml` updates matching CMS `PUBLIC_PATH` records. `scripts/check-performance-budgets.mjs` plus `performance-budget-allowlist.json` enforces the repository public total, per-raster limit, and both built Next JS totals. The CRM raw `.next/static/chunks` ceiling is 1.51 MiB: the completed Kaspi import, creatable-reference, expanded-characteristic, and model-variant UI measured 1.494857 MiB, so the next narrow boundary retains about 15.5 KiB of headroom. `npm run test:budgets:ci` is the finite local/CI command.
 
 ### Liveness, readiness, and Actuator exposure
 
@@ -1195,4 +1195,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-09-04 - Stabilized derived model variants in canonical product-ID order for every anchor; documented the storefront/CRM single-border selected treatment, inset keyboard focus, neutral hover, and local three-route verification while retaining the existing Kaspi import and grouping architecture.
+2026-09-04 - Prepared the complete Kaspi/import/variant feature set for immutable publication by refreshing both locks to fixed Browserslist 4.28.9 and narrowly rebaselining the measured CRM bundle ceiling to 1.51 MiB; existing architecture and release boundaries remain unchanged.

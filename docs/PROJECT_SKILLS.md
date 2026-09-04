@@ -1970,6 +1970,7 @@
 | `tailwindcss` | ^4 | frontend | Tokens are mostly declared in `src/app/globals.css`; `tailwind.config.js` is minimal. |
 | `@reduxjs/toolkit` | ^2.11.2 | frontend | Store exists but has no reducers yet; do not assume app state is Redux-backed. |
 | `vitest` | ^3.2.7 | frontend | Tests run in the Node environment through `npm run test`; path alias `@` is configured in `vitest.config.ts`. On this Windows sandbox, esbuild process spawn may require the existing scoped permission. |
+| `browserslist` | 4.28.9 (transitive lock) | frontend/CRM | Keep both lockfiles above the `<=4.28.6` high-severity advisory range. The release gate runs `npm audit --audit-level=high`, so refresh both locks together and rerun clean install, lint, tests, and builds when the advisory database advances. |
 | `react-hook-form` | ^7.71.1 public / ^7.80.0 CRM | frontend/CRM | Use RHF for form values. The public app has Zod available; the CRM app currently has no schema resolver, so keep localized validation helpers in the component unless a resolver is intentionally added. |
 | `react-markdown` / unified plugins | 10.1.0 / GFM 4.0.1 / breaks 4.0.0 / raw 7.0.0 / sanitize 6.0.0 | frontend/CRM | Product underline requires raw `<u>` parsing, but `rehype-raw` must always be immediately followed by the aligned explicit sanitizer schema. Keep the storefront parser server-side and CRM preview dynamically loaded. Regenerate locks with npm 10.9.8 and prove Linux `npm ci`; Windows-only lock generation can drop required platform-conditional records. |
 | `radix-ui` | ^1.6.0 | frontend | shadcn Tooltip imports primitives from the monolithic `radix-ui` package; keep Tooltip styling in `src/components/ui/tooltip.tsx` aligned with VYMPEL tokens. |
@@ -2551,9 +2552,9 @@
 ### Rebaseline total-bundle budgets from measured approved functionality
 
 * **When to use:** The deterministic production build exceeds a raw-total bundle ceiling after an approved dependency-heavy feature, and removing that functionality is not part of the task.
-* **How:** Compare the failing commit with its parent gate, record the exact built total and the feature that changed the baseline, then raise the ceiling only to the next narrow boundary. The CRM rich-text plus optional-characteristics build measured 1.437 MiB, so its ceiling is 1.45 MiB rather than a broad round-number increase.
+* **How:** Compare the failing commit with its parent gate, record the exact built total and the feature that changed the baseline, then raise the ceiling only to the next narrow boundary. The CRM rich-text plus optional-characteristics build measured 1.437 MiB and used 1.45 MiB; the completed Kaspi import, creatable-reference, expanded-characteristic, and model-variant UI measured 1.494857 MiB and therefore uses 1.51 MiB, leaving about 15.5 KiB rather than a broad allowance.
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
 
-2026-09-04 - Recorded anchor-independent product-ID variant ordering, the single black selected-border/inset-focus pattern shared by storefront and CRM, and A/B/C API/UI verification while retaining the existing derived-group and Kaspi import lessons.
+2026-09-04 - Recorded the release-gate response to the Browserslist high-severity advisory and the measured 1.51 MiB CRM bundle rebaseline required by the complete Kaspi/import/variant feature set.
