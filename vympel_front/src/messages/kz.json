@@ -428,6 +428,13 @@
       "case": "Корпус",
       "glass": "Әйнек",
       "stoneInsert": "Тас кірістіру",
+      "dialType": "Циферблат түрі",
+      "dialMarking": "Циферблат белгілері",
+      "watchPowerSource": "Қуат көзі",
+      "strapColor": "Бау түсі",
+      "dialColor": "Циферблат түсі",
+      "packageContents": "Жиынтық",
+      "watchFeatures": "Сағат ерекшеліктері",
       "mechanismType": "Механизм түрі",
       "color": "Түс",
       "style": "Стиль",
@@ -464,6 +471,12 @@
       "previousThumbnails": "Алдыңғы миниатюраларды көрсету",
       "nextThumbnails": "Келесі миниатюраларды көрсету",
       "imageCounter": "{current} / {total}"
+    },
+    "variants": {
+      "label": "Модель нұсқалары",
+      "groupAria": "{model} моделінің нұсқалары",
+      "optionAria": "{name} нұсқасын ашу",
+      "limited": "{total} нұсқаның {shown} көрсетілді"
     },
     "summary": {
       "outOfStockTitle": "Қоймада жоқ",

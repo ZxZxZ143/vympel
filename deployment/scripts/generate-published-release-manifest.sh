@@ -6,6 +6,20 @@ output_path=${2:?Usage: generate-published-release-manifest.sh METADATA_DIR OUTP
 commit_sha=${3:?Usage: generate-published-release-manifest.sh METADATA_DIR OUTPUT COMMIT_SHA RELEASE_TAG RUN_URL}
 release_tag=${4-}
 run_url=${5:?Usage: generate-published-release-manifest.sh METADATA_DIR OUTPUT COMMIT_SHA RELEASE_TAG RUN_URL}
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repository_root=$(CDPATH= cd -- "$script_dir/../.." && pwd)
+master_changelog=$repository_root/vympel_back/src/main/resources/db/changelog/db.changelog-master.xml
+latest_changelog=$(sed -n 's/.*<include file="\([^"]*\)".*/\1/p' "$master_changelog" | tail -n 1)
+if [ -z "$latest_changelog" ]; then
+  echo "Could not derive the latest Liquibase include" >&2
+  exit 1
+fi
+expected_latest_change=$(sed -n 's/.*<changeSet id="\([^"]*\)".*/\1/p' \
+  "$repository_root/vympel_back/src/main/resources/$latest_changelog" | tail -n 1)
+if [ -z "$expected_latest_change" ]; then
+  echo "Could not derive the latest Liquibase changeset" >&2
+  exit 1
+fi
 
 if ! printf '%s\n' "$commit_sha" | grep -Eq '^[0-9a-f]{40}$'; then
   echo "Commit SHA must be exactly 40 lowercase hexadecimal characters" >&2
@@ -152,7 +166,7 @@ public_build_configuration:
   placeholder_acknowledged: $placeholder_acknowledged
 database:
   changelog: classpath:db/changelog/db.changelog-master.xml
-  expected_latest_change: 2026-08-16-01-about-instagram-post-cms
+  expected_latest_change: $expected_latest_change
   migration_mode: one-time-job
 verification:
   workflow_run: "$run_url"

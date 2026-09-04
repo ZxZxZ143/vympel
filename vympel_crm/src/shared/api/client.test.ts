@@ -263,4 +263,37 @@ describe("CRM API authentication lifecycle", () => {
 
     expect(getAccessToken()).toBe("valid-access");
   });
+
+  it("posts a bounded authenticated Kaspi preview request without persisting a product", async () => {
+    saveSession("valid-access");
+    const timeoutSignal = new AbortController().signal;
+    const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeoutSignal);
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, {
+      source: "KASPI",
+      sourceUrl: "https://kaspi.kz/shop/p/watch-123",
+      categoryId: 7,
+      categoryProfile: "WRISTWATCH",
+      values: { kaspiUrl: "https://kaspi.kz/shop/p/watch-123" },
+      mappedFields: [],
+      mappedCharacteristics: [],
+      unmappedCharacteristics: [],
+      unresolvedCharacteristics: [],
+      warnings: [],
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await crmApi.importKaspiProduct({
+      url: "https://kaspi.kz/shop/p/watch-123",
+      categoryId: 7,
+    }, "ru");
+
+    expect(timeout).toHaveBeenCalledWith(30_000);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/products/import/kaspi?lang=ru");
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: "POST" });
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
+      url: "https://kaspi.kz/shop/p/watch-123",
+      categoryId: 7,
+    });
+    expect(accessHeader(fetchMock.mock.calls[0][1])).toBe("Bearer valid-access");
+  });
 });

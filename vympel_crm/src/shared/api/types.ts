@@ -70,6 +70,21 @@ export type ProductImage = {
   isMain: boolean;
 };
 
+export type ProductModelVariant = {
+  id: number;
+  name: string;
+  model: string;
+  status: ProductStatus;
+  mainImage?: ProductImage | null;
+};
+
+export type ProductModelVariantGroup = {
+  model: string;
+  total: number;
+  truncated: boolean;
+  variants: ProductModelVariant[];
+};
+
 export type Product = {
   id: number;
   sku: string;
@@ -100,6 +115,14 @@ export type Product = {
     caseSizeMm?: number | null;
     waterResistance?: string | null;
     stoneInlay?: Feature | null;
+    dialType?: Feature | null;
+    dialMarking?: Feature | null;
+    powerSource?: Feature | null;
+    waterResistanceOption?: Feature | null;
+    strapColor?: Feature | null;
+    dialColor?: Feature | null;
+    packageContents?: string | null;
+    features: Feature[];
   } | null;
   interiorClockDetails?: {
     productId: number;
@@ -128,12 +151,15 @@ export type Product = {
   promotionScore?: number | null;
   promotedUntil?: string | null;
   promotionUpdatedAt?: string | null;
+  modelVariantGroup?: ProductModelVariantGroup | null;
 };
 
 export type ProductListItem = Pick<
   Product,
   "id" | "sku" | "name" | "model" | "price" | "stockQuantity" | "status" | "kaspiUrl" | "wildberriesUrl"
->;
+> & {
+  modelVariantGroup?: ProductModelVariantGroup | null;
+};
 
 export type ProductStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
 
@@ -211,6 +237,14 @@ export type ProductPayload = {
     caseSizeMm?: number | null;
     waterResistance?: string | null;
     stoneInlayId?: number | null;
+    dialTypeId?: number | null;
+    dialMarkingId?: number | null;
+    powerSourceId?: number | null;
+    waterResistanceId?: number | null;
+    strapColorId?: number | null;
+    dialColorId?: number | null;
+    packageContents?: string | null;
+    featureIds?: number[] | null;
   };
   interiorClockDetails?: {
     productionCountryId?: number | null;
@@ -233,6 +267,109 @@ export type ProductPayload = {
   };
   kaspiUrl?: string | null;
   wildberriesUrl?: string | null;
+};
+
+export type KaspiImportRequest = {
+  url: string;
+  categoryId: number;
+};
+
+export type KaspiImportCategoryProfile = "WRISTWATCH" | "INTERIOR_CLOCK" | "ACCESSORY" | "GENERIC";
+
+export type KaspiImportResolution = "EXACT" | "NORMALIZED" | "ALIAS";
+
+export type KaspiImportUnmappedReason =
+  | "UNKNOWN_LABEL"
+  | "UNSUPPORTED_FOR_CATEGORY"
+  | "UNRESOLVED_VALUE"
+  | "AMBIGUOUS_VALUE"
+  | "INVALID_VALUE"
+  | "BRAND_COUNTRY_MISMATCH"
+  | "DUPLICATE_CONFLICT";
+
+export type KaspiImportValues = {
+  nameRu?: string | null;
+  brandId?: number | null;
+  model?: string | null;
+  price?: number | null;
+  descriptionRu?: string | null;
+  kaspiUrl: string;
+  watchDetails?: {
+    mechanismId?: number | null;
+    genderId?: number | null;
+    caseMaterialId?: number | null;
+    strapMaterialId?: number | null;
+    glassTypeId?: number | null;
+    caseSizeMm?: number | null;
+    waterResistance?: string | null;
+    stoneInlayId?: number | null;
+    dialTypeId?: number | null;
+    dialMarkingId?: number | null;
+    powerSourceId?: number | null;
+    waterResistanceId?: number | null;
+    strapColorId?: number | null;
+    dialColorId?: number | null;
+    packageContents?: string | null;
+    featureIds?: number[] | null;
+  } | null;
+  interiorClockDetails?: {
+    productionCountryId?: number | null;
+    caseMaterialId?: number | null;
+    colorId?: number | null;
+    styleId?: number | null;
+    mechanismTypeId?: number | null;
+    powerTypeId?: number | null;
+    dimensions?: string | null;
+    weightGrams?: number | null;
+    warrantyMonths?: number | null;
+  } | null;
+  accessoryDetails?: {
+    claspType?: string | null;
+    caseMaterialId?: number | null;
+    insertMaterialId?: number | null;
+    hasInsert?: boolean | null;
+    colorId?: number | null;
+    length?: string | null;
+  } | null;
+};
+
+export type KaspiImportMappedCharacteristic = {
+  sourceLabel: string;
+  sourceValue: string;
+  targetField: string;
+  resolvedValue: string;
+  resolution: KaspiImportResolution;
+};
+
+export type KaspiImportMappedField = {
+  targetField: string;
+  resolvedValue: string;
+};
+
+export type KaspiImportUnmappedCharacteristic = {
+  sourceLabel: string;
+  sourceValue: string;
+  reason: KaspiImportUnmappedReason;
+};
+
+export type KaspiImportUnresolvedCharacteristic = {
+  sourceLabel: string;
+  sourceValue: string;
+  targetField: string;
+  reason: Exclude<KaspiImportUnmappedReason, "UNKNOWN_LABEL" | "UNSUPPORTED_FOR_CATEGORY">;
+};
+
+export type KaspiImportPreview = {
+  source: "KASPI";
+  sourceUrl: string;
+  categoryId: number;
+  categoryProfile: KaspiImportCategoryProfile;
+  values: KaspiImportValues;
+  mappedFields: KaspiImportMappedField[];
+  mappedCharacteristics: KaspiImportMappedCharacteristic[];
+  unmappedCharacteristics: KaspiImportUnmappedCharacteristic[];
+  unresolvedCharacteristics: KaspiImportUnresolvedCharacteristic[];
+  warnings: string[];
 };
 
 export type ProductBulkCommonPayload = {
@@ -323,6 +460,34 @@ export type References = {
   interiorStyles: Feature[];
   interiorMechanisms: Feature[];
   interiorPowerTypes: Feature[];
+  watchDialTypes: Feature[];
+  watchDialMarkings: Feature[];
+  watchPowerSources: Feature[];
+  watchWaterResistances: Feature[];
+  watchFeatures: Feature[];
+};
+
+export type ReferenceCreateType =
+  | "watch-mechanisms"
+  | "genders"
+  | "case-materials"
+  | "strap-materials"
+  | "glass-types"
+  | "stone-inlays"
+  | "colors"
+  | "interior-styles"
+  | "interior-mechanisms"
+  | "interior-power-types"
+  | "watch-dial-types"
+  | "watch-dial-markings"
+  | "watch-power-sources"
+  | "watch-water-resistances"
+  | "watch-features";
+
+export type ReferenceCreatePayload = {
+  ru: string;
+  kz?: string;
+  en?: string;
 };
 
 export type Activity = {

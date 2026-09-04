@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,6 +74,7 @@ class AccessoryDetailServiceTest {
         InteriorFeature color = new InteriorFeature();
         color.setId(4L);
         color.setFeatureType("COLOR");
+        color.setActive(true);
         when(materialRepository.findById(2L)).thenReturn(Optional.of(caseMaterial));
         when(materialRepository.findById(3L)).thenReturn(Optional.of(insertMaterial));
         when(interiorFeatureRepository.findById(4L)).thenReturn(Optional.of(color));
@@ -113,6 +115,22 @@ class AccessoryDetailServiceTest {
         assertThat(detail.getHasInsert()).isNull();
         assertThat(detail.getColor()).isNull();
         assertThat(detail.getLength()).isNull();
+    }
+
+    @Test
+    void createRejectsAnInactiveColorReference() {
+        InteriorFeature color = new InteriorFeature();
+        color.setId(4L);
+        color.setFeatureType("COLOR");
+        color.setActive(false);
+        when(interiorFeatureRepository.findById(4L)).thenReturn(Optional.of(color));
+
+        AccessoryDetailCreateRequest request = new AccessoryDetailCreateRequest();
+        request.setColorId(4L);
+
+        assertThatThrownBy(() -> service.create(request, product(1L)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("active COLOR");
     }
 
     private Product product(Long id) {

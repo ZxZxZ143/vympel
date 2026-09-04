@@ -35,6 +35,8 @@ public class CrmReferenceService {
     private final GlassTypeRepository glassTypeRepository;
     private final StoneInlayRepository stoneInlayRepository;
     private final InteriorFeatureRepository interiorFeatureRepository;
+    private final WatchAttributeOptionRepository watchAttributeOptionRepository;
+    private final FeatureRepository featureRepository;
     private final CollectionI18nRepository collectionI18nRepository;
     private final MechanismI18nRepository mechanismI18nRepository;
     private final GenderI18nRepository genderI18nRepository;
@@ -43,6 +45,8 @@ public class CrmReferenceService {
     private final StoneInlayI18nRepository stoneInlayI18nRepository;
     private final CountryI18nRepository countryI18nRepository;
     private final InteriorFeatureI18nRepository interiorFeatureI18nRepository;
+    private final WatchAttributeOptionI18nRepository watchAttributeOptionI18nRepository;
+    private final WatchFeatureI18nRepository watchFeatureI18nRepository;
 
     @Transactional(readOnly = true)
     public CrmReferencesResponse getReferences(Language language) {
@@ -57,11 +61,25 @@ public class CrmReferenceService {
         List<InteriorFeature> styles = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("STYLE");
         List<InteriorFeature> interiorMechanisms = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("MECHANISM");
         List<InteriorFeature> powerSources = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("POWER");
+        List<WatchAttributeOption> dialTypes = watchAttributeOptionRepository
+                .findByOptionTypeAndActiveTrueOrderByCodeAsc("DIAL_TYPE");
+        List<WatchAttributeOption> dialMarkings = watchAttributeOptionRepository
+                .findByOptionTypeAndActiveTrueOrderByCodeAsc("DIAL_MARKING");
+        List<WatchAttributeOption> watchPowerSources = watchAttributeOptionRepository
+                .findByOptionTypeAndActiveTrueOrderByCodeAsc("POWER_SOURCE");
+        List<WatchAttributeOption> waterResistances = watchAttributeOptionRepository
+                .findByOptionTypeAndActiveTrueOrderByCodeAsc("WATER_RESISTANCE");
+        List<WatchFeature> watchFeatures = featureRepository.findByActiveTrueOrderByCodeAsc();
         List<InteriorFeature> allInteriorFeatures = new ArrayList<>();
         allInteriorFeatures.addAll(colors);
         allInteriorFeatures.addAll(styles);
         allInteriorFeatures.addAll(interiorMechanisms);
         allInteriorFeatures.addAll(powerSources);
+        List<WatchAttributeOption> allWatchOptions = new ArrayList<>();
+        allWatchOptions.addAll(dialTypes);
+        allWatchOptions.addAll(dialMarkings);
+        allWatchOptions.addAll(watchPowerSources);
+        allWatchOptions.addAll(waterResistances);
 
         Map<Long, String> collectionNames = translatedNames(
                 collectionI18nRepository, collections, Collection::getId, language,
@@ -92,6 +110,14 @@ public class CrmReferenceService {
                 language, InteriorFeatureI18nId::new, InteriorFeatureI18n::getId
         );
         Map<Long, String> countryNames = countryNames(countries, language);
+        Map<Long, String> watchOptionNames = translatedNames(
+                watchAttributeOptionI18nRepository, allWatchOptions, WatchAttributeOption::getId,
+                language, WatchAttributeOptionI18nId::new, WatchAttributeOptionI18n::getId
+        );
+        Map<Long, String> watchFeatureNames = translatedNames(
+                watchFeatureI18nRepository, watchFeatures, WatchFeature::getId,
+                language, WatchFeatureI18nId::new, WatchFeatureI18n::getId
+        );
 
         return new CrmReferencesResponse(
                 categoryService.getAll(language),
@@ -138,7 +164,17 @@ public class CrmReferenceService {
                 mapCodedOptions(interiorMechanisms, InteriorFeature::getId, InteriorFeature::getCode,
                         feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode())),
                 mapCodedOptions(powerSources, InteriorFeature::getId, InteriorFeature::getCode,
-                        feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode()))
+                        feature -> interiorNames.getOrDefault(feature.getId(), feature.getCode())),
+                mapCodedOptions(dialTypes, WatchAttributeOption::getId, WatchAttributeOption::getCode,
+                        option -> watchOptionNames.getOrDefault(option.getId(), option.getCode())),
+                mapCodedOptions(dialMarkings, WatchAttributeOption::getId, WatchAttributeOption::getCode,
+                        option -> watchOptionNames.getOrDefault(option.getId(), option.getCode())),
+                mapCodedOptions(watchPowerSources, WatchAttributeOption::getId, WatchAttributeOption::getCode,
+                        option -> watchOptionNames.getOrDefault(option.getId(), option.getCode())),
+                mapCodedOptions(waterResistances, WatchAttributeOption::getId, WatchAttributeOption::getCode,
+                        option -> watchOptionNames.getOrDefault(option.getId(), option.getCode())),
+                mapCodedOptions(watchFeatures, WatchFeature::getId, WatchFeature::getCode,
+                        feature -> watchFeatureNames.getOrDefault(feature.getId(), feature.getCode()))
         );
     }
 

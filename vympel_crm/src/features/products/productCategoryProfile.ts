@@ -8,6 +8,7 @@ const wristwatchCodes = new Set([
   "WATCH_WOMEN",
   "WATCH_UNISEX",
   "SMARTWATCH",
+  "WATCH_KIDS",
   "WATCH_CLASSIC",
   "WATCH_SPORT",
   "WATCH_DIVER",

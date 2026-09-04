@@ -19,9 +19,12 @@ import {
   CrmCollection,
   CrmUser,
   CrmRole,
+  Feature,
   CustomerRequest,
   CustomerRequestStatus,
   Dashboard,
+  KaspiImportPreview,
+  KaspiImportRequest,
   ManagedUser,
   Page,
   Product,
@@ -37,6 +40,8 @@ import {
   ProductReviewStatus,
   ProductStatus,
   References,
+  ReferenceCreatePayload,
+  ReferenceCreateType,
   UserPayload,
 } from "@/shared/api/types";
 import { reportTelemetry } from "@/shared/telemetry/telemetry";
@@ -91,6 +96,7 @@ let refreshPromise: Promise<string> | null = null;
 const CRM_REFRESH_LOCK = "vympel-crm-refresh-cookie-rotation";
 const CRM_API_TIMEOUT_MS = 15_000;
 const CRM_API_UPLOAD_TIMEOUT_MS = 60_000;
+const CRM_API_IMPORT_TIMEOUT_MS = 30_000;
 
 async function withCrossTabRefreshLock<T>(refresh: () => Promise<T>): Promise<T> {
   const lockManager = typeof navigator === "undefined" ? undefined : navigator.locks;
@@ -407,6 +413,14 @@ export const crmApi = {
       body: JSON.stringify(payload),
     });
   },
+  importKaspiProduct(payload: KaspiImportRequest, lang: string, signal?: AbortSignal) {
+    return crmFetch<KaspiImportPreview>(`/products/import/kaspi?lang=${encodeURIComponent(lang)}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      signal,
+      timeoutMs: CRM_API_IMPORT_TIMEOUT_MS,
+    });
+  },
   createProductsBulk(payload: ProductBulkCreatePayload, lang: string) {
     return crmFetch<ProductBulkCreateResult>(`/products/bulk?lang=${encodeURIComponent(lang)}`, {
       method: "POST",
@@ -477,6 +491,12 @@ export const crmApi = {
   },
   references(lang: string) {
     return crmFetch<References>(`/references?lang=${encodeURIComponent(lang)}`);
+  },
+  createReference(type: ReferenceCreateType, payload: ReferenceCreatePayload, lang: string) {
+    return crmFetch<Feature>(`/references/${type}?lang=${encodeURIComponent(lang)}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
   collections(params: { lang: string; brandId?: number }) {
     const query = new URLSearchParams({ lang: params.lang });

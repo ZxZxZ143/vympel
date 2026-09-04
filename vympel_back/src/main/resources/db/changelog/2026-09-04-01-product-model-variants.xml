@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2026-09-04-01-product-model-variants" author="codex" dbms="postgresql">
+        <comment>Add the functional lookup index used by derived model-variant groups.</comment>
+        <sql splitStatements="false"><![CDATA[
+            CREATE INDEX idx_product_brand_normalized_model
+                ON product (brand_id, upper(btrim(model)));
+        ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DROP INDEX IF EXISTS idx_product_brand_normalized_model;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

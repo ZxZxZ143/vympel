@@ -127,6 +127,14 @@ public class ProductBulkCreationService {
         merged.setCaseSizeMm(firstNonNull(row == null ? null : row.getCaseSizeMm(), common == null ? null : common.getCaseSizeMm()));
         merged.setWaterResistance(firstNonBlank(row == null ? null : row.getWaterResistance(), common == null ? null : common.getWaterResistance()));
         merged.setStoneInlayId(firstNonNull(row == null ? null : row.getStoneInlayId(), common == null ? null : common.getStoneInlayId()));
+        merged.setDialTypeId(firstNonNull(row == null ? null : row.getDialTypeId(), common == null ? null : common.getDialTypeId()));
+        merged.setDialMarkingId(firstNonNull(row == null ? null : row.getDialMarkingId(), common == null ? null : common.getDialMarkingId()));
+        merged.setPowerSourceId(firstNonNull(row == null ? null : row.getPowerSourceId(), common == null ? null : common.getPowerSourceId()));
+        merged.setWaterResistanceId(firstNonNull(row == null ? null : row.getWaterResistanceId(), common == null ? null : common.getWaterResistanceId()));
+        merged.setStrapColorId(firstNonNull(row == null ? null : row.getStrapColorId(), common == null ? null : common.getStrapColorId()));
+        merged.setDialColorId(firstNonNull(row == null ? null : row.getDialColorId(), common == null ? null : common.getDialColorId()));
+        merged.setPackageContents(firstNonBlank(row == null ? null : row.getPackageContents(), common == null ? null : common.getPackageContents()));
+        merged.setFeatureIds(firstNonNull(row == null ? null : row.getFeatureIds(), common == null ? null : common.getFeatureIds()));
         return merged;
     }
 

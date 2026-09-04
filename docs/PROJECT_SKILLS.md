@@ -304,6 +304,12 @@
 * **How:** Give the grid and both children `min-width: 0`; apply `.product-long-copy` to user content so normal text and unbroken strings wrap with `overflow-wrap: anywhere`. Do not hide or truncate the full description.
 * **Why:** CSS grid/flex children otherwise retain an intrinsic minimum width and can paint over the characteristics column.
 
+### Compact product-model variant selector
+
+* **When to use:** A product detail response contains two or more products in the same derived model group.
+* **How:** Render a semantic `ul` of canonical localized product links immediately after the product title and before gender in the right summary column. Preserve the backend's product-ID-ascending order on every sibling route; never promote the current product to the front. Keep each 60px thumbnail independent, mark only the current link with `aria-current="page"` and one token-backed one-pixel black border, keep siblings neutral with a subtle hover, and use one inset focus-visible outline that replaces the border instead of adding a ring or shadow. Use `overflow-x: auto` inside a `min-width: 0` owner and hide groups of size one. Load dynamic object-storage thumbnails directly (`next/image` `unoptimized`) like the established gallery so a containerized Next server does not proxy a host-only MinIO URL; replace null or failed media with `ProductImageFallback`.
+* **Why:** Route navigation preserves independent price/stock/media/analytics/cart/favorite identity, while the contained rail remains accessible and cannot widen a phone page.
+
 ### Trigger-independent catalog popovers
 
 * **When to use:** For desktop category, filter, sort, or search dropdowns in the catalog hero toolbar.
@@ -474,6 +480,18 @@
 * **How:** Add a new changelog file under `src/main/resources/db/changelog`, include it in `db.changelog-master.xml`, and keep JPA `ddl-auto: validate`. For identity spelling/slug corrections, update the existing row in place, HALT on a conflicting canonical row, update only proven localized/denormalized references, and test that no delete/reinsert or product FK rewrite occurs. Check the full prior schema history before adding table preconditions: `brand_i18n` was removed by `2026-02-08-01`, so current brand corrections must use the canonical `brand` row and active CMS translation tables rather than referencing that historical table.
 * **Why:** Hibernate validates the schema instead of creating it, so database changes must be migration-backed; primary-key-preserving corrections keep every product association stable.
 
+### Derive the packaged Liquibase boundary from the master changelog
+
+* **When to use:** Finite migration-only startup, release-manifest generation, or any check that must prove the application image and database history belong to the same migration graph.
+* **How:** Parse the packaged master changelog and use the exact final included changeset id/author/file instead of copying a constant into Java, shell, examples, or runbooks. Require the full database history to be a subset of packaged identities, require the packaged final identity to have run, and allow a packaged `runOnChange` row to be the newest execution. Keep rollback blocks fail closed when reversal would delete referenced seed data or collapse product-specific values; abort rather than substituting a lossy default.
+* **Why:** Derived identities prevent stale release metadata, while full-history subset checks catch a database migrated by code newer or different from the running image without false-failing legitimate packaged reruns.
+
+### Secure remote marketplace preview pipeline
+
+* **When to use:** Importing metadata from an operator-supplied marketplace URL before a CRM product exists.
+* **How:** Keep the endpoint ADMIN/MANAGER authenticated, source/actor/global rate-limited, non-transactional, concurrency-bounded, and preview-only. Accept only the exact HTTPS marketplace hosts and product path, reject credentials/non-default ports/private or special resolved addresses, disable ambient proxies, revalidate every redirect, and share one total deadline across the full redirect/body sequence. Reject unexpected content encodings and content types, cancel the subscriber on the first byte beyond the body cap, and return safe domain error codes. Parse structured product data first, then constrained embedded/semantic fallbacks; skip aggregate specification rows. Map only through the selected category profile and existing reference dictionaries using exact, normalized, then explicit-alias resolution. Reject multiple numeric tokens, ranges, fractional integers, overlong contract fields, conflicting duplicate destinations, and brand-country mismatches instead of selecting or truncating a value. Report unknown labels as unmapped and known labels with invalid/ambiguous values as unresolved. Never call product repositories or create dictionary rows from scraped text.
+* **Why:** Remote HTML is untrusted and unstable. Layered request and concurrency bounds protect finite resources, while a conservative preview keeps SSRF, parser drift, guessed/truncated references, and accidental persistence out of the normal product-create contract.
+
 ### Forward-only catalog normalization with FK-safe deletion
 
 * **When to use:** Replacing a permissive reference-data catalog with a closed supported domain on databases that may contain aliases, duplicates, and unsupported product graphs.
@@ -551,6 +569,18 @@
 * **When to use:** Public catalog cards, quick search rows, cart/favorite refresh, or recommendation cards need current compact product data.
 * **How:** Select bounded IDs first, then call `PublicProductSummaryRepository` once. The projection owns locale/RU name fallback, current price/stock/status, main image key, visible active category, brand/collection, and approved rating aggregate. Keep object-key-to-public-URL conversion in `ObjectStorageService`. Do not replace N+1 with a multi-to-many fetch-join Cartesian product.
 * **Why:** One purpose-specific projection prevents separate name/media/category/rating queries while keeping public visibility consistent across consumers.
+
+### Bounded derived model-variant projection
+
+* **When to use:** Public product detail or a CRM product page needs sibling products that share a real model identity.
+* **How:** Derive identity from exact `brand_id + upper(btrim(model)) + category profile`; never use product names, fuzzy matching, or persistent manual group IDs. Resolve the current CRM page's anchors in one native query, derive category ancestry recursively, choose main-or-first media laterally, localize with requested-language then RU fallback, order every candidate family by product ID ascending independent of the current anchor, expose exact totals, and cap returned siblings at 24. Public mode requires ACTIVE status plus an all-active category path that reaches a root; CRM mode includes every status. Back the candidate lookup with `(brand_id, upper(btrim(model)))` and convert object keys to URLs only after projection.
+* **Why:** Query count stays fixed, public records cannot leak, large families remain bounded, and changing a product's model changes membership immediately without invalidating stored group state.
+
+### Collision-safe generated SKUs for legitimate variants
+
+* **When to use:** Two independently valid product records produce the same human-readable generated SKU.
+* **How:** Keep the first base SKU unchanged. If that value already exists, append a random eight-hex-character suffix, truncating the base first so the stored value remains within 120 characters; bound retries and keep the database uniqueness constraint authoritative. Do not treat an SKU collision as proof that the product itself is a duplicate.
+* **Why:** Color/image variants can share every legacy SKU input while remaining separate inventory records, and suffixing only collisions preserves readable identifiers for ordinary products.
 
 ### Bounded cart and favorites refresh
 
@@ -746,11 +776,23 @@
 * **How:** Keep database detail columns nullable; accept nullable DTO members; validate only submitted reference ids; upsert a submitted one-to-one detail group on update; preserve boolean `false`; and send explicit null members from individual edit forms so clears differ from an omitted group. Public spec builders must filter null, undefined, and blank strings without filtering meaningful `false` or numeric zero.
 * **Why:** This supports empty and partial products without invented defaults while keeping save/reload/clear semantics deterministic across CRM, backend, and storefront.
 
+### Preview-then-apply into the existing product form
+
+* **When to use:** A remote importer should help fill a new CRM product without becoming a second save workflow.
+* **How:** Require category selection before offering import; send the category with the URL; render mapped, unmapped, unresolved, and warning groups in an accessible dialog; and on Apply merge only non-null preview values into the current RHF state. Make the dialog a viewport-bounded flex column with `min-height: 0` on its named/focusable scroll body, fixed header/footer/close controls, safe-area-aware mobile limits, long-text wrapping, background scroll lock, focus trap, Escape/X/cancel, and trigger-focus restoration. Focus the preview body after a result arrives so keyboard scrolling works. Preserve category/profile, keep current values where import data is absent or unresolved, preserve meaningful `false` and `0`, clear stale brand-scoped collection drafts when brand changes, prevent duplicate import submissions, and let later manual edits win. A failed later import must not mutate the prior form state. The regular product-create request remains the sole persistence path.
+* **Why:** Operators can inspect uncertain marketplace data and correct it before save, while existing validation, translations, detail-profile rules, and audit behavior stay authoritative.
+
 ### API contract first
 
 * **When to use:** When frontend depends on backend DTOs, routes, schemas, or response shapes.
 * **How:** Update the backend contract first, then update frontend API client/types/hooks/components.
 * **Why:** Prevents mismatch between request/response shapes.
+
+### Independent products with derived variant navigation
+
+* **When to use:** Adding model-family representation to public detail or CRM list/edit flows.
+* **How:** Embed the same lightweight `modelVariantGroup` contract in backend DTOs and both TypeScript mirrors, but keep every sibling as an ordinary product route and mutation target. The CRM list still pages and filters products; it enriches only returned anchors while each strip may reference siblings outside that page. Both UIs consume the projection order directly so switching the current route moves only `aria-current` and selected styling, never the sibling positions. Storefront switching is a normal link, so gallery, price, stock, characteristics, marketplace URLs, SKU, cart, favorites, and analytics load from the destination product. Product-detail fetches remain fresh (`cache: "no-cache"`), so create/model/status/archive/delete/main-image changes need no second cache system.
+* **Why:** Group presentation becomes consistent without merging business identity or corrupting list counts, search semantics, customer state, or view analytics.
 
 ### Markdown string contract across CRM, backend, and storefront
 
@@ -893,7 +935,7 @@
 ### CRM product photo upload contract
 
 * **When to use:** Whenever product photo upload, previews, or media response handling changes in the CRM.
-* **How:** Upload files with multipart `files` to `POST /api/crm/products/{id}/images?lang=`, return `ProductResponse` with refreshed `images`, validate the same supported MIME types/10 MB limit on both sides, and keep the frontend API client using `FormData` without setting a JSON `Content-Type`.
+* **How:** Upload files with multipart `files` to `POST /api/crm/products/{id}/images?lang=`, return `ProductResponse` with refreshed `images`, validate the same decoder-proven JPEG/PNG/GIF MIME+extension set and 10 MB limit on both sides, and keep the frontend API client using `FormData` without setting a JSON `Content-Type`. Do not advertise WebP until the backend decoder validates it.
 * **Why:** Product media already lives in MinIO/S3 through `ObjectStorageService`; duplicating upload/storage logic or inventing a second media DTO would create contract drift.
 
 ### CRM reference option labels
@@ -949,6 +991,30 @@
 * **When to use:** When CMS stores a third-party post/reel link that becomes a public external anchor.
 * **How:** Parse and canonicalize at the backend trust boundary using an exact HTTPS host/path/id allow-list; force the required link type/open behavior. Mirror the parser in CRM for immediate feedback and storefront for defense in depth, but never rely on either client as authorization.
 * **Why:** String-prefix checks accept fake hosts and encoded-path tricks, while one canonical stored form makes output, testing, and auditing predictable.
+
+### Transactional creatable reference values
+
+* **When to use:** A CRM product select needs an inline “+ Добавить” path for an allow-listed dictionary.
+* **How:** Keep IDs as form values, POST localized `{ ru, kz?, en? }` to `/api/crm/references/{type}`, normalize duplicates across every locale, serialize equivalent concurrent names with transaction-scoped PostgreSQL advisory locks, and commit the new option plus CRM audit in one transaction. In React, use the shared `CreatableReferenceFields` dialog, guard submit synchronously, merge the response with a functional reference-cache update, and select it through the same RHF/form-state setter in the same batch. Kaspi preview may resolve existing options but must never call this mutation path.
+* **Why:** This prevents case/spacing races, unaudited dictionary writes, stale option lists, and full-page reloads while preserving the form library as the single source of truth.
+
+### Normalized multi-value watch features
+
+* **When to use:** Persisting, importing, bulk-overriding, clearing, or rendering “Особенности часов”.
+* **How:** Reuse `watch_feature` plus `watch_details_feature`; accept a bounded list of positive IDs, validate every active row, deduplicate through the relation key, and replace the owner’s relation set transactionally. `null`/omission preserves the request contract where applicable, while an explicit empty list clears inherited or saved values. Public DTOs return localized feature objects and the storefront joins only their names.
+* **Why:** A relation table supports zero/one/many values, referential integrity, localization, clean clearing, and future querying without comma-separated uncontrolled text.
+
+### Map reliable Kaspi leaf-function labels conservatively
+
+* **When to use:** Kaspi exposes functions as leaf pairs such as `Функции: хронограф` or `Отображение даты: число` instead of one `Особенности часов` list.
+* **How:** Route only explicit function labels (`Функции`, date/calendar, chronograph, stopwatch, alarm, backlight and their known English equivalents) to the feature resolver. Resolve the value first; if it is a display form such as `число`, resolve the known label itself. Never select a label-derived feature for explicit negative values (`нет`, `false`, `none`, and equivalents), and leave unknown labels/values unresolved or unmapped. When several leaf pairs resolve, merge IDs without duplicates and preserve their labels in readable preview source text.
+* **Why:** Real Kaspi pages nest these leaf rows under aggregate headings; using only synthetic “Особенности часов” fixtures misses valid features, while classifying arbitrary unknown characteristics would pollute the product meaning.
+
+### Promote exact Kaspi model leaves into the normal product field
+
+* **When to use:** Kaspi omits JSON-LD `model`/`mpn` but exposes a leaf characteristic named exactly `Модель`, `Model`, or `Моделі`.
+* **How:** Normalize whitespace, collect only those exact labels, and promote the single distinct value into `KaspiParsedProduct.model`; remove the promoted duplicate characteristic from the unsupported list. If exact labels conflict, leave the model unset, retain the source rows, and emit `MODEL_AMBIGUOUS`. Apply the resolved value through the existing trimmed CRM `model` assignment; never strip suffixes or apply fuzzy model equivalence.
+* **Why:** Live Kaspi preview/apply fills the ordinary product model used by normal persistence and grouping without guessing between genuinely different model identities.
 
 ## Figma / UI Implementation Patterns
 
@@ -1039,6 +1105,34 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### Treating a generated SKU collision as a duplicate product
+
+* **What happened:** Same-model variants with different colors and images shared all legacy SKU inputs, so the second valid product was rejected as “Product already exists.”
+* **Root cause:** The SKU builder does not encode every product characteristic, but create logic assumed its output was a complete product-identity key.
+* **Fix:** Preserve the readable base for the first product and add a bounded collision suffix for later records, with length and service regression tests.
+* **How to avoid:** Keep SKU uniqueness and product semantic identity separate; do not block a valid independent record merely because a lossy generated label collides.
+
+### Sending host-only object-storage URLs through the Next image optimizer
+
+* **What happened:** Variant DTOs contained valid MinIO URLs and the main gallery rendered, but every new selector thumbnail fell back in the Docker test stand.
+* **Root cause:** Next's server-side optimizer resolved `localhost:9100` inside the storefront container, while direct browser media access correctly resolves the host-published port.
+* **Fix:** Follow the product gallery pattern and set dynamic object-storage selector images to `unoptimized`, retaining the on-error fallback.
+* **How to avoid:** Reuse the established dynamic-media loading path and verify actual `naturalWidth` in the containerized browser, not just API JSON or mocked markup.
+
+### Promoting the current variant or stacking selected-state borders
+
+* **What happened:** The backend ranked the request anchor before its siblings, so the same model family reordered on every route; selected CSS also combined a border with a ring/shadow and produced a heavy or doubled frame.
+* **Root cause:** Request-relative selection state was mixed into canonical data ordering, and multiple visual primitives owned the same selected boundary.
+* **Fix:** Rank the bounded backend projection only by product ID ascending, let both UIs render that order unchanged, and make exactly one token-backed border own selection. For keyboard focus, replace that border with one inset outline rather than layering another outer frame.
+* **How to avoid:** Test every sibling as the current anchor and assert the same href/ID sequence; assert selected, hover, focus, no-shadow, and object-contain behavior in both storefront and CRM.
+
+### Assuming Kaspi model is always present in structured product JSON
+
+* **What happened:** The live page exposed `Модель: TL4247HM R` as a specification leaf; preview listed it as unsupported and Apply left the normal model input blank.
+* **Root cause:** The parser populated model only from JSON-LD `model`/`mpn` and did not promote an exact characteristic label.
+* **Fix:** Promote one unambiguous exact localized model leaf, preserve conflicts as unresolved, and cover both paths in parser tests plus live preview/apply verification.
+* **How to avoid:** Test the real marketplace DOM shape as well as synthetic JSON-LD fixtures, and keep exact-label scalar promotion separate from category-specific characteristic mapping.
 
 ### Blocking a noindex page in robots.txt
 
@@ -1667,6 +1761,7 @@
 * **How to verify public responsive work safely:** Use bounded commands such as `cd vympel_front && npm run lint` and `cd vympel_front && npm run build`; do not use dev servers, `next start`, or watch commands as final checks. Responsive source/render review must include very small widths such as 320px.
 * **How to verify shared search changes safely:** Run `cd vympel_front && npm run lint`, `npm run typecheck`, and `npm run build`. Use only a bounded managed production preview when explicit responsive browser measurements are required, stop the process afterward, and never treat `dev`, `start`, or watch commands as final verification.
 * **How to run backend tests:** `cd vympel_back && .\gradlew.bat test`.
+* **How to verify Kaspi import:** Run backend `KaspiUrlGuardTest`, `KaspiProductParserTest`, `KaspiCharacteristicMapperTest`, `KaspiProductImportServiceTest`, `SecureKaspiPageFetcherTest`, `CrmProductControllerKaspiTest`, `WatchProductCharacteristicsMigrationContractTest`, `CrmReferenceMutationServiceTest`, `WatchDetailServiceImplTest`, `MigrationVerificationRunnerTest`, `LiquibaseChangeBoundaryTest`, `MarketplaceUrlPolicyTest`, and `RateLimitFilterTest`; then run the full backend suite and `bootJar`. Run CRM `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`, including sanitizer-shaped preview text, creatable-reference success/cancel/double-submit/conflict paths, category isolation, and failed/repeated imports. Run storefront specs tests plus its full gates. Build the local stack and verify the guarded migration against PostgreSQL. In a real authenticated browser, import an actual Kaspi product and confirm both aggregate fields and live leaf pairs (`Функции: хронограф`, `Отображение даты: число`) map; Apply must select the corresponding features while unknown/negative values remain unresolved. Verify only the modal body scrolls, header/footer remain visible, horizontal overflow is zero, created reference options auto-select without reload, save/reopen preserves all fields, and the public product page shows populated values while omitting empty ones.
 * **Where frontend tests live:** Public frontend tests live beside source under `vympel_front/src/**/*.test.ts(x)`; CRM auth tests live at `vympel_crm/src/shared/api/client.test.ts`, `shared/auth/permissions.test.ts`, and `shared/i18n/messages.test.ts`.
 * **Where backend tests live:** `vympel_back/src/test/java`; abuse coverage is under `security/ratelimit`, `security/config/NonLocalSecurityConfigurationValidatorTest`, `security/GlobalErrorHandlerTest`, `services/PublicWriteAbuseProtectionTest`, `controllers/CrmAuthLifecycleIntegrationTest`, and container-backed `security/ratelimit/RedisRateLimitStoreIntegrationTest`.
 * **Mocking approach:** Backend uses Mockito for service contracts and real JWT parsing; the finite CRM auth integration test uses a random-port Spring server, configured PostgreSQL, unique test users, and deterministic cleanup. CRM Vitest uses an in-memory sessionStorage/EventTarget plus deterministic fetch responses to assert concurrency and request counts.
@@ -1875,10 +1970,12 @@
 | `tailwindcss` | ^4 | frontend | Tokens are mostly declared in `src/app/globals.css`; `tailwind.config.js` is minimal. |
 | `@reduxjs/toolkit` | ^2.11.2 | frontend | Store exists but has no reducers yet; do not assume app state is Redux-backed. |
 | `vitest` | ^3.2.7 | frontend | Tests run in the Node environment through `npm run test`; path alias `@` is configured in `vitest.config.ts`. On this Windows sandbox, esbuild process spawn may require the existing scoped permission. |
+| `browserslist` | 4.28.9 (transitive lock) | frontend/CRM | Keep both lockfiles above the `<=4.28.6` high-severity advisory range. The release gate runs `npm audit --audit-level=high`, so refresh both locks together and rerun clean install, lint, tests, and builds when the advisory database advances. |
 | `react-hook-form` | ^7.71.1 public / ^7.80.0 CRM | frontend/CRM | Use RHF for form values. The public app has Zod available; the CRM app currently has no schema resolver, so keep localized validation helpers in the component unless a resolver is intentionally added. |
 | `react-markdown` / unified plugins | 10.1.0 / GFM 4.0.1 / breaks 4.0.0 / raw 7.0.0 / sanitize 6.0.0 | frontend/CRM | Product underline requires raw `<u>` parsing, but `rehype-raw` must always be immediately followed by the aligned explicit sanitizer schema. Keep the storefront parser server-side and CRM preview dynamically loaded. Regenerate locks with npm 10.9.8 and prove Linux `npm ci`; Windows-only lock generation can drop required platform-conditional records. |
 | `radix-ui` | ^1.6.0 | frontend | shadcn Tooltip imports primitives from the monolithic `radix-ui` package; keep Tooltip styling in `src/components/ui/tooltip.tsx` aligned with VYMPEL tokens. |
-| `org.springframework.boot` | 4.0.8 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. The 4.0.8 dependency management resolves Spring Framework 7.0.9 and Jackson 3.1.5; do not pin older managed Spring/Jackson artifacts around it. |
+| `org.springframework.boot` | 4.0.8 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. The 4.0.8 dependency management resolves Spring Framework 7.0.9 and Jackson 3.1.5 under `tools.jackson.*`; new code must not assume the old `com.fasterxml.jackson.databind` namespace. A Spring bean with more than one constructor must explicitly mark the injection constructor with `@Autowired`. Do not pin older managed Spring/Jackson artifacts around it. |
+| `org.jsoup:jsoup` | 1.23.2 | backend | Use only for bounded server-side marketplace HTML parsing after URL/fetch defenses. Prefer JSON-LD Product data, constrain DOM fallbacks, and never treat scraped text as trusted HTML or a reason to create reference data. |
 | `spring-boot-starter-data-redis` | Spring Boot managed | backend | Production abuse state uses atomic Lua counter/expiry operations. Redis must be shared, TLS-protected, authenticated/ACL-scoped, monitored, and configured with deliberate persistence/memory/eviction behavior. |
 | `logback-classic` | Spring Boot managed | backend | File appenders are configured in `logback-spring.xml`; use project `SensitiveDataMaskingLayout`, valid Logback classes for the managed version, and finite context tests after config changes. |
 | `liquibase-core` | managed plus starter | backend | Schema is migration-owned; do not rely on Hibernate auto-DDL. |
@@ -1900,6 +1997,7 @@
 * Local CMS revalidation is a two-process contract: Docker root `.env` passes one server-only value to backend and public containers, while hybrid mode pairs the backend local-profile fallback with ignored `vympel_front/.env`. Never rename it to or mirror it through a `NEXT_PUBLIC_*` variable.
 * Local ADMIN bootstrap is opt-in through `VYMPEL_BOOTSTRAP_ADMIN_ENABLED=true` in ignored root `.env`; Compose forwards the four server-only variables only to backend. IntelliJ must receive the same variables explicitly because it does not load root `.env`. Changing the configured password after creation does not rotate or reset the existing account; use the protected CRM user-management flow or an intentional local database action instead.
 * Full Docker startup is `docker compose up -d --build --wait`; ordinary cleanup is `docker compose down`. `docker compose down -v` destroys PostgreSQL/Redis/MinIO/log volumes and must remain an explicit manual reset.
+* Docker Desktop 4.60.1 can fail before the engine starts when stale Windows AF_UNIX entries under `AppData\Local\Docker\run` or `AppData\Local\docker-secrets-engine` cannot be removed. Stop Docker/WSL, preserve the exact runtime directory by renaming it, and disable the optional Model Runner if the failing component is the inference manager; then restart and verify both client and server versions. Never use factory reset for this symptom because it would discard unrelated Docker state.
 * Docker Desktop may serve an ARM64-cached `redis:7.4-alpine` image on an amd64 host. For local Compose and the Redis Testcontainers integration test only, pass `--ignore-warnings ARM64-COW-BUG`; keep production/native Redis protection unchanged.
 * While finalizing a brand-new unreleased Liquibase changeset, a long-lived local/test PostgreSQL database may retain an earlier draft checksum. Finalize the file first, then clear only that exact unreleased `databasechangelog` row's checksum so Liquibase records the final value. Never clear or alter checksums for a released/applied history row; released migrations require a new forward changeset.
 * Docker defaults are public `3200`, CRM `3201`, backend `8080`, PostgreSQL host `5433`, Redis `6379`, and MinIO API/console `9100`/`9101`. Conventional hybrid npm ports remain `3000`/`3001`; isolated QA may use `3100`/`3101`, but those listeners and their task-owned working copies must be closed during final cleanup.
@@ -2454,9 +2552,9 @@
 ### Rebaseline total-bundle budgets from measured approved functionality
 
 * **When to use:** The deterministic production build exceeds a raw-total bundle ceiling after an approved dependency-heavy feature, and removing that functionality is not part of the task.
-* **How:** Compare the failing commit with its parent gate, record the exact built total and the feature that changed the baseline, then raise the ceiling only to the next narrow boundary. The CRM rich-text plus optional-characteristics build measured 1.437 MiB, so its ceiling is 1.45 MiB rather than a broad round-number increase.
+* **How:** Compare the failing commit with its parent gate, record the exact built total and the feature that changed the baseline, then raise the ceiling only to the next narrow boundary. The CRM rich-text plus optional-characteristics build measured 1.437 MiB and used 1.45 MiB; the completed Kaspi import, creatable-reference, expanded-characteristic, and model-variant UI measured 1.494857 MiB and therefore uses 1.51 MiB, leaving about 15.5 KiB rather than a broad allowance.
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
 
-2026-08-28 - Recorded the merged optional category-detail pattern, immutable three-image publication rule, and measured CRM bundle-budget rebaseline from 1.40 to 1.45 MiB after the prior rich-text main had already reached 1.43 MiB.
+2026-09-04 - Recorded the release-gate response to the Browserslist high-severity advisory and the measured 1.51 MiB CRM bundle rebaseline required by the complete Kaspi/import/variant feature set.

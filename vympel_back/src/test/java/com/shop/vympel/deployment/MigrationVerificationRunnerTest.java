@@ -4,27 +4,56 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MigrationVerificationRunnerTest {
+    private static final LiquibaseChangeBoundary.ChangeIdentity EXPECTED =
+            new LiquibaseChangeBoundary.ChangeIdentity(
+                    "2026-09-04-01-product-model-variants",
+                    "codex",
+                    "db/changelog/2026-09-04-01-product-model-variants.xml"
+            );
+    private static final LiquibaseChangeBoundary.ChangeIdentity RUN_ON_CHANGE =
+            new LiquibaseChangeBoundary.ChangeIdentity(
+                    "2026-02-08-04-01-seed-country",
+                    "admin",
+                    "db/changelog/2026-02-08-03-seed-countries.xml"
+            );
 
     @Test
     void verifiesAppliedLiquibaseHistoryAndClosesTheMigrationJob() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(jdbcTemplate.queryForObject("select count(*) from databasechangelog", Integer.class))
-                .thenReturn(77);
-        when(jdbcTemplate.queryForObject(
-                "select id from databasechangelog order by orderexecuted desc limit 1",
-                String.class
-        )).thenReturn("2026-07-19-02-public-image-webp");
+        LiquibaseChangeBoundary boundary = mock(LiquibaseChangeBoundary.class);
+        stubHistory(jdbcTemplate, List.of(EXPECTED));
+        when(boundary.expectedLatestChange()).thenReturn(EXPECTED);
+        when(boundary.packagedChanges()).thenReturn(Set.of(EXPECTED));
 
-        new MigrationVerificationRunner(jdbcTemplate, context).run(mock(ApplicationArguments.class));
+        new MigrationVerificationRunner(jdbcTemplate, context, boundary).run(mock(ApplicationArguments.class));
+
+        verify(context).close();
+    }
+
+    @Test
+    void permitsAPackagedRunOnChangeChangesetToExecuteAfterTheBoundary() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        LiquibaseChangeBoundary boundary = mock(LiquibaseChangeBoundary.class);
+        stubHistory(jdbcTemplate, List.of(EXPECTED, RUN_ON_CHANGE));
+        when(boundary.expectedLatestChange()).thenReturn(EXPECTED);
+        when(boundary.packagedChanges()).thenReturn(Set.of(EXPECTED, RUN_ON_CHANGE));
+
+        new MigrationVerificationRunner(jdbcTemplate, context, boundary).run(mock(ApplicationArguments.class));
 
         verify(context).close();
     }
@@ -33,19 +62,54 @@ class MigrationVerificationRunnerTest {
     void refusesToCompleteWhenLiquibaseHistoryIsEmpty() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(jdbcTemplate.queryForObject("select count(*) from databasechangelog", Integer.class))
-                .thenReturn(0);
-        when(jdbcTemplate.queryForObject(
-                "select id from databasechangelog order by orderexecuted desc limit 1",
-                String.class
-        )).thenReturn(null);
+        LiquibaseChangeBoundary boundary = mock(LiquibaseChangeBoundary.class);
+        stubHistory(jdbcTemplate, List.of());
 
-        MigrationVerificationRunner runner = new MigrationVerificationRunner(jdbcTemplate, context);
+        MigrationVerificationRunner runner = new MigrationVerificationRunner(jdbcTemplate, context, boundary);
 
-        assertThrows(
-                IllegalStateException.class,
-                () -> runner.run(mock(ApplicationArguments.class))
-        );
+        assertThrows(IllegalStateException.class, () -> runner.run(mock(ApplicationArguments.class)));
         verify(context, never()).close();
+    }
+
+    @Test
+    void refusesToCompleteWhenTheDatabaseStopsBeforeThePackagedBoundary() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        LiquibaseChangeBoundary boundary = mock(LiquibaseChangeBoundary.class);
+        stubHistory(jdbcTemplate, List.of(RUN_ON_CHANGE));
+        when(boundary.expectedLatestChange()).thenReturn(EXPECTED);
+
+        MigrationVerificationRunner runner = new MigrationVerificationRunner(jdbcTemplate, context, boundary);
+
+        assertThrows(IllegalStateException.class, () -> runner.run(mock(ApplicationArguments.class)));
+        verify(context, never()).close();
+    }
+
+    @Test
+    void refusesToCompleteWhenTheDatabaseContainsAChangeFromANewerRelease() {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        LiquibaseChangeBoundary boundary = mock(LiquibaseChangeBoundary.class);
+        LiquibaseChangeBoundary.ChangeIdentity unknown = new LiquibaseChangeBoundary.ChangeIdentity(
+                "future-change", "codex", "db/changelog/future.xml"
+        );
+        stubHistory(jdbcTemplate, List.of(EXPECTED, unknown));
+        when(boundary.expectedLatestChange()).thenReturn(EXPECTED);
+        when(boundary.packagedChanges()).thenReturn(Set.of(EXPECTED));
+
+        MigrationVerificationRunner runner = new MigrationVerificationRunner(jdbcTemplate, context, boundary);
+
+        assertThrows(IllegalStateException.class, () -> runner.run(mock(ApplicationArguments.class)));
+        verify(context, never()).close();
+    }
+
+    private void stubHistory(
+            JdbcTemplate jdbcTemplate,
+            List<LiquibaseChangeBoundary.ChangeIdentity> changes
+    ) {
+        when(jdbcTemplate.query(
+                eq(MigrationVerificationRunner.APPLIED_CHANGES_SQL),
+                org.mockito.ArgumentMatchers.<RowMapper<LiquibaseChangeBoundary.ChangeIdentity>>any()
+        )).thenReturn(changes);
     }
 }

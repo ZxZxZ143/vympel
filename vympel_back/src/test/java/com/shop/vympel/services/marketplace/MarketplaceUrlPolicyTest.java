@@ -9,11 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class MarketplaceUrlPolicyTest {
 
     @Test
-    void canonicalizesKaspiProductLinksToTheStorefrontDestination() {
+    void preservesValidatedKaspiProductSourceLinks() {
         assertEquals(
-                MarketplaceUrlPolicy.KASPI_URL,
-                MarketplaceUrlPolicy.canonicalizeKaspi("https://kaspi.kz/shop/p/example")
+                "https://kaspi.kz/shop/p/example?merchant=123",
+                MarketplaceUrlPolicy.canonicalizeKaspi("https://kaspi.kz/shop/p/example?merchant=123#offers")
         );
+        assertEquals(MarketplaceUrlPolicy.KASPI_URL, MarketplaceUrlPolicy.canonicalizeKaspi(MarketplaceUrlPolicy.KASPI_URL));
     }
 
     @Test
@@ -39,6 +40,18 @@ class MarketplaceUrlPolicyTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> MarketplaceUrlPolicy.canonicalizeWildberries("https://ozon.ru/product")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> MarketplaceUrlPolicy.canonicalizeKaspi("http://kaspi.kz/shop/p/example")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> MarketplaceUrlPolicy.canonicalizeKaspi("https://evil.kaspi.kz/shop/p/example")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> MarketplaceUrlPolicy.canonicalizeKaspi("https://kaspi.kz/shop/c/example")
         );
     }
 

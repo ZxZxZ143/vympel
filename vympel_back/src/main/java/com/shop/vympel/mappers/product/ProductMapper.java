@@ -44,6 +44,7 @@ public interface ProductMapper {
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "ratingAverage", ignore = true)
     @Mapping(target = "ratingCount", ignore = true)
+    @Mapping(target = "modelVariantGroup", ignore = true)
     ProductResponse toResponse(Product entity, @Context Language lang);
 
     @Mapping(target = "brand", source = ".", qualifiedByName = "toBrandResponse")
@@ -57,6 +58,7 @@ public interface ProductMapper {
     @Mapping(target = "images", ignore = true)
     @Mapping(target = "ratingAverage", ignore = true)
     @Mapping(target = "ratingCount", ignore = true)
+    @Mapping(target = "modelVariantGroup", ignore = true)
     List<ProductResponse> toResponse(List<Product> entities, @Context Language lang);
 
     @Mapping(target = "price", expression = "java(toIntegerPrice(entity.getPrice()))")
@@ -70,6 +72,6 @@ public interface ProductMapper {
 
     @Named("modelToUpper")
     default String modelToUpper(String model) {
-        return model == null ? null : model.toUpperCase();
+        return model == null ? null : model.trim().toUpperCase(java.util.Locale.ROOT);
     };
 }

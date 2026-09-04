@@ -88,7 +88,7 @@ grep -q 'NEXT_PUBLIC_APP_RELEASE: "1111111111111111111111111111111111111111"' "$
 grep -q 'NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.vympel.kz/api/public"' "$output_path"
 grep -q 'NEXT_PUBLIC_CRM_API_BASE: "https://x7m2q9k4n6p8.vympel.kz/api/crm"' "$output_path"
 grep -q 'placeholder_acknowledged: false' "$output_path"
-grep -q 'expected_latest_change: 2026-08-16-01-about-instagram-post-cms' "$output_path"
+grep -q 'expected_latest_change: 2026-09-04-01-product-model-variants' "$output_path"
 grep -q 'linux_arm64_runtime: passed' "$output_path"
 if grep -Eq 'PENDING|0000000000000000000000000000000000000000' "$output_path"; then
   echo "Synthetic published manifest retained an unresolved value" >&2

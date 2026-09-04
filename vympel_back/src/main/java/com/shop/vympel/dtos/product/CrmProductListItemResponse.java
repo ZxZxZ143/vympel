@@ -11,9 +11,14 @@ public record CrmProductListItemResponse(
         Integer stockQuantity,
         String status,
         String kaspiUrl,
-        String wildberriesUrl
+        String wildberriesUrl,
+        ProductModelVariantGroupResponse modelVariantGroup
 ) {
-    public static CrmProductListItemResponse from(Product product, String localizedName) {
+    public static CrmProductListItemResponse from(
+            Product product,
+            String localizedName,
+            ProductModelVariantGroupResponse modelVariantGroup
+    ) {
         return new CrmProductListItemResponse(
                 product.getId(),
                 product.getSku(),
@@ -23,7 +28,8 @@ public record CrmProductListItemResponse(
                 product.getStockQuantity(),
                 product.getStatus(),
                 product.getKaspiUrl(),
-                product.getWildberriesUrl()
+                product.getWildberriesUrl(),
+                modelVariantGroup
         );
     }
 }

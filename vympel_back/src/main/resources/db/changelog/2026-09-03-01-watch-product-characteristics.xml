@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-09-03-01-watch-product-characteristics" author="codex" dbms="postgresql">
+        <comment>
+            Add normalized wristwatch attributes, reuse the shared color dictionary, and activate the
+            existing watch feature relation. Legacy watch_details.water_resistance remains intact.
+        </comment>
+
+        <sql splitStatements="false"><![CDATA[
+            CREATE TABLE watch_attribute_option (
+                id BIGSERIAL PRIMARY KEY,
+                option_type VARCHAR(40) NOT NULL,
+                code VARCHAR(100) NOT NULL,
+                active BOOLEAN NOT NULL DEFAULT true,
+                CONSTRAINT uq_watch_attribute_option_type_code UNIQUE (option_type, code),
+                CONSTRAINT uq_watch_attribute_option_id_type UNIQUE (id, option_type),
+                CONSTRAINT chk_watch_attribute_option_type CHECK (
+                    option_type IN ('DIAL_TYPE', 'DIAL_MARKING', 'POWER_SOURCE', 'WATER_RESISTANCE')
+                )
+            );
+
+            CREATE TABLE watch_attribute_option_i18n (
+                option_id BIGINT NOT NULL,
+                option_type VARCHAR(40) NOT NULL,
+                lang VARCHAR(5) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                normalized_name VARCHAR(255) NOT NULL,
+                CONSTRAINT pk_watch_attribute_option_i18n PRIMARY KEY (option_id, lang),
+                CONSTRAINT fk_watch_attribute_option_i18n_option
+                    FOREIGN KEY (option_id, option_type)
+                    REFERENCES watch_attribute_option(id, option_type)
+                    ON DELETE CASCADE,
+                CONSTRAINT chk_watch_attribute_option_i18n_lang CHECK (lang IN ('ru', 'en', 'kk')),
+                CONSTRAINT uq_watch_attribute_option_i18n_name
+                    UNIQUE (option_type, lang, normalized_name)
+            );
+
+            CREATE INDEX idx_watch_attribute_option_type_active
+                ON watch_attribute_option(option_type, active, code);
+
+            ALTER TABLE watch_details
+                ADD COLUMN dial_type_id BIGINT,
+                ADD COLUMN dial_marking_id BIGINT,
+                ADD COLUMN power_source_id BIGINT,
+                ADD COLUMN water_resistance_option_id BIGINT,
+                ADD COLUMN strap_color_id BIGINT,
+                ADD COLUMN dial_color_id BIGINT,
+                ADD COLUMN package_contents VARCHAR(500),
+                ADD CONSTRAINT fk_watch_details_dial_type
+                    FOREIGN KEY (dial_type_id) REFERENCES watch_attribute_option(id),
+                ADD CONSTRAINT fk_watch_details_dial_marking
+                    FOREIGN KEY (dial_marking_id) REFERENCES watch_attribute_option(id),
+                ADD CONSTRAINT fk_watch_details_power_source
+                    FOREIGN KEY (power_source_id) REFERENCES watch_attribute_option(id),
+                ADD CONSTRAINT fk_watch_details_water_resistance_option
+                    FOREIGN KEY (water_resistance_option_id) REFERENCES watch_attribute_option(id),
+                ADD CONSTRAINT fk_watch_details_strap_color
+                    FOREIGN KEY (strap_color_id) REFERENCES interior_feature(id),
+                ADD CONSTRAINT fk_watch_details_dial_color
+                    FOREIGN KEY (dial_color_id) REFERENCES interior_feature(id);
+
+            CREATE INDEX idx_watch_details_dial_type ON watch_details(dial_type_id);
+            CREATE INDEX idx_watch_details_dial_marking ON watch_details(dial_marking_id);
+            CREATE INDEX idx_watch_details_power_source ON watch_details(power_source_id);
+            CREATE INDEX idx_watch_details_water_resistance_option ON watch_details(water_resistance_option_id);
+            CREATE INDEX idx_watch_details_strap_color ON watch_details(strap_color_id);
+            CREATE INDEX idx_watch_details_dial_color ON watch_details(dial_color_id);
+
+            INSERT INTO watch_attribute_option (option_type, code, active)
+            VALUES
+                ('DIAL_TYPE', 'ANALOG', true),
+                ('DIAL_TYPE', 'DIGITAL', true),
+                ('DIAL_TYPE', 'ANALOG_DIGITAL', true),
+                ('DIAL_MARKING', 'ARABIC', true),
+                ('DIAL_MARKING', 'ROMAN', true),
+                ('DIAL_MARKING', 'MARKERS', true),
+                ('DIAL_MARKING', 'NO_MARKS', true),
+                ('DIAL_MARKING', 'MIXED', true),
+                ('POWER_SOURCE', 'BATTERY', true),
+                ('POWER_SOURCE', 'MECHANICAL', true),
+                ('POWER_SOURCE', 'SOLAR', true),
+                ('POWER_SOURCE', 'KINETIC', true),
+                ('WATER_RESISTANCE', 'WR30', true),
+                ('WATER_RESISTANCE', 'WR50', true),
+                ('WATER_RESISTANCE', 'WR100', true),
+                ('WATER_RESISTANCE', 'WR200', true);
+
+            INSERT INTO watch_attribute_option_i18n
+                (option_id, option_type, lang, name, normalized_name)
+            SELECT option_value.id, option_value.option_type, translation.lang,
+                   translation.name, translation.normalized_name
+            FROM watch_attribute_option option_value
+            JOIN (VALUES
+                ('DIAL_TYPE', 'ANALOG', 'ru', 'Аналоговый (стрелки)', 'аналоговый стрелки'),
+                ('DIAL_TYPE', 'ANALOG', 'en', 'Analog (hands)', 'analog hands'),
+                ('DIAL_TYPE', 'ANALOG', 'kk', 'Аналогтық (тілдер)', 'аналогтық тілдер'),
+                ('DIAL_TYPE', 'DIGITAL', 'ru', 'Цифровой', 'цифровой'),
+                ('DIAL_TYPE', 'DIGITAL', 'en', 'Digital', 'digital'),
+                ('DIAL_TYPE', 'DIGITAL', 'kk', 'Цифрлық', 'цифрлық'),
+                ('DIAL_TYPE', 'ANALOG_DIGITAL', 'ru', 'Комбинированный', 'комбинированный'),
+                ('DIAL_TYPE', 'ANALOG_DIGITAL', 'en', 'Combined', 'combined'),
+                ('DIAL_TYPE', 'ANALOG_DIGITAL', 'kk', 'Аралас', 'аралас'),
+                ('DIAL_MARKING', 'ARABIC', 'ru', 'Арабские цифры', 'арабские цифры'),
+                ('DIAL_MARKING', 'ARABIC', 'en', 'Arabic numerals', 'arabic numerals'),
+                ('DIAL_MARKING', 'ARABIC', 'kk', 'Араб цифрлары', 'араб цифрлары'),
+                ('DIAL_MARKING', 'ROMAN', 'ru', 'Римские цифры', 'римские цифры'),
+                ('DIAL_MARKING', 'ROMAN', 'en', 'Roman numerals', 'roman numerals'),
+                ('DIAL_MARKING', 'ROMAN', 'kk', 'Рим цифрлары', 'рим цифрлары'),
+                ('DIAL_MARKING', 'MARKERS', 'ru', 'Штрихи', 'штрихи'),
+                ('DIAL_MARKING', 'MARKERS', 'en', 'Markers', 'markers'),
+                ('DIAL_MARKING', 'MARKERS', 'kk', 'Белгілер', 'белгілер'),
+                ('DIAL_MARKING', 'NO_MARKS', 'ru', 'Без меток', 'без меток'),
+                ('DIAL_MARKING', 'NO_MARKS', 'en', 'No markings', 'no markings'),
+                ('DIAL_MARKING', 'NO_MARKS', 'kk', 'Белгісіз', 'белгісіз'),
+                ('DIAL_MARKING', 'MIXED', 'ru', 'Смешанная', 'смешанная'),
+                ('DIAL_MARKING', 'MIXED', 'en', 'Mixed', 'mixed'),
+                ('DIAL_MARKING', 'MIXED', 'kk', 'Аралас', 'аралас'),
+                ('POWER_SOURCE', 'BATTERY', 'ru', 'От батарейки', 'от батарейки'),
+                ('POWER_SOURCE', 'BATTERY', 'en', 'Battery', 'battery'),
+                ('POWER_SOURCE', 'BATTERY', 'kk', 'Батареядан', 'батареядан'),
+                ('POWER_SOURCE', 'MECHANICAL', 'ru', 'Механический', 'механический'),
+                ('POWER_SOURCE', 'MECHANICAL', 'en', 'Mechanical', 'mechanical'),
+                ('POWER_SOURCE', 'MECHANICAL', 'kk', 'Механикалық', 'механикалық'),
+                ('POWER_SOURCE', 'SOLAR', 'ru', 'Солнечная энергия', 'солнечная энергия'),
+                ('POWER_SOURCE', 'SOLAR', 'en', 'Solar energy', 'solar energy'),
+                ('POWER_SOURCE', 'SOLAR', 'kk', 'Күн батареясы', 'күн батареясы'),
+                ('POWER_SOURCE', 'KINETIC', 'ru', 'Кинетический аккумулятор', 'кинетический аккумулятор'),
+                ('POWER_SOURCE', 'KINETIC', 'en', 'Kinetic accumulator', 'kinetic accumulator'),
+                ('POWER_SOURCE', 'KINETIC', 'kk', 'Кинетикалық аккумулятор', 'кинетикалық аккумулятор'),
+                ('WATER_RESISTANCE', 'WR30', 'ru', 'WR30 (3 атм)', 'wr30 3 атм'),
+                ('WATER_RESISTANCE', 'WR30', 'en', 'WR30 (3 ATM)', 'wr30 3 atm'),
+                ('WATER_RESISTANCE', 'WR30', 'kk', 'WR30 (3 атм)', 'wr30 3 атм'),
+                ('WATER_RESISTANCE', 'WR50', 'ru', 'WR50 (5 атм)', 'wr50 5 атм'),
+                ('WATER_RESISTANCE', 'WR50', 'en', 'WR50 (5 ATM)', 'wr50 5 atm'),
+                ('WATER_RESISTANCE', 'WR50', 'kk', 'WR50 (5 атм)', 'wr50 5 атм'),
+                ('WATER_RESISTANCE', 'WR100', 'ru', 'WR100 (10 атм)', 'wr100 10 атм'),
+                ('WATER_RESISTANCE', 'WR100', 'en', 'WR100 (10 ATM)', 'wr100 10 atm'),
+                ('WATER_RESISTANCE', 'WR100', 'kk', 'WR100 (10 атм)', 'wr100 10 атм'),
+                ('WATER_RESISTANCE', 'WR200', 'ru', 'WR200 (20 атм)', 'wr200 20 атм'),
+                ('WATER_RESISTANCE', 'WR200', 'en', 'WR200 (20 ATM)', 'wr200 20 atm'),
+                ('WATER_RESISTANCE', 'WR200', 'kk', 'WR200 (20 атм)', 'wr200 20 атм')
+            ) AS translation(option_type, code, lang, name, normalized_name)
+              ON translation.option_type = option_value.option_type
+             AND translation.code = option_value.code;
+
+            UPDATE watch_details detail
+            SET water_resistance_option_id = option_value.id
+            FROM watch_attribute_option option_value
+            JOIN watch_attribute_option_i18n translation
+              ON translation.option_id = option_value.id AND translation.lang = 'ru'
+            WHERE option_value.option_type = 'WATER_RESISTANCE'
+              AND btrim(regexp_replace(
+                    lower(regexp_replace(detail.water_resistance, '[^[:alnum:]]+', ' ', 'g')),
+                    '\s+', ' ', 'g'
+                  )) = translation.normalized_name;
+
+            INSERT INTO interior_feature (feature_type, code, active)
+            VALUES
+                ('COLOR', 'BLUE', true),
+                ('COLOR', 'BROWN', true),
+                ('COLOR', 'GREEN', true),
+                ('COLOR', 'RED', true),
+                ('COLOR', 'ROSE_GOLD', true)
+            ON CONFLICT (feature_type, code) DO UPDATE SET active = true;
+
+            INSERT INTO interior_feature_i18n (feature_id, lang, name)
+            SELECT feature.id, translation.lang, translation.name
+            FROM interior_feature feature
+            JOIN (VALUES
+                ('BLUE', 'ru', 'Синий'), ('BLUE', 'en', 'Blue'), ('BLUE', 'kk', 'Көк'),
+                ('BROWN', 'ru', 'Коричневый'), ('BROWN', 'en', 'Brown'), ('BROWN', 'kk', 'Қоңыр'),
+                ('GREEN', 'ru', 'Зеленый'), ('GREEN', 'en', 'Green'), ('GREEN', 'kk', 'Жасыл'),
+                ('RED', 'ru', 'Красный'), ('RED', 'en', 'Red'), ('RED', 'kk', 'Қызыл'),
+                ('ROSE_GOLD', 'ru', 'Розовое золото'), ('ROSE_GOLD', 'en', 'Rose gold'), ('ROSE_GOLD', 'kk', 'Қызғылт алтын')
+            ) AS translation(code, lang, name)
+              ON feature.feature_type = 'COLOR' AND feature.code = translation.code
+            ON CONFLICT (feature_id, lang) DO UPDATE SET name = EXCLUDED.name;
+
+            INSERT INTO watch_feature (code, active)
+            VALUES ('BACKLIGHT', true)
+            ON CONFLICT (code) DO UPDATE SET active = true;
+
+            INSERT INTO watch_feature_i18n (feature_id, lang, name)
+            SELECT feature.id, translation.lang, translation.name
+            FROM watch_feature feature
+            JOIN (VALUES
+                ('ru', 'Подсветка'),
+                ('en', 'Backlight'),
+                ('kk', 'Жарықтандыру')
+            ) AS translation(lang, name) ON true
+            WHERE feature.code = 'BACKLIGHT'
+            ON CONFLICT (feature_id, lang) DO UPDATE SET name = EXCLUDED.name;
+
+            UPDATE watch_feature_i18n translation
+            SET name = CASE translation.lang
+                WHEN 'ru' THEN 'Отображение даты'
+                WHEN 'en' THEN 'Date display'
+                WHEN 'kk' THEN 'Күнді көрсету'
+                ELSE translation.name
+            END
+            FROM watch_feature feature
+            WHERE feature.id = translation.feature_id
+              AND feature.code = 'DATE'
+              AND translation.lang IN ('ru', 'en', 'kk');
+        ]]></sql>
+
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM watch_details
+                        WHERE dial_type_id IS NOT NULL
+                           OR dial_marking_id IS NOT NULL
+                           OR power_source_id IS NOT NULL
+                           OR water_resistance_option_id IS NOT NULL
+                           OR strap_color_id IS NOT NULL
+                           OR dial_color_id IS NOT NULL
+                           OR package_contents IS NOT NULL
+                    ) THEN
+                        RAISE EXCEPTION 'Cannot roll back watch characteristics while products contain new watch data';
+                    END IF;
+
+                    IF EXISTS (
+                        SELECT 1
+                        FROM watch_details_feature relation
+                        JOIN watch_feature feature ON feature.id = relation.feature_id
+                        WHERE feature.code = 'BACKLIGHT'
+                    ) THEN
+                        RAISE EXCEPTION 'Cannot roll back watch characteristics while products reference BACKLIGHT';
+                    END IF;
+
+                    IF EXISTS (
+                        SELECT 1
+                        FROM interior_feature feature
+                        WHERE feature.feature_type = 'COLOR'
+                          AND feature.code IN ('BLUE', 'BROWN', 'GREEN', 'RED', 'ROSE_GOLD')
+                          AND (
+                            EXISTS (SELECT 1 FROM interior_clock_details detail WHERE detail.color_id = feature.id)
+                            OR EXISTS (SELECT 1 FROM accessory_details detail WHERE detail.color_id = feature.id)
+                          )
+                    ) THEN
+                        RAISE EXCEPTION 'Cannot roll back watch characteristics while products reference seeded colors';
+                    END IF;
+                END $$;
+
+                ALTER TABLE watch_details
+                    DROP CONSTRAINT fk_watch_details_dial_type,
+                    DROP CONSTRAINT fk_watch_details_dial_marking,
+                    DROP CONSTRAINT fk_watch_details_power_source,
+                    DROP CONSTRAINT fk_watch_details_water_resistance_option,
+                    DROP CONSTRAINT fk_watch_details_strap_color,
+                    DROP CONSTRAINT fk_watch_details_dial_color,
+                    DROP COLUMN dial_type_id,
+                    DROP COLUMN dial_marking_id,
+                    DROP COLUMN power_source_id,
+                    DROP COLUMN water_resistance_option_id,
+                    DROP COLUMN strap_color_id,
+                    DROP COLUMN dial_color_id,
+                    DROP COLUMN package_contents;
+
+                UPDATE watch_feature_i18n translation
+                SET name = CASE translation.lang
+                    WHEN 'ru' THEN 'Дата'
+                    WHEN 'en' THEN 'Date'
+                    WHEN 'kk' THEN 'Күні'
+                    ELSE translation.name
+                END
+                FROM watch_feature feature
+                WHERE feature.id = translation.feature_id
+                  AND feature.code = 'DATE'
+                  AND translation.lang IN ('ru', 'en', 'kk');
+
+                DELETE FROM watch_feature WHERE code = 'BACKLIGHT';
+                DELETE FROM interior_feature
+                WHERE feature_type = 'COLOR'
+                  AND code IN ('BLUE', 'BROWN', 'GREEN', 'RED', 'ROSE_GOLD');
+                DROP TABLE watch_attribute_option_i18n;
+                DROP TABLE watch_attribute_option;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -428,6 +428,13 @@
       "case": "Корпус",
       "glass": "Стекло",
       "stoneInsert": "Камень-вставка",
+      "dialType": "Тип циферблата",
+      "dialMarking": "Разметка циферблата",
+      "watchPowerSource": "Источник питания",
+      "strapColor": "Цвет ремешка",
+      "dialColor": "Цвет циферблата",
+      "packageContents": "Комплектация",
+      "watchFeatures": "Особенности часов",
       "mechanismType": "Тип механизма",
       "color": "Цвет",
       "style": "Стиль",
@@ -464,6 +471,12 @@
       "previousThumbnails": "Показать предыдущие миниатюры",
       "nextThumbnails": "Показать следующие миниатюры",
       "imageCounter": "{current} из {total}"
+    },
+    "variants": {
+      "label": "Варианты модели",
+      "groupAria": "Варианты модели {model}",
+      "optionAria": "Открыть вариант {name}",
+      "limited": "Показано {shown} из {total} вариантов"
     },
     "summary": {
       "outOfStockTitle": "Нет в наличии",

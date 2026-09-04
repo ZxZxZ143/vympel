@@ -22,6 +22,7 @@ import {
 import {useProductActionToasts} from "@/hooks/useProductActionToasts";
 import RatingStars from "@/components/ProductRating/RatingStars";
 import CustomerRequestButton from "@/components/CustomerRequestDialog/CustomerRequestButton";
+import ProductVariantSelector from "@/components/ProductPage/ProductVariantSelector";
 
 type Props = {
     product: IProductDetails;
@@ -95,7 +96,7 @@ const ProductSummary = ({product}: Props) => {
     };
 
     return (
-        <section className="flex w-full max-w-none flex-col lg:max-w-[380px] lg:pt-1">
+        <section className="flex min-w-0 w-full max-w-none flex-col lg:max-w-[380px] lg:pt-1">
             <div className="mb-10">
                 <Heading
                     as="h1"
@@ -106,6 +107,10 @@ const ProductSummary = ({product}: Props) => {
                 >
                     {product.name}
                 </Heading>
+                <ProductVariantSelector
+                    currentProductId={product.id}
+                    group={product.modelVariantGroup}
+                />
                 {gender ? (
                     <Text
                         size="productMeta"

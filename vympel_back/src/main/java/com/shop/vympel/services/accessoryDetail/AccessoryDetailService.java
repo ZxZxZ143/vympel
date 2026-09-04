@@ -108,8 +108,8 @@ public class AccessoryDetailService {
         }
         InteriorFeature feature = interiorFeatureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Color not found: " + id));
-        if (!"COLOR".equals(feature.getFeatureType())) {
-            throw new IllegalArgumentException("Accessory color must reference a COLOR feature");
+        if (!Boolean.TRUE.equals(feature.getActive()) || !"COLOR".equals(feature.getFeatureType())) {
+            throw new IllegalArgumentException("Accessory color must reference an active COLOR feature");
         }
         return feature;
     }

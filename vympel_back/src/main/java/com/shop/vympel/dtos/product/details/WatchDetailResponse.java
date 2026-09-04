@@ -4,6 +4,8 @@ import com.shop.vympel.dtos.product.features.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 public class WatchDetailResponse {
@@ -24,4 +26,13 @@ public class WatchDetailResponse {
     private String waterResistance;
 
     private FeatureDto stoneInlay;
+
+    private FeatureDto dialType;
+    private FeatureDto dialMarking;
+    private FeatureDto powerSource;
+    private FeatureDto waterResistanceOption;
+    private FeatureDto strapColor;
+    private FeatureDto dialColor;
+    private String packageContents;
+    private List<FeatureDto> features;
 }

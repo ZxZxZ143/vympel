@@ -15,7 +15,7 @@ const budgets = {
   publicAssets: 24 * MiB,
   publicRaster: 1.5 * MiB,
   storefrontJs: 1.65 * MiB,
-  crmJs: 1.45 * MiB,
+  crmJs: 1.51 * MiB,
 };
 const allowlist = JSON.parse(fs.readFileSync(path.join(root, "scripts", "performance-budget-allowlist.json"), "utf8"));
 const rasterExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif"]);

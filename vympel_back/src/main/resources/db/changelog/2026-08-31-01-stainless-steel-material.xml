@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-08-31-01-stainless-steel-material" author="codex" dbms="postgresql">
+        <validCheckSum>9:2517ba1123db2abefb42e4c5314e1d9a</validCheckSum>
+        <comment>Add stainless steel as a distinct active material without changing the existing steel entry.</comment>
+
+        <sql splitStatements="false"><![CDATA[
+            INSERT INTO material (code, material_group, active)
+            VALUES ('STAINLESS_STEEL', 'CASE', true)
+            ON CONFLICT (code) DO UPDATE
+            SET material_group = EXCLUDED.material_group,
+                active = EXCLUDED.active;
+
+            INSERT INTO material_i18n (material_id, lang, name)
+            SELECT material.id, translation.lang, translation.name
+            FROM material
+            CROSS JOIN (VALUES
+                ('ru', 'Нержавеющая сталь'),
+                ('kk', 'Тот баспайтын болат'),
+                ('en', 'Stainless steel')
+            ) AS translation(lang, name)
+            WHERE material.code = 'STAINLESS_STEEL'
+            ON CONFLICT (material_id, lang) DO UPDATE
+            SET name = EXCLUDED.name;
+        ]]></sql>
+
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM material material_to_remove
+                        WHERE material_to_remove.code = 'STAINLESS_STEEL'
+                          AND (
+                            EXISTS (
+                                SELECT 1 FROM watch_details details
+                                WHERE details.case_material_id = material_to_remove.id
+                                   OR details.strap_material_id = material_to_remove.id
+                            )
+                            OR EXISTS (
+                                SELECT 1 FROM interior_clock_details details
+                                WHERE details.case_material_id = material_to_remove.id
+                            )
+                            OR EXISTS (
+                                SELECT 1 FROM accessory_details details
+                                WHERE details.case_material_id = material_to_remove.id
+                                   OR details.insert_material_id = material_to_remove.id
+                            )
+                          )
+                    ) THEN
+                        RAISE EXCEPTION 'Cannot roll back stainless steel material while products reference it';
+                    END IF;
+
+                    DELETE FROM material WHERE code = 'STAINLESS_STEEL';
+                END $$;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-08-31-02-kaspi-product-source-links" author="codex" dbms="postgresql">
+        <validCheckSum>9:94bc5749bce8fa965c650bbc774c81ed</validCheckSum>
+        <comment>Allow validated Kaspi product source URLs to survive the normal product save flow.</comment>
+
+        <sql splitStatements="false"><![CDATA[
+            ALTER TABLE product DROP CONSTRAINT IF EXISTS chk_product_kaspi_url_canonical;
+            ALTER TABLE product
+                ADD CONSTRAINT chk_product_kaspi_url_canonical
+                CHECK (
+                    kaspi_url IS NULL
+                    OR kaspi_url = 'https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome'
+                    OR kaspi_url ~ '^https://(www\.)?kaspi\.kz/shop/p/[^[:space:]?#]+/?([?][^[:space:]#]*)?$'
+                );
+        ]]></sql>
+
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                ALTER TABLE product DROP CONSTRAINT IF EXISTS chk_product_kaspi_url_canonical;
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM product
+                        WHERE kaspi_url IS NOT NULL
+                          AND kaspi_url != 'https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome'
+                    ) THEN
+                        RAISE EXCEPTION 'Cannot roll back Kaspi product source links without losing product-specific URLs';
+                    END IF;
+                END $$;
+                ALTER TABLE product
+                    ADD CONSTRAINT chk_product_kaspi_url_canonical
+                    CHECK (
+                        kaspi_url IS NULL
+                        OR kaspi_url = 'https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome'
+                    );
+            ]]></sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

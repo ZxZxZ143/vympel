@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/Button";
 import { ButtonLink } from "@/shared/ui/ButtonLink";
 import { Text } from "@/shared/ui/Text";
 import { subscribeToProductListChanges } from "@/features/products/productListRefresh";
+import { ProductModelVariantStrip } from "@/features/products/ProductModelVariantStrip";
 
 type ProductSearchFormValues = {
   search: string;
@@ -315,7 +316,14 @@ function ProductRow({
           {product.sku}
         </Text>
       </td>
-      <td>{product.model}</td>
+      <td>
+        <Text as="span" size="small">{product.model}</Text>
+        <ProductModelVariantStrip
+          currentProductId={product.id}
+          group={product.modelVariantGroup}
+          compact
+        />
+      </td>
       <td>
         <div className="crm-inline-actions">
           <input {...register("price")} className="crm-input" type="number" min="0" disabled={busy !== null} />

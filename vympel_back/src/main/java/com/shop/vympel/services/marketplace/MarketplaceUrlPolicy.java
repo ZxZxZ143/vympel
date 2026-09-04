@@ -13,7 +13,28 @@ public final class MarketplaceUrlPolicy {
     }
 
     public static String canonicalizeKaspi(String url) {
-        return canonicalizeProductUrl(url, "kaspiUrl", "kaspi.kz", KASPI_URL);
+        if (url == null || url.trim().isBlank()) {
+            return null;
+        }
+        if (KASPI_URL.equals(url.trim())) {
+            return KASPI_URL;
+        }
+        URI uri = parseRequiredHttpUrl(url, "kaspiUrl");
+        String host = uri.getHost().toLowerCase(Locale.ROOT);
+        if (!"https".equalsIgnoreCase(uri.getScheme())
+                || !("kaspi.kz".equals(host) || "www.kaspi.kz".equals(host))
+                || uri.getRawUserInfo() != null
+                || (uri.getPort() != -1 && uri.getPort() != 443)
+                || uri.getPath() == null
+                || !uri.getPath().startsWith("/shop/p/")
+                || uri.getPath().length() <= "/shop/p/".length()) {
+            throw new IllegalArgumentException("kaspiUrl must point to a Kaspi product page");
+        }
+        try {
+            return new URI("https", null, host, -1, uri.getRawPath(), uri.getRawQuery(), null).toString();
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("kaspiUrl must be a valid URL");
+        }
     }
 
     public static String canonicalizeWildberries(String url) {

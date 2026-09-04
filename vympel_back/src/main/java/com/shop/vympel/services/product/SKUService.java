@@ -16,6 +16,7 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class SKUService {
+    private static final int MAX_SKU_LENGTH = 120;
 
     private final BrandRepository brandRepository;
     private final CollectionRepository collectionRepository;
@@ -134,6 +135,16 @@ public class SKUService {
     private static String formatWaterResistance(String wr) {
         if (wr == null || wr.isBlank()) return "NWR";
         return safePart(wr);
+    }
+
+    String withCollisionSuffix(String baseSku) {
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String normalizedBase = baseSku == null || baseSku.isBlank() ? "SKU" : baseSku.trim();
+        int maximumBaseLength = MAX_SKU_LENGTH - suffix.length() - 1;
+        if (normalizedBase.length() > maximumBaseLength) {
+            normalizedBase = normalizedBase.substring(0, maximumBaseLength);
+        }
+        return normalizedBase + "-" + suffix;
     }
 
     private static boolean hasCompleteSkuDetails(WatchDetailCreateRequest details) {
