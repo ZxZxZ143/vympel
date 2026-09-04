@@ -47,6 +47,21 @@ class ProductModelVariantServiceTest {
     }
 
     @Test
+    void selectedAnchorDoesNotMoveAheadOfCanonicalVariantOrder() {
+        ProductModelVariantRow first = row(13L, 12L, 1L, null, null, 3L);
+        ProductModelVariantRow selected = row(13L, 13L, 2L, null, null, 3L);
+        ProductModelVariantRow last = row(13L, 14L, 3L, null, null, 3L);
+        when(repository.findModelVariantRows(List.of(13L), "ru", true, 24))
+                .thenReturn(List.of(last, selected, first));
+
+        var group = new ProductModelVariantService(repository, objectStorageService)
+                .getPublicGroup(13L, Language.RU);
+
+        assertThat(group.variants()).extracting(variant -> variant.id())
+                .containsExactly(12L, 13L, 14L);
+    }
+
+    @Test
     void batchGroupsStayBoundedAndReportTruncation() {
         List<ProductModelVariantRow> rows = new ArrayList<>();
         for (long index = 1; index <= 24; index++) {

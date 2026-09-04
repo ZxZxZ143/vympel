@@ -40,10 +40,8 @@ const ProductVariantSelector = ({currentProductId, group}: Props) => {
                                 aria-label={t("optionAria", {name: variant.name})}
                                 aria-current={selected ? "page" : undefined}
                                 className={cn(
-                                    "relative flex size-15 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-primary-bg p-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
-                                    selected
-                                        ? "border-black ring-1 ring-black"
-                                        : "border-border-default hover:border-black/60"
+                                    "product-variant-tile relative flex size-15 shrink-0 items-center justify-center overflow-hidden bg-primary-bg p-1 focus:outline-none",
+                                    selected && "product-variant-tile--selected"
                                 )}
                             >
                                 <VariantImage imageUrl={variant.mainImage?.url}/>

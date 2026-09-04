@@ -12,6 +12,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -73,19 +75,34 @@ class ProductModelVariantIntegrationTest {
         );
 
         var publicGroup = variantService.getPublicGroup(currentId, Language.RU);
+        List<Long> expectedPublicOrder = List.of(currentId, siblingId, noImageId);
         assertThat(publicGroup.total()).isEqualTo(3);
         assertThat(publicGroup.variants()).extracting(variant -> variant.id())
-                .containsExactly(currentId, siblingId, noImageId);
+                .containsExactlyElementsOf(expectedPublicOrder);
         assertThat(publicGroup.variants().get(1).mainImage()).isNotNull();
         assertThat(publicGroup.variants().get(1).mainImage().isMain()).isFalse();
         assertThat(publicGroup.variants().get(2).mainImage()).isNull();
 
         var crmGroup = variantService.getCrmGroup(currentId, Language.RU);
+        List<Long> expectedCrmOrder = List.of(currentId, siblingId, noImageId, draftId, archivedId, hiddenId);
         assertThat(crmGroup.total()).isEqualTo(6);
         assertThat(crmGroup.variants()).extracting(variant -> variant.id())
-                .containsExactly(currentId, siblingId, noImageId, draftId, archivedId, hiddenId);
+                .containsExactlyElementsOf(expectedCrmOrder);
         assertThat(crmGroup.variants()).extracting(variant -> variant.id())
                 .doesNotContain(otherBrand, otherProfile, otherModel);
+
+        for (Long anchorId : expectedPublicOrder) {
+            assertThat(variantService.getPublicGroup(anchorId, Language.RU).variants())
+                    .extracting(variant -> variant.id())
+                    .as("public variant order for anchor %s", anchorId)
+                    .containsExactlyElementsOf(expectedPublicOrder);
+        }
+        for (Long anchorId : expectedCrmOrder) {
+            assertThat(variantService.getCrmGroup(anchorId, Language.RU).variants())
+                    .extracting(variant -> variant.id())
+                    .as("CRM variant order for anchor %s", anchorId)
+                    .containsExactlyElementsOf(expectedCrmOrder);
+        }
 
         jdbcTemplate.update("update product set model = 'CHANGED-MODEL' where id = ?", siblingId);
         assertThat(variantService.getPublicGroup(currentId, Language.RU).variants())

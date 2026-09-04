@@ -98,7 +98,7 @@ public interface ProductModelVariantRepository extends Repository<Product, Long>
                     count(*) OVER (PARTITION BY candidate.anchor_id) AS "variantCount",
                     row_number() OVER (
                         PARTITION BY candidate.anchor_id
-                        ORDER BY CASE WHEN candidate.id = candidate.anchor_id THEN 0 ELSE 1 END, candidate.id
+                        ORDER BY candidate.id
                     ) AS "variantOrder"
                 FROM candidate
                 JOIN product_profile candidate_profile ON candidate_profile.product_id = candidate.id

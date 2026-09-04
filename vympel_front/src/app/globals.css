@@ -346,6 +346,27 @@
     }
 }
 
+.product-variant-tile {
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    transition: border-color var(--duration-vympel-fast) var(--ease-vympel);
+}
+
+.product-variant-tile:hover {
+    border-color: var(--color-text-product-muted);
+}
+
+.product-variant-tile--selected,
+.product-variant-tile--selected:hover {
+    border-color: var(--color-text-primary);
+}
+
+.product-variant-tile:focus-visible {
+    border-color: transparent;
+    outline: 2px solid var(--color-text-primary);
+    outline-offset: -2px;
+}
+
 @layer utilities {
     .transition-vympel {
         transition-duration: var(--duration-vympel-base);
