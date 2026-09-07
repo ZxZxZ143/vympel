@@ -8,6 +8,11 @@ group = 'com.shop'
 version = '0.0.1-SNAPSHOT'
 description = 'vympel'
 
+// Spring Boot 4.0.8 manages Tomcat 11.0.24, which is affected by the
+// security-constraint issues fixed in 11.0.25. Keep the Boot-managed
+// module set aligned while overriding only its Tomcat version property.
+ext['tomcat.version'] = '11.0.25'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)

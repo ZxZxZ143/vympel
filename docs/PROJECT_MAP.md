@@ -19,7 +19,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 ### Backend
 
 * Language/Runtime: Java 17.
-* Framework: Spring Boot 4.0.8.
+* Framework: Spring Boot 4.0.8 with its managed Tomcat line narrowly overridden to 11.0.25 for the current fixed security baseline.
 * Database: PostgreSQL; Redis is the distributed abuse-control state store outside explicit local/test profiles.
 * ORM/Query layer: Spring Data JPA, Hibernate, repository interfaces, MapStruct mappers.
 * Auth: Stateless Spring Security access JWTs plus server-tracked rotating CRM refresh-token families.
@@ -1195,4 +1195,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-09-04 - Prepared the complete Kaspi/import/variant feature set for immutable publication, retained fixed Browserslist 4.28.9, restored npm 10/Linux-required cross-platform optional peer records in both frontend locks after the first main gate caught their removal, and narrowly rebaselined the measured CRM bundle ceiling to 1.51 MiB; existing architecture and release boundaries remain unchanged.
+2026-09-07 - Prepared the complete Kaspi/import/variant feature set for immutable publication, restored npm 10/Linux-required optional peer records after the first main gate, retained fixed Browserslist 4.28.9, rebaselined CRM JS to 1.51 MiB, and overrode Spring Boot's Tomcat baseline to fixed 11.0.25 after the image scanner rejected 11.0.24.
