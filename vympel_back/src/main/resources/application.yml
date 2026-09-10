@@ -184,6 +184,9 @@ app:
       stale-claim-timeout: "${VYMPEL_CMS_MEDIA_CLEANUP_STALE_CLAIM_TIMEOUT:15m}"
   kaspi-import:
     max-concurrent-fetches: "${VYMPEL_KASPI_IMPORT_MAX_CONCURRENT_FETCHES:4}"
+  wildberries-import:
+    max-concurrent-fetches: "${VYMPEL_WILDBERRIES_IMPORT_MAX_CONCURRENT_FETCHES:4}"
+    destination: "${VYMPEL_WILDBERRIES_IMPORT_DESTINATION:82}"
   recommendations:
     price-band-percent: "${VYMPEL_RECOMMENDATION_PRICE_BAND_PERCENT:25}"
     query-timeout-ms: "${VYMPEL_RECOMMENDATION_QUERY_TIMEOUT_MS:1500}"

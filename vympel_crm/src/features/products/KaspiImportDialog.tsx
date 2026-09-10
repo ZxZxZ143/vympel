@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 
 import { crmApi } from "@/shared/api/client";
 import { getCrmErrorMessage } from "@/shared/api/errors";
-import type { KaspiImportPreview } from "@/shared/api/types";
+import type { KaspiImportPreview, MarketplaceImportPreview, WildberriesImportPreview } from "@/shared/api/types";
 import { Button } from "@/shared/ui/Button";
 import { Field } from "@/shared/ui/Field";
 import { Text } from "@/shared/ui/Text";
@@ -20,7 +20,16 @@ type KaspiImportDialogProps = {
   onApply: (preview: KaspiImportPreview) => void;
 };
 
-const errorMessages: Record<string, string> = {
+type WildberriesImportDialogProps = Omit<KaspiImportDialogProps, "onApply"> & {
+  onApply: (preview: WildberriesImportPreview) => void;
+};
+
+type MarketplaceImportDialogProps = Omit<KaspiImportDialogProps, "onApply"> & {
+  source: "KASPI" | "WILDBERRIES";
+  onApply: (preview: MarketplaceImportPreview) => void;
+};
+
+const kaspiErrorMessages: Record<string, string> = {
   VALIDATION_ERROR: "products.kaspiImportInvalidUrl",
   KASPI_URL_INVALID: "products.kaspiImportInvalidUrl",
   KASPI_URL_UNSUPPORTED: "products.kaspiImportUnsupportedUrl",
@@ -36,6 +45,23 @@ const errorMessages: Record<string, string> = {
   KASPI_PARSE_FAILED: "products.kaspiImportParseFailed",
 };
 
+const wildberriesErrorMessages: Record<string, string> = {
+  VALIDATION_ERROR: "products.wildberriesImportInvalidUrl",
+  WILDBERRIES_URL_INVALID: "products.wildberriesImportInvalidUrl",
+  WILDBERRIES_URL_UNSUPPORTED: "products.wildberriesImportUnsupportedUrl",
+  WILDBERRIES_HOST_UNSUPPORTED: "products.wildberriesImportUnsupportedUrl",
+  WILDBERRIES_ADDRESS_BLOCKED: "products.wildberriesImportUnsupportedUrl",
+  WILDBERRIES_REDIRECT_REJECTED: "products.wildberriesImportInvalidResponse",
+  WILDBERRIES_FETCH_TIMEOUT: "products.wildberriesImportTimeout",
+  WILDBERRIES_FETCH_FORBIDDEN: "products.wildberriesImportForbidden",
+  WILDBERRIES_PRODUCT_NOT_FOUND: "products.wildberriesImportNotFound",
+  WILDBERRIES_UPSTREAM_RATE_LIMITED: "products.wildberriesImportUpstreamLimited",
+  WILDBERRIES_IMPORT_BUSY: "products.wildberriesImportBusy",
+  WILDBERRIES_RESPONSE_TOO_LARGE: "products.wildberriesImportInvalidResponse",
+  WILDBERRIES_RESPONSE_INVALID: "products.wildberriesImportInvalidResponse",
+  WILDBERRIES_PARSE_FAILED: "products.wildberriesImportParseFailed",
+};
+
 const warningMessages: Record<string, string> = {
   PRICE_NOT_FOUND: "products.kaspiWarningPriceMissing",
   PRICE_AMBIGUOUS: "products.kaspiWarningPriceAmbiguous",
@@ -45,6 +71,9 @@ const warningMessages: Record<string, string> = {
   BRAND_UNRESOLVED: "products.kaspiWarningBrandUnresolved",
   UNMAPPED_CHARACTERISTICS_PRESENT: "products.kaspiWarningUnmapped",
   UNRESOLVED_VALUES_PRESENT: "products.kaspiWarningUnresolved",
+  MODEL_FROM_TITLE: "products.wildberriesWarningModelFromTitle",
+  MODEL_AMBIGUOUS: "products.wildberriesWarningModelAmbiguous",
+  SOURCE_CATEGORY_MISMATCH: "products.wildberriesWarningCategoryMismatch",
 };
 
 const targetLabels: Record<string, string> = {
@@ -54,6 +83,7 @@ const targetLabels: Record<string, string> = {
   price: "products.price",
   descriptionRu: "products.descriptionRu",
   kaspiUrl: "products.kaspiUrl",
+  wildberriesUrl: "products.wildberriesUrl",
   "watchDetails.mechanismId": "products.mechanism",
   "watchDetails.genderId": "products.gender",
   "watchDetails.caseMaterialId": "products.caseMaterial",
@@ -87,14 +117,18 @@ const targetLabels: Record<string, string> = {
   "accessoryDetails.length": "products.accessoryLength",
 };
 
-export function KaspiImportDialog({
+function MarketplaceImportDialog({
   open,
   categoryId,
   locale,
   t,
   onOpenChange,
   onApply,
-}: KaspiImportDialogProps) {
+  source,
+}: MarketplaceImportDialogProps) {
+  const keyPrefix = source === "KASPI" ? "products.kaspiImport" : "products.wildberriesImport";
+  const importKey = (suffix = "") => `${keyPrefix}${suffix}`;
+  const sourceErrorMessages = source === "KASPI" ? kaspiErrorMessages : wildberriesErrorMessages;
   const titleId = useId();
   const descriptionId = useId();
   const formId = useId();
@@ -109,7 +143,7 @@ export function KaspiImportDialog({
   const onOpenChangeRef = useRef(onOpenChange);
   const loadingRef = useRef(false);
   const [url, setUrl] = useState("");
-  const [preview, setPreview] = useState<KaspiImportPreview | null>(null);
+  const [preview, setPreview] = useState<MarketplaceImportPreview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mounted = useSyncExternalStore(
@@ -201,8 +235,8 @@ export function KaspiImportDialog({
 
   const importProduct = async () => {
     if (loading) return;
-    if (!isValidKaspiProductUrl(url)) {
-      setError(t("products.kaspiImportInvalidUrl"));
+    if (!(source === "KASPI" ? isValidKaspiProductUrl(url) : isValidWildberriesProductUrl(url))) {
+      setError(t(importKey("InvalidUrl")));
       return;
     }
 
@@ -211,14 +245,16 @@ export function KaspiImportDialog({
     setLoading(true);
     setError(null);
     try {
-      const nextPreview = await crmApi.importKaspiProduct({ url: url.trim(), categoryId }, locale, abort.signal);
+      const nextPreview = source === "KASPI"
+        ? await crmApi.importKaspiProduct({ url: url.trim(), categoryId }, locale, abort.signal)
+        : await crmApi.importWildberriesProduct({ url: url.trim(), categoryId }, locale, abort.signal);
       setPreview(nextPreview);
     } catch (caught) {
       if (!abort.signal.aborted) {
         const codeMessages = Object.fromEntries(
-          Object.entries(errorMessages).map(([code, key]) => [code, t(key)]),
+          Object.entries(sourceErrorMessages).map(([code, key]) => [code, t(key)]),
         );
-        setError(getCrmErrorMessage(caught, t("products.kaspiImportError"), t("products.kaspiImportInvalidUrl"), codeMessages));
+        setError(getCrmErrorMessage(caught, t(importKey("Error")), t(importKey("InvalidUrl")), codeMessages));
       }
     } finally {
       if (abortRef.current === abort) abortRef.current = null;
@@ -256,15 +292,15 @@ export function KaspiImportDialog({
         </button>
 
         <header className="crm-kaspi-dialog__header">
-          <h2 className="crm-confirm-dialog__title" id={titleId}>{t("products.kaspiImportTitle")}</h2>
+          <h2 className="crm-confirm-dialog__title" id={titleId}>{t(importKey("Title"))}</h2>
           <Text id={descriptionId} tone="muted" size="small">
-            {t(preview ? "products.kaspiImportPreview" : "products.kaspiImportHelp")}
+            {t(importKey(preview ? "Preview" : "Help"))}
           </Text>
         </header>
 
         <div
           ref={scrollBodyRef}
-          aria-label={preview ? t("products.kaspiImportPreview") : undefined}
+          aria-label={preview ? t(importKey("Preview")) : undefined}
           className="crm-confirm-dialog__body crm-kaspi-dialog__body"
           tabIndex={preview ? 0 : -1}
         >
@@ -278,17 +314,19 @@ export function KaspiImportDialog({
                 void importProduct();
               }}
             >
-              <Field htmlFor="kaspiImportUrl" label={t("products.kaspiImportUrl")}>
+              <Field htmlFor={`${source.toLowerCase()}ImportUrl`} label={t(importKey("Url"))}>
                 <input
                   ref={urlRef}
                   aria-describedby={`${descriptionId}${error ? ` ${errorId}` : ""}`}
                   aria-invalid={error ? "true" : undefined}
-                  id="kaspiImportUrl"
+                  id={`${source.toLowerCase()}ImportUrl`}
                   className="crm-input"
                   type="url"
                   value={url}
                   disabled={loading}
-                  placeholder="https://kaspi.kz/shop/p/..."
+                  placeholder={source === "KASPI"
+                    ? "https://kaspi.kz/shop/p/..."
+                    : "https://global.wildberries.ru/catalog/320159542/detail.aspx"}
                   onChange={(event) => {
                     setUrl(event.target.value);
                     setError(null);
@@ -297,7 +335,7 @@ export function KaspiImportDialog({
               </Field>
             </form>
           ) : (
-            <ImportPreview preview={preview} t={t} />
+            <ImportPreview preview={preview} t={t} keyPrefix={keyPrefix} />
           )}
           {error ? <Text id={errorId} className="crm-form-error" role="alert">{error}</Text> : null}
         </div>
@@ -314,11 +352,11 @@ export function KaspiImportDialog({
               setError(null);
               onOpenChange(false);
             }}>
-              {t("products.kaspiImportApply")}
+              {t(importKey("Apply"))}
             </Button>
           ) : (
             <Button form={formId} type="submit" isLoading={loading} disabled={!url.trim()}>
-              {loading ? t("products.kaspiImportLoading") : t("products.kaspiImportAction")}
+              {loading ? t(importKey("Loading")) : t(importKey("Action"))}
             </Button>
           )}
         </div>
@@ -328,31 +366,39 @@ export function KaspiImportDialog({
   );
 }
 
-function ImportPreview({ preview, t }: { preview: KaspiImportPreview; t: (key: string) => string }) {
+function ImportPreview({
+  preview,
+  t,
+  keyPrefix,
+}: {
+  preview: MarketplaceImportPreview;
+  t: (key: string) => string;
+  keyPrefix: string;
+}) {
   return (
     <div className="crm-import-preview">
-      <PreviewSection title={t("products.kaspiImportMappedFields")} empty={t("products.kaspiImportEmpty")}>
+      <PreviewSection title={t(`${keyPrefix}MappedFields`)} empty={t(`${keyPrefix}Empty`)}>
         {preview.mappedFields.map((item) => (
           <li key={`${item.targetField}-${item.resolvedValue}`}>
             <strong>{targetLabel(item.targetField, t)}:</strong> {item.resolvedValue}
           </li>
         ))}
       </PreviewSection>
-      <PreviewSection title={t("products.kaspiImportMappedCharacteristics")} empty={t("products.kaspiImportEmpty")}>
+      <PreviewSection title={t(`${keyPrefix}MappedCharacteristics`)} empty={t(`${keyPrefix}Empty`)}>
         {preview.mappedCharacteristics.map((item, index) => (
           <li key={`${item.targetField}-${item.sourceLabel}-${index}`}>
             <strong>{item.sourceLabel}:</strong> {item.sourceValue} → {item.resolvedValue}
           </li>
         ))}
       </PreviewSection>
-      <PreviewSection title={t("products.kaspiImportUnmapped")} empty={t("products.kaspiImportEmpty")}>
+      <PreviewSection title={t(`${keyPrefix}Unmapped`)} empty={t(`${keyPrefix}Empty`)}>
         {preview.unmappedCharacteristics.map((item, index) => (
           <li key={`${item.sourceLabel}-${index}`}>
             <strong>{item.sourceLabel}:</strong> {item.sourceValue} — {reasonLabel(item.reason, t)}
           </li>
         ))}
       </PreviewSection>
-      <PreviewSection title={t("products.kaspiImportUnresolved")} empty={t("products.kaspiImportEmpty")}>
+      <PreviewSection title={t(`${keyPrefix}Unresolved`)} empty={t(`${keyPrefix}Empty`)}>
         {preview.unresolvedCharacteristics.map((item, index) => (
           <li key={`${item.targetField}-${item.sourceLabel}-${index}`}>
             <strong>{item.sourceLabel}:</strong> {item.sourceValue} — {reasonLabel(item.reason, t)}
@@ -360,7 +406,7 @@ function ImportPreview({ preview, t }: { preview: KaspiImportPreview; t: (key: s
         ))}
       </PreviewSection>
       {preview.warnings.length > 0 ? (
-        <PreviewSection title={t("products.kaspiImportWarnings")} empty={t("products.kaspiImportEmpty")}>
+        <PreviewSection title={t(`${keyPrefix}Warnings`)} empty={t(`${keyPrefix}Empty`)}>
           {preview.warnings.map((warning) => (
             <li key={warning}>{t(warningMessages[warning] ?? "products.kaspiWarningPartial")}</li>
           ))}
@@ -414,4 +460,38 @@ export function isValidKaspiProductUrl(raw: string) {
   } catch {
     return false;
   }
+}
+
+export function isValidWildberriesProductUrl(raw: string) {
+  try {
+    const url = new URL(raw.trim());
+    return url.protocol === "https:"
+      && ["wildberries.ru", "www.wildberries.ru", "global.wildberries.ru"].includes(url.hostname)
+      && (url.port === "" || url.port === "443")
+      && url.username === ""
+      && url.password === ""
+      && /^\/catalog\/[1-9]\d*\/detail\.aspx\/?$/.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
+export function KaspiImportDialog(props: KaspiImportDialogProps) {
+  return (
+    <MarketplaceImportDialog
+      {...props}
+      source="KASPI"
+      onApply={(preview) => props.onApply(preview as KaspiImportPreview)}
+    />
+  );
+}
+
+export function WildberriesImportDialog(props: WildberriesImportDialogProps) {
+  return (
+    <MarketplaceImportDialog
+      {...props}
+      source="WILDBERRIES"
+      onApply={(preview) => props.onApply(preview as WildberriesImportPreview)}
+    />
+  );
 }

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { KaspiImportPreview } from "@/shared/api/types";
+import type { KaspiImportPreview, WildberriesImportPreview } from "@/shared/api/types";
 import { emptyForm } from "./ProductForm";
-import { applyKaspiImportPreview } from "./kaspiImport";
+import { applyKaspiImportPreview, applyWildberriesImportPreview } from "./kaspiImport";
+import { isValidWildberriesProductUrl } from "./KaspiImportDialog";
 
 function preview(overrides: Partial<KaspiImportPreview["values"]> = {}): KaspiImportPreview {
   return {
@@ -111,5 +112,49 @@ describe("applyKaspiImportPreview", () => {
     const mismatched = { ...preview({ nameRu: "Wrong" }), categoryId: 2 };
 
     expect(applyKaspiImportPreview(current, mismatched)).toBe(current);
+  });
+});
+
+describe("Wildberries import helpers", () => {
+  it("accepts only strict supported Wildberries product URLs", () => {
+    expect(isValidWildberriesProductUrl("https://global.wildberries.ru/catalog/320159542/detail.aspx")).toBe(true);
+    expect(isValidWildberriesProductUrl("https://www.wildberries.ru/catalog/42/detail.aspx?targetUrl=GP")).toBe(true);
+    expect(isValidWildberriesProductUrl("http://wildberries.ru/catalog/42/detail.aspx")).toBe(false);
+    expect(isValidWildberriesProductUrl("https://evil.wildberries.ru/catalog/42/detail.aspx")).toBe(false);
+    expect(isValidWildberriesProductUrl("https://wildberries.ru/seller/42")).toBe(false);
+    expect(isValidWildberriesProductUrl("https://user@wildberries.ru/catalog/42/detail.aspx")).toBe(false);
+  });
+
+  it("applies only present Wildberries values and preserves the selected category", () => {
+    const current = {
+      ...emptyForm,
+      categoryId: "1",
+      productType: "WATCH" as const,
+      kaspiUrl: "https://kaspi.kz/shop/p/manual",
+      descriptionRu: "Manual description",
+    };
+    const imported: WildberriesImportPreview = {
+      ...preview(),
+      source: "WILDBERRIES",
+      sourceUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+      values: {
+        nameRu: "WB watch",
+        model: "  RM8A46  ",
+        descriptionRu: null,
+        wildberriesUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+      },
+    };
+
+    const result = applyWildberriesImportPreview(current, imported);
+
+    expect(result).toMatchObject({
+      categoryId: "1",
+      productType: "WATCH",
+      nameRu: "WB watch",
+      model: "RM8A46",
+      descriptionRu: "Manual description",
+      kaspiUrl: "https://kaspi.kz/shop/p/manual",
+      wildberriesUrl: imported.sourceUrl,
+    });
   });
 });

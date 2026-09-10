@@ -1,9 +1,23 @@
-import type { KaspiImportPreview } from "@/shared/api/types";
+import type { KaspiImportPreview, MarketplaceImportPreview, WildberriesImportPreview } from "@/shared/api/types";
 import type { ProductFormState } from "./ProductForm";
 
 export function applyKaspiImportPreview(
   current: ProductFormState,
   preview: KaspiImportPreview,
+): ProductFormState {
+  return applyMarketplaceImportPreview(current, preview);
+}
+
+export function applyWildberriesImportPreview(
+  current: ProductFormState,
+  preview: WildberriesImportPreview,
+): ProductFormState {
+  return applyMarketplaceImportPreview(current, preview);
+}
+
+function applyMarketplaceImportPreview(
+  current: ProductFormState,
+  preview: MarketplaceImportPreview,
 ): ProductFormState {
   if (String(preview.categoryId) !== current.categoryId) {
     return current;
@@ -17,6 +31,7 @@ export function applyKaspiImportPreview(
   assignNumber(next, "price", values.price);
   assignString(next, "descriptionRu", values.descriptionRu);
   assignString(next, "kaspiUrl", values.kaspiUrl);
+  assignString(next, "wildberriesUrl", values.wildberriesUrl);
 
   if (values.brandId !== null && values.brandId !== undefined) {
     const importedBrandId = String(values.brandId);

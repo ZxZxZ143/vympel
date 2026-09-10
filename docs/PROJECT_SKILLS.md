@@ -893,8 +893,8 @@
 ### Product marketplace links contract
 
 * **When to use:** Whenever product DTOs, forms, or product data displays change.
-* **How:** Treat `kaspiUrl` and `wildberriesUrl` as first-class optional product fields, but canonicalize every nonblank write through backend `services/marketplace/MarketplaceUrlPolicy` and enforce nullable canonical values in the database. Return them in public and CRM product DTOs and mirror them in frontend TypeScript types. Public product CTA rendering must use frontend `MARKETPLACE_LINKS` directly and send the existing `MARKETPLACE_CLICK` analytics event, so stale payload values can never become customer navigation.
-* **Why:** Marketplace links remain part of the product contract, while customer transitions must always use the two approved store destinations across backend data, CMS, CRM, and storefront rendering.
+* **How:** Treat `kaspiUrl` and `wildberriesUrl` as first-class optional product fields, but canonicalize every nonblank write through backend `services/marketplace/MarketplaceUrlPolicy` and enforce nullable canonical values in the database. Kaspi and Wildberries product imports retain their canonical product-specific URLs; keep the exact historical Wildberries seller root accepted only for legacy/catalog-link records. Return links in public and CRM product DTOs and mirror them in frontend TypeScript types. Public product CTA rendering must use frontend `MARKETPLACE_LINKS` directly and send the existing `MARKETPLACE_CLICK` analytics event, so stale payload values can never become customer navigation.
+* **Why:** Marketplace links remain part of the product contract, while customer transitions must always use the two approved store destinations across backend data, CMS, CRM, and storefront rendering. Whenever product-specific link policy expands, the matching database check constraint must change in a new forward migration or Apply will appear correct but normal Save will fail.
 
 ### CRM bulk creation contract
 
@@ -995,7 +995,7 @@
 ### Transactional creatable reference values
 
 * **When to use:** A CRM product select needs an inline “+ Добавить” path for an allow-listed dictionary.
-* **How:** Keep IDs as form values, POST localized `{ ru, kz?, en? }` to `/api/crm/references/{type}`, normalize duplicates across every locale, serialize equivalent concurrent names with transaction-scoped PostgreSQL advisory locks, and commit the new option plus CRM audit in one transaction. In React, use the shared `CreatableReferenceFields` dialog, guard submit synchronously, merge the response with a functional reference-cache update, and select it through the same RHF/form-state setter in the same batch. Kaspi preview may resolve existing options but must never call this mutation path.
+* **How:** Keep IDs as form values, POST localized `{ ru, kz?, en? }` to `/api/crm/references/{type}`, normalize duplicates across every locale, serialize equivalent concurrent names with transaction-scoped PostgreSQL advisory locks, and commit the new option plus CRM audit in one transaction. In React, use the shared `CreatableReferenceFields` dialog, guard submit synchronously, merge the response with a functional reference-cache update, and select it through the same RHF/form-state setter in the same batch. Marketplace previews may resolve existing options but must never call this mutation path.
 * **Why:** This prevents case/spacing races, unaudited dictionary writes, stale option lists, and full-page reloads while preserving the form library as the single source of truth.
 
 ### Normalized multi-value watch features
@@ -1015,6 +1015,24 @@
 * **When to use:** Kaspi omits JSON-LD `model`/`mpn` but exposes a leaf characteristic named exactly `Модель`, `Model`, or `Моделі`.
 * **How:** Normalize whitespace, collect only those exact labels, and promote the single distinct value into `KaspiParsedProduct.model`; remove the promoted duplicate characteristic from the unsupported list. If exact labels conflict, leave the model unset, retain the source rows, and emit `MODEL_AMBIGUOUS`. Apply the resolved value through the existing trimmed CRM `model` assignment; never strip suffixes or apply fuzzy model equivalence.
 * **Why:** Live Kaspi preview/apply fills the ordinary product model used by normal persistence and grouping without guessing between genuinely different model identities.
+
+### Fetch Wildberries card data from constructed first-party endpoints
+
+* **When to use:** When previewing a Wildberries product URL in CRM.
+* **How:** Accept only strict HTTPS `/catalog/{positive-id}/detail.aspx` product URLs on the approved Wildberries storefront hosts, canonicalize to the global product page, and construct both the card-v4 catalog URL and the deterministic article-detail CDN path on the backend. Never accept a card/CDN target from the client. Revalidate DNS and every redirect, use direct no-proxy HTTP, enforce one deadline and a combined streaming byte budget across both JSON responses, and keep the destination ID numeric/configured.
+* **Why:** The user URL should identify a product, not grant control over server-side network destinations; fixed first-party targets plus shared address policy preserve the Kaspi importer's SSRF boundary.
+
+### Derive Wildberries models only from unambiguous evidence
+
+* **When to use:** Mapping Wildberries card/detail JSON into the ordinary CRM product model field.
+* **How:** Prefer one exact `Модель`/`Model` option, then one exact `Модель:` RU-description line. Only then consider a single mixed letter/digit title token with an optional adjacent two-to-four-letter uppercase prefix. Preserve source spelling and internal spacing, reject multiple distinct candidates, and emit a warning instead of guessing. Prices must come only from one distinct current `sizes[].price.product + logistics` value in KZT minor units; old/basic prices are preview metadata, never a fallback.
+* **Why:** Marketplace titles contain sizes, materials, quantities, and marketing codes that can look like models or prices; conservative extraction protects product grouping and pricing from plausible but wrong guesses.
+
+### Share one marketplace preview dialog contract
+
+* **When to use:** Adding or changing a create-only external product preview in CRM.
+* **How:** Keep source URL validation, API call, labels, safe errors, and warnings source-specific while reusing the accessible focus-trapped, viewport-bounded dialog shell and RHF apply function. Apply only present/resolved values, preserve the selected category/product type and manual values with no resolution, clear brand-dependent stale fields through the existing path, and leave the ordinary Save action as the sole persistence step.
+* **Why:** Kaspi and Wildberries need consistent keyboard/mobile behavior and form ownership without coupling their trust policies or response-specific URL fields.
 
 ## Figma / UI Implementation Patterns
 
@@ -1762,6 +1780,7 @@
 * **How to verify shared search changes safely:** Run `cd vympel_front && npm run lint`, `npm run typecheck`, and `npm run build`. Use only a bounded managed production preview when explicit responsive browser measurements are required, stop the process afterward, and never treat `dev`, `start`, or watch commands as final verification.
 * **How to run backend tests:** `cd vympel_back && .\gradlew.bat test`.
 * **How to verify Kaspi import:** Run backend `KaspiUrlGuardTest`, `KaspiProductParserTest`, `KaspiCharacteristicMapperTest`, `KaspiProductImportServiceTest`, `SecureKaspiPageFetcherTest`, `CrmProductControllerKaspiTest`, `WatchProductCharacteristicsMigrationContractTest`, `CrmReferenceMutationServiceTest`, `WatchDetailServiceImplTest`, `MigrationVerificationRunnerTest`, `LiquibaseChangeBoundaryTest`, `MarketplaceUrlPolicyTest`, and `RateLimitFilterTest`; then run the full backend suite and `bootJar`. Run CRM `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`, including sanitizer-shaped preview text, creatable-reference success/cancel/double-submit/conflict paths, category isolation, and failed/repeated imports. Run storefront specs tests plus its full gates. Build the local stack and verify the guarded migration against PostgreSQL. In a real authenticated browser, import an actual Kaspi product and confirm both aggregate fields and live leaf pairs (`Функции: хронограф`, `Отображение даты: число`) map; Apply must select the corresponding features while unknown/negative values remain unresolved. Verify only the modal body scrolls, header/footer remain visible, horizontal overflow is zero, created reference options auto-select without reload, save/reopen preserves all fields, and the public product page shows populated values while omitting empty ones.
+* **How to verify Wildberries import:** Run backend `WildberriesUrlGuardTest`, `SecureWildberriesProductFetcherTest`, `WildberriesProductParserTest`, `WildberriesProductImportServiceTest`, `CrmProductControllerWildberriesTest`, `KaspiCharacteristicMapperTest`, `MarketplaceUrlPolicyTest`, and `RateLimitFilterTest`, then the complete Java 17 suite. Run CRM `npm test -- --run`, `npm run lint`, `npm run typecheck`, and `npm run build`. Keep automated payloads in sanitized fixtures; any real-card probe must be a temporary, read-only smoke check and must not become an always-online test. In the real create form, confirm both marketplace actions remain available after category selection; Wildberries preview must show mapped/unmapped/unresolved/warnings, Apply must retain category/product type and populate only resolved fields, invalid centimetre case size must stay blank, and no request may create a product or dictionary row before the normal Save action.
 * **Where frontend tests live:** Public frontend tests live beside source under `vympel_front/src/**/*.test.ts(x)`; CRM auth tests live at `vympel_crm/src/shared/api/client.test.ts`, `shared/auth/permissions.test.ts`, and `shared/i18n/messages.test.ts`.
 * **Where backend tests live:** `vympel_back/src/test/java`; abuse coverage is under `security/ratelimit`, `security/config/NonLocalSecurityConfigurationValidatorTest`, `security/GlobalErrorHandlerTest`, `services/PublicWriteAbuseProtectionTest`, `controllers/CrmAuthLifecycleIntegrationTest`, and container-backed `security/ratelimit/RedisRateLimitStoreIntegrationTest`.
 * **Mocking approach:** Backend uses Mockito for service contracts and real JWT parsing; the finite CRM auth integration test uses a random-port Spring server, configured PostgreSQL, unique test users, and deterministic cleanup. CRM Vitest uses an in-memory sessionStorage/EventTarget plus deterministic fetch responses to assert concurrency and request counts.
@@ -2558,4 +2577,4 @@
 
 ## Last Updated
 
-2026-09-07 - Recorded the Browserslist/CRM budget response, the mandatory Node 22/npm 10 Linux clean-install check, and the narrow Tomcat 11.0.25 managed-property override required after the merged backend image scan rejected 11.0.24.
+2026-09-10 - Recorded the Wildberries fixed-endpoint/SSRF pattern, conservative model and current-price extraction rules, shared marketplace preview form contract, canonical product-link behavior, and finite offline/live/UI verification boundaries.

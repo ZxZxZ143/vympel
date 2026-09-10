@@ -274,6 +274,8 @@ export type KaspiImportRequest = {
   categoryId: number;
 };
 
+export type WildberriesImportRequest = KaspiImportRequest;
+
 export type KaspiImportCategoryProfile = "WRISTWATCH" | "INTERIOR_CLOCK" | "ACCESSORY" | "GENERIC";
 
 export type KaspiImportResolution = "EXACT" | "NORMALIZED" | "ALIAS";
@@ -287,13 +289,14 @@ export type KaspiImportUnmappedReason =
   | "BRAND_COUNTRY_MISMATCH"
   | "DUPLICATE_CONFLICT";
 
-export type KaspiImportValues = {
+export type MarketplaceImportValues = {
   nameRu?: string | null;
   brandId?: number | null;
   model?: string | null;
   price?: number | null;
   descriptionRu?: string | null;
-  kaspiUrl: string;
+  kaspiUrl?: string | null;
+  wildberriesUrl?: string | null;
   watchDetails?: {
     mechanismId?: number | null;
     genderId?: number | null;
@@ -371,6 +374,21 @@ export type KaspiImportPreview = {
   unresolvedCharacteristics: KaspiImportUnresolvedCharacteristic[];
   warnings: string[];
 };
+
+export type KaspiImportValues = MarketplaceImportValues & {
+  kaspiUrl: string;
+};
+
+export type WildberriesImportValues = MarketplaceImportValues & {
+  wildberriesUrl: string;
+};
+
+export type WildberriesImportPreview = Omit<KaspiImportPreview, "source" | "values"> & {
+  source: "WILDBERRIES";
+  values: WildberriesImportValues;
+};
+
+export type MarketplaceImportPreview = KaspiImportPreview | WildberriesImportPreview;
 
 export type ProductBulkCommonPayload = {
   brandId: number;

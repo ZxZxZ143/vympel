@@ -88,7 +88,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if ("POST".equals(method) && "/api/crm/auth/logout".equals(path)) {
             return new PolicyMatch("logout-source", "source", "", false);
         }
-        if ("POST".equals(method) && "/api/crm/products/import/kaspi".equals(path)) {
+        if ("POST".equals(method) && ("/api/crm/products/import/kaspi".equals(path)
+                || "/api/crm/products/import/wildberries".equals(path))) {
             return new PolicyMatch("crm-product-import", "source", "", false);
         }
         Matcher review = REVIEW_CREATE.matcher(path);

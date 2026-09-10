@@ -50,6 +50,25 @@ class KaspiCharacteristicMapperTest {
     }
 
     @Test
+    void recognizesWildberriesWatchLabelsButRejectsCentimetersAsMillimeters() {
+        KaspiProductImportResponse response = mapper.map(
+                product(List.of(
+                        new KaspiCharacteristic("Механизм часов", "кварцевый"),
+                        new KaspiCharacteristic("Вид стекла", "минеральное"),
+                        new KaspiCharacteristic("Диаметр корпуса", "28 см")
+                )),
+                "https://global.wildberries.ru/catalog/320159542/detail.aspx", 77L,
+                CatalogCategoryProfile.WRISTWATCH, references()
+        );
+
+        assertEquals(5L, response.values().watchDetails().mechanismId());
+        assertEquals(4L, response.values().watchDetails().glassTypeId());
+        assertNull(response.values().watchDetails().caseSizeMm());
+        assertTrue(response.unresolvedCharacteristics().stream().anyMatch(item ->
+                item.sourceLabel().equals("Диаметр корпуса") && item.reason().equals("INVALID_VALUE")));
+    }
+
+    @Test
     void leavesUnknownDictionaryValuesUnresolvedAndDoesNotPopulateThem() {
         KaspiProductImportResponse response = mapper.map(
                 product(List.of(

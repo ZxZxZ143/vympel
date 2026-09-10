@@ -3,13 +3,14 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { KaspiImportPreview, Product, References } from "@/shared/api/types";
+import type { KaspiImportPreview, Product, References, WildberriesImportPreview } from "@/shared/api/types";
 import { ProductForm } from "./ProductForm";
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   references: vi.fn(),
   importKaspiProduct: vi.fn(),
+  importWildberriesProduct: vi.fn(),
   createProduct: vi.fn(),
   createReference: vi.fn(),
   success: vi.fn(),
@@ -33,6 +34,7 @@ vi.mock("@/shared/api/client", () => ({
   crmApi: {
     references: mocks.references,
     importKaspiProduct: mocks.importKaspiProduct,
+    importWildberriesProduct: mocks.importWildberriesProduct,
     createProduct: mocks.createProduct,
     createReference: mocks.createReference,
   },
@@ -140,6 +142,25 @@ const preview: KaspiImportPreview = {
   warnings: ["UNMAPPED_CHARACTERISTICS_PRESENT", "UNRESOLVED_VALUES_PRESENT"],
 };
 
+const wildberriesPreview: WildberriesImportPreview = {
+  ...preview,
+  source: "WILDBERRIES",
+  sourceUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+  values: {
+    ...preview.values,
+    nameRu: "Wildberries watch",
+    model: "RM 8A46",
+    price: 38280,
+    kaspiUrl: null,
+    wildberriesUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+  },
+  mappedFields: [
+    { targetField: "nameRu", resolvedValue: "Wildberries watch" },
+    { targetField: "wildberriesUrl", resolvedValue: "https://global.wildberries.ru/catalog/320159542/detail.aspx" },
+  ],
+  warnings: ["MODEL_FROM_TITLE"],
+};
+
 describe("Kaspi product import flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -191,6 +212,84 @@ describe("Kaspi product import flow", () => {
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect((screen.getByLabelText("products.nameRu") as HTMLInputElement).value).toBe("Before import");
+  });
+
+  it("previews and applies Wildberries data without saving or creating dictionary values", async () => {
+    let resolveImport!: (value: WildberriesImportPreview) => void;
+    mocks.importWildberriesProduct.mockImplementation(() => new Promise((resolve) => {
+      resolveImport = resolve;
+    }));
+    render(<ProductForm />);
+
+    expect(screen.queryByRole("button", { name: "products.wildberriesImport" })).toBeNull();
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImport" }));
+    expect(screen.getByRole("dialog", { name: "products.wildberriesImportTitle" })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("products.wildberriesImportUrl"), {
+      target: { value: "https://example.com/catalog/320159542/detail.aspx" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImportAction" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("products.wildberriesImportInvalidUrl");
+
+    fireEvent.change(screen.getByLabelText("products.wildberriesImportUrl"), {
+      target: { value: wildberriesPreview.sourceUrl },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImportAction" }));
+    expect((screen.getByRole("button", { name: "products.wildberriesImportLoading" }) as HTMLButtonElement).disabled)
+      .toBe(true);
+    resolveImport(wildberriesPreview);
+    expect(await screen.findByText("products.wildberriesImportMappedFields")).toBeTruthy();
+    expect(screen.getByText("products.wildberriesWarningModelFromTitle")).toBeTruthy();
+    expect(screen.getByText("Материал корпуса:")).toBeTruthy();
+    expect(mocks.importWildberriesProduct).toHaveBeenCalledWith(
+      { url: wildberriesPreview.sourceUrl, categoryId: 1 }, "ru", expect.any(AbortSignal),
+    );
+    expect(mocks.createProduct).not.toHaveBeenCalled();
+    expect(mocks.createReference).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImportApply" }));
+    await waitFor(() => expect((screen.getByLabelText("products.nameRu") as HTMLInputElement).value)
+      .toBe("Wildberries watch"));
+    expect((screen.getByLabelText("products.model") as HTMLInputElement).value).toBe("RM 8A46");
+    expect((screen.getByLabelText("products.price") as HTMLInputElement).value).toBe("38280");
+    expect((screen.getByLabelText("products.wildberriesUrl") as HTMLInputElement).value)
+      .toBe(wildberriesPreview.sourceUrl);
+    expect((screen.getByLabelText("products.kaspiUrl") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("products.category") as HTMLSelectElement).value).toBe("1");
+    expect(mocks.createProduct).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "common.save" }));
+    await waitFor(() => expect(mocks.createProduct).toHaveBeenCalledTimes(1));
+    expect(mocks.createProduct.mock.calls[0][0]).toMatchObject({
+      model: "RM 8A46",
+      price: 38280,
+      categoryId: 1,
+      wildberriesUrl: wildberriesPreview.sourceUrl,
+    });
+    expect(mocks.createReference).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a clean Wildberries API error, leaves the form unchanged, and still cancels", async () => {
+    mocks.importWildberriesProduct.mockRejectedValue(new Error("private upstream detail"));
+    render(<ProductForm />);
+
+    fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    fireEvent.change(screen.getByLabelText("products.nameRu"), { target: { value: "Manual value" } });
+    fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImport" }));
+    fireEvent.change(screen.getByLabelText("products.wildberriesImportUrl"), {
+      target: { value: wildberriesPreview.sourceUrl },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImportAction" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("products.wildberriesImportError");
+    expect((screen.getByLabelText("products.nameRu") as HTMLInputElement).value).toBe("Manual value");
+    const dialog = screen.getByRole("dialog", { name: "products.wildberriesImportTitle" });
+    fireEvent.click(within(dialog).getAllByRole("button", { name: "common.cancel" })[1]);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(mocks.createProduct).not.toHaveBeenCalled();
   });
 
   it("keeps the form unchanged when a later import fails after a successful preview", async () => {

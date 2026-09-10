@@ -564,13 +564,17 @@ public class KaspiCharacteristicMapper {
     }
 
     private static Integer parseInteger(String raw, FieldKind kind) {
+        String normalized = normalize(raw);
+        if (kind == FieldKind.CASE_SIZE
+                && normalized.matches(".*\\b(cm|см|сантиметр|сантиметра|сантиметров)\\b.*")) {
+            return null;
+        }
         Matcher matcher = NUMBER.matcher(raw.replace('\u00a0', ' '));
         if (!matcher.find()) return null;
         String numericToken = matcher.group(1);
         if (matcher.find()) return null;
         try {
             double number = Double.parseDouble(numericToken.replace(',', '.'));
-            String normalized = normalize(raw);
             if (kind == FieldKind.WEIGHT && normalized.matches(".*\\b(kg|кг|килограмм).*")) number *= 1000;
             if (kind == FieldKind.WARRANTY && normalized.matches(".*\\b(год|года|лет|year|years).*")) number *= 12;
             if (!Double.isFinite(number) || number > Integer.MAX_VALUE) return null;
@@ -604,8 +608,8 @@ public class KaspiCharacteristicMapper {
         Map<String, FieldKind> result = new HashMap<>();
         addLabels(result, FieldKind.CASE_MATERIAL, "Материал корпуса", "Корпус материал", "Case material");
         addLabels(result, FieldKind.STRAP_MATERIAL, "Материал браслета", "Материал ремешка", "Браслет", "Ремешок", "Strap material", "Bracelet material");
-        addLabels(result, FieldKind.GLASS, "Стекло", "Тип стекла", "Glass", "Glass type");
-        addLabels(result, FieldKind.MECHANISM, "Механизм", "Тип механизма", "Тип", "Movement", "Movement type");
+        addLabels(result, FieldKind.GLASS, "Стекло", "Тип стекла", "Вид стекла", "Glass", "Glass type");
+        addLabels(result, FieldKind.MECHANISM, "Механизм", "Механизм часов", "Тип механизма", "Тип", "Movement", "Movement type");
         addLabels(result, FieldKind.WATER_RESISTANCE, "Водонепроницаемость", "Класс водонепроницаемости", "Водозащита", "Water resistance");
         addLabels(result, FieldKind.CASE_SIZE, "Диаметр корпуса", "Размер корпуса", "Диаметр", "Case size", "Case diameter");
         addLabels(result, FieldKind.CASE_THICKNESS, "Толщина корпуса", "Case thickness");
@@ -630,7 +634,7 @@ public class KaspiCharacteristicMapper {
         addLabels(result, FieldKind.POWER, "Питание", "Источник энергии", "Источник питания", "Power source", "Energy source");
         addLabels(result, FieldKind.DIMENSIONS, "Размеры", "Габариты", "Dimensions");
         addLabels(result, FieldKind.WEIGHT, "Вес", "Weight");
-        addLabels(result, FieldKind.WARRANTY, "Гарантия", "Warranty");
+        addLabels(result, FieldKind.WARRANTY, "Гарантия", "Гарантийный срок", "Warranty");
         addLabels(result, FieldKind.CLASP, "Тип застежки", "Застежка", "Clasp type");
         addLabels(result, FieldKind.INSERT_MATERIAL, "Материал вставки", "Материал инкрустации", "Insert material");
         addLabels(result, FieldKind.HAS_INSERT, "Наличие вставки", "Есть вставка", "Has insert");

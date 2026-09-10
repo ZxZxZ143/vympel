@@ -12,11 +12,14 @@ import com.shop.vympel.dtos.product.CrmProductListItemResponse;
 import com.shop.vympel.dtos.product.ProductUpdateRequest;
 import com.shop.vympel.dtos.product.KaspiProductImportRequest;
 import com.shop.vympel.dtos.product.KaspiProductImportResponse;
+import com.shop.vympel.dtos.product.WildberriesProductImportRequest;
+import com.shop.vympel.dtos.product.WildberriesProductImportResponse;
 import com.shop.vympel.dtos.product.image.ProductImageOrderRequest;
 import com.shop.vympel.enums.Language;
 import com.shop.vympel.services.crm.CrmActivityService;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
 import com.shop.vympel.services.marketplace.kaspi.KaspiProductImportService;
+import com.shop.vympel.services.marketplace.wildberries.WildberriesProductImportService;
 import com.shop.vympel.services.product.ProductBulkCreationService;
 import com.shop.vympel.services.product.ProductService;
 import com.shop.vympel.security.ratelimit.RateLimitService;
@@ -52,6 +55,7 @@ public class CrmProductController {
     private final CrmActivityService crmActivityService;
     private final ObjectStorageService objectStorageService;
     private final KaspiProductImportService kaspiProductImportService;
+    private final WildberriesProductImportService wildberriesProductImportService;
     private final RateLimitService rateLimitService;
 
     @GetMapping
@@ -110,6 +114,19 @@ public class CrmProductController {
         rateLimitService.enforce("crm-product-import-global", "global", "all-crm-product-imports");
         rateLimitService.enforce("crm-product-import-actor", "actor", authentication.getName());
         return kaspiProductImportService.preview(req);
+    }
+
+    @PostMapping("/import/wildberries")
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED
+    )
+    public WildberriesProductImportResponse importWildberriesProduct(
+            @RequestBody @Valid WildberriesProductImportRequest req,
+            Authentication authentication
+    ) {
+        rateLimitService.enforce("crm-product-import-global", "global", "all-crm-product-imports");
+        rateLimitService.enforce("crm-product-import-actor", "actor", authentication.getName());
+        return wildberriesProductImportService.preview(req);
     }
 
     @PostMapping("/bulk")

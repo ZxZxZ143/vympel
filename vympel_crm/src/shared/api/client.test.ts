@@ -296,4 +296,37 @@ describe("CRM API authentication lifecycle", () => {
     });
     expect(accessHeader(fetchMock.mock.calls[0][1])).toBe("Bearer valid-access");
   });
+
+  it("posts a bounded authenticated Wildberries preview request without persisting a product", async () => {
+    saveSession("valid-access");
+    const timeoutSignal = new AbortController().signal;
+    const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeoutSignal);
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, {
+      source: "WILDBERRIES",
+      sourceUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+      categoryId: 7,
+      categoryProfile: "WRISTWATCH",
+      values: { wildberriesUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx" },
+      mappedFields: [],
+      mappedCharacteristics: [],
+      unmappedCharacteristics: [],
+      unresolvedCharacteristics: [],
+      warnings: [],
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await crmApi.importWildberriesProduct({
+      url: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+      categoryId: 7,
+    }, "ru");
+
+    expect(timeout).toHaveBeenCalledWith(30_000);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/products/import/wildberries?lang=ru");
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: "POST" });
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
+      url: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
+      categoryId: 7,
+    });
+    expect(accessHeader(fetchMock.mock.calls[0][1])).toBe("Bearer valid-access");
+  });
 });

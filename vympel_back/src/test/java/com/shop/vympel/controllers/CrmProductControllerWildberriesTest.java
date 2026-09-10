@@ -1,7 +1,7 @@
 package com.shop.vympel.controllers;
 
-import com.shop.vympel.dtos.product.KaspiProductImportRequest;
-import com.shop.vympel.dtos.product.KaspiProductImportResponse;
+import com.shop.vympel.dtos.product.WildberriesProductImportRequest;
+import com.shop.vympel.dtos.product.WildberriesProductImportResponse;
 import com.shop.vympel.security.ratelimit.RateLimitService;
 import com.shop.vympel.services.crm.CrmActivityService;
 import com.shop.vympel.services.marketplace.kaspi.KaspiProductImportService;
@@ -17,16 +17,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CrmProductControllerKaspiTest {
+class CrmProductControllerWildberriesTest {
     @Test
-    void enforcesAuthenticatedActorAndGlobalBudgetsBeforePreviewing() {
-        KaspiProductImportService importService = mock(KaspiProductImportService.class);
+    void enforcesTheSharedActorAndGlobalImportBudgetsBeforePreviewing() {
+        WildberriesProductImportService importService = mock(WildberriesProductImportService.class);
         RateLimitService rateLimitService = mock(RateLimitService.class);
         Authentication authentication = mock(Authentication.class);
-        KaspiProductImportRequest request = new KaspiProductImportRequest(
-                "https://kaspi.kz/shop/p/watch-123", 77L
+        WildberriesProductImportRequest request = new WildberriesProductImportRequest(
+                "https://global.wildberries.ru/catalog/320159542/detail.aspx", 77L
         );
-        KaspiProductImportResponse expected = mock(KaspiProductImportResponse.class);
+        WildberriesProductImportResponse expected = mock(WildberriesProductImportResponse.class);
         when(authentication.getName()).thenReturn("manager@example.com");
         when(importService.preview(request)).thenReturn(expected);
         CrmProductController controller = new CrmProductController(
@@ -34,12 +34,12 @@ class CrmProductControllerKaspiTest {
                 mock(ProductBulkCreationService.class),
                 mock(CrmActivityService.class),
                 mock(ObjectStorageService.class),
+                mock(KaspiProductImportService.class),
                 importService,
-                mock(WildberriesProductImportService.class),
                 rateLimitService
         );
 
-        KaspiProductImportResponse actual = controller.importKaspiProduct(request, authentication);
+        WildberriesProductImportResponse actual = controller.importWildberriesProduct(request, authentication);
 
         assertSame(expected, actual);
         verify(rateLimitService).enforce("crm-product-import-actor", "actor", "manager@example.com");

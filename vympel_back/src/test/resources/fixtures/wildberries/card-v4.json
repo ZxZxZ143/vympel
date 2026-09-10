@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "id": 320159542,
+      "brand": "Romanson",
+      "name": "Часы Кварцевые RM8A46 BLUE нержавеющая сталь",
+      "subjectName": "Часы наручные",
+      "sizes": [
+        {
+          "price": {
+            "basic": 10106000,
+            "product": 3828000,
+            "logistics": 0
+          }
+        }
+      ]
+    }
+  ]
+}

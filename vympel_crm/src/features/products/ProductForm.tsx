@@ -20,8 +20,8 @@ import { Text } from "@/shared/ui/Text";
 import { getCategoryProfile, productTypeForCategory } from "@/features/products/productCategoryProfile";
 import { notifyProductListChanged } from "@/features/products/productListRefresh";
 import { brandCountryFor } from "@/features/products/brandCountry";
-import { KaspiImportDialog } from "@/features/products/KaspiImportDialog";
-import { applyKaspiImportPreview } from "@/features/products/kaspiImport";
+import { KaspiImportDialog, WildberriesImportDialog } from "@/features/products/KaspiImportDialog";
+import { applyKaspiImportPreview, applyWildberriesImportPreview } from "@/features/products/kaspiImport";
 import {
   CreatableReferenceMultiSelect,
   CreatableReferenceSelect,
@@ -224,6 +224,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionSuccess, setCollectionSuccess] = useState<string | null>(null);
   const [kaspiImportOpen, setKaspiImportOpen] = useState(false);
+  const [wildberriesImportOpen, setWildberriesImportOpen] = useState(false);
   const [referenceCreateTarget, setReferenceCreateTarget] = useState<ReferenceCreateTarget | null>(null);
   const isEdit = productId !== undefined;
   const markdownEditorLabels: MarkdownEditorLabels = {
@@ -703,6 +704,17 @@ export function ProductForm({ productId }: ProductFormProps) {
   const productionCountryOptions = selectedBrandCountry
     ? references.countries.filter((country) => country.id === selectedBrandCountry.countryId)
     : [];
+  const applyImportedForm = (importedForm: ProductFormState) => {
+    const brandChanged = importedForm.brandId !== form.brandId;
+    resetProductForm(importedForm, { keepDirty: true });
+    if (brandChanged) {
+      resetCollectionForm({ ...emptyCollectionForm, brandId: importedForm.brandId });
+      setCollectionFormOpen(false);
+      setCollectionSuccess(null);
+      setCollectionError(null);
+    }
+    setError(null);
+  };
 
   return (
     <section className="crm-page">
@@ -712,6 +724,9 @@ export function ProductForm({ productId }: ProductFormProps) {
         <div className="crm-inline-actions">
           <Button type="button" onClick={() => setKaspiImportOpen(true)}>
             {t("products.kaspiImport")}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => setWildberriesImportOpen(true)}>
+            {t("products.wildberriesImport")}
           </Button>
         </div>
       ) : null}
@@ -1042,25 +1057,30 @@ export function ProductForm({ productId }: ProductFormProps) {
         }}
       />
       {!isEdit ? (
-        <KaspiImportDialog
-          open={kaspiImportOpen}
-          categoryId={Number(form.categoryId)}
-          locale={locale}
-          t={t}
-          onApply={(preview) => {
-            const importedForm = applyKaspiImportPreview(form, preview);
-            const brandChanged = importedForm.brandId !== form.brandId;
-            resetProductForm(importedForm, { keepDirty: true });
-            if (brandChanged) {
-              resetCollectionForm({ ...emptyCollectionForm, brandId: importedForm.brandId });
-              setCollectionFormOpen(false);
-              setCollectionSuccess(null);
-              setCollectionError(null);
-            }
-            setError(null);
-          }}
-          onOpenChange={setKaspiImportOpen}
-        />
+        <>
+          <KaspiImportDialog
+            open={kaspiImportOpen}
+            categoryId={Number(form.categoryId)}
+            locale={locale}
+            t={t}
+            onApply={(preview) => {
+              const importedForm = applyKaspiImportPreview(form, preview);
+              applyImportedForm(importedForm);
+            }}
+            onOpenChange={setKaspiImportOpen}
+          />
+          <WildberriesImportDialog
+            open={wildberriesImportOpen}
+            categoryId={Number(form.categoryId)}
+            locale={locale}
+            t={t}
+            onApply={(preview) => {
+              const importedForm = applyWildberriesImportPreview(form, preview);
+              applyImportedForm(importedForm);
+            }}
+            onOpenChange={setWildberriesImportOpen}
+          />
+        </>
       ) : null}
       <ReferenceCreateDialog
         target={referenceCreateTarget}

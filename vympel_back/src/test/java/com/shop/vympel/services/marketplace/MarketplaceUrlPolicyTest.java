@@ -18,10 +18,14 @@ class MarketplaceUrlPolicyTest {
     }
 
     @Test
-    void canonicalizesWildberriesProductLinksToTheSellerDestination() {
+    void preservesAValidatedCanonicalWildberriesProductLink() {
+        assertEquals(
+                "https://global.wildberries.ru/catalog/123/detail.aspx",
+                MarketplaceUrlPolicy.canonicalizeWildberries("https://www.wildberries.ru/catalog/123/detail.aspx?targetUrl=GP#details")
+        );
         assertEquals(
                 MarketplaceUrlPolicy.WILDBERRIES_URL,
-                MarketplaceUrlPolicy.canonicalizeWildberries("https://www.wildberries.ru/catalog/123/detail.aspx")
+                MarketplaceUrlPolicy.canonicalizeWildberries(MarketplaceUrlPolicy.WILDBERRIES_URL)
         );
     }
 
@@ -40,6 +44,18 @@ class MarketplaceUrlPolicyTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> MarketplaceUrlPolicy.canonicalizeWildberries("https://ozon.ru/product")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> MarketplaceUrlPolicy.canonicalizeWildberries("https://evil.wildberries.ru/catalog/123/detail.aspx")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> MarketplaceUrlPolicy.canonicalizeWildberries("http://wildberries.ru/catalog/123/detail.aspx")
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> MarketplaceUrlPolicy.canonicalizeWildberries("https://wildberries.ru/seller/123")
         );
         assertThrows(
                 IllegalArgumentException.class,

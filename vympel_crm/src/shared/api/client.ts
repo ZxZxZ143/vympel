@@ -25,6 +25,8 @@ import {
   Dashboard,
   KaspiImportPreview,
   KaspiImportRequest,
+  WildberriesImportPreview,
+  WildberriesImportRequest,
   ManagedUser,
   Page,
   Product,
@@ -415,6 +417,14 @@ export const crmApi = {
   },
   importKaspiProduct(payload: KaspiImportRequest, lang: string, signal?: AbortSignal) {
     return crmFetch<KaspiImportPreview>(`/products/import/kaspi?lang=${encodeURIComponent(lang)}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      signal,
+      timeoutMs: CRM_API_IMPORT_TIMEOUT_MS,
+    });
+  },
+  importWildberriesProduct(payload: WildberriesImportRequest, lang: string, signal?: AbortSignal) {
+    return crmFetch<WildberriesImportPreview>(`/products/import/wildberries?lang=${encodeURIComponent(lang)}`, {
       method: "POST",
       body: JSON.stringify(payload),
       signal,

@@ -3,11 +3,20 @@ package com.shop.vympel.services.marketplace;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class MarketplaceUrlPolicy {
     public static final String KASPI_URL =
             "https://kaspi.kz/shop/m/1433003/products?productCode=110688026&masterSku=110688026&merchantSku=AM%2b003%2bH%2bBRONZE&tabId=PRODUCT&started_by=shop_product&ref=shared_link&sessionId=b58a609e-9e07-4c3b-b683-fcf5ccec61d51785317673&link_source=chrome";
     public static final String WILDBERRIES_URL = "https://global.wildberries.ru/seller/4398117";
+    private static final Set<String> WILDBERRIES_PRODUCT_HOSTS = Set.of(
+            "wildberries.ru", "www.wildberries.ru", "global.wildberries.ru"
+    );
+    private static final Pattern WILDBERRIES_PRODUCT_PATH = Pattern.compile(
+            "^/catalog/([1-9]\\d*)/detail\\.aspx/?$"
+    );
 
     private MarketplaceUrlPolicy() {
     }
@@ -38,7 +47,24 @@ public final class MarketplaceUrlPolicy {
     }
 
     public static String canonicalizeWildberries(String url) {
-        return canonicalizeProductUrl(url, "wildberriesUrl", "wildberries.ru", WILDBERRIES_URL);
+        if (url == null || url.trim().isBlank()) {
+            return null;
+        }
+        // Preserve the historic catalog-wide seller destination already stored on existing products.
+        if (WILDBERRIES_URL.equals(url.trim())) {
+            return WILDBERRIES_URL;
+        }
+        URI uri = parseRequiredHttpUrl(url, "wildberriesUrl");
+        String host = uri.getHost().toLowerCase(Locale.ROOT);
+        Matcher productPath = WILDBERRIES_PRODUCT_PATH.matcher(uri.getPath() == null ? "" : uri.getPath());
+        if (!"https".equalsIgnoreCase(uri.getScheme())
+                || !WILDBERRIES_PRODUCT_HOSTS.contains(host)
+                || uri.getRawUserInfo() != null
+                || (uri.getPort() != -1 && uri.getPort() != 443)
+                || !productPath.matches()) {
+            throw new IllegalArgumentException("wildberriesUrl must point to a Wildberries product page");
+        }
+        return "https://global.wildberries.ru/catalog/" + productPath.group(1) + "/detail.aspx";
     }
 
     public static String canonicalizeCmsExternalUrl(String url) {

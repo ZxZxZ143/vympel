@@ -51,4 +51,5 @@
     <include file="db/changelog/2026-08-31-01-stainless-steel-material.xml" relativeToChangelogFile="false" />
     <include file="db/changelog/2026-09-03-01-watch-product-characteristics.xml" relativeToChangelogFile="false" />
     <include file="db/changelog/2026-09-04-01-product-model-variants.xml" relativeToChangelogFile="false" />
+    <include file="db/changelog/2026-09-10-01-wildberries-product-source-links.xml" relativeToChangelogFile="false" />
 </databaseChangeLog>

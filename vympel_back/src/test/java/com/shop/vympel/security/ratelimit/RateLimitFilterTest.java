@@ -17,6 +17,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 class RateLimitFilterTest {
     @Test
@@ -109,6 +110,8 @@ class RateLimitFilterTest {
                 new MockHttpServletResponse(), new MockFilterChain());
         filter.doFilter(request("POST", "/api/crm/products/import/kaspi"),
                 new MockHttpServletResponse(), new MockFilterChain());
+        filter.doFilter(request("POST", "/api/crm/products/import/wildberries"),
+                new MockHttpServletResponse(), new MockFilterChain());
         filter.doFilter(request("GET", "/api/public/product/ru/42/recommendations"),
                 new MockHttpServletResponse(), new MockFilterChain());
 
@@ -121,7 +124,7 @@ class RateLimitFilterTest {
         verify(service).enforce("registration-source", "source", "203.0.113.7");
         verify(service).enforce("refresh-source", "source", "203.0.113.7");
         verify(service).enforce("logout-source", "source", "203.0.113.7");
-        verify(service).enforce("crm-product-import", "source", "203.0.113.7");
+        verify(service, times(2)).enforce("crm-product-import", "source", "203.0.113.7");
         verify(service).enforce("public-catalog-read", "source", "203.0.113.7");
     }
 
