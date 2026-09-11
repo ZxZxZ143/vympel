@@ -151,11 +151,13 @@ const wildberriesPreview: WildberriesImportPreview = {
     nameRu: "Wildberries watch",
     model: "RM 8A46",
     price: 38280,
+    descriptionRu: "Must never import from Wildberries",
     kaspiUrl: null,
     wildberriesUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
   },
   mappedFields: [
     { targetField: "nameRu", resolvedValue: "Wildberries watch" },
+    { targetField: "descriptionRu", resolvedValue: "Must never import from Wildberries" },
     { targetField: "wildberriesUrl", resolvedValue: "https://global.wildberries.ru/catalog/320159542/detail.aspx" },
   ],
   warnings: ["MODEL_FROM_TITLE"],
@@ -224,6 +226,7 @@ describe("Kaspi product import flow", () => {
     expect(screen.queryByRole("button", { name: "products.wildberriesImport" })).toBeNull();
     fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
+    fireEvent.change(document.getElementById("descriptionRu")!, { target: { value: "Manual WB description" } });
 
     fireEvent.click(screen.getByRole("button", { name: "products.wildberriesImport" }));
     expect(screen.getByRole("dialog", { name: "products.wildberriesImportTitle" })).toBeTruthy();
@@ -241,8 +244,13 @@ describe("Kaspi product import flow", () => {
       .toBe(true);
     resolveImport(wildberriesPreview);
     expect(await screen.findByText("products.wildberriesImportMappedFields")).toBeTruthy();
+    expect(screen.getByText("products.wildberriesImportMappedCharacteristics")).toBeTruthy();
+    expect(screen.getByText("products.wildberriesImportUnmapped")).toBeTruthy();
+    expect(screen.getByText("products.wildberriesImportUnresolved")).toBeTruthy();
+    expect(screen.getByText("products.wildberriesImportWarnings")).toBeTruthy();
     expect(screen.getByText("products.wildberriesWarningModelFromTitle")).toBeTruthy();
     expect(screen.getByText("Материал корпуса:")).toBeTruthy();
+    expect(screen.queryByText("Must never import from Wildberries")).toBeNull();
     expect(mocks.importWildberriesProduct).toHaveBeenCalledWith(
       { url: wildberriesPreview.sourceUrl, categoryId: 1 }, "ru", expect.any(AbortSignal),
     );
@@ -257,6 +265,7 @@ describe("Kaspi product import flow", () => {
     expect((screen.getByLabelText("products.wildberriesUrl") as HTMLInputElement).value)
       .toBe(wildberriesPreview.sourceUrl);
     expect((screen.getByLabelText("products.kaspiUrl") as HTMLInputElement).value).toBe("");
+    expect((document.getElementById("descriptionRu") as HTMLTextAreaElement).value).toBe("Manual WB description");
     expect((screen.getByLabelText("products.category") as HTMLSelectElement).value).toBe("1");
     expect(mocks.createProduct).not.toHaveBeenCalled();
 
@@ -267,6 +276,10 @@ describe("Kaspi product import flow", () => {
       price: 38280,
       categoryId: 1,
       wildberriesUrl: wildberriesPreview.sourceUrl,
+      description: {
+        desc: "Manual WB description",
+        desc_ru: "Manual WB description",
+      },
     });
     expect(mocks.createReference).not.toHaveBeenCalled();
   });

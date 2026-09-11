@@ -140,7 +140,7 @@ describe("Wildberries import helpers", () => {
       values: {
         nameRu: "WB watch",
         model: "  RM8A46  ",
-        descriptionRu: null,
+        descriptionRu: "Must never replace manual content",
         wildberriesUrl: "https://global.wildberries.ru/catalog/320159542/detail.aspx",
       },
     };
@@ -156,5 +156,20 @@ describe("Wildberries import helpers", () => {
       kaspiUrl: "https://kaspi.kz/shop/p/manual",
       wildberriesUrl: imported.sourceUrl,
     });
+  });
+
+  it("keeps an empty manual description empty even if a Wildberries preview contains one", () => {
+    const current = { ...emptyForm, categoryId: "1", descriptionRu: "" };
+    const imported: WildberriesImportPreview = {
+      ...preview(),
+      source: "WILDBERRIES",
+      sourceUrl: "https://www.wildberries.ru/catalog/42/detail.aspx",
+      values: {
+        descriptionRu: "Injected Wildberries description",
+        wildberriesUrl: "https://www.wildberries.ru/catalog/42/detail.aspx",
+      },
+    };
+
+    expect(applyWildberriesImportPreview(current, imported).descriptionRu).toBe("");
   });
 });

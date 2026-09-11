@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "id": 322229674,
+      "brand": "Romanson",
+      "name": "Наручные часы 2616",
+      "subjectName": "Часы наручные",
+      "sizes": [
+        {
+          "price": {
+            "basic": 5500000,
+            "product": 4200000,
+            "logistics": 0
+          }
+        }
+      ]
+    }
+  ]
+}

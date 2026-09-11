@@ -7,7 +7,6 @@ import com.shop.vympel.dtos.product.WildberriesProductImportResponse;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
 import com.shop.vympel.services.crm.CrmReferenceService;
-import com.shop.vympel.services.marketplace.kaspi.KaspiCharacteristicMapper;
 import com.shop.vympel.services.marketplace.kaspi.KaspiParsedProduct;
 import com.shop.vympel.services.product.ProductService;
 import org.junit.jupiter.api.Test;
@@ -18,16 +17,17 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class WildberriesProductImportServiceTest {
     @Test
-    void createsPreviewOnlyAndConvertsTheSharedMapperLinkToWildberries() {
+    void createsPreviewOnlyConvertsTheLinkAndSuppressesAnyMappedDescription() {
         WildberriesProductFetcher fetcher = mock(WildberriesProductFetcher.class);
         WildberriesProductParser parser = mock(WildberriesProductParser.class);
-        KaspiCharacteristicMapper mapper = mock(KaspiCharacteristicMapper.class);
+        WildberriesCharacteristicMapper mapper = mock(WildberriesCharacteristicMapper.class);
         CatalogCategoryProfileService profiles = mock(CatalogCategoryProfileService.class);
         CrmReferenceService references = mock(CrmReferenceService.class);
         WildberriesProductImportService service = new WildberriesProductImportService(
@@ -47,7 +47,10 @@ class WildberriesProductImportServiceTest {
                 new KaspiProductImportResponse.Values(
                         "Watch", null, "RM8", 38_280, "Описание", url, null, null, null
                 ),
-                List.of(new KaspiProductImportResponse.MappedField("kaspiUrl", url)),
+                List.of(
+                        new KaspiProductImportResponse.MappedField("descriptionRu", "Описание"),
+                        new KaspiProductImportResponse.MappedField("kaspiUrl", url)
+                ),
                 List.of(), List.of(), List.of(), List.of()
         );
         when(profiles.profileForPublicCategoryId(77L)).thenReturn(CatalogCategoryProfile.WRISTWATCH);
@@ -61,6 +64,8 @@ class WildberriesProductImportServiceTest {
 
         assertEquals("WILDBERRIES", response.source());
         assertEquals(url, response.values().wildberriesUrl());
+        assertNull(response.values().descriptionRu());
+        assertFalse(response.mappedFields().stream().anyMatch(field -> field.targetField().equals("descriptionRu")));
         assertTrue(response.mappedFields().stream().anyMatch(field -> field.targetField().equals("wildberriesUrl")));
         assertFalse(response.warnings().contains("SOURCE_CATEGORY_MISMATCH"));
         assertFalse(Arrays.stream(WildberriesProductImportService.class.getDeclaredFields())

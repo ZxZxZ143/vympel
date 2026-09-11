@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -120,11 +121,40 @@ public class KaspiCharacteristicMapper {
             CatalogCategoryProfile profile,
             CrmReferencesResponse references
     ) {
+        return mapInternal(
+                parsed, sourceUrl, categoryId, profile, references, UnaryOperator.identity(), false
+        );
+    }
+
+    public KaspiProductImportResponse mapWithCharacteristicNormalization(
+            KaspiParsedProduct parsed,
+            String sourceUrl,
+            Long categoryId,
+            CatalogCategoryProfile profile,
+            CrmReferencesResponse references,
+            UnaryOperator<KaspiCharacteristic> characteristicNormalizer
+    ) {
+        return mapInternal(
+                parsed, sourceUrl, categoryId, profile, references,
+                Objects.requireNonNull(characteristicNormalizer), true
+        );
+    }
+
+    private KaspiProductImportResponse mapInternal(
+            KaspiParsedProduct parsed,
+            String sourceUrl,
+            Long categoryId,
+            CatalogCategoryProfile profile,
+            CrmReferencesResponse references,
+            UnaryOperator<KaspiCharacteristic> characteristicNormalizer,
+            boolean reportEveryMappedCharacteristic
+    ) {
         List<KaspiProductImportResponse.MappedField> mappedFields = new ArrayList<>();
         List<KaspiProductImportResponse.UnmappedCharacteristic> unmapped = new ArrayList<>();
         List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved = new ArrayList<>();
         Set<String> warnings = new LinkedHashSet<>(parsed.warnings());
         Map<String, Candidate> candidates = new LinkedHashMap<>();
+        Map<String, List<Candidate>> mappedSources = new LinkedHashMap<>();
         Set<String> conflictedTargets = new HashSet<>();
 
         String name = clean(parsed.name());
@@ -180,13 +210,24 @@ public class KaspiCharacteristicMapper {
         mappedFields.add(new KaspiProductImportResponse.MappedField("kaspiUrl", sourceUrl));
 
         for (KaspiCharacteristic characteristic : parsed.characteristics()) {
+            KaspiCharacteristic normalized = Objects.requireNonNull(
+                    characteristicNormalizer.apply(characteristic),
+                    "Characteristic normalizer must not discard source characteristics"
+            );
             mapCharacteristic(
-                    characteristic, profile, references, candidates, conflictedTargets, unmapped, unresolved
+                    characteristic, normalized, profile, references, candidates, mappedSources,
+                    conflictedTargets, unmapped, unresolved, reportEveryMappedCharacteristic
             );
         }
-        reconcileInteriorCountry(profile, brandOption, references.brands(), candidates, unresolved);
+        reconcileInteriorCountry(
+                profile, brandOption, references.brands(), candidates, mappedSources,
+                unresolved, reportEveryMappedCharacteristic
+        );
 
-        List<KaspiProductImportResponse.MappedCharacteristic> mappedCharacteristics = candidates.values().stream()
+        List<KaspiProductImportResponse.MappedCharacteristic> mappedCharacteristics =
+                (reportEveryMappedCharacteristic
+                        ? mappedSources.values().stream().flatMap(List::stream)
+                        : candidates.values().stream())
                 .map(Candidate::asResponse)
                 .toList();
 
@@ -251,31 +292,55 @@ public class KaspiCharacteristicMapper {
     }
 
     private void mapCharacteristic(
-            KaspiCharacteristic characteristic,
+            KaspiCharacteristic sourceCharacteristic,
+            KaspiCharacteristic normalizedCharacteristic,
             CatalogCategoryProfile profile,
             CrmReferencesResponse references,
             Map<String, Candidate> candidates,
+            Map<String, List<Candidate>> mappedSources,
             Set<String> conflictedTargets,
             List<KaspiProductImportResponse.UnmappedCharacteristic> unmapped,
-            List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved
+            List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved,
+            boolean reportEveryMappedCharacteristic
     ) {
-        String label = clean(characteristic.label());
-        String value = clean(characteristic.value());
-        if (label == null || value == null) return;
-        FieldKind kind = LABELS.get(normalize(label));
+        String sourceLabel = clean(sourceCharacteristic.label());
+        String sourceValue = clean(sourceCharacteristic.value());
+        if (sourceLabel == null || sourceValue == null) {
+            if (reportEveryMappedCharacteristic) {
+                unmapped.add(new KaspiProductImportResponse.UnmappedCharacteristic(
+                        Objects.toString(sourceCharacteristic.label(), ""),
+                        Objects.toString(sourceCharacteristic.value(), ""),
+                        "INVALID_VALUE"
+                ));
+            }
+            return;
+        }
+        String normalizedLabel = clean(normalizedCharacteristic.label());
+        String normalizedValue = clean(normalizedCharacteristic.value());
+        if (normalizedLabel == null || normalizedValue == null) {
+            unmapped.add(new KaspiProductImportResponse.UnmappedCharacteristic(
+                    sourceLabel, sourceValue, "UNKNOWN_LABEL"
+            ));
+            return;
+        }
+        FieldKind kind = LABELS.get(normalize(normalizedLabel));
         if (kind == null) {
-            unmapped.add(new KaspiProductImportResponse.UnmappedCharacteristic(label, value, "UNKNOWN_LABEL"));
+            unmapped.add(new KaspiProductImportResponse.UnmappedCharacteristic(
+                    sourceLabel, sourceValue, "UNKNOWN_LABEL"
+            ));
             return;
         }
         Target target = targetFor(profile, kind);
         if (target == null) {
             unmapped.add(new KaspiProductImportResponse.UnmappedCharacteristic(
-                    label, value, "UNSUPPORTED_FOR_CATEGORY"
+                    sourceLabel, sourceValue, "UNSUPPORTED_FOR_CATEGORY"
             ));
             return;
         }
 
-        Candidate candidate = resolveTarget(target, label, value, references, unresolved);
+        Candidate candidate = resolveTarget(
+                target, sourceLabel, sourceValue, normalizedLabel, normalizedValue, references, unresolved
+        );
         if (candidate == null) return;
         if (conflictedTargets.contains(target.path())) {
             unresolved.add(candidate.asUnresolved("DUPLICATE_CONFLICT"));
@@ -284,38 +349,68 @@ public class KaspiCharacteristicMapper {
         Candidate previous = candidates.get(target.path());
         if (previous == null) {
             candidates.put(target.path(), candidate);
+            addMappedSource(mappedSources, candidate, reportEveryMappedCharacteristic);
             return;
         }
-        if (Objects.equals(previous.value(), candidate.value())) return;
+        if (Objects.equals(previous.value(), candidate.value())) {
+            addMappedSource(mappedSources, candidate, reportEveryMappedCharacteristic);
+            return;
+        }
         if ("watchDetails.featureIds".equals(target.path())) {
             candidates.put(target.path(), mergeFeatureCandidates(previous, candidate));
+            addMappedSource(mappedSources, candidate, reportEveryMappedCharacteristic);
             return;
         }
 
         candidates.remove(target.path());
         conflictedTargets.add(target.path());
-        unresolved.add(previous.asUnresolved("DUPLICATE_CONFLICT"));
+        if (reportEveryMappedCharacteristic) {
+            List<Candidate> previousSources = mappedSources.remove(target.path());
+            if (previousSources == null || previousSources.isEmpty()) {
+                unresolved.add(previous.asUnresolved("DUPLICATE_CONFLICT"));
+            } else {
+                previousSources.stream()
+                        .map(source -> source.asUnresolved("DUPLICATE_CONFLICT"))
+                        .forEach(unresolved::add);
+            }
+        } else {
+            unresolved.add(previous.asUnresolved("DUPLICATE_CONFLICT"));
+        }
         unresolved.add(candidate.asUnresolved("DUPLICATE_CONFLICT"));
+    }
+
+    private void addMappedSource(
+            Map<String, List<Candidate>> mappedSources,
+            Candidate candidate,
+            boolean reportEveryMappedCharacteristic
+    ) {
+        if (reportEveryMappedCharacteristic) {
+            mappedSources.computeIfAbsent(candidate.targetField(), ignored -> new ArrayList<>()).add(candidate);
+        }
     }
 
     private Candidate resolveTarget(
             Target target,
-            String label,
-            String value,
+            String sourceLabel,
+            String sourceValue,
+            String normalizedLabel,
+            String normalizedValue,
             CrmReferencesResponse references,
             List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved
     ) {
         if (target.dictionary() == Dictionary.WATCH_FEATURE) {
-            FeatureListResolution resolution = resolveWatchFeatureList(label, value, references.watchFeatures());
+            FeatureListResolution resolution = resolveWatchFeatureList(
+                    normalizedLabel, normalizedValue, references.watchFeatures()
+            );
             if (resolution.options().isEmpty()) {
                 unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
-                        label, value, target.path(), resolution.reason()
+                        sourceLabel, sourceValue, target.path(), resolution.reason()
                 ));
                 return null;
             }
             return new Candidate(
-                    label,
-                    value,
+                    sourceLabel,
+                    sourceValue,
                     target.path(),
                     resolution.options().stream().map(Option::id).toList(),
                     resolution.options().stream().map(Option::name).reduce((left, right) -> left + ", " + right).orElse(""),
@@ -324,30 +419,31 @@ public class KaspiCharacteristicMapper {
         }
         if (target.dictionary() != null) {
             Resolution resolution = switch (target.dictionary()) {
-                case MATERIAL -> resolveOptions(value, references.materials(), MATERIAL_ALIASES);
-                case MECHANISM -> resolveOptions(value, references.mechanisms(), MECHANISM_ALIASES);
-                case GENDER -> resolveOptions(value, references.genders(), GENDER_ALIASES);
-                case GLASS -> resolveOptions(value, references.glassTypes(), GLASS_ALIASES);
-                case STONE -> resolveOptions(value, references.stoneInlays(), Map.of());
-                case COUNTRY -> resolveOptions(value, references.countries(), Map.of());
-                case COLOR -> resolveOptions(value, references.interiorColors(), COLOR_ALIASES);
-                case STYLE -> resolveOptions(value, references.interiorStyles(), STYLE_ALIASES);
-                case INTERIOR_MECHANISM -> resolveOptions(value, references.interiorMechanisms(), MECHANISM_ALIASES);
-                case POWER -> resolveOptions(value, references.interiorPowerTypes(), POWER_ALIASES);
-                case DIAL_TYPE -> resolveOptions(value, references.watchDialTypes(), DIAL_TYPE_ALIASES);
-                case DIAL_MARKING -> resolveOptions(value, references.watchDialMarkings(), DIAL_MARKING_ALIASES);
-                case WATCH_POWER -> resolveOptions(value, references.watchPowerSources(), WATCH_POWER_ALIASES);
-                case WATER_RESISTANCE -> resolveOptions(value, references.watchWaterResistances(), WATER_RESISTANCE_ALIASES);
+                case MATERIAL -> resolveOptions(normalizedValue, references.materials(), MATERIAL_ALIASES);
+                case MECHANISM -> resolveOptions(normalizedValue, references.mechanisms(), MECHANISM_ALIASES);
+                case GENDER -> resolveOptions(normalizedValue, references.genders(), GENDER_ALIASES);
+                case GLASS -> resolveOptions(normalizedValue, references.glassTypes(), GLASS_ALIASES);
+                case STONE -> resolveOptions(normalizedValue, references.stoneInlays(), Map.of());
+                case COUNTRY -> resolveOptions(normalizedValue, references.countries(), Map.of());
+                case COLOR -> resolveOptions(normalizedValue, references.interiorColors(), COLOR_ALIASES);
+                case STYLE -> resolveOptions(normalizedValue, references.interiorStyles(), STYLE_ALIASES);
+                case INTERIOR_MECHANISM -> resolveOptions(normalizedValue, references.interiorMechanisms(), MECHANISM_ALIASES);
+                case POWER -> resolveOptions(normalizedValue, references.interiorPowerTypes(), POWER_ALIASES);
+                case DIAL_TYPE -> resolveOptions(normalizedValue, references.watchDialTypes(), DIAL_TYPE_ALIASES);
+                case DIAL_MARKING -> resolveOptions(normalizedValue, references.watchDialMarkings(), DIAL_MARKING_ALIASES);
+                case WATCH_POWER -> resolveOptions(normalizedValue, references.watchPowerSources(), WATCH_POWER_ALIASES);
+                case WATER_RESISTANCE -> resolveOptions(normalizedValue, references.watchWaterResistances(), WATER_RESISTANCE_ALIASES);
                 case WATCH_FEATURE -> throw new IllegalStateException("Watch features use multi-value resolution");
             };
             if (resolution.option() == null) {
                 unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
-                        label, value, target.path(), resolution.reason()
+                        sourceLabel, sourceValue, target.path(), resolution.reason()
                 ));
                 return null;
             }
             return new Candidate(
-                    label, value, target.path(), resolution.option().id(), resolution.option().name(), resolution.kind()
+                    sourceLabel, sourceValue, target.path(), resolution.option().id(),
+                    resolution.option().name(), resolution.kind()
             );
         }
 
@@ -355,20 +451,20 @@ public class KaspiCharacteristicMapper {
         String rendered;
         switch (target.valueType()) {
             case STRING -> {
-                if (target.maxLength() != null && value.length() > target.maxLength()) {
+                if (target.maxLength() != null && normalizedValue.length() > target.maxLength()) {
                     unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
-                            label, value, target.path(), "INVALID_VALUE"
+                            sourceLabel, sourceValue, target.path(), "INVALID_VALUE"
                     ));
                     return null;
                 }
-                parsedValue = value;
-                rendered = value;
+                parsedValue = normalizedValue;
+                rendered = normalizedValue;
             }
             case INTEGER -> {
-                Integer number = parseInteger(value, target.kind());
+                Integer number = parseInteger(normalizedValue, target.kind());
                 if (number == null || number < 0) {
                     unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
-                            label, value, target.path(), "INVALID_VALUE"
+                            sourceLabel, sourceValue, target.path(), "INVALID_VALUE"
                     ));
                     return null;
                 }
@@ -376,10 +472,10 @@ public class KaspiCharacteristicMapper {
                 rendered = String.valueOf(number);
             }
             case BOOLEAN -> {
-                Boolean bool = parseBoolean(value);
+                Boolean bool = parseBoolean(normalizedValue);
                 if (bool == null) {
                     unresolved.add(new KaspiProductImportResponse.UnresolvedCharacteristic(
-                            label, value, target.path(), "INVALID_VALUE"
+                            sourceLabel, sourceValue, target.path(), "INVALID_VALUE"
                     ));
                     return null;
                 }
@@ -388,7 +484,7 @@ public class KaspiCharacteristicMapper {
             }
             default -> throw new IllegalStateException("Unsupported value type");
         }
-        return new Candidate(label, value, target.path(), parsedValue, rendered, "NORMALIZED");
+        return new Candidate(sourceLabel, sourceValue, target.path(), parsedValue, rendered, "NORMALIZED");
     }
 
     private void reconcileInteriorCountry(
@@ -396,7 +492,9 @@ public class KaspiCharacteristicMapper {
             Option brandOption,
             List<CrmBrandReferenceOptionResponse> brands,
             Map<String, Candidate> candidates,
-            List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved
+            Map<String, List<Candidate>> mappedSources,
+            List<KaspiProductImportResponse.UnresolvedCharacteristic> unresolved,
+            boolean reportEveryMappedCharacteristic
     ) {
         if (profile != CatalogCategoryProfile.INTERIOR_CLOCK) return;
         String path = "interiorClockDetails.productionCountryId";
@@ -410,6 +508,15 @@ public class KaspiCharacteristicMapper {
                 .orElse(null);
         if (brandCountryId == null || !Objects.equals(brandCountryId, country.value())) {
             candidates.remove(path);
+            if (reportEveryMappedCharacteristic) {
+                List<Candidate> sources = mappedSources.remove(path);
+                if (sources != null && !sources.isEmpty()) {
+                    sources.stream()
+                            .map(source -> source.asUnresolved("BRAND_COUNTRY_MISMATCH"))
+                            .forEach(unresolved::add);
+                    return;
+                }
+            }
             unresolved.add(country.asUnresolved("BRAND_COUNTRY_MISMATCH"));
         }
     }

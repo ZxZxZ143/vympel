@@ -9,7 +9,6 @@ import com.shop.vympel.exceptions.ProductImportException;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
 import com.shop.vympel.services.crm.CrmReferenceService;
-import com.shop.vympel.services.marketplace.kaspi.KaspiCharacteristicMapper;
 import com.shop.vympel.services.marketplace.kaspi.KaspiParsedProduct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ import java.util.Locale;
 public class WildberriesProductImportService {
     private final WildberriesProductFetcher productFetcher;
     private final WildberriesProductParser parser;
-    private final KaspiCharacteristicMapper mapper;
+    private final WildberriesCharacteristicMapper mapper;
     private final CatalogCategoryProfileService categoryProfileService;
     private final CrmReferenceService referenceService;
 
@@ -57,6 +56,7 @@ public class WildberriesProductImportService {
                 warnings.add("SOURCE_CATEGORY_MISMATCH");
             }
             List<KaspiProductImportResponse.MappedField> mappedFields = mapped.mappedFields().stream()
+                    .filter(field -> !"descriptionRu".equals(field.targetField()))
                     .map(field -> "kaspiUrl".equals(field.targetField())
                             ? new KaspiProductImportResponse.MappedField("wildberriesUrl", field.resolvedValue())
                             : field)
@@ -68,7 +68,7 @@ public class WildberriesProductImportService {
                     request.categoryId(),
                     profile,
                     new WildberriesProductImportResponse.Values(
-                            values.nameRu(), values.brandId(), values.model(), values.price(), values.descriptionRu(),
+                            values.nameRu(), values.brandId(), values.model(), values.price(), null,
                             fetched.canonicalUrl(), values.watchDetails(), values.interiorClockDetails(), values.accessoryDetails()
                     ),
                     mappedFields,

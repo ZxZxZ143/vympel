@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { locales, messages } from "@/shared/i18n/messages";
 
 describe("CRM authentication messages", () => {
+  it("uses the exact Russian Wildberries preview section names", () => {
+    expect(messages.ru.products.wildberriesImportMappedFields).toBe("Основные поля");
+    expect(messages.ru.products.wildberriesImportMappedCharacteristics).toBe("Сопоставленные характеристики");
+    expect(messages.ru.products.wildberriesImportUnmapped).toBe("Несопоставленные характеристики");
+    expect(messages.ru.products.wildberriesImportUnresolved).toBe("Неразрешенные характеристики");
+    expect(messages.ru.products.wildberriesImportWarnings).toBe("Предупреждения");
+  });
+
+  it.each(["kz", "en"] as const)("keeps every Wildberries preview section localized for %s", (locale) => {
+    expect(messages[locale].products.wildberriesImportMappedFields).toBeTruthy();
+    expect(messages[locale].products.wildberriesImportMappedCharacteristics).toBeTruthy();
+    expect(messages[locale].products.wildberriesImportUnmapped).toBeTruthy();
+    expect(messages[locale].products.wildberriesImportUnresolved).toBeTruthy();
+    expect(messages[locale].products.wildberriesImportWarnings).toBeTruthy();
+  });
+
   it.each(locales)("defines session and authorization messages for %s", (locale) => {
     expect(messages[locale].common.sessionExpired).toBeTruthy();
     expect(messages[locale].common.forbiddenAction).toBeTruthy();

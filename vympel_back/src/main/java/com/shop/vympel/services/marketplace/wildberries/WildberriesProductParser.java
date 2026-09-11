@@ -17,9 +17,6 @@ import java.util.regex.Pattern;
 
 @Component
 public class WildberriesProductParser {
-    private static final Pattern DESCRIPTION_MODEL = Pattern.compile(
-            "(?ium)^\\s*(?:модель|model)\\s*:\\s*([^\\r\\n]{1,200})\\s*$"
-    );
     private static final Pattern TITLE_TOKEN = Pattern.compile("(?iu)(?<![\\p{L}\\p{N}])([\\p{L}\\p{N}][\\p{L}\\p{N}._/-]{1,79})(?![\\p{L}\\p{N}])");
     private static final Set<String> MODEL_LABELS = Set.of("модель", "model");
     private final ObjectMapper objectMapper;
@@ -45,7 +42,6 @@ public class WildberriesProductParser {
 
             List<String> warnings = new ArrayList<>();
             List<KaspiCharacteristic> characteristics = new ArrayList<>();
-            String description = text(details, "description");
             String title = first(text(details, "imt_name"), text(catalog, "name"));
             String brand = first(text(catalog, "brand"), text(details.path("selling"), "brand_name"));
             String sourceCategory = first(text(details, "subj_name"), text(catalog, "subjectName"));
@@ -73,10 +69,6 @@ public class WildberriesProductParser {
             ModelCandidate modelCandidate = singleModelCandidate(exactModels);
             if (modelCandidate.ambiguous()) warnings.add("MODEL_AMBIGUOUS");
             if (modelCandidate.value() == null && !modelCandidate.ambiguous()) {
-                modelCandidate = modelFromDescription(description);
-                if (modelCandidate.ambiguous()) warnings.add("MODEL_AMBIGUOUS");
-            }
-            if (modelCandidate.value() == null && !modelCandidate.ambiguous()) {
                 modelCandidate = modelFromTitle(title);
                 if (modelCandidate.ambiguous()) warnings.add("MODEL_AMBIGUOUS");
                 else if (modelCandidate.value() != null) warnings.add("MODEL_FROM_TITLE");
@@ -85,13 +77,12 @@ public class WildberriesProductParser {
 
             Integer price = parsePrice(catalog, "product", warnings, true);
             if (title == null) warnings.add("NAME_NOT_FOUND");
-            if (description == null) warnings.add("DESCRIPTION_NOT_FOUND");
             if (characteristics.isEmpty()) warnings.add("CHARACTERISTICS_NOT_FOUND");
 
             return new WildberriesParsedProduct(
                     new KaspiParsedProduct(
                             clean(title, 1_000), clean(brand, 200), model, price,
-                            clean(description, 20_000), List.copyOf(characteristics), List.copyOf(warnings)
+                            null, List.copyOf(characteristics), List.copyOf(warnings)
                     ),
                     clean(sourceCategory, 200)
             );
@@ -134,17 +125,6 @@ public class WildberriesProductParser {
         if (prices.size() == 1) return prices.iterator().next();
         if (required) warnings.add(prices.isEmpty() ? "PRICE_NOT_FOUND" : "PRICE_AMBIGUOUS");
         return null;
-    }
-
-    private ModelCandidate modelFromDescription(String description) {
-        if (description == null) return ModelCandidate.empty();
-        LinkedHashSet<String> matches = new LinkedHashSet<>();
-        Matcher matcher = DESCRIPTION_MODEL.matcher(description);
-        while (matcher.find()) {
-            String value = clean(matcher.group(1), 200);
-            if (value != null) matches.add(value);
-        }
-        return singleModelCandidate(matches);
     }
 
     private ModelCandidate modelFromTitle(String title) {

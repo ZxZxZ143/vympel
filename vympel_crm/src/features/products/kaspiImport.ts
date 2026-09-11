@@ -12,12 +12,13 @@ export function applyWildberriesImportPreview(
   current: ProductFormState,
   preview: WildberriesImportPreview,
 ): ProductFormState {
-  return applyMarketplaceImportPreview(current, preview);
+  return applyMarketplaceImportPreview(current, preview, false);
 }
 
 function applyMarketplaceImportPreview(
   current: ProductFormState,
   preview: MarketplaceImportPreview,
+  applyDescription = true,
 ): ProductFormState {
   if (String(preview.categoryId) !== current.categoryId) {
     return current;
@@ -29,7 +30,7 @@ function applyMarketplaceImportPreview(
   assignString(next, "nameRu", values.nameRu);
   assignTrimmedString(next, "model", values.model);
   assignNumber(next, "price", values.price);
-  assignString(next, "descriptionRu", values.descriptionRu);
+  if (applyDescription) assignString(next, "descriptionRu", values.descriptionRu);
   assignString(next, "kaspiUrl", values.kaspiUrl);
   assignString(next, "wildberriesUrl", values.wildberriesUrl);
 

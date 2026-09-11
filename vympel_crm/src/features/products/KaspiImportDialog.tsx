@@ -375,10 +375,13 @@ function ImportPreview({
   t: (key: string) => string;
   keyPrefix: string;
 }) {
+  const mappedFields = preview.source === "WILDBERRIES"
+    ? preview.mappedFields.filter((item) => item.targetField !== "descriptionRu")
+    : preview.mappedFields;
   return (
     <div className="crm-import-preview">
       <PreviewSection title={t(`${keyPrefix}MappedFields`)} empty={t(`${keyPrefix}Empty`)}>
-        {preview.mappedFields.map((item) => (
+        {mappedFields.map((item) => (
           <li key={`${item.targetField}-${item.resolvedValue}`}>
             <strong>{targetLabel(item.targetField, t)}:</strong> {item.resolvedValue}
           </li>
@@ -405,7 +408,7 @@ function ImportPreview({
           </li>
         ))}
       </PreviewSection>
-      {preview.warnings.length > 0 ? (
+      {preview.source === "WILDBERRIES" || preview.warnings.length > 0 ? (
         <PreviewSection title={t(`${keyPrefix}Warnings`)} empty={t(`${keyPrefix}Empty`)}>
           {preview.warnings.map((warning) => (
             <li key={warning}>{t(warningMessages[warning] ?? "products.kaspiWarningPartial")}</li>
