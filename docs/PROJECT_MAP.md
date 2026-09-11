@@ -9,7 +9,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 ### Frontend
 
 * Language/Runtime: TypeScript on Node.js.
-* Framework: Next.js 16.2.12 App Router with React 19 for the public storefront and the separate CRM app.
+* Framework: Next.js 16.3.4 App Router with React 19 for the public storefront and the separate CRM app.
 * UI libraries: shadcn-compatible structure, Radix UI (`radix-ui` package), lucide-react, sonner, Embla Carousel, NProgress.
 * State management: Redux Toolkit configured in `src/store/store.ts`, currently with no reducers; local React state, URL search params, and the SSR-safe `localProductStorage` localStorage service are used for catalog, favorites, and cart interactions.
 * Styling: Public storefront uses Tailwind CSS 4 through `src/app/globals.css`, CSS variables, and custom shared components; CRM uses plain global CSS tokens in `vympel_crm/src/app/globals.css`.
@@ -1166,7 +1166,7 @@ Public RU/KZ/EN message files include `nav`, `pagination`, `bannerCarousel`, `ph
 
 ### Verified frontend dependency baseline
 
-Both Next applications use Next.js 16.2.12 and `eslint-config-next` 16.2.12. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.26 under Next, which resolves `nanoid` 3.3.18, and public also pins the affected watcher `picomatch` transitive. The current ESLint graph locks `js-yaml` 4.3.1. Both apps narrowly override Next's optional `sharp` dependency to the stable `^0.35.0` line, currently locked at `0.35.3`; `scripts/check-sharp-security.mjs` prints the installed `next`/`sharp` graph and fails unless every installed `sharp` is a stable version at least `0.35.0`.
+Both Next applications use Next.js 16.3.4 and `eslint-config-next` 16.3.4. Public uses `next-intl` 4.13.2. Package overrides hold patched `postcss` 8.5.26 under Next, which resolves `nanoid` 3.3.18, and public also pins the affected watcher `picomatch` transitive. Both apps pin the ESLint graph to patched `js-yaml` 4.3.2, while the public SVG build graph pins patched `svgo` 3.3.5. Both apps narrowly override Next's optional `sharp` dependency to `^0.35.4`, currently locked at `0.35.4`; `scripts/check-sharp-security.mjs` prints the installed `next`/`sharp` graph and fails unless every installed `sharp` is a stable version at least `0.35.0`, while the package override and high-severity audit enforce the newer security floor.
 
 The frontend and CRM also scope `brace-expansion@5.0.9` to the legacy `minimatch@3.1.5` owner. The secure 5.x line changed its CommonJS export shape, so each application owns a fail-closed `scripts/patch-minimatch-brace-expansion.mjs` postinstall bridge that accepts only the reviewed minimatch and brace-expansion versions, patches the legacy import, and runs a finite matching assertion. Both Docker dependency stages copy the bridge before `npm ci`; clean Windows and Linux/Alpine installs therefore exercise the same path. Lockfiles must be generated and clean-installed with the release container's npm 10 contract so required cross-platform optional peer entries remain present. Storefront CI, CRM CI, and the aggregate gate retain the unmodified `npm audit --audit-level=high` threshold.
 
@@ -1200,4 +1200,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-09-10 - Added a non-persisting, SSRF-hardened Wildberries product preview pipeline and create-form action, reused conservative category/dictionary mapping, documented the canonical product-link contract and new runtime settings, and recorded the expanded backend/CRM verification coverage.
+2026-09-11 - Updated both Next.js applications to the 16.3.4 security baseline, pinned patched sharp/js-yaml/SVGO leaves, and synchronized the published-manifest rehearsal with the Wildberries migration boundary.

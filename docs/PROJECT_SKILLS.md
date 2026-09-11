@@ -2166,7 +2166,7 @@
 ### Refresh advisory-driven patches without broad framework churn
 
 * **When to use:** The immutable-image workflow starts failing an unchanged npm audit gate because newly disclosed advisories affect compatible transitive releases.
-* **How:** Confirm publication stopped before registry preflight, inspect each owner with `npm ls`/`npm explain`, and update only compatible patched leaves. The 2026-08-10 remediation moved the reviewed minimatch bridge to `brace-expansion` 5.0.9, Next's scoped PostCSS override to 8.5.26 (resolving `nanoid` 3.3.18), and the ESLint lock to `js-yaml` 4.3.1. Re-run clean installs, both full and production-only audits, the owning tools, production builds, and the complete release workflow before publishing a new SHA.
+* **How:** Confirm publication stopped before registry preflight, inspect each owner with `npm ls`/`npm explain`, and update only compatible patched leaves. The 2026-08-10 remediation moved the reviewed minimatch bridge to `brace-expansion` 5.0.9 and Next's scoped PostCSS override to 8.5.26. The 2026-09-11 remediation aligned Next and `eslint-config-next` at 16.3.4, raised sharp to 0.35.4, and pinned compatible `js-yaml` 4.3.2 plus public-only SVGO 3.3.5; it deliberately left the moderate Vitest advisory for a separately reviewed major upgrade because the release threshold is high. Re-run npm-10 clean installs, both full and production-only audits, the owning tools, production builds, and the complete release workflow before publishing a new SHA.
 * **Why:** Advisory data changes independently of application code. A narrow lock/override update preserves the reviewed Next/React contract and prevents either bypassing a security gate or performing an unnecessary framework upgrade.
 
 ### Generate frontend lockfiles with the release npm major
@@ -2472,7 +2472,7 @@
 ### Derive release evidence from the tagged changelog, not the previous RC
 
 * **When to use:** Generating or preserving a release manifest after the tagged source added Liquibase changes.
-* **How:** Read `db.changelog-master.xml` at the tagged commit, follow the included changelog order, and record the final `changeSet` id. Compare it with `database.expected_latest_change` in the workflow artifact before committing durable evidence.
+* **How:** Read `db.changelog-master.xml` at the tagged commit, follow the included changelog order, and record the final `changeSet` id. Compare it with `database.expected_latest_change` in the workflow artifact before committing durable evidence. Whenever a new final include is added, update the synthetic published-manifest contract assertion to the same identifier so the gate continues to test the generator's derived boundary rather than a stale predecessor.
 * **Why:** RC.9 through RC.11 publication artifacts retained an older hardcoded changeset even though their tagged sources had newer final migrations; registry/runtime success does not prove descriptive release metadata is current.
 
 ### Cross-check release artifacts against the public registry
@@ -2577,4 +2577,4 @@
 
 ## Last Updated
 
-2026-09-10 - Recorded the Wildberries fixed-endpoint/SSRF pattern, conservative model and current-price extraction rules, shared marketplace preview form contract, canonical product-link behavior, and finite offline/live/UI verification boundaries.
+2026-09-11 - Recorded the narrow Next.js 16.3.4/sharp/js-yaml/SVGO advisory remediation, npm-10 lockfile verification, and the need to synchronize synthetic release-manifest assertions with each new final Liquibase changeset.
