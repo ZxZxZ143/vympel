@@ -1200,4 +1200,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-09-11 - Added source-specific Wildberries wristwatch characteristic normalization, exact per-source preview accounting, strict description exclusion/preservation, sanitized article 322229674 coverage, and exact localized preview sections without changing Kaspi behavior.
+2026-09-12 - Revalidated the completed Wildberries characteristic-mapping task with a fresh full backend suite, backend artifact build, and the complete CRM test/lint/typecheck/production-build matrix before immutable publication.
