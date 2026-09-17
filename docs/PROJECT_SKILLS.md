@@ -2323,8 +2323,8 @@
 ### Cold-check release support images before application publication
 
 * **When to use:** A release rehearsal depends on third-party database, cache, object-storage, proxy, or initializer images in addition to the three application images.
-* **How:** Pin support images to an immutable multi-architecture index digest, verify every authoritative Compose topology uses the same approved reference, and inspect the registry for both `linux/amd64` and `linux/arm64` inside the reusable Full Release Gate. The MinIO Client initializer uses `quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727`.
-* **Why:** A warm developer cache allowed the removed Docker Hub `minio/mc` tag to appear healthy, while cold post-publication runners failed before application startup after all three immutable application indexes had already been pushed.
+* **How:** Enumerate every non-application image from the authoritative local Compose topology and inspect the registry for both `linux/amd64` and `linux/arm64` inside the reusable Full Release Gate. Pin vendor images that must remain byte-stable to immutable multi-architecture index digests and verify every Compose topology uses the approved references. MinIO Server uses `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e`; the Client initializer uses `quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727`.
+* **Why:** A warm developer cache allowed the unavailable Docker Hub `minio/mc` and `minio/minio` tags to appear healthy, while successive cold post-publication runners failed before application startup after all three immutable application indexes had already been pushed.
 
 ### Separate package write and deployment read credentials
 
@@ -2596,4 +2596,4 @@
 
 ## Last Updated
 
-2026-09-17 - Recorded the digest-pinned Quay MinIO Client pattern and the requirement to cold-check release support images before immutable application publication.
+2026-09-17 - Recorded digest-pinned Quay MinIO Server/Client images and the requirement to cold-check every release support image before immutable application publication.
