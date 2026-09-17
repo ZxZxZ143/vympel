@@ -2320,6 +2320,12 @@
 * **How:** Keep ordinary `main` runs build-only. Accept publication only from `workflow_dispatch` with `publish_images=true` in the canonical repository; run the reusable Full Release Gate first; authenticate to `ghcr.io` with repository `GITHUB_TOKEN`; reject any existing SHA or release tag; apply repository-owned OCI labels; attest the pushed digest; then pull, inspect, and run the exact SHA references before emitting a digest-complete manifest. If a release tag is supplied, require the workflow ref and tag target to match the exact commit. Never move `v1.0.0-rc.1`, publish `latest`, or rely on a custom Actions write token.
 * **Why:** Manual intent alone is not proof that the source passed security/component/deployment gates. Binding authorization, Git ref, image tag, registry digest, attestation, and runtime evidence prevents an unverified or silently retagged image from becoming release input.
 
+### Cold-check release support images before application publication
+
+* **When to use:** A release rehearsal depends on third-party database, cache, object-storage, proxy, or initializer images in addition to the three application images.
+* **How:** Pin support images to an immutable multi-architecture index digest, verify every authoritative Compose topology uses the same approved reference, and inspect the registry for both `linux/amd64` and `linux/arm64` inside the reusable Full Release Gate. The MinIO Client initializer uses `quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727`.
+* **Why:** A warm developer cache allowed the removed Docker Hub `minio/mc` tag to appear healthy, while cold post-publication runners failed before application startup after all three immutable application indexes had already been pushed.
+
 ### Separate package write and deployment read credentials
 
 * **When to use:** GHCR packages remain private and a deployment host must pull them.
@@ -2590,4 +2596,4 @@
 
 ## Last Updated
 
-2026-09-12 - Recorded the fresh Wildberries release-verification matrix and the requirement to bypass Gradle task caching when collecting pre-release test evidence.
+2026-09-17 - Recorded the digest-pinned Quay MinIO Client pattern and the requirement to cold-check release support images before immutable application publication.

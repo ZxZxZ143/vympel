@@ -819,7 +819,7 @@ Sort values accepted by the public product list controller are `newest`, `oldest
 
 * PostgreSQL: Main application database configured in `vympel_back/src/main/resources/application.yml`; the root Compose stack owns PostgreSQL 16 and a persistent `postgres-data` local volume.
 * Redis: Atomic fixed-window abuse-control state configured through `spring.data.redis.url`; the root Compose stack uses persistent Redis/AOF and deliberately selects Redis even under the explicit local profile.
-* MinIO / S3-compatible storage: Product and CMS image storage configured by `storage.s3.*`; the root Compose stack has persistent MinIO plus a finite idempotent initializer for the public-download `dev-backet` bucket.
+* MinIO / S3-compatible storage: Product and CMS image storage configured by `storage.s3.*`; the root Compose stack has persistent MinIO plus a finite idempotent initializer for the public-download `dev-backet` bucket. Local and single-VM Compose topologies use the multi-architecture MinIO Client release from Quay pinned to OCI index digest `sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727`; the full release gate verifies both amd64 and ARM64 descriptors before publication.
 * Reverse proxy / WAF: Deployment-owned outer request/connection ceiling. Only explicitly configured numeric ingress CIDRs may supply forwarding chains to the application limiter.
 * Server filesystem logging: Logback writes rotating files under `APP_LOG_DIR`; production may use `/var/log/vympel`, and a backend container should use `/app/logs` with a host or named-volume mount.
 * Google Fonts through `next/font/google`: Inter, Judson, Montaga, and Montserrat are loaded in the frontend root layout.
@@ -1200,4 +1200,4 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-09-12 - Revalidated the completed Wildberries characteristic-mapping task with a fresh full backend suite, backend artifact build, and the complete CRM test/lint/typecheck/production-build matrix before immutable publication.
+2026-09-17 - Moved the MinIO Client initializer to its digest-pinned multi-architecture Quay image and added a pre-publication availability gate after the Docker Hub source disappeared.
