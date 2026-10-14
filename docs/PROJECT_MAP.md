@@ -1200,4 +1200,6 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
+2026-10-14 — Added README engineering overview and direct architecture, local setup, UI evidence and release-status navigation. Documentation only; application and deployment contracts remain as documented.
+
 2026-09-17 - Moved both MinIO Server and Client to digest-pinned multi-architecture Quay images and added a pre-publication availability gate after their Docker Hub sources became unavailable.

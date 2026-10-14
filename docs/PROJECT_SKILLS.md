@@ -2596,4 +2596,6 @@
 
 ## Last Updated
 
+2026-10-14 — Added README engineering overview and direct architecture, local setup, UI evidence and release-status navigation. Documentation only; application and deployment contracts remain as documented.
+
 2026-09-17 - Recorded digest-pinned Quay MinIO Server/Client images and the requirement to cold-check every release support image before immutable application publication.
