@@ -1240,5 +1240,8 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-
 2026-10-17 — Finalized the integrated discounts, deletion, consent, banners and characteristic pickers; added populated-database migration proof and documented dependency security fixes, final local gates and the same-main-SHA publication-only contract. No server deployment is authorized.
+
+2026-10-14 — Added README engineering overview and direct architecture, local setup, UI evidence and release-status navigation. Documentation only; application and deployment contracts remain as documented.
+
+2026-09-17 - Moved both MinIO Server and Client to digest-pinned multi-architecture Quay images and added a pre-publication availability gate after their Docker Hub sources became unavailable.

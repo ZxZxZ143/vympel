@@ -1,5 +1,11 @@
 # Vympel Monorepo
 
+**Backend & systems engineering · Storefront / CRM / API · Independent releases**
+
+[System map](docs/PROJECT_MAP.md) · [Local development](#local-development) · [Deployment runbook](docs/deployment/DEPLOYMENT_RUNBOOK.md) · [Release status](#release-status) · [Responsive UI evidence](docs/tasks/vympel_ui_polish_audit/)
+
+Explore the transactional CMS revalidation path, rotating CRM sessions and immutable multi-architecture release workflow. The local stack is reproducible; registry/runtime evidence is separate from external deployment and production readiness.
+
 Vympel is a three-application commerce system maintained in one root Git repository:
 
 - `vympel_front` — RU/KZ/EN public storefront (Next.js, port 3000).
