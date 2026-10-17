@@ -63,7 +63,19 @@ export type ICmsBlock = {
     updatedAt: string | null;
 };
 
+export type CategoryBanner = {
+  categoryCode: string;
+  parentCode: string | null;
+  names: Record<string, string>;
+  explicitBlockKey: string | null;
+  effectiveBlockKey: string | null;
+  sourceCategoryCode: string | null;
+  mode: "OWN" | "INHERITED" | "DEFAULT";
+  hasChildren: boolean;
+};
+
 export type ICmsPage = {
+  categoryBanners?: CategoryBanner[];
     pageKey: string;
     title: string | null;
     blocks: ICmsBlock[];

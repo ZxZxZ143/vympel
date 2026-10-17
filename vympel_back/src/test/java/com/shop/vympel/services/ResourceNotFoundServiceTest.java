@@ -46,6 +46,7 @@ class ResourceNotFoundServiceTest {
         BrandRepository brandRepository = mock(BrandRepository.class);
         when(brandRepository.findById(44L)).thenReturn(Optional.empty());
         CrmCollectionService collections = new CrmCollectionService(
+                mock(org.springframework.jdbc.core.JdbcTemplate.class),
                 brandRepository,
                 mock(CollectionRepository.class),
                 mock(CollectionI18nRepository.class)
@@ -97,6 +98,7 @@ class ResourceNotFoundServiceTest {
         when(pageRepository.findByPageKey("missing-page")).thenReturn(Optional.empty());
         when(blockRepository.findById(88L)).thenReturn(Optional.empty());
         CmsServiceImpl cms = new CmsServiceImpl(
+                mock(com.shop.vympel.services.cms.CatalogBannerService.class),
                 pageRepository,
                 blockRepository,
                 mock(CmsMediaRepository.class),

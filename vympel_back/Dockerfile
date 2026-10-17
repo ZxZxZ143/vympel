@@ -11,7 +11,7 @@ RUN ./gradlew --no-daemon --console=plain bootJar
 
 FROM eclipse-temurin:17.0.19_10-jre-jammy@sha256:1e38389ecd9e5c444e40d4385be4a4a5f56a836a38a6e41c099810c32ec1c595 AS runtime
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends curl libssl3 openssl \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 10001 vympel \
     && useradd --system --uid 10001 --gid 10001 --no-create-home vympel \

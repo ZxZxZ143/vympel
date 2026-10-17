@@ -41,7 +41,7 @@ const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory, in
     const cmsPage = await PublicApiController.getCmsPage("catalog", locale).catch(() => null);
     const cmsBlocks = cmsPage?.blocks ?? [];
     const isAccessories = isAccessoryCategoryCode(categoryCode);
-    const heroBlock = findCatalogHeroBlock(cmsBlocks, categoryCode);
+    const heroBlock = findCatalogHeroBlock(cmsBlocks, categoryCode, cmsPage?.categoryBanners);
     const heroFallback = catalogHeroFallback(categoryCode);
     const heroImages = cmsImageSources(heroBlock, locale, heroFallback);
     const contactBlock = findCmsBlock(cmsBlocks, "catalog.contactBanner");

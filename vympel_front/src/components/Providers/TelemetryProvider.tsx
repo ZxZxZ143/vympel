@@ -1,5 +1,6 @@
 "use client";
 
+import {analyticsAllowed} from "@/services/privacyPreferences";
 import {useEffect, type ReactNode} from "react";
 import {useReportWebVitals} from "next/web-vitals";
 import {createTelemetryDeduper, reportTelemetry, type TelemetryEvent} from "@/lib/telemetry";
@@ -22,6 +23,7 @@ function reportOnce(event: TelemetryEvent) {
 
 export default function TelemetryProvider({children}: {children: ReactNode}) {
     useReportWebVitals((metric) => {
+        if (!analyticsAllowed()) return;
         if (!["CLS", "FCP", "INP", "LCP", "TTFB"].includes(metric.name)) return;
         reportTelemetry({
             kind: "web_vital",

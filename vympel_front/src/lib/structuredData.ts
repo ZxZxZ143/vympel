@@ -1,3 +1,4 @@
+import {customerPrice} from "@/utils/productPricing";
 import type {IProductDetails} from "@/api/types/ProductTypes";
 
 export type BreadcrumbItem = {name: string; url: string};
@@ -29,7 +30,7 @@ export function buildProductStructuredData(product: IProductDetails, canonicalUr
             "@type": "Offer",
             url: canonicalUrl,
             priceCurrency: "KZT",
-            price: product.price,
+            price: customerPrice(product),
             availability: productIsUnavailable(product)
                 ? "https://schema.org/OutOfStock"
                 : "https://schema.org/InStock",

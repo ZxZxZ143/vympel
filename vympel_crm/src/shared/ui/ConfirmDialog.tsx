@@ -13,6 +13,7 @@ type ConfirmDialogProps = {
   cancelLabel: string;
   closeLabel?: string;
   isLoading?: boolean;
+  error?: string | null;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void | Promise<void>;
 };
@@ -25,6 +26,7 @@ export function ConfirmDialog({
   cancelLabel,
   closeLabel,
   isLoading = false,
+  error,
   onOpenChange,
   onConfirm,
 }: ConfirmDialogProps) {
@@ -103,7 +105,9 @@ export function ConfirmDialog({
         if (ariaHidden === null) element.removeAttribute("aria-hidden");
         else element.setAttribute("aria-hidden", ariaHidden);
       });
-      previousFocusRef.current?.focus();
+      const previousFocus = previousFocusRef.current;
+      if (previousFocus?.isConnected) previousFocus.focus();
+      else if (previousFocus?.id) document.getElementById(previousFocus.id)?.focus();
       previousFocusRef.current = null;
     };
   }, [open]);
@@ -127,6 +131,7 @@ export function ConfirmDialog({
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
+        aria-busy={isLoading}
         className="crm-confirm-dialog"
         role="alertdialog"
         onMouseDown={(event) => event.stopPropagation()}
@@ -150,6 +155,7 @@ export function ConfirmDialog({
               {description}
             </p>
           ) : null}
+          {error ? <p className="crm-form-error" role="alert">{error}</p> : null}
         </div>
 
         <div className="crm-confirm-dialog__actions">

@@ -1,5 +1,8 @@
 "use client";
 
+import ProductPrice, {DiscountBadge} from "@/components/ProductPrice";
+import {customerPrice} from "@/utils/productPricing";
+
 import {FC, type MouseEvent, useMemo, useState} from "react";
 import Image from "next/image";
 import {useLocale, useTranslations} from "use-intl";
@@ -34,6 +37,8 @@ export type GoodCardProps = {
     collection?: IProductFeature;
     description?: string;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     stockQuantity?: number | null;
     status?: string | null;
     href?: string;
@@ -51,6 +56,8 @@ const GoodCard: FC<GoodCardProps> = ({
                                          img,
                                          id,
                                          price,
+                                         discountPercent,
+                                         finalPrice,
                                          collection,
                                          description,
                                          name,
@@ -69,18 +76,20 @@ const GoodCard: FC<GoodCardProps> = ({
     const t = useTranslations("good");
     const locale = useLocale();
     const productHref = href ?? link ?? routes.product(id);
-    const formattedPrice = formatProductPrice(price, locale, t("currencySymbol"));
+    const formattedPrice = formatProductPrice(customerPrice({price, discountPercent, finalPrice}), locale, t("currencySymbol"));
     const productSnapshot = useMemo(() => createProductSnapshot({
         id,
         name,
         price,
+        discountPercent,
+        finalPrice,
         imageUrl: img,
         collection,
         description,
         stockQuantity,
         status,
         href: productHref,
-    }), [collection, description, id, img, name, price, productHref, status, stockQuantity]);
+    }), [collection, description, id, img, name, price, discountPercent, finalPrice, productHref, status, stockQuantity]);
     const isUnavailable = isProductUnavailable(productSnapshot);
     const {isFavorite, toggleFavorite} = useFavoriteProduct(productSnapshot);
     const {isInCart, addItem} = useCartProduct(productSnapshot);
@@ -161,6 +170,7 @@ const GoodCard: FC<GoodCardProps> = ({
                         className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
                     >
                         <Card className="relative flex aspect-27/37 w-full items-center justify-center overflow-hidden">
+                            <DiscountBadge discountPercent={discountPercent} className="product-card-discount"/>
                             {canRenderImage ? (
                                 <Image
                                     width={270}
@@ -180,7 +190,7 @@ const GoodCard: FC<GoodCardProps> = ({
                                 <ProductImageFallback className="h-full w-full rounded-none border-0"/>
                             )}
                             {isUnavailable && (
-                                <div className="product-card-badge absolute bottom-2 left-2 rounded-full border border-border-default bg-primary-bg/95 px-2.5 py-1.5 shadow-sm sm:left-4 sm:top-4 sm:bottom-auto sm:px-4 sm:py-2">
+                                <div className="product-card-badge absolute bottom-2 left-2 rounded-full border border-border-default bg-primary-bg/95 px-2.5 py-1.5 shadow-sm sm:left-4 sm:bottom-4 sm:px-4 sm:py-2">
                                     <Text as="span" size="caption" colors="headingSecondary" weight="medium" className="block text-center leading-tight">
                                         {t("outOfStock")}
                                     </Text>
@@ -240,7 +250,7 @@ const GoodCard: FC<GoodCardProps> = ({
 
                     <div className="mt-5 flex flex-col items-start justify-between gap-3 sm:mt-6 sm:flex-row sm:items-center">
                         <Text size="h6" className="min-w-0 max-w-full leading-tight">
-                            <data value={price}>{formattedPrice}</data>
+                            <ProductPrice price={price} discountPercent={discountPercent} finalPrice={finalPrice} showDiscountBadge={false}/>
                         </Text>
                         {
                             isCatalog && (

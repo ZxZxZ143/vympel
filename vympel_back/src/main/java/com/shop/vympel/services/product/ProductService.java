@@ -28,6 +28,8 @@ public interface ProductService {
 
     public Page<CrmProductListItemResponse> getAllForCrm(Pageable pageable, Language language, String search, String status);
 
+    public ProductResponse updateDiscount(Long id, Integer discountPercent, Language language);
+
     public ProductResponse updatePrice(Long id, Integer price, Language language);
 
     public ProductResponse updateStock(Long id, Integer stockQuantity, Language language);

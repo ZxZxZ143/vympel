@@ -133,6 +133,7 @@ class ProductServiceImplTest {
     @Test
     void productDeletionQueuesStoredImagesBeforeDeletingDatabaseGraph() {
         Product product = new Product();
+        product.setStatus("ARCHIVED");
         product.setId(42L);
         when(productRepository.findByIdForUpdate(42L)).thenReturn(Optional.of(product));
 

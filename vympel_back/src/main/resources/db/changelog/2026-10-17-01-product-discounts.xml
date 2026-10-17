@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+ <changeSet id="2026-10-17-01-product-discounts" author="codex" dbms="postgresql">
+  <addColumn tableName="product"><column name="discount_percent" type="integer"/></addColumn>
+  <sql>ALTER TABLE product ADD CONSTRAINT chk_product_discount_percent CHECK (discount_percent BETWEEN 1 AND 99)</sql>
+  <rollback>
+   <sql splitStatements="false"><![CDATA[
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM product WHERE discount_percent IS NOT NULL) THEN
+        RAISE EXCEPTION 'Cannot roll back discounts while product discounts exist';
+      END IF;
+    END $$;
+   ]]></sql>
+   <dropColumn tableName="product" columnName="discount_percent"/>
+  </rollback>
+ </changeSet>
+</databaseChangeLog>

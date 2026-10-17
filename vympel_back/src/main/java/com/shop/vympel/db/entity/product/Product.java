@@ -40,6 +40,11 @@ public class Product {
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
+    @jakarta.validation.constraints.Min(1)
+    @jakarta.validation.constraints.Max(99)
+    @Column(name = "discount_percent")
+    private Integer discountPercent;
+
     @NotNull
     @PositiveOrZero
     @ColumnDefault("0")

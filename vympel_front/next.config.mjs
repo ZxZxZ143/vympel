@@ -50,6 +50,7 @@ const nextConfig = {
         return config;
     },
     images: {
+        dangerouslyAllowLocalIP: process.env.NEXT_PUBLIC_APP_ENV === "local",
         remotePatterns: mediaRemotePatterns(),
     },
 };

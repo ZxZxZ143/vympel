@@ -449,6 +449,20 @@ export const crmApi = {
       method: "DELETE",
     });
   },
+  updateDiscount(id: number, discountPercent: number | null, lang: string) {
+    return crmFetch<Product>(`/products/${id}/discount?lang=${encodeURIComponent(lang)}`, {
+      method: "PATCH", body: JSON.stringify({ discountPercent }),
+    });
+  },
+  deleteArchivedProduct(id: number) {
+    return crmFetch<void>(`/products/${id}/permanent`, { method: "DELETE" });
+  },
+  deleteCollection(id: number) {
+    return crmFetch<void>(`/collections/${id}`, { method: "DELETE" });
+  },
+  deleteReference(type: ReferenceCreateType, id: number) {
+    return crmFetch<void>(`/references/${type}/${id}`, { method: "DELETE" });
+  },
   updatePrice(id: number, price: number, lang: string) {
     return crmFetch<Product>(`/products/${id}/price?lang=${encodeURIComponent(lang)}`, {
       method: "PATCH",

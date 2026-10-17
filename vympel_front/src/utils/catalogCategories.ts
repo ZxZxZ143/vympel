@@ -1,4 +1,4 @@
-import type {ICmsBlock} from "@/api/types/CmsTypes";
+import type {ICmsBlock, CategoryBanner} from "@/api/types/CmsTypes";
 import {PUBLIC_CATEGORY_CODES} from "@/config/routes";
 import {findCmsBlock} from "@/utils/cmsContent";
 
@@ -38,7 +38,11 @@ export function catalogHeroFallback(categoryCode: string | null | undefined) {
     return "/catalog-hero-banner.webp";
 }
 
-export function findCatalogHeroBlock(blocks: ICmsBlock[] | undefined, categoryCode: string | null | undefined) {
+export function findCatalogHeroBlock(blocks: ICmsBlock[] | undefined, categoryCode: string | null | undefined, resolutions?: CategoryBanner[]) {
+    const resolution = resolutions?.find((item) => item.categoryCode === normalizeCatalogCategoryCode(categoryCode));
+    if (resolution) {
+        return resolution.effectiveBlockKey ? findCmsBlock(blocks, resolution.effectiveBlockKey) : null;
+    }
     const normalizedCode = normalizeCatalogCategoryCode(categoryCode);
     const blockKeys = categoryHeroBlockKeys(normalizedCode);
 

@@ -231,7 +231,7 @@ public class ProductCatalogService {
 
     private ProductShortResponse toShortResponse(PublicProductSummary summary) {
         return new ProductShortResponse(
-                summary.productId(), summary.name(), summary.model(), integerPrice(summary.price()),
+                summary.productId(), summary.name(), summary.model(), integerPrice(summary.price()), summary.discountPercent(),
                 summary.stockQuantity(), summary.status(), objectStorageService.getPublicLink(summary.imageKey()),
                 summary.kaspiUrl(), summary.wildberriesUrl(), collectionResponse(summary),
                 summary.ratingAverage(), summary.ratingCount()
@@ -242,7 +242,7 @@ public class ProductCatalogService {
         FeatureDto brand = summary.brandId() == null ? null : new FeatureDto(summary.brandId(), summary.brandName());
         return new ProductQuickSearchResponse(
                 summary.productId(), summary.name(), summary.model(), summary.sku(), brand,
-                collectionResponse(summary), integerPrice(summary.price()), summary.stockQuantity(),
+                collectionResponse(summary), integerPrice(summary.price()), summary.discountPercent(), summary.stockQuantity(),
                 summary.status(), objectStorageService.getPublicLink(summary.imageKey())
         );
     }
@@ -279,6 +279,7 @@ public class ProductCatalogService {
                         : new FeatureDto(product.getBrand().getId(), firstNonBlank(product.getBrand().getName(), product.getBrand().getCode())),
                 collectionResponse(product, language),
                 productMapper.toIntegerPrice(product.getPrice()),
+                product.getDiscountPercent(),
                 product.getStockQuantity(),
                 product.getStatus(),
                 firstImageUrl(product.getId())

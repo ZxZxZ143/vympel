@@ -1,5 +1,8 @@
 "use client";
 
+import ProductPrice from "@/components/ProductPrice";
+import {customerPrice} from "@/utils/productPricing";
+
 import Image from "next/image";
 import {Search, X} from "lucide-react";
 import {useCallback, useEffect, useId, useRef, useState} from "react";
@@ -618,7 +621,7 @@ function SmartSearchProductRow({
                                    t,
                                }: SmartSearchProductRowProps) {
     const unavailable = isProductUnavailable(product);
-    const formattedPrice = formatProductPrice(product.price, locale, currencySymbol);
+    const formattedPrice = formatProductPrice(customerPrice(product), locale, currencySymbol);
     const metadata = [
         product.brand?.name,
         product.collection?.name,
@@ -664,15 +667,8 @@ function SmartSearchProductRow({
                     ) : null}
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
                         <Text as="span" size="bodySm" weight="semibold">
-                            <data value={product.price}>{formattedPrice}</data>
+                            <ProductPrice {...product}/>
                         </Text>
-                        {product.oldPrice ? (
-                            <Text as="span" size="caption" colors="muted" className="line-through">
-                                <data value={product.oldPrice}>
-                                    {formatProductPrice(product.oldPrice, locale, currencySymbol)}
-                                </data>
-                            </Text>
-                        ) : null}
                         {unavailable ? (
                             <Text as="span" size="caption" colors="headingSecondary">
                                 {t("unavailable")}

@@ -93,7 +93,7 @@ services:
     networks: [data]
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+    image: ghcr.io/zxzxz143/vympel-minio@sha256:fef3b9cf8ce1bcb83cd30b9a41273c8585855c0a269fa97cf297c6615745b969
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: "${VYMPEL_S3_ACCESS_KEY:?set VYMPEL_S3_ACCESS_KEY}"
@@ -116,7 +116,7 @@ services:
     networks: [data]
 
   minio-init:
-    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+    image: ghcr.io/zxzxz143/vympel-minio-client@sha256:b13adbe0366ec9311957246a2303d69f561f224e58a6eed6687e25db27791bc5
     depends_on:
       minio:
         condition: service_healthy

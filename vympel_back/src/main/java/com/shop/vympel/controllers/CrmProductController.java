@@ -190,6 +190,26 @@ public class CrmProductController {
         return product;
     }
 
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<Void> deleteArchivedProduct(@PathVariable Long id, HttpServletRequest request) {
+        productService.delete(id);
+        crmActivityService.log("PRODUCT_DELETED", "PRODUCT", id, Map.of("previousStatus", "ARCHIVED"), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/discount")
+    public ProductResponse updateDiscount(
+            @PathVariable Long id,
+            @RequestBody @Valid com.shop.vympel.dtos.crm.QuickDiscountUpdateRequest body,
+            @RequestParam(defaultValue = "ru") String lang,
+            HttpServletRequest request
+    ) {
+        ProductResponse product = productService.updateDiscount(id, body.integerValue(), Language.from(lang));
+        crmActivityService.log("PRODUCT_DISCOUNT_CHANGED", "PRODUCT", id,
+                metadata("discountPercent", product.getDiscountPercent(), "finalPrice", product.getFinalPrice()), request);
+        return product;
+    }
+
     @PatchMapping("/{id}/price")
     public ProductResponse updatePrice(
             @PathVariable Long id,

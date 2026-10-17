@@ -1,6 +1,7 @@
 "use client";
 
-import {useEffect} from "react";
+import {useEffect, useSyncExternalStore} from "react";
+import {analyticsAllowed, subscribePrivacy} from "@/services/privacyPreferences";
 
 import {PublicApiController} from "@/api/controllers/PublicController";
 
@@ -45,6 +46,7 @@ export function trackProductEvent(
     productId: number,
     eventType: "VIEW" | "FAVORITE" | "UNFAVORITE" | "ADD_TO_CART" | "REMOVE_FROM_CART" | "MARKETPLACE_CLICK"
 ) {
+    if (!analyticsAllowed()) return;
     void PublicApiController.trackProductEvent({
         productId,
         eventType,
@@ -53,13 +55,14 @@ export function trackProductEvent(
 }
 
 export default function ProductAnalyticsTracker({productId}: Props) {
+    const allowed = useSyncExternalStore(subscribePrivacy, analyticsAllowed, () => false);
     useEffect(() => {
-        if (!shouldTrackView(productId)) {
+        if (!allowed || !shouldTrackView(productId)) {
             return;
         }
 
         trackProductEvent(productId, "VIEW");
-    }, [productId]);
+    }, [productId, allowed]);
 
     return null;
 }

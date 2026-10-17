@@ -343,6 +343,23 @@ class CrmAuthLifecycleIntegrationTest {
         assertThat(invalid.body()).contains("INVALID_SORT", "requestId");
     }
 
+    @Test
+    void catalogMutationRoutesPreserveAuthorizationAndRejectInvalidDiscountJson() throws Exception {
+        String access=accessToken(login(manager.getEmail()));
+        String path="/api/crm/products/999999999/discount";
+        for (String value: List.of("0","-1","100","1.5")) {
+            assertThat(patchJson(path,access,"{\"discountPercent\":"+value+"}").statusCode()).isEqualTo(400);
+        }
+        assertThat(patchJson(path,access,"{\"discountPercent\":null}").statusCode()).isEqualTo(404);
+        for (String deletion:List.of("/api/crm/products/999999999/permanent","/api/crm/collections/999999999","/api/crm/references/colors/999999999")) {
+            HttpRequest denied=HttpRequest.newBuilder(uri(deletion)).DELETE().build();
+            assertThat(httpClient.send(denied,HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(401);
+            HttpRequest allowed=HttpRequest.newBuilder(uri(deletion)).header(HttpHeaders.AUTHORIZATION,"Bearer "+access).DELETE().build();
+            assertThat(httpClient.send(allowed,HttpResponse.BodyHandlers.ofString()).statusCode()).isEqualTo(404);
+        }
+        assertThat(get("/api/crm/cms/pages",access).statusCode()).isEqualTo(403);
+    }
+
     private Product analyticsProduct() {
         if (analyticsProduct != null) {
             return analyticsProduct;

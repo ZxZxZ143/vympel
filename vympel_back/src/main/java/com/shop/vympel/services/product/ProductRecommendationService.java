@@ -177,6 +177,7 @@ public class ProductRecommendationService {
                 card.name(),
                 card.model(),
                 card.price() == null ? null : card.price().intValue(),
+                card.discountPercent(),
                 card.stockQuantity(),
                 card.status(),
                 objectStorageService.getPublicLink(card.imageKey()),

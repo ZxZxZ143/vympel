@@ -39,6 +39,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CmsServiceImplTest {
     @Mock
+    private CatalogBannerService catalogBannerService;
+    @Mock
     private CmsPageRepository cmsPageRepository;
     @Mock
     private CmsBlockRepository cmsBlockRepository;

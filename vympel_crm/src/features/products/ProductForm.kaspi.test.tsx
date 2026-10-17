@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   importWildberriesProduct: vi.fn(),
   createProduct: vi.fn(),
   createReference: vi.fn(),
+  deleteReference: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
   translate: (key: string) => key,
@@ -37,6 +38,7 @@ vi.mock("@/shared/api/client", () => ({
     importWildberriesProduct: mocks.importWildberriesProduct,
     createProduct: mocks.createProduct,
     createReference: mocks.createReference,
+    deleteReference: mocks.deleteReference,
   },
 }));
 
@@ -163,6 +165,18 @@ const wildberriesPreview: WildberriesImportPreview = {
   warnings: ["MODEL_FROM_TITLE"],
 };
 
+function chooseReference(label: string, id: string) {
+  fireEvent.click(screen.getByLabelText(label, {selector: "button"}));
+  fireEvent.click(screen.getByRole("dialog", {name: label}).querySelector(`[data-reference-choice="${id}"]`)!);
+}
+
+function expectReferenceSelection(label: string, id: string) {
+  fireEvent.click(screen.getByLabelText(label, {selector: "button"}));
+  const panel = screen.getByRole("dialog", {name: label});
+  expect(panel.querySelector(`[data-reference-choice="${id}"]`)?.getAttribute("aria-pressed")).toBe("true");
+  fireEvent.keyDown(panel, {key: "Escape"});
+}
+
 describe("Kaspi product import flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -172,6 +186,32 @@ describe("Kaspi product import flow", () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it("deletes a custom material from the picker and clears both RHF selections without losing manual edits", async () => {
+    const custom = {id:91,name:"Test material",code:"CRM_1234567890ABCDEF",deletable:true};
+    const other = {id:92,name:"Another material",code:"CRM_1234567890ABCDE0",deletable:true};
+    mocks.references.mockResolvedValue({...references,materials:[...references.materials,custom,other]});
+    mocks.deleteReference.mockResolvedValue(undefined);
+    render(<ProductForm/>);
+    fireEvent.change(await screen.findByLabelText("products.category"),{target:{value:"1"}});
+    fireEvent.click(screen.getByRole("button",{name:"products.categoryFirstSubmit"}));
+    fireEvent.change(screen.getByLabelText("products.nameRu"),{target:{value:"Unsaved manual name"}});
+    for (const label of ["products.caseMaterial","products.strapMaterial"]) {
+      fireEvent.click(screen.getByLabelText(label, {selector: "button"}));
+      fireEvent.click(within(screen.getByRole("dialog",{name:label})).getByRole("button",{name:"Test material"}));
+    }
+    fireEvent.click(screen.getByLabelText("products.caseMaterial", {selector: "button"}));
+    fireEvent.click(screen.getByRole("button",{name:"catalogTools.deleteOption: Test material"}));
+    expect(mocks.deleteReference).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button",{name:"catalogTools.referenceDeleteConfirm"}));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(mocks.deleteReference).toHaveBeenCalledWith("case-materials",91);
+    expect(screen.getByLabelText("products.caseMaterial", {selector: "button"}).textContent).toBe("common.selectPlaceholder");
+    expect(screen.getByLabelText("products.strapMaterial", {selector: "button"}).textContent).toBe("common.selectPlaceholder");
+    expect((screen.getByLabelText("products.nameRu") as HTMLInputElement).value).toBe("Unsaved manual name");
+    expect(screen.queryByText("Test material")).toBeNull();
+    expect(mocks.references).toHaveBeenCalledTimes(1);
   });
 
   it("shows import only after category selection and keeps Cancel side-effect free", async () => {
@@ -338,7 +378,7 @@ describe("Kaspi product import flow", () => {
 
     fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
-    fireEvent.change(screen.getByLabelText("products.caseMaterial"), { target: { value: "1" } });
+    chooseReference("products.caseMaterial", "1");
     fireEvent.click(screen.getByRole("button", { name: "products.kaspiImport" }));
     fireEvent.change(screen.getByLabelText("products.kaspiImportUrl"), { target: { value: preview.sourceUrl } });
     fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
@@ -348,14 +388,14 @@ describe("Kaspi product import flow", () => {
     expect((screen.getByLabelText("products.price") as HTMLInputElement).value).toBe("129990");
     expect((screen.getByLabelText("products.kaspiUrl") as HTMLInputElement).value).toBe(preview.sourceUrl);
     expect((document.getElementById("descriptionRu") as HTMLTextAreaElement).value).toBe("Описание **Markdown**");
-    expect((screen.getByLabelText("products.caseMaterial") as HTMLSelectElement).value).toBe("1");
-    expect((screen.getByLabelText("products.strapMaterial") as HTMLSelectElement).value).toBe("3");
-    expect((screen.getByLabelText("products.dialType") as HTMLSelectElement).value).toBe("31");
-    expect((screen.getByLabelText("products.dialMarking") as HTMLSelectElement).value).toBe("32");
-    expect((screen.getByLabelText("products.watchPowerSource") as HTMLSelectElement).value).toBe("33");
-    expect((screen.getByLabelText("products.waterResistance") as HTMLSelectElement).value).toBe("34");
+    expectReferenceSelection("products.caseMaterial", "1");
+    expectReferenceSelection("products.strapMaterial", "3");
+    expectReferenceSelection("products.dialType", "31");
+    expectReferenceSelection("products.dialMarking", "32");
+    expectReferenceSelection("products.watchPowerSource", "33");
+    expectReferenceSelection("products.waterResistance", "34");
     expect((screen.getByLabelText("products.packageContents") as HTMLInputElement).value).toBe("часы");
-    expect((screen.getByLabelText("Отображение даты") as HTMLInputElement).checked).toBe(true);
+    expectReferenceSelection("products.watchFeatures", "35");
     expect((screen.getByLabelText("products.category") as HTMLSelectElement).value).toBe("1");
 
     fireEvent.change(screen.getByLabelText("products.nameRu"), { target: { value: "Manually edited" } });
@@ -385,23 +425,21 @@ describe("Kaspi product import flow", () => {
   });
 
   it("creates a missing reference once, merges it locally and selects it without a reload", async () => {
-    mocks.createReference.mockResolvedValue({ id: 90, name: "Перламутровый", code: "CRM_TEST" });
+    mocks.createReference.mockResolvedValue({ id: 90, name: "Перламутровый", code: "CRM_1234567890ABCDEF", deletable: true });
     render(<ProductForm />);
 
     fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
     const dialSelect = screen.getByLabelText("products.dialType") as HTMLSelectElement;
-    fireEvent.click(within(dialSelect.parentElement!).getByRole("button", { name: "products.referenceAdd" }));
+    fireEvent.click(within(dialSelect.closest(".crm-creatable-reference")!).getByRole("button", { name: "products.referenceAdd" }));
     const dialog = screen.getByRole("dialog", { name: "products.referenceCreateTitle" });
     fireEvent.change(within(dialog).getByLabelText("products.referenceNameRu"), { target: { value: "Перламутровый" } });
     fireEvent.submit(within(dialog).getByLabelText("products.referenceNameRu").closest("form")!);
 
     await waitFor(() => expect(mocks.createReference).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    const selectedDial = await screen.findByLabelText("products.dialType") as HTMLSelectElement;
-    await waitFor(() => expect(Array.from(selectedDial.options).map((option) => option.value)).toContain("90"));
-    await waitFor(() => expect(selectedDial.value).toBe("90"));
-    expect(Array.from(selectedDial.options).some((option) => option.text === "Перламутровый")).toBe(true);
+    await waitFor(() => expect(screen.getByRole("button", {name: "products.dialType"}).textContent).toBe("Перламутровый"));
+    expectReferenceSelection("products.dialType", "90");
     expect(mocks.createReference).toHaveBeenCalledWith(
       "watch-dial-types",
       { ru: "Перламутровый", kz: "", en: "" },
@@ -410,12 +448,12 @@ describe("Kaspi product import flow", () => {
   });
 
   it("cancels inline creation without a mutation and can immediately select a created feature", async () => {
-    mocks.createReference.mockResolvedValue({ id: 91, name: "Новый календарь", code: "CRM_FEATURE" });
+    mocks.createReference.mockResolvedValue({ id: 91, name: "Новый календарь", code: "CRM_1234567890ABCDE0", deletable: true });
     render(<ProductForm />);
 
     fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
-    const features = document.getElementById("featureIds")!;
+    const features = document.getElementById("featureIds")!.closest<HTMLElement>(".crm-field")!;
     fireEvent.click(within(features).getByRole("button", { name: "products.referenceAdd" }));
     fireEvent.click(within(screen.getByRole("dialog")).getAllByRole("button", { name: "common.cancel" })[1]);
     expect(mocks.createReference).not.toHaveBeenCalled();
@@ -424,7 +462,8 @@ describe("Kaspi product import flow", () => {
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("products.referenceNameRu"), { target: { value: "Новый календарь" } });
     fireEvent.submit(within(dialog).getByLabelText("products.referenceNameRu").closest("form")!);
-    expect((await screen.findByLabelText("Новый календарь") as HTMLInputElement).checked).toBe(true);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expectReferenceSelection("products.watchFeatures", "91");
   });
 
   it("prevents a synchronous double submit and keeps a duplicate error in the dialog", async () => {
@@ -437,7 +476,7 @@ describe("Kaspi product import flow", () => {
     fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
     const dialSelect = screen.getByLabelText("products.dialType") as HTMLSelectElement;
-    fireEvent.click(within(dialSelect.parentElement!).getByRole("button", { name: "products.referenceAdd" }));
+    fireEvent.click(within(dialSelect.closest(".crm-creatable-reference")!).getByRole("button", { name: "products.referenceAdd" }));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("products.referenceNameRu"), { target: { value: " Дубликат " } });
     const form = within(dialog).getByLabelText("products.referenceNameRu").closest("form")!;

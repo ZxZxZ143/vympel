@@ -62,6 +62,48 @@ public class CrmReferenceMutationService {
         return new CrmReferenceOptionResponse(id, responseName, code);
     }
 
+    @Transactional
+    public void delete(String rawType, Long id) {
+        ReferenceType type = ReferenceType.fromPath(rawType);
+        String scope = type.discriminatorColumn == null ? "" : " AND " + type.discriminatorColumn + " = ?";
+        Object[] args = type.discriminatorColumn == null ? new Object[]{id} : new Object[]{id, type.discriminatorValue};
+        List<String> codes = jdbcTemplate.queryForList(
+                "SELECT code FROM " + type.table + " WHERE id = ?" + scope + " FOR UPDATE", String.class, args);
+        if (codes.isEmpty()) throw new com.shop.vympel.exceptions.ResourceNotFoundException("Reference not found");
+        // This is the persisted contract of generateCode, not a display-name heuristic.
+        if (codes.get(0) == null || !codes.get(0).matches("CRM_[0-9A-F]{16}")) {
+            throw new BusinessRuleViolationException("REFERENCE_PROTECTED", "System reference values cannot be deleted.");
+        }
+        for (String usage : usageQueries(type.table)) {
+            Long count = jdbcTemplate.queryForObject(usage, Long.class, id);
+            if (count != null && count > 0) {
+                throw new BusinessRuleViolationException("REFERENCE_IN_USE", "Reference value is used by products.");
+            }
+        }
+        jdbcTemplate.update("DELETE FROM " + type.table + " WHERE id = ?", id);
+    }
+
+    private List<String> usageQueries(String table) {
+        return switch (table) {
+            case "material" -> List.of(
+                    "SELECT count(*) FROM watch_details WHERE ? IN (case_material_id, strap_material_id)",
+                    "SELECT count(*) FROM interior_clock_details WHERE case_material_id = ?",
+                    "SELECT count(*) FROM accessory_details WHERE ? IN (case_material_id, insert_material_id)");
+            case "watch_mechanism" -> List.of("SELECT count(*) FROM watch_details WHERE mechanism_id = ?");
+            case "gender" -> List.of("SELECT count(*) FROM watch_details WHERE gender_id = ?");
+            case "glass_type" -> List.of("SELECT count(*) FROM watch_details WHERE glass_type_id = ?");
+            case "stone_inlay" -> List.of("SELECT count(*) FROM watch_details WHERE stone_inlay_id = ?");
+            case "interior_feature" -> List.of(
+                    "SELECT count(*) FROM interior_clock_details WHERE ? IN (color_id, style_id, mechanism_type_id, power_type_id)",
+                    "SELECT count(*) FROM accessory_details WHERE color_id = ?",
+                    "SELECT count(*) FROM watch_details WHERE ? IN (strap_color_id, dial_color_id)");
+            case "watch_attribute_option" -> List.of(
+                    "SELECT count(*) FROM watch_details WHERE ? IN (dial_type_id, dial_marking_id, power_source_id, water_resistance_option_id)");
+            case "watch_feature" -> List.of("SELECT count(*) FROM watch_details_feature WHERE feature_id = ?");
+            default -> throw new IllegalArgumentException("Unsupported reference type");
+        };
+    }
+
     static String normalize(String value) {
         if (value == null) return "";
         return Normalizer.normalize(value, Normalizer.Form.NFKC)

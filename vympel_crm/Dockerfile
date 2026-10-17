@@ -2,7 +2,7 @@ FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a55
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
-COPY scripts/patch-minimatch-brace-expansion.mjs ./scripts/
+COPY scripts/patch-minimatch-brace-expansion.mjs scripts/check-glob-security.mjs ./scripts/
 RUN npm ci --no-audit --no-fund
 
 FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS build
@@ -34,6 +34,7 @@ RUN apk upgrade --no-cache libcrypto3 libssl3 \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
+COPY --from=build --chown=node:node /app/public ./public
 USER node
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \

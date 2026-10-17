@@ -1,8 +1,10 @@
 "use client";
 
+import ProductPrice from "@/components/ProductPrice";
+
 import {useMemo} from "react";
 import Image from "next/image";
-import {useLocale, useTranslations} from "use-intl";
+import {useTranslations} from "use-intl";
 
 import Button, {variants as buttonVariants} from "@/components/ui/shared/Button";
 import {Heading} from "@/components/ui/shared/text/Heading";
@@ -11,7 +13,6 @@ import Favorite from "@/assets/icons/Favorite";
 import ArrowRight from "@/assets/icons/ArrowRight";
 import {IProductDetails} from "@/api/types/ProductTypes";
 import {cn} from "@/lib/utils";
-import {formatProductPrice} from "@/utils/formatProductPrice";
 import {trackProductEvent} from "@/components/ProductAnalyticsTracker";
 import {
     createProductSnapshot,
@@ -30,14 +31,12 @@ type Props = {
 
 const ProductSummary = ({product}: Props) => {
     const t = useTranslations("product");
-    const locale = useLocale();
     const productSnapshot = useMemo(() => createProductSnapshot(product), [product]);
     const {isFavorite, toggleFavorite: toggleStoredFavorite} = useFavoriteProduct(productSnapshot);
     const {isInCart, addItem} = useCartProduct(productSnapshot);
     const actionToasts = useProductActionToasts();
     const gender = product.watchDetails?.gender?.name;
     const isAvailable = !isProductUnavailable(productSnapshot);
-    const formattedPrice = formatProductPrice(product.price, locale, t("currencySymbol"));
     const toggleFavoriteHandler = () => {
         const result = toggleStoredFavorite();
 
@@ -156,7 +155,7 @@ const ProductSummary = ({product}: Props) => {
             ) : null}
 
             <Text size="h5" colors="primary" className="leading-10">
-                {formattedPrice}
+                <ProductPrice {...product}/>
             </Text>
 
             {isAvailable ? (

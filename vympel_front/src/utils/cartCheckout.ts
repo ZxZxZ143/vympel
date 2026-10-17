@@ -1,3 +1,4 @@
+import {customerPrice} from "@/utils/productPricing";
 import {CartStoreItem, getAvailableStock, isProductUnavailable} from "@/services/localProductStorage";
 import {formatProductPrice} from "@/utils/formatProductPrice";
 
@@ -53,7 +54,7 @@ export function buildWhatsAppOrderMessage(
 ): string {
     const itemBlocks = items.map((item, index) => {
         const snapshot = item.snapshot;
-        const unitPrice = snapshot?.price ?? 0;
+        const unitPrice = snapshot ? customerPrice(snapshot) : 0;
         const lineTotal = unitPrice * item.quantity;
 
         return [
@@ -65,7 +66,7 @@ export function buildWhatsAppOrderMessage(
         ].join("\n");
     });
 
-    const total = items.reduce((sum, item) => sum + ((item.snapshot?.price ?? 0) * item.quantity), 0);
+    const total = items.reduce((sum, item) => sum + ((item.snapshot ? customerPrice(item.snapshot) : 0) * item.quantity), 0);
 
     return [
         labels.greeting,

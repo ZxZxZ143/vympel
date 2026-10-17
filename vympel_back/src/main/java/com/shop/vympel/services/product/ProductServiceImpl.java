@@ -207,6 +207,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
+        if (!"ARCHIVED".equals(product.getStatus())) {
+            throw new com.shop.vympel.exceptions.BusinessRuleViolationException(
+                    "PRODUCT_NOT_ARCHIVED", "Only archived products can be permanently deleted.");
+        }
         objectStorageService.enqueueProductImagesForDeletion(id);
         productRepository.delete(product);
 
@@ -356,6 +360,17 @@ public class ProductServiceImpl implements ProductService {
                 names.getOrDefault(product.getId(), product.getModel()),
                 variantGroups.getOrDefault(product.getId(), ProductModelVariantGroupResponse.empty())
         ));
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateDiscount(Long id, Integer discountPercent, Language language) {
+        ProductPricing.validateDiscount(discountPercent);
+        Product product = productRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        product.setDiscountPercent(discountPercent);
+        productRepository.save(product);
+        return get(id, language);
     }
 
     @Override
@@ -608,6 +623,7 @@ public class ProductServiceImpl implements ProductService {
 
     private void applyCanonicalInventoryFields(Product product, ProductResponse productResponse) {
         productResponse.setPrice(toIntegerPrice(product.getPrice()));
+        productResponse.setDiscountPercent(product.getDiscountPercent());
         productResponse.setStockQuantity(product.getStockQuantity());
     }
 

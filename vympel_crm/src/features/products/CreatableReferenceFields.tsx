@@ -9,6 +9,8 @@ import type { Feature, ReferenceCreateType } from "@/shared/api/types";
 import { useI18n } from "@/shared/i18n/useI18n";
 import { Button } from "@/shared/ui/Button";
 import { Field } from "@/shared/ui/Field";
+import {ReferenceOptionPicker} from "./ReferenceOptionPicker";
+import type {ReferenceDeletionActions} from "./referenceDeletion";
 import { Text } from "@/shared/ui/Text";
 
 export type ReferenceCreateTarget = {
@@ -27,6 +29,7 @@ type CreatableReferenceSelectProps = {
   disabled?: boolean;
   onChange: (value: string) => void;
   onAdd?: () => void;
+  deletion?: ReferenceDeletionActions;
 };
 
 export function CreatableReferenceSelect({
@@ -39,11 +42,14 @@ export function CreatableReferenceSelect({
   disabled = false,
   onChange,
   onAdd,
+  deletion,
 }: CreatableReferenceSelectProps) {
   const { t } = useI18n();
   return (
-    <Field htmlFor={id} label={label}>
+    <div className="crm-field">
+      <label className="crm-label" htmlFor={id}>{label}</label>
       <div className="crm-creatable-reference">
+        {onAdd || deletion ? <ReferenceOptionPicker id={id} label={label} value={value} options={options} placeholder={placeholder} displayLabels={displayLabels} disabled={disabled} onChange={onChange} deletion={deletion}/> : (
         <select
           id={id}
           className="crm-select"
@@ -58,13 +64,14 @@ export function CreatableReferenceSelect({
             </option>
           ))}
         </select>
+        )}
         {onAdd ? (
           <Button type="button" variant="secondary" className="crm-button--compact" disabled={disabled} onClick={onAdd}>
             {t("products.referenceAdd")}
           </Button>
         ) : null}
       </div>
-    </Field>
+    </div>
   );
 }
 
@@ -76,6 +83,7 @@ type CreatableReferenceMultiSelectProps = {
   disabled?: boolean;
   onChange: (value: string[]) => void;
   onAdd?: () => void;
+  deletion?: ReferenceDeletionActions;
 };
 
 export function CreatableReferenceMultiSelect({
@@ -86,39 +94,20 @@ export function CreatableReferenceMultiSelect({
   disabled = false,
   onChange,
   onAdd,
+  deletion,
 }: CreatableReferenceMultiSelectProps) {
   const { t } = useI18n();
-  const selected = new Set(value);
   return (
-    <fieldset className="crm-reference-multi" id={id} disabled={disabled}>
-      <legend>{label}</legend>
-      <div className="crm-reference-multi__options">
-        {options.map((option) => {
-          const optionId = String(option.id);
-          return (
-            <label key={option.id} className="crm-reference-multi__option">
-              <input
-                type="checkbox"
-                checked={selected.has(optionId)}
-                onChange={(event) => {
-                  const next = new Set(value);
-                  if (event.target.checked) next.add(optionId);
-                  else next.delete(optionId);
-                  onChange(Array.from(next));
-                }}
-              />
-              <span>{option.name}</span>
-            </label>
-          );
-        })}
-        {options.length === 0 ? <Text tone="muted" size="small">{t("products.referenceNoOptions")}</Text> : null}
-      </div>
-      {onAdd ? (
-        <Button type="button" variant="secondary" className="crm-button--compact" disabled={disabled} onClick={onAdd}>
+    <div className="crm-field">
+      <label className="crm-label" htmlFor={id}>{label}</label>
+      <div className="crm-creatable-reference">
+        <ReferenceOptionPicker multiple id={id} label={label} value={value} options={options}
+          placeholder={t("common.selectPlaceholder")} disabled={disabled} onChange={onChange} deletion={deletion}/>
+        {onAdd ? <Button type="button" variant="secondary" className="crm-button--compact" disabled={disabled} onClick={onAdd}>
           {t("products.referenceAdd")}
-        </Button>
-      ) : null}
-    </fieldset>
+        </Button> : null}
+      </div>
+    </div>
   );
 }
 

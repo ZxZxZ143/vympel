@@ -36,6 +36,13 @@ public class CrmCollectionController {
         return crmCollectionService.getByBrand(brandId, language);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCollection(@PathVariable Long id, HttpServletRequest request) {
+        crmCollectionService.delete(id);
+        crmActivityService.log("COLLECTION_DELETED", "COLLECTION", id, Map.of(), request);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CrmCollectionResponse createCollection(

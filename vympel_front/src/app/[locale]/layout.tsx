@@ -1,3 +1,4 @@
+import PrivacyNotice from "@/components/PrivacyNotice";
 import type {Metadata} from "next";
 import {Suspense} from "react";
 import {Inter, Judson, Montaga, Montserrat} from "next/font/google";
@@ -81,6 +82,7 @@ export default async function RootLayout(props: {
                                 {children}
                                 <Toaster/>
                                 <Footer />
+                                <PrivacyNotice/>
                                 <Suspense fallback={null}>
                                     <MobileBottomNavigation/>
                                 </Suspense>

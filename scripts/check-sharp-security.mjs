@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-const minimumSharpVersion = "0.35.0";
+const minimumSharpVersion = "0.35.5";
 const npmCommand = process.env.npm_execpath ? process.execPath : "npm";
 const npmArguments = process.env.npm_execpath ? [process.env.npm_execpath] : [];
 

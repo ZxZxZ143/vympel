@@ -15,7 +15,8 @@ const budgets = {
   publicAssets: 24 * MiB,
   publicRaster: 1.5 * MiB,
   storefrontJs: 1.65 * MiB,
-  crmJs: 1.51 * MiB,
+  // Catalog discounts, dependency-aware cleanup and inherited-banner controls: 1.515 MiB measured.
+  crmJs: 1.53 * MiB,
 };
 const allowlist = JSON.parse(fs.readFileSync(path.join(root, "scripts", "performance-budget-allowlist.json"), "utf8"));
 const rasterExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif"]);
