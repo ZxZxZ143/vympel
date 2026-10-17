@@ -2068,6 +2068,12 @@
 * CRM bulk creation UI: Keep the first screen as category selection, then shared common fields, then a dense row table with add/duplicate/remove controls and row-level errors.
 * CRM analytics UI: Use compact metric cards and tables for product popularity; period controls should be select/segmented-control style, and promotion actions should be ordinary mutation buttons with loading/disabled states.
 
+### Release-blocking dependencies and unpatched glob recursion
+
+* **When to use:** The mandatory npm high/critical gate blocks an otherwise verified release.
+* **How:** Keep Next/eslint-config-next aligned (16.3.8), use Vitest 4.1.12, sharp >=0.35.5, brace-expansion 5.0.12 and source-map-js 1.2.2, then rerun all finite gates. The exact `braces -> npm:@dieub/braces-depth-guard@3.0.3-pn.0` alias is a reviewed derivative, not an upstream fix or audit exemption. Its lockfile integrity and runtime diff were inspected; only parse/AST depth guards were added. App-local `check-glob-security.mjs` resolves micromatch's actual dependency, checks identity/version and tests normal output plus deep string/AST rejection during postinstall. The bootstrap package does not claim OIDC provenance; reviewed artifact/source and compatibility tests are the acceptance basis. Replace it with a reviewed upstream fix when available.
+* **Why:** Renaming a package or weakening severity does not establish remediation. Avoid `npm audit fix --force` downgrades and retain strict CI/Docker audits. Next source updates require fresh builds; do not claim compatibility from audit output alone.
+
 ## Dependencies - Gotchas
 
 | Package | Version | Area | Gotcha |
