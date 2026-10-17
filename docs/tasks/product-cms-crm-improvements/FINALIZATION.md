@@ -30,6 +30,8 @@ This bootstrap derivative does not claim OIDC provenance. Acceptance is based on
 
 CRM tests now await asynchronous confirmation completion before Escape and identify labelled field buttons separately from same-labelled dialogs. This fixes test timing/selector assumptions without weakening assertions or increasing global timeouts.
 
+The backend image gate also identified ten HIGH Jackson findings and two HIGH OpenSSL findings. Boot-managed Jackson BOM overrides now use [2.21.7](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21.7) and [3.1.7](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.1.7), keeping both module families aligned on their existing minor lines. The runtime Docker stage explicitly installs/upgrades `libssl3` and `openssl` from Ubuntu repositories alongside curl; the digest-pinned JRE base is retained. No vulnerability ignore or threshold change was introduced. The full Java 17 suite and bootJar passed again after these overrides (344 passed, one external-database rehearsal skipped); the built JAR contains the aligned 2.21.7 and 3.1.7 core/databind modules.
+
 ## Local verification results
 
 | Check | Result |

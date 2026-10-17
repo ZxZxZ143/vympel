@@ -13,6 +13,11 @@ description = 'vympel'
 // module set aligned while overriding only its Tomcat version property.
 ext['tomcat.version'] = '11.0.25'
 
+// Patch both Boot-managed Jackson families without mixing module versions.
+// 2.21.7 / 3.1.7 fix the JSON parser/databind DoS findings in the release scan.
+ext['jackson-2-bom.version'] = '2.21.7'
+ext['jackson-bom.version'] = '3.1.7'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)

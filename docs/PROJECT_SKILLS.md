@@ -2087,7 +2087,7 @@
 | `react-hook-form` | ^7.71.1 public / ^7.80.0 CRM | frontend/CRM | Use RHF for form values. The public app has Zod available; the CRM app currently has no schema resolver, so keep localized validation helpers in the component unless a resolver is intentionally added. |
 | `react-markdown` / unified plugins | 10.1.0 / GFM 4.0.1 / breaks 4.0.0 / raw 7.0.0 / sanitize 6.0.0 | frontend/CRM | Product underline requires raw `<u>` parsing, but `rehype-raw` must always be immediately followed by the aligned explicit sanitizer schema. Keep the storefront parser server-side and CRM preview dynamically loaded. Regenerate locks with npm 10.9.8 and prove Linux `npm ci`; Windows-only lock generation can drop required platform-conditional records. |
 | `radix-ui` | ^1.6.0 | frontend | shadcn Tooltip imports primitives from the monolithic `radix-ui` package; keep Tooltip styling in `src/components/ui/tooltip.tsx` aligned with VYMPEL tokens. |
-| `org.springframework.boot` | 4.0.8 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. The 4.0.8 dependency management resolves Spring Framework 7.0.9 and Jackson 3.1.5 under `tools.jackson.*`; new code must not assume the old `com.fasterxml.jackson.databind` namespace. A Spring bean with more than one constructor must explicitly mark the injection constructor with `@Autowired`. Do not pin older managed Spring/Jackson artifacts around it. |
+| `org.springframework.boot` | 4.0.8 | backend | Build uses Java 17 toolchain; run with the Gradle wrapper. The 4.0.8 dependency management resolves Spring Framework 7.0.9 and Jackson 3.1.x under `tools.jackson.*` (current security override 3.1.7, with the legacy 2.x BOM aligned to 2.21.7); new code must not assume the old `com.fasterxml.jackson.databind` namespace. A Spring bean with more than one constructor must explicitly mark the injection constructor with `@Autowired`. Do not pin older managed Spring/Jackson artifacts around it. |
 | `org.apache.tomcat.embed` | 11.0.25 (managed-property override) | backend | Spring Boot 4.0.8 otherwise resolves 11.0.24, which the release image scan rejects for the security-constraint fixes published in 11.0.25. Override only `tomcat.version`, verify all Tomcat embed modules remain aligned through `dependencyInsight`, rerun the full backend suite/JAR, and require the image Trivy gate before publication. |
 | `org.jsoup:jsoup` | 1.23.2 | backend | Use only for bounded server-side marketplace HTML parsing after URL/fetch defenses. Prefer JSON-LD Product data, constrain DOM fallbacks, and never treat scraped text as trusted HTML or a reason to create reference data. |
 | `spring-boot-starter-data-redis` | Spring Boot managed | backend | Production abuse state uses atomic Lua counter/expiry operations. Redis must be shared, TLS-protected, authenticated/ACL-scoped, monitored, and configured with deliberate persistence/memory/eviction behavior. |
@@ -2099,6 +2099,8 @@
 | `vitest` | ^3.2.7 | CRM frontend | Finite Node-environment auth/client tests use an explicit `@` alias in `vitest.config.ts`; esbuild process startup may require running outside the restricted desktop sandbox. |
 
 ## Environment & Setup Gotchas
+
+* Spring Boot 4 imports separate `jackson-2-bom.version` and `jackson-bom.version` properties. Security patching must align each family as a BOM (currently 2.21.7 / 3.1.7), retain the correct namespace and rerun backend HTTP/auth/migration tests. A digest-pinned JRE image can still contain old OpenSSL packages: explicitly install/upgrade `libssl3` and `openssl` alongside curl, then require the unchanged image vulnerability gate.
 
 * After changing native/optional npm dependencies on Windows, validate a clean Linux `npm ci` with the Docker-pinned Node version. Existing node_modules can hide omitted platform/peer lock entries. Repair lock metadata in an empty directory, retain existing versions, and copy every postinstall script into the Docker dependency stage.
 
@@ -2682,7 +2684,7 @@
 
 ## Last Updated
 
-2026-10-17 — Added clean Linux lockfile validation and Docker postinstall script coverage after PR CI caught missing optional emnapi entries.
+2026-10-17 — Added clean Linux lockfile validation, Docker postinstall script coverage and aligned Jackson/OpenSSL release-scan remediation.
 
 2026-10-17 — Recorded populated-schema migration verification, final finite gate results, strict audit remediation with reviewed glob guards and dependency pins, and test synchronization lessons. Preserve release artifacts for the merged main SHA without deploying or mutating an existing image tag.
 
