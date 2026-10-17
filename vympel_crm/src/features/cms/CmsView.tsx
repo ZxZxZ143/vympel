@@ -147,6 +147,8 @@ export function CmsView() {
   const [pages, setPages] = useState<CmsPageSummary[]>([]);
   const [selectedPageKey, setSelectedPageKey] = useState<string>("");
   const [page, setPage] = useState<CmsPage | null>(null);
+  const [selectedCategoryCode, setSelectedCategoryCode] = useState("");
+  const [creatingCategoryCode, setCreatingCategoryCode] = useState<string | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [creatingBlockType, setCreatingBlockType] = useState<CmsBlockType>("BANNER");
@@ -263,14 +265,16 @@ export function CmsView() {
 
   useEffect(() => {
     if (isCreating && page) {
-      reset(newBlockForm(page, creatingBlockType));
+      const next = newBlockForm(page, creatingBlockType);
+      if (creatingCategoryCode) next.blockKey = `catalog.category.${creatingCategoryCode}.heroBanner`;
+      reset(next);
       return;
     }
 
     if (selectedBlock) {
       reset(blockToForm(selectedBlock));
     }
-  }, [creatingBlockType, isCreating, page, reset, selectedBlock]);
+  }, [creatingBlockType, creatingCategoryCode, isCreating, page, reset, selectedBlock]);
 
   const updateField = <FieldName extends keyof CmsBlockFormState>(
     field: FieldName,
@@ -284,6 +288,7 @@ export function CmsView() {
     if (!page) {
       return;
     }
+    setCreatingCategoryCode(null);
     setCreatingBlockType(blockType);
     setSelectedBlockId(null);
     setIsCreating(true);
@@ -291,16 +296,35 @@ export function CmsView() {
   };
 
   const selectBlock = (blockId: number) => {
+    setCreatingCategoryCode(null);
     setSelectedBlockId(blockId);
     setIsCreating(false);
     setError(null);
   };
 
   const selectPage = (pageKey: string) => {
+    setSelectedCategoryCode("");
+    setCreatingCategoryCode(null);
     setSelectedPageKey(pageKey);
     setSelectedBlockId(null);
     setIsCreating(false);
     setError(null);
+  };
+
+  const categoryBanners = page?.categoryBanners ?? [];
+  const categoryBanner = categoryBanners.find((item) => item.categoryCode === selectedCategoryCode);
+  const effectiveCategoryBlock = page?.blocks.find((block) => block.blockKey === categoryBanner?.effectiveBlockKey);
+  const ownCategoryBlock = page?.blocks.find((block) => block.blockKey === categoryBanner?.explicitBlockKey);
+  const sourceCategory = categoryBanners.find((item) => item.categoryCode === categoryBanner?.sourceCategoryCode);
+  const categoryName = (item: typeof categoryBanner) => item?.names[locale] ?? item?.names.ru ?? item?.categoryCode ?? "";
+  const categoryDepth = (code: string) => {
+    const seen = new Set<string>();
+    let current = categoryBanners.find((item) => item.categoryCode === code);
+    while (current?.parentCode && !seen.has(current.categoryCode)) {
+      seen.add(current.categoryCode);
+      current = categoryBanners.find((item) => item.categoryCode === current?.parentCode);
+    }
+    return seen.size;
   };
 
   const save = async (values: CmsBlockFormState) => {
@@ -444,6 +468,35 @@ export function CmsView() {
             <Button type="button" onClick={() => startCreate()}>{t("cms.addBlock")}</Button>
           </div>
           <div className="crm-panel__body">
+            {page?.pageKey === "catalog" && categoryBanners.length > 0 ? (
+              <section className="cms-editor-section">
+                <Heading as="h3" size="title">{t("catalogTools.categoryBanner")}</Heading>
+                <label>{t("catalogTools.category")}
+                  <select className="crm-select" value={selectedCategoryCode} disabled={saving || uploading || pageLoading}
+                    onChange={(event) => { setSelectedCategoryCode(event.target.value); setIsCreating(false); setSelectedBlockId(null); }}>
+                    <option value="">{t("common.selectPlaceholder")}</option>
+                    {categoryBanners.map((item) => <option key={item.categoryCode} value={item.categoryCode}>{"— ".repeat(categoryDepth(item.categoryCode))}{categoryName(item)}</option>)}
+                  </select>
+                </label>
+                {categoryBanner ? <>
+                  <Text>{categoryName(categoryBanner)}</Text>
+                  <Text tone="muted">{t(`catalogTools.${categoryBanner.mode === "OWN" ? "own" : categoryBanner.mode === "INHERITED" ? "inherited" : "default"}`)}{sourceCategory && categoryBanner.mode === "INHERITED" ? `: ${categoryName(sourceCategory)}` : ""}</Text>
+                  {ownCategoryBlock?.status === "DRAFT" ? <Text tone="muted">{t("catalogTools.draft")}</Text> : null}
+                  <CmsPreview form={effectiveCategoryBlock ? blockToForm(effectiveCategoryBlock) : {
+                    ...emptyForm,
+                    imageUrl: staticCatalogBanner(categoryBanner.categoryCode),
+                  }} locale={locale} schema={cmsBlockSchemas.BANNER} messages={messages.cms}/>
+                  <div className="crm-inline-actions">
+                    <Button type="button" disabled={saving || uploading} onClick={() => {
+                      if (ownCategoryBlock) selectBlock(ownCategoryBlock.id);
+                      else { startCreate("BANNER"); setCreatingCategoryCode(categoryBanner.categoryCode); }
+                    }}>{t(ownCategoryBlock ? "catalogTools.ownEdit" : "catalogTools.ownSet")}</Button>
+                    {ownCategoryBlock ? <Button type="button" variant="secondary" disabled={saving || uploading} onClick={() => setBlockPendingDelete(ownCategoryBlock)}>{t("catalogTools.reset")}</Button> : null}
+                  </div>
+                  {categoryBanner.hasChildren ? <Text size="caption" tone="muted">{t("catalogTools.descendants")}</Text> : null}
+                </> : null}
+              </section>
+            ) : null}
             {page?.pageKey === "about" && (
               <section className="cms-instagram-section" aria-labelledby="cms-instagram-section-title">
                 <div>
@@ -537,7 +590,7 @@ export function CmsView() {
                   )}
                   <div className="crm-grid crm-grid--form">
                     {form.blockType !== "INSTAGRAM_POST" && <>
-                      <TextField id="blockKey" label={t("cms.blockKey")} value={form.blockKey} onChange={(value) => updateField("blockKey", value)} />
+                      <TextField id="blockKey" label={t("cms.blockKey")} value={form.blockKey} readOnly={isCreating && creatingCategoryCode !== null} onChange={(value) => updateField("blockKey", value)} />
                       <SelectField id="blockType" label={t("cms.blockType")} value={form.blockType} onChange={(value) => updateField("blockType", value as CmsBlockType)}>
                         {blockTypes.map((type) => (
                           <option key={type} value={type}>{messages.cms.blockTypes[type]}</option>
@@ -745,7 +798,7 @@ export function CmsView() {
       <ConfirmDialog
         cancelLabel={t("common.cancel")}
         closeLabel={t("common.cancel")}
-        confirmLabel={t("common.delete")}
+        confirmLabel={t("catalogTools.delete")}
         isLoading={blockPendingDelete ? busyBlockId === blockPendingDelete.id : false}
         open={blockPendingDelete !== null}
         title={t("cms.deleteConfirm")}
@@ -1012,10 +1065,10 @@ function CmsImageUploadField({
   );
 }
 
-function TextField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) {
+function TextField({ id, label, value, onChange, readOnly = false }: { id: string; label: string; value: string; onChange: (value: string) => void; readOnly?: boolean }) {
   return (
     <Field htmlFor={id} label={label}>
-      <input id={id} className="crm-input" value={value} onChange={(event) => onChange(event.target.value)} />
+      <input id={id} className="crm-input" readOnly={readOnly} value={value} onChange={(event) => onChange(event.target.value)} />
     </Field>
   );
 }
@@ -1303,4 +1356,11 @@ function blockLabel(block: CmsBlock, labels: Record<string, string>, instagramPo
     return instagramPostLabel;
   }
   return labels[block.blockKey] ?? block.blockKey;
+}
+
+// Exact storefront fallbacks; matching previews are shipped in public/.
+function staticCatalogBanner(code: string) {
+  if (["ACCESSORIES", "ACCESSORY", "APPLE_CASE"].includes(code)) return "/accessories_hero_banner.webp";
+  if (["WATCH_INTERIOR", "WATCH_WALL", "WATCH_FLOOR"].includes(code)) return "/interior_hero_banner.webp";
+  return "/catalog-hero-banner.webp";
 }

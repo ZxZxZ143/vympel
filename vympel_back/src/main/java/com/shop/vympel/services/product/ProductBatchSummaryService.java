@@ -74,7 +74,7 @@ public class ProductBatchSummaryService {
         FeatureDto brand = summary.brandId() == null ? null : new FeatureDto(summary.brandId(), summary.brandName());
         return new ProductBatchSummaryItemResponse(
                 summary.productId(), summary.name(), summary.model(), summary.sku(),
-                summary.price() == null ? null : summary.price().intValue(), summary.stockQuantity(),
+                summary.price() == null ? null : summary.price().intValue(), summary.discountPercent(), summary.stockQuantity(),
                 summary.status(), objectStorageService.getPublicLink(summary.imageKey()), summary.kaspiUrl(),
                 summary.wildberriesUrl(), collection, brand, summary.categoryCode(), summary.categoryName(),
                 summary.ratingAverage(), summary.ratingCount()

@@ -23,6 +23,8 @@ export type GoodsCarouselItem = {
     id: number;
     name: string;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     imageUrl?: string | null;
     img?: string | null;
     stockQuantity?: number | null;
@@ -98,6 +100,8 @@ const GoodsCarouselWithImage: FC<Props> = ({
                             img={item.imageUrl ?? item.img}
                             name={item.name}
                             price={item.price}
+                            discountPercent={item.discountPercent}
+                            finalPrice={item.finalPrice}
                             stockQuantity={item.stockQuantity}
                             status={item.status}
                             href={item.link}

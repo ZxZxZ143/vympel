@@ -11,6 +11,22 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MediaRepository extends JpaRepository<Media, Long> {
+    @Query(value = """
+            select exists (
+              select 1 from media owned
+              where owned.product_id = :productId and (
+                exists (select 1 from media other where other.url = owned.url and other.product_id <> :productId)
+                or exists (select 1 from cms_media cms where cms.object_key = owned.url)
+                or exists (select 1 from cms_banner_media link where link.media_id = owned.id)
+              )
+            )
+            """, nativeQuery = true)
+    boolean hasExternalProductMediaReferences(@Param("productId") Long productId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select media from Media media where media.product.id = :productId order by media.id")
+    List<Media> findAllOwnedByProductIdForUpdate(@Param("productId") Long productId);
+
     List<Media> findByProduct_Id(Long product_id);
 
     List<Media> findByProduct_IdAndTypeOrderByPositionAscIdAsc(Long productId, String type);

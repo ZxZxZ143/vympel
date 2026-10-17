@@ -35,6 +35,7 @@ public class CmsServiceImpl implements CmsService {
     private static final CmsTranslationRequest EMPTY_TRANSLATION =
             new CmsTranslationRequest(null, null, null, null, null, null);
 
+    private final CatalogBannerService catalogBannerService;
     private final CmsPageRepository cmsPageRepository;
     private final CmsBlockRepository cmsBlockRepository;
     private final CmsMediaRepository cmsMediaRepository;
@@ -116,6 +117,8 @@ public class CmsServiceImpl implements CmsService {
         CmsBlock block = locked.block(blockId);
         CrmCmsBlockResponse response = toCrmBlockResponse(block);
         Set<Long> previousMediaIds = mediaIds(block);
+        // Keep the managed aggregate in sync so cascade persist cannot restore the deleted block.
+        locked.page().getBlocks().removeIf(candidate -> candidate.getId().equals(blockId));
         cmsBlockRepository.delete(block);
         cmsBlockRepository.flush();
         List<CmsBlock> remaining = locked.blocks().stream()
@@ -198,7 +201,8 @@ public class CmsServiceImpl implements CmsService {
                             page.getPageKey(),
                             page.getTitle(),
                             blocks,
-                            publicPageUpdatedAt(page, blocks)
+                            publicPageUpdatedAt(page, blocks),
+                            catalogBannerService.resolve(page, false)
                     );
                 })
                 .orElseGet(() -> new PublicCmsPageResponse(pageKey, null, List.of(), null));
@@ -220,6 +224,7 @@ public class CmsServiceImpl implements CmsService {
 
     private void applyRequest(CmsBlock block, CmsBlockRequest request, CmsPage page) {
         CmsBlockType blockType = Objects.requireNonNull(request.blockType(), "Block type is required");
+        catalogBannerService.validate(request.blockKey(), page.getPageKey(), blockType);
         CmsBlockSchema schema = CmsBlockSchema.forType(blockType);
         CmsLinkType linkType = schema.supportsLink() && request.linkType() != null
                 ? request.linkType()
@@ -456,7 +461,8 @@ public class CmsServiceImpl implements CmsService {
                 page.getPageKey(),
                 page.getTitle(),
                 page.getStatus(),
-                blocks
+                blocks,
+                catalogBannerService.resolve(page, true)
         );
     }
 

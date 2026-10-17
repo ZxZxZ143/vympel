@@ -717,5 +717,19 @@
     "openBrand": "Open {brand} brand page",
     "emptyTitle": "No brands found yet",
     "emptyDescription": "Brands will appear here when they are available in the catalog."
+  },
+  "pricing": {
+    "original": "Original price: {price}",
+    "final": "Discounted price: {price}",
+    "discount": "{percent}% discount"
+  },
+  "privacy": {
+    "title": "Cookies and browser storage",
+    "body": "We remember your language, cart and favorites. Analytics is optional.",
+    "details": "Details",
+    "detailText": "The NEXT_LOCALE cookie remembers language. Cart, favorites and this choice use localStorage. If allowed, product analytics uses sessionStorage to count interest without repeated views; we also measure page performance. There are no advertising cookies.",
+    "essential": "Necessary only",
+    "analytics": "Allow analytics",
+    "settings": "Browser storage preferences"
   }
 }

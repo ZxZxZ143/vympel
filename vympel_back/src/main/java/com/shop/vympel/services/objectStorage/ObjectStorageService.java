@@ -460,7 +460,11 @@ public class ObjectStorageService {
 
     @Transactional(rollbackOn = Exception.class)
     public void enqueueProductImagesForDeletion(Long productId) {
-        mediaRepository.findAllByProductIdForUpdate(productId).stream()
+        List<Media> images = mediaRepository.findAllOwnedByProductIdForUpdate(productId);
+        if (mediaRepository.hasExternalProductMediaReferences(productId)) {
+            throw new BusinessRuleViolationException("PRODUCT_MEDIA_IN_USE", "Product media is referenced elsewhere.");
+        }
+        images.stream()
                 .map(Media::getUrl)
                 .filter(key -> key != null && !key.isBlank())
                 .forEach(objectStorageDeletionOutboxService::enqueue);

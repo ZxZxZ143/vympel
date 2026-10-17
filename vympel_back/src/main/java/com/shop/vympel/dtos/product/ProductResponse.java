@@ -19,6 +19,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
+@lombok.NoArgsConstructor
 public class ProductResponse {
 
     private Long id;
@@ -28,6 +29,7 @@ public class ProductResponse {
     private String model;
 
     private Integer price;
+    private Integer discountPercent;
     private Integer stockQuantity;
     private String status;
     private String productType;
@@ -66,4 +68,12 @@ public class ProductResponse {
     private Double ratingAverage;
 
     private Long ratingCount;
+
+    public ProductResponse(Long id, String sku, String name, ProductNameCreateRequest productName, String model, Integer price, Integer stockQuantity, String status, String productType, CategoryResponse category, BrandResponse brand, CollectionResponse collection, List<ProductImageResponse> images, DescriptionResponse description, DescriptionCreateRequest descriptionTranslations, WatchDetailResponse watchDetails, InteriorClockDetailResponse interiorClockDetails, AccessoryDetailResponse accessoryDetails, String kaspiUrl, String wildberriesUrl, String promotionMode, BigDecimal promotionScore, Instant promotedUntil, Instant promotionUpdatedAt, ProductModelVariantGroupResponse modelVariantGroup, Double ratingAverage, Long ratingCount) {
+        this(id, sku, name, productName, model, price, null, stockQuantity, status, productType, category, brand, collection, images, description, descriptionTranslations, watchDetails, interiorClockDetails, accessoryDetails, kaspiUrl, wildberriesUrl, promotionMode, promotionScore, promotedUntil, promotionUpdatedAt, modelVariantGroup, ratingAverage, ratingCount);
+    }
+
+    public Integer getFinalPrice() {
+        return com.shop.vympel.services.product.ProductPricing.finalPrice(price, discountPercent);
+    }
 }

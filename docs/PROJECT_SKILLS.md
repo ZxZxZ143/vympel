@@ -2,6 +2,42 @@
 
 ## Frontend Patterns That Work
 
+### Reference deletion in the actual field option picker
+
+* **When to use:** A user-manageable product dictionary or collection needs cleanup during create/edit, including bulk defaults and per-row overrides.
+* **How:** Use `CreatableReferenceSelect`/`CreatableReferenceMultiSelect` with `useReferenceDeletion().actionsFor(type)`. Custom pickers render separate selection and trash buttons; reference trash requires `deletable === true`. Use the same searchable picker whenever creation or deletion is supported, even if the dictionary is empty or currently contains only protected values. Keep only fixed non-creatable category/brand/country fields native. Multi-select features use the same option rows and independent trash buttons; toggling a choice keeps the list open and deleting one choice preserves the others. Use the existing `ConfirmDialog` for a confirm-before-write flow, synchronous in-flight guard, localized in-use/protected errors, inert background and stable focus restoration. Preserve backend rejection checks. Never put dictionary cleanup back on the products list.
+* **Why:** Deletion is discoverable at the point of selection and cannot accidentally select a value or bypass canonical/in-use protection.
+
+### Portalled reference pickers without losing form keyboard order
+
+* **When to use:** Characteristic choices appear in clipped panels or horizontally scrolling bulk-product table rows.
+* **How:** `ReferenceOptionPicker` portals one nonmodal dialog to `document.body`, below confirmation dialogs (70 vs 80). Measure the trigger and visual viewport, clamp width/position, choose above when needed and update on resize/scroll and panel-size changes. Observe both the trigger and panel so filtering an upward list keeps its bottom aligned. Keep selection and trash as sibling buttons, not buttons inside native options or ARIA listbox options. Treat both trigger root and portal as inside for outside-click/focus dismissal.
+* **Why:** The same collection-style UI remains visible at 320px and in bulk rows without changing form layout or creating page overflow.
+
+### Keyboard and busy state for portalled reference management
+
+* **When to use:** Searchable single/multiple selectors launch a confirmation dialog.
+* **How:** Focus search on open; arrows/Home/End navigate choices, Enter/Space activate, Escape restores the trigger. Shift+Tab at search returns to the trigger; forward Tab at the last portal control continues after the trigger into the form. Focus the stable trigger before opening confirmation so success/cancel restores it. Reuse ConfirmDialog focus trap/inert background, expose `aria-busy`, guard requests synchronously and display the exact escaped value plus localized deleting/conflict states. Browser CDP Enter tests must include the character event/text, not only raw keydown. Async confirmation tests must wait for restored background accessibility and trigger focus, not only disappearance of the alertdialog DOM: passive-effect cleanup follows DOM removal.
+* **Why:** Portals otherwise move Tab to the end of the document; deleting a focused option can orphan focus. Current tests cover native keyboard activation, 44px touch trash controls and preservation of all unrelated RHF values.
+
+### Remove deleted options without resetting unsaved product edits
+
+* **When to use:** A successful reference deletion affects several selectors using the same dictionary.
+* **How:** Filter the corresponding `References` array with `removeReferenceFromCache` and clear only matching string IDs via `clearDeletedReference`. Materials affect case/strap/interior/accessory fields; colors affect strap/dial/interior/accessory fields. Feature IDs are filtered arrays. Apply this to single-form RHF fields and both bulk common state and rows; retain unrelated dirty values and other dictionaries with coincident numeric IDs.
+* **Why:** A full refetch/reset can discard unsaved work or retain stale selections; an exact successful-delete update preserves the rest of the form.
+
+### Shared sale styling and responsive consent placement
+
+* **When to use:** Showing discounts or consent in storefront cards/detail and compact CRM rows.
+* **How:** Reuse `DiscountBadge`; cards place it top-left and disable the price component's duplicate badge. Final price precedes the struck-through original. Preserve the user-approved original price typography: `Text size="h6"`, Inter 28px regular, without a separate mobile size or tabular-numeral override; allow normal wrapping. Keep the notice centered with bounded width/height, concise localized summary and full truthful details, equal-weight actions, mobile navigation clearance and the existing measured cart offset. CRM quick controls use one nonwrapping row; the 920px minimum table scrolls inside its wrapper on phones.
+* **Why:** The supplied marketplace reference informs placement while Vympel retains neutral colors and restrained typography. Consent remains usable at 320px without changing storage behavior.
+
+### Stable localized prices across server and browser ICU
+
+* **When to use:** Formatting prices rendered by both Next SSR and a browser, especially app locale `kz` mapped to `kk-KZ`.
+* **How:** Normalize `Intl.NumberFormat.formatToParts` group/decimal tokens in `formatProductPrice`: RU/KZ NBSP and comma; EN comma and dot. Preserve numeric parts and caller currency. Regression tests simulate an older browser returning comma grouping for Kazakh. Use stable action IDs, not translated labels, as React keys (the Markdown toolbar has two translated “Список” actions).
+* **Why:** Observed Node and Edge ICU versions produced different Kazakh separators, triggering hydration errors. Equal translated labels also produced duplicate-key warnings in the three-locale editor.
+
 ### Sanitized product Markdown with a server-rendered slot
 
 * **When to use:** Rendering administrator-authored product descriptions on the storefront.
@@ -769,6 +805,37 @@
 * **Why:** Quick search should stay consistent with full catalog search, avoid full-catalog payloads on short input, and remain product-only.
 
 ## Fullstack Integration Patterns
+
+### Keep base and customer prices separate
+
+* **When to use:** Discount display, pricing APIs, saved cart/favorite snapshots, or checkout.
+* **How:** Keep `price` unchanged; validate nullable integer discounts 1..99 at JSON, service and database boundaries. Derive whole-KZT `finalPrice` with HALF_UP in `ProductPricing`. Include discount in compact SQL projections as well as entity-mapped DTOs. Render through `ProductPrice`; refresh batch summaries immediately before WhatsApp checkout and use the refreshed items without changing quantities. Preserve base-price sort/filter semantics.
+* **Why:** Prevents inconsistent prices between detail, search, recommendations and saved browser data, and avoids silently clearing discounts when old edit/import payloads omit the field.
+
+### Delete only owned, unused data under locks
+
+* **When to use:** CRM cleanup of archived products, collections or custom reference values.
+* **How:** Keep archive and permanent delete separate. Lock the product/collection/reference first. Refuse non-ARCHIVED products, every collection link, and every allow-listed detail/join-table reference. Protect non-CRM canonical codes; the existing `CRM_[0-9A-F]{16}` generator is the deletability contract, not a name heuristic. Audit in the same transaction. Check shared media references and queue all owned media kinds through the object-storage outbox.
+* **Why:** Collection SET NULL and feature join CASCADE constraints alone do not enforce the requested business safety. Checking only image rows would strand other legacy media objects.
+
+### Resolve category banners at read time
+
+* **When to use:** Category-specific catalog hero banners.
+* **How:** Use `CatalogBannerService` and the real parent tree; selected category, nearest published ancestor, generic published CMS banner, then frontend static category/generic assets. Draft explicit metadata is CRM-only; effective source always describes the public published banner. Use existing CMS editing/media/publication/revalidation flows and delete only the selected override to restore inheritance.
+* **Why:** Parent changes immediately affect inheriting descendants without copies or modifications to child overrides. Backend metadata avoids divergent hard-coded frontend ancestry.
+
+### Keep loaded CMS aggregates consistent when removing a block
+
+* **When to use:** Deleting blocks after a page's `blocks` collection has been initialized (including banner resolution).
+* **How:** Remove the block from `CmsPage.blocks` before repository deletion, flush the delete, and preserve the existing two-phase temporary/canonical ordering procedure.
+* **Why:** Cascade persistence can otherwise retain/reintroduce the removed block and trigger `uk_cms_block_page_sort_order` during normalization. The database integration test reads the public page, edits a parent, and removes a child override in one managed transaction to cover this case.
+
+### Describe browser storage accurately and gate optional measurement
+
+* **When to use:** Public privacy notice or analytics integration.
+* **How:** Distinguish next-intl's functional `NEXT_LOCALE` cookie from localStorage cart/favorites/preferences and sessionStorage product analytics. `privacyPreferences` defaults to essential only, subscribes across tabs, permits withdrawal, and denies analytics on missing/removed preference values. If browser storage throws, honor a choice only in the current tab. Keep product event IDs/dedup and optional web vitals behind permission; operational error reporting remains independent.
+* **Why:** The storefront has no advertising cookies. A small truthful storage notice is sufficient; no third-party consent framework was added. Do not mistake CRM HttpOnly refresh cookies for storefront tracking.
+
 
 ### Optional category-detail groups
 
@@ -1775,6 +1842,12 @@
 
 ## Testing Patterns
 
+* Catalog improvements: `CatalogImprovementsIntegrationTest` uses disposable fixtures, all 15 creatable reference paths, 20 detail-column dependency cases plus feature joins, database discount bounds, media ownership, audit persistence and CMS revalidation. `CrmAuthLifecycleIntegrationTest` checks real HTTP validation and preserved RBAC. Enable `app.cms.public-revalidate.enabled=true` in the transaction-scoped banner test to verify actual queue insertion; default test profile intentionally disables it.
+* Final release verification on 2026-10-17 used Java 17, a dedicated disposable PostgreSQL 16 loopback database and working Docker/Testcontainers. The full suite discovers 345 tests: 344 pass, only `Step7ExternalDatabaseRehearsalTest` skips because no real external database is authorized. `ProductDiscountMigrationTest` adds prior-schema/populated-data/checksum/bounds/idempotence proof. Liquibase changes JDBC auto-commit mode; restore it before independent expected constraint failures or later assertions will only see an aborted transaction. Do not report skipped tests as passed.
+* Git Bash runs the finite `deployment/rehearsals/published-manifest-contract.sh` and `liquibase-history-compatibility.sh` on Windows. The first consumes the newly appended Liquibase boundary.
+* CRM total JS measured 1.514896 MiB after the coordinated controls; the narrow total budget is now 1.53 MiB (previous documented baseline 1.494857 MiB / 1.51 MiB). The final release pass also updates security-blocking dependencies; final builds still pass these same limits. Re-measure before relying on this observation.
+* On this machine, the locked unrelated D: BitLocker volume prevents sandbox/CUA/Node REPL initialization. Approved PowerShell shell execution works. For this task, a fresh headless Edge profile plus local CDP allowed bounded production-build screenshots without accessing personal browser state. Python edits must use `python -X utf8` and explicit UTF-8 file reads/writes; preserve original line endings on untouched files.
+
 * **How to verify supported catalog-domain changes:** Run the full Java suite including `SupportedCatalogMigrationTest`, `SupportedCatalogDomainServiceTest`, `InteriorClockDetailServiceImplTest`, and `ProductBulkCreationServiceTest`; run both frontend typecheck/lint/Vitest/build gates; then rehearse old backend -> representative aliases/unsupported graph -> new backend -> second startup on disposable PostgreSQL 16. Browser-check exact EN/RU/KZ filters, linked brand/country availability, CRM create/edit/bulk read-only derivation, and API rejection of unsupported/mismatched individual and bulk payloads.
 
 * **How to run all tests:** No single full-project test command is configured; run backend tests with `cd vympel_back && .\gradlew.bat test`, public frontend tests with `cd vympel_front && npm run test`, and CRM tests with `cd vympel_crm && npm test`.
@@ -1941,6 +2014,8 @@
 
 ## Design System & UI Conventions
 
+* Category banner keys can be long: constrain CMS block grids with `minmax(0,1fr)` and wrap keys anywhere. The 320px browser check caught a 38px overflow before this correction. CRM default preview images are exact copies of the three existing storefront hero fallbacks; keep them synchronized and include `public/` in the runtime image.
+
 * Fonts: Root layout defines CSS variables for Inter, Judson, Montaga, and Montserrat.
 * Colors: Prefer semantic classes such as `bg-primary-bg`, `text-text-primary`, `text-text-heading-primary`, and `border-border-default`.
 * Radius: Global radius tokens derive from `--radius: 0.750rem`; avoid introducing unrelated radius systems.
@@ -2018,6 +2093,9 @@
 | `vitest` | ^3.2.7 | CRM frontend | Finite Node-environment auth/client tests use an explicit `@` alias in `vitest.config.ts`; esbuild process startup may require running outside the restricted desktop sandbox. |
 
 ## Environment & Setup Gotchas
+
+* Next.js 16 blocks optimization of images resolving to private/loopback addresses even when `remotePatterns` allows the origin. For this local MinIO stack, storefront `images.dangerouslyAllowLocalIP` is true only when `NEXT_PUBLIC_APP_ENV=local`; staging, production, and unset modes keep it false. Keep `remotePatterns` restrictions and verify an actual `/_next/image` request, not only direct MinIO HTTP.
+* When Docker Desktop fails successively on `Docker/run/dockerInference` and `docker-secrets-engine/engine.sock`, preserve both socket directories in the same stopped-Docker cycle before restarting. A partial startup recreates the first socket, so repairing one directory per restart can alternate the errors. The 2026-10-17 recovery renamed only the confirmed runtime directories, kept all volumes/settings, and restored the existing database and media.
 
 * Frontend commands must run in `vympel_front`.
 * CRM commands must run in `vympel_crm`.
@@ -2596,4 +2674,5 @@
 
 ## Last Updated
 
-2026-09-17 - Recorded digest-pinned Quay MinIO Server/Client images and the requirement to cold-check every release support image before immutable application publication.
+
+2026-10-17 — Recorded populated-schema migration verification, final finite gate results, strict audit remediation with reviewed glob guards and dependency pins, and test synchronization lessons. Preserve release artifacts for the merged main SHA without deploying or mutating an existing image tag.

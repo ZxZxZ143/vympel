@@ -25,9 +25,22 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CrmCollectionService {
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
     private final BrandRepository brandRepository;
     private final CollectionRepository collectionRepository;
     private final CollectionI18nRepository collectionI18nRepository;
+
+    @Transactional
+    public void delete(Long id) {
+        List<Long> rows = jdbcTemplate.queryForList("SELECT id FROM collection WHERE id = ? FOR UPDATE", Long.class, id);
+        if (rows.isEmpty()) throw new ResourceNotFoundException("Collection not found");
+        Long count = jdbcTemplate.queryForObject("SELECT count(*) FROM product WHERE collection_id = ?", Long.class, id);
+        if (count != null && count > 0) {
+            throw new com.shop.vympel.exceptions.BusinessRuleViolationException(
+                    "COLLECTION_IN_USE", "Collection is used by " + count + " products.");
+        }
+        jdbcTemplate.update("DELETE FROM collection WHERE id = ?", id);
+    }
 
     @Transactional(readOnly = true)
     public List<CrmCollectionResponse> getAll(Language language) {

@@ -7,6 +7,10 @@ public record PublicCmsPageResponse(
         String pageKey,
         String title,
         List<PublicCmsBlockResponse> blocks,
-        Instant updatedAt
+        Instant updatedAt,
+        List<CmsCategoryBannerResponse> categoryBanners
 ) {
+    public PublicCmsPageResponse(String pageKey, String title, List<PublicCmsBlockResponse> blocks, Instant updatedAt) {
+        this(pageKey, title, blocks, updatedAt, List.of());
+    }
 }

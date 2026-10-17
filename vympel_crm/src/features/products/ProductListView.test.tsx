@@ -8,11 +8,15 @@ import { ProductListView } from "./ProductListView";
 const mocks = vi.hoisted(() => ({
   products: vi.fn(),
   error: vi.fn(),
+  updateDiscount: vi.fn(),
+  deleteArchivedProduct: vi.fn(),
 }));
 
 vi.mock("@/shared/api/client", () => ({
   crmApi: {
     products: mocks.products,
+    updateDiscount: mocks.updateDiscount,
+    deleteArchivedProduct: mocks.deleteArchivedProduct,
     updatePrice: vi.fn(),
     updateStock: vi.fn(),
     archiveProduct: vi.fn(),
@@ -83,6 +87,7 @@ describe("ProductListView model groups", () => {
     render(<ProductListView/>);
 
     expect(await screen.findByText("Romanson Black")).toBeTruthy();
+    expect(screen.queryByText("catalogTools.manage")).toBeNull();
     expect(screen.getByText("3 products.variantsCount")).toBeTruthy();
     expect(screen.getByRole("link", { name: "products.openVariant: White" }).getAttribute("href"))
       .toBe("/products/13");
@@ -107,5 +112,51 @@ describe("ProductListView model groups", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "products.next" }));
     await waitFor(() => expect(mocks.products.mock.calls.some(([params]) => params.page === 1)).toBe(true));
+  });
+});
+
+
+describe("quick discounts and archived deletion", () => {
+  afterEach(() => { cleanup(); vi.clearAllMocks(); });
+  it("sets and clears discounts without opening the product form", async () => {
+    mocks.products.mockResolvedValue(page);
+    mocks.updateDiscount.mockResolvedValue({...product,discountPercent:15,finalPrice:101958});
+    render(<ProductListView/>);
+    const input=await screen.findByLabelText("catalogTools.discount");
+    fireEvent.change(input,{target:{value:"15"}});
+    fireEvent.click(screen.getByRole("button",{name:"catalogTools.discountSave"}));
+    await waitFor(()=>expect(mocks.updateDiscount).toHaveBeenCalledWith(12,15,"ru"));
+  });
+  it("does not send zero, fractions, negative or excessive discounts",async()=>{
+    mocks.products.mockResolvedValue(page);
+    render(<ProductListView/>);
+    const input=await screen.findByLabelText("catalogTools.discount");
+    for(const value of ["0","-1","100","1.5"]){
+      fireEvent.change(input,{target:{value}});
+      fireEvent.click(screen.getByRole("button",{name:"catalogTools.discountSave"}));
+    }
+    expect(mocks.updateDiscount).not.toHaveBeenCalled();
+  });
+  it("clears a saved discount with an explicit null",async()=>{
+    mocks.products.mockResolvedValue({...page,content:[{...product,discountPercent:15,finalPrice:101958}]});
+    mocks.updateDiscount.mockResolvedValue({...product,discountPercent:null,finalPrice:product.price});
+    render(<ProductListView/>);
+    fireEvent.click(await screen.findByRole("button",{name:"catalogTools.discountClear"}));
+    await waitFor(()=>expect(mocks.updateDiscount).toHaveBeenCalledWith(12,null,"ru"));
+  });
+  it("requires confirmation and offers permanent deletion only for archived rows",async()=>{
+    mocks.products.mockResolvedValue({...page,content:[{...product,status:"ARCHIVED"}]});
+    mocks.deleteArchivedProduct.mockResolvedValue(undefined);
+    render(<ProductListView/>);
+    fireEvent.click(await screen.findByRole("button",{name:"catalogTools.delete"}));
+    expect(mocks.deleteArchivedProduct).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button",{name:"catalogTools.delete"}));
+    await waitFor(()=>expect(mocks.deleteArchivedProduct).toHaveBeenCalledWith(12));
+  });
+  it("does not offer permanent deletion for active products",async()=>{
+    mocks.products.mockResolvedValue(page);
+    render(<ProductListView/>);
+    await screen.findByText("Romanson Black");
+    expect(screen.queryByRole("button",{name:"catalogTools.delete"})).toBeNull();
   });
 });

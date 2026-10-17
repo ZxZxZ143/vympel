@@ -27,6 +27,8 @@ export interface IProduct {
     name: string,
     model?: string | null,
     price: number,
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     stockQuantity?: number | null;
     status?: string | null;
     imageUrl?: string | null,
@@ -47,6 +49,8 @@ export interface IProductBatchSummaryItem {
     model?: string | null;
     sku?: string | null;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     stockQuantity?: number | null;
     status?: string | null;
     imageUrl?: string | null;
@@ -73,6 +77,8 @@ export interface IQuickSearchProduct {
     brand?: IProductFeature | null;
     collection?: IProductFeature | null;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     oldPrice?: number | null;
     stockQuantity?: number | null;
     status?: string | null;
@@ -187,6 +193,8 @@ export interface IProductDetails {
     name: string;
     model: string;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     stockQuantity?: number | null;
     status: string;
     productType: string;

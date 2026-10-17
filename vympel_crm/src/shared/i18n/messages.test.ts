@@ -31,6 +31,10 @@ describe("CRM authentication messages", () => {
       "PRODUCT_CREATED",
       "PRODUCT_EDITED",
       "PRODUCT_PRICE_CHANGED",
+      "PRODUCT_DISCOUNT_CHANGED",
+      "PRODUCT_DELETED",
+      "COLLECTION_DELETED",
+      "REFERENCE_VALUE_DELETED",
       "PRODUCT_STOCK_CHANGED",
       "PRODUCT_STATUS_CHANGED",
       "PRODUCT_MARKETPLACE_LINKS_CHANGED",
@@ -67,4 +71,12 @@ describe("CRM authentication messages", () => {
       expect(messages[locale].activity.events[event], `${locale}.${event}`).toBeTruthy();
     }
   });
+});
+
+it.each(locales)("localizes characteristic confirmation, exact value placeholder and pending state for %s", (locale) => {
+  const copy = messages[locale].catalogTools;
+  expect(copy.referenceDeleteTitle).toBeTruthy();expect(copy.collectionDeleteTitle).toBeTruthy();
+  expect(copy.referenceDeleteDescription).toContain("{value}");
+  expect(copy.referenceDeleteConfirm).toBeTruthy();expect(copy.deleting).toBeTruthy();
+  expect(copy.referenceInUse).toBeTruthy();expect(copy.referenceProtected).toBeTruthy();
 });

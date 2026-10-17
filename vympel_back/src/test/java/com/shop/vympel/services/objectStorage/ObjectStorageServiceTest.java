@@ -169,7 +169,7 @@ class ObjectStorageServiceTest {
         Product product = product(10L);
         Media first = image(1L, product, 0, true, "products/first.jpg");
         Media second = image(2L, product, 1, false, "products/second.jpg");
-        when(mediaRepository.findAllByProductIdForUpdate(10L)).thenReturn(List.of(first, second));
+        when(mediaRepository.findAllOwnedByProductIdForUpdate(10L)).thenReturn(List.of(first, second));
 
         service.enqueueProductImagesForDeletion(10L);
 

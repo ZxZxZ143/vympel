@@ -8,6 +8,7 @@ import type {
     IProductFeature,
     IProductImage
 } from "@/api/types/ProductTypes";
+import {customerPrice, validDiscount} from "@/utils/productPricing";
 import {routes} from "@/config/routes";
 
 export const FAVORITES_STORAGE_KEY = "vympel:favorites";
@@ -20,6 +21,8 @@ export type ProductSnapshot = {
     id: number;
     name: string;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     imageUrl?: string | null;
     collection?: IProductFeature | null;
     description?: string | null;
@@ -39,6 +42,8 @@ export type ProductSnapshotInput = {
     id: number;
     name: string;
     price: number;
+    discountPercent?: number | null;
+    finalPrice?: number | null;
     imageUrl?: string | null;
     img?: string | null;
     images?: IProductImage[] | string[] | null;
@@ -217,6 +222,8 @@ function normalizeSnapshot(value: unknown): ProductSnapshot | undefined {
         id: productId,
         name,
         price,
+        discountPercent: validDiscount(record.discountPercent),
+        finalPrice: customerPrice({price, discountPercent: validDiscount(record.discountPercent), finalPrice: typeof record.finalPrice === "number" ? record.finalPrice : null}),
         imageUrl: typeof record.imageUrl === "string" ? record.imageUrl : null,
         collection: asRecord(record.collection) as IProductFeature | null,
         description: typeof record.description === "string" ? record.description : null,
@@ -253,6 +260,8 @@ function areProductSnapshotsEqual(left?: ProductSnapshot, right?: ProductSnapsho
         left.id === right.id
         && left.name === right.name
         && left.price === right.price
+        && (left.discountPercent ?? null) === (right.discountPercent ?? null)
+        && customerPrice(left) === customerPrice(right)
         && (left.imageUrl ?? null) === (right.imageUrl ?? null)
         && areProductFeaturesEqual(left.collection, right.collection)
         && (left.description ?? null) === (right.description ?? null)
@@ -490,6 +499,8 @@ export function createProductSnapshot(product: ProductSnapshotInput): ProductSna
         id: product.id,
         name: product.name,
         price: Number(product.price) || 0,
+        discountPercent: validDiscount(product.discountPercent),
+        finalPrice: customerPrice(product),
         imageUrl: product.imageUrl ?? product.img ?? mainImageUrl ?? null,
         collection: product.collection ?? null,
         description,

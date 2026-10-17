@@ -206,6 +206,8 @@ const FavoritesPage = ({locale}: Props) => {
                                     collection={product.collection ?? undefined}
                                     description={product.description ?? undefined}
                                     price={product.price}
+                                    discountPercent={product.discountPercent}
+                                    finalPrice={product.finalPrice}
                                     stockQuantity={product.stockQuantity}
                                     status={product.status}
                                     ratingAverage={product.ratingAverage}

@@ -17,6 +17,7 @@ public record PublicProductResponse(
         String name,
         String model,
         Integer price,
+        Integer discountPercent,
         Integer stockQuantity,
         String status,
         String productType,
@@ -44,6 +45,7 @@ public record PublicProductResponse(
                 response.getName(),
                 response.getModel(),
                 response.getPrice(),
+                response.getDiscountPercent(),
                 response.getStockQuantity(),
                 response.getStatus(),
                 response.getProductType(),
@@ -61,5 +63,14 @@ public record PublicProductResponse(
                 response.getRatingAverage(),
                 response.getRatingCount()
         );
+    }
+
+    public PublicProductResponse(Long id, String sku, String name, String model, Integer price, Integer stockQuantity, String status, String productType, CategoryResponse category, BrandResponse brand, CollectionResponse collection, List<ProductImageResponse> images, DescriptionResponse description, WatchDetailResponse watchDetails, InteriorClockDetailResponse interiorClockDetails, AccessoryDetailResponse accessoryDetails, String kaspiUrl, String wildberriesUrl, ProductModelVariantGroupResponse modelVariantGroup, Double ratingAverage, Long ratingCount) {
+        this(id, sku, name, model, price, null, stockQuantity, status, productType, category, brand, collection, images, description, watchDetails, interiorClockDetails, accessoryDetails, kaspiUrl, wildberriesUrl, modelVariantGroup, ratingAverage, ratingCount);
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("finalPrice")
+    public Integer finalPrice() {
+        return com.shop.vympel.services.product.ProductPricing.finalPrice(price, discountPercent);
     }
 }

@@ -28,6 +28,7 @@ public class PublicProductSummaryRepository {
                    p.model as model,
                    p.sku as sku,
                    p.price as price,
+                   p.discount_percent as discount_percent,
                    p.stock_quantity as stock_quantity,
                    p.status as status,
                    image.url as image_key,
@@ -119,6 +120,7 @@ public class PublicProductSummaryRepository {
                         stringValue(tuple, "model"),
                         stringValue(tuple, "sku"),
                         bigDecimalValue(tuple, "price"),
+                        tuple.get("discount_percent") == null ? null : intValue(tuple, "discount_percent"),
                         intValue(tuple, "stock_quantity"),
                         stringValue(tuple, "status"),
                         stringValue(tuple, "image_key"),
@@ -175,6 +177,7 @@ public class PublicProductSummaryRepository {
             String model,
             String sku,
             BigDecimal price,
+            Integer discountPercent,
             Integer stockQuantity,
             String status,
             String imageKey,
@@ -189,5 +192,8 @@ public class PublicProductSummaryRepository {
             Double ratingAverage,
             Long ratingCount
     ) {
+        public PublicProductSummary(Long productId, String name, String model, String sku, BigDecimal price, Integer stockQuantity, String status, String imageKey, String kaspiUrl, String wildberriesUrl, Long collectionId, String collectionName, Long brandId, String brandName, String categoryCode, String categoryName, Double ratingAverage, Long ratingCount) {
+            this(productId, name, model, sku, price, null, stockQuantity, status, imageKey, kaspiUrl, wildberriesUrl, collectionId, collectionName, brandId, brandName, categoryCode, categoryName, ratingAverage, ratingCount);
+        }
     }
 }

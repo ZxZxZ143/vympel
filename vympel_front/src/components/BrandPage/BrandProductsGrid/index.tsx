@@ -18,6 +18,8 @@ const BrandProductsGrid = ({products}: Props) => (
                 name={product.name}
                 collection={product.collection}
                 price={product.price}
+                discountPercent={product.discountPercent}
+                finalPrice={product.finalPrice}
                 stockQuantity={product.stockQuantity}
                 status={product.status}
                 ratingAverage={product.ratingAverage}

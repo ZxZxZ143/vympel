@@ -46,6 +46,7 @@ export type Feature = {
   id: number;
   name: string;
   code?: string;
+  deletable?: boolean;
   brandId?: number | null;
 };
 
@@ -92,6 +93,8 @@ export type Product = {
   productName?: ProductNamePayload | null;
   model: string;
   price: number | null;
+  discountPercent?: number | null;
+  finalPrice?: number | null;
   stockQuantity: number | null;
   status: ProductStatus;
   productType: ProductType;
@@ -156,7 +159,7 @@ export type Product = {
 
 export type ProductListItem = Pick<
   Product,
-  "id" | "sku" | "name" | "model" | "price" | "stockQuantity" | "status" | "kaspiUrl" | "wildberriesUrl"
+  "id" | "sku" | "name" | "model" | "price" | "discountPercent" | "finalPrice" | "stockQuantity" | "status" | "kaspiUrl" | "wildberriesUrl"
 > & {
   modelVariantGroup?: ProductModelVariantGroup | null;
 };
@@ -666,7 +669,19 @@ export type CmsPageSummary = {
   blockCount: number;
 };
 
+export type CategoryBanner = {
+  categoryCode: string;
+  parentCode: string | null;
+  names: Record<string, string>;
+  explicitBlockKey: string | null;
+  effectiveBlockKey: string | null;
+  sourceCategoryCode: string | null;
+  mode: "OWN" | "INHERITED" | "DEFAULT";
+  hasChildren: boolean;
+};
+
 export type CmsPage = {
+  categoryBanners?: CategoryBanner[];
   id: number;
   pageKey: string;
   title: string;

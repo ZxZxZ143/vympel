@@ -9,6 +9,10 @@ public record CrmCmsPageResponse(
         String pageKey,
         String title,
         CmsPageStatus status,
-        List<CrmCmsBlockResponse> blocks
+        List<CrmCmsBlockResponse> blocks,
+        List<CmsCategoryBannerResponse> categoryBanners
 ) {
+    public CrmCmsPageResponse(Long id, String pageKey, String title, CmsPageStatus status, List<CrmCmsBlockResponse> blocks) {
+        this(id, pageKey, title, status, blocks, List.of());
+    }
 }

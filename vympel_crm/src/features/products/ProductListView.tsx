@@ -8,6 +8,8 @@ import { Page, ProductListItem, ProductStatus } from "@/shared/api/types";
 import { useNotifications } from "@/shared/feedback/NotificationProvider";
 import { useI18n } from "@/shared/i18n/useI18n";
 import { Button } from "@/shared/ui/Button";
+import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
+import { ActionIcon } from "@/shared/ui/ActionIcon";
 import { ButtonLink } from "@/shared/ui/ButtonLink";
 import { Text } from "@/shared/ui/Text";
 import { subscribeToProductListChanges } from "@/features/products/productListRefresh";
@@ -22,6 +24,7 @@ const PAGE_SIZE = 12;
 type ProductQuickEditFormValues = {
   price: string;
   stock: string;
+  discount: string;
 };
 
 export function ProductListView() {
@@ -152,7 +155,8 @@ export function ProductListView() {
           </div>
         ) : (
           <div className="crm-table-wrap" tabIndex={0}>
-            <table className="crm-table">
+            <table className="crm-table crm-products-table">
+              <colgroup><col/><col className="crm-products-col--model"/><col className="crm-products-col--price"/><col className="crm-products-col--stock"/><col className="crm-products-col--status"/><col className="crm-products-col--kaspi"/><col className="crm-products-col--wb"/><col className="crm-products-col--actions"/></colgroup>
               <thead>
                 <tr>
                   <th>{t("products.name")}</th>
@@ -162,13 +166,13 @@ export function ProductListView() {
                   <th>{t("products.status")}</th>
                   <th>{t("products.kaspi")}</th>
                   <th>{t("products.wildberries")}</th>
-                  <th>{t("common.edit")}</th>
+                  <th>{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {page.content.map((product) => (
                   <ProductRow
-                    key={`${product.id}-${product.price}-${product.stockQuantity}`}
+                    key={product.id}
                     product={product}
                     locale={locale}
                     statusLabel={messages.products.statuses[product.status] ?? product.status}
@@ -227,19 +231,59 @@ function ProductRow({
     defaultValues: {
       price: toInputValue(product.price),
       stock: toInputValue(product.stockQuantity),
+      discount: toInputValue(product.discountPercent),
     },
   });
   const [busy, setBusy] = useState<string | null>(null);
+  const busyRef = useRef(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const updateDiscount = async (clear = false) => {
+    if (busy || busyRef.current) return;
+    const raw = clear ? "" : getValues("discount").trim();
+    const discount = raw === "" ? null : Number(raw);
+    if (discount !== null && (!/^\d+$/.test(raw) || !Number.isInteger(discount) || discount < 1 || discount > 99)) {
+      notifications.error(t("catalogTools.discountInvalid"));
+      return;
+    }
+    busyRef.current = true;
+    setBusy("discount");
+    try {
+      const updated = await crmApi.updateDiscount(product.id, discount, locale);
+      onProductChange(updated);
+      await onProductsRefresh();
+      notifications.success(t(discount === null ? "catalogTools.discountRemoved" : "catalogTools.discountSaved"));
+    } catch {
+      notifications.error(t("catalogTools.discountError"));
+    } finally { busyRef.current = false; setBusy(null); }
+  };
+
+  const deletePermanently = async () => {
+    if (busy || busyRef.current) return;
+    busyRef.current = true;
+    setBusy("delete");
+    try {
+      await crmApi.deleteArchivedProduct(product.id);
+      setDeleteOpen(false);
+      notifications.success(t("catalogTools.deleted"));
+      await onProductsRefresh();
+    } catch (error) {
+      notifications.error(getCrmErrorMessage(error, t("catalogTools.deleteError"), undefined, {
+        PRODUCT_NOT_ARCHIVED: t("catalogTools.notArchived"), PRODUCT_MEDIA_IN_USE: t("catalogTools.mediaInUse"),
+      }));
+    } finally { busyRef.current = false; setBusy(null); }
+  };
 
   useEffect(() => {
     reset({
       price: toInputValue(product.price),
       stock: toInputValue(product.stockQuantity),
+      discount: toInputValue(product.discountPercent),
     });
-  }, [product.id, product.price, product.stockQuantity, reset]);
+  }, [product.id, product.price, product.stockQuantity, product.discountPercent, reset]);
 
   const updatePrice = async () => {
-    if (busy) {
+    if (busy || busyRef.current) {
       return;
     }
 
@@ -249,6 +293,7 @@ function ProductRow({
       return;
     }
 
+    busyRef.current = true;
     setBusy("price");
     try {
       const nextProduct = await crmApi.updatePrice(product.id, nextPrice, locale);
@@ -259,12 +304,13 @@ function ProductRow({
     } catch (error) {
       notifications.error(getCrmErrorMessage(error, t("products.priceUpdateError")));
     } finally {
+      busyRef.current = false;
       setBusy(null);
     }
   };
 
   const updateStock = async () => {
-    if (busy) {
+    if (busy || busyRef.current) {
       return;
     }
 
@@ -274,6 +320,7 @@ function ProductRow({
       return;
     }
 
+    busyRef.current = true;
     setBusy("stock");
     try {
       const nextProduct = await crmApi.updateStock(product.id, nextStock, locale);
@@ -284,15 +331,17 @@ function ProductRow({
     } catch (error) {
       notifications.error(getCrmErrorMessage(error, t("products.stockUpdateError")));
     } finally {
+      busyRef.current = false;
       setBusy(null);
     }
   };
 
   const archive = async () => {
-    if (busy) {
+    if (busy || busyRef.current) {
       return;
     }
 
+    busyRef.current = true;
     setBusy("archive");
     try {
       const nextProduct = await crmApi.archiveProduct(product.id, locale);
@@ -302,6 +351,7 @@ function ProductRow({
     } catch (error) {
       notifications.error(getCrmErrorMessage(error, t("products.archiveError")));
     } finally {
+      busyRef.current = false;
       setBusy(null);
     }
   };
@@ -309,15 +359,15 @@ function ProductRow({
   return (
     <tr>
       <td>
-        <Text as="span" size="small">
+        <Text as="span" size="small" className="crm-product-row__name" title={product.name}>
           {product.name}
         </Text>
-        <Text tone="muted" size="caption">
+        <Text tone="muted" size="caption" className="crm-product-row__sku" title={product.sku}>
           {product.sku}
         </Text>
       </td>
       <td>
-        <Text as="span" size="small">{product.model}</Text>
+        <Text as="span" size="caption" className="crm-product-row__model">{product.model}</Text>
         <ProductModelVariantStrip
           currentProductId={product.id}
           group={product.modelVariantGroup}
@@ -325,19 +375,24 @@ function ProductRow({
         />
       </td>
       <td>
-        <div className="crm-inline-actions">
-          <input {...register("price")} className="crm-input" type="number" min="0" disabled={busy !== null} />
-          <Button variant="secondary" isLoading={busy === "price"} disabled={busy !== null && busy !== "price"} onClick={updatePrice}>
-            {t("products.quickSave")}
-          </Button>
+        <div className="crm-product-row__pricing">
+          <div className="crm-quick-control">
+            <input {...register("price")} aria-label={t("products.price")} className="crm-input crm-quick-control__price" type="number" min="0" disabled={busy !== null}/>
+            <Button variant="secondary" className="crm-icon-button" title={t("products.quickSave")} aria-label={`${t("products.quickSave")}: ${t("products.price")}`} isLoading={busy === "price"} disabled={busy !== null} onClick={updatePrice}><ActionIcon name="save"/></Button>
+          </div>
+          <div className="crm-quick-control crm-discount-control">
+            <input {...register("discount")} aria-label={t("catalogTools.discount")} title={t("catalogTools.discount")} className="crm-input" type="number" min="1" max="99" step="1" placeholder="—" disabled={busy !== null}/>
+            <span aria-hidden="true">%</span>
+            <Button variant="secondary" className="crm-icon-button" title={t("catalogTools.discountSave")} aria-label={t("catalogTools.discountSave")} isLoading={busy === "discount"} disabled={busy !== null} onClick={() => void updateDiscount()}><ActionIcon name="save"/></Button>
+            {product.discountPercent != null ? <Button variant="secondary" className="crm-icon-button" title={t("catalogTools.discountClear")} aria-label={t("catalogTools.discountClear")} disabled={busy !== null} onClick={() => void updateDiscount(true)}><ActionIcon name="clear"/></Button> : null}
+          </div>
         </div>
+        {product.discountPercent != null ? <Text size="caption" tone="muted" className="crm-product-row__final">{t("catalogTools.finalPrice")}: {product.finalPrice?.toLocaleString(locale === "kz" ? "kk-KZ" : locale)} ₸</Text> : null}
       </td>
       <td>
-        <div className="crm-inline-actions">
-          <input {...register("stock")} className="crm-input" type="number" min="0" disabled={busy !== null} />
-          <Button variant="secondary" isLoading={busy === "stock"} disabled={busy !== null && busy !== "stock"} onClick={updateStock}>
-            {t("products.quickSave")}
-          </Button>
+        <div className="crm-quick-control">
+          <input {...register("stock")} aria-label={t("products.stockQuantity")} className="crm-input crm-quick-control__stock" type="number" min="0" disabled={busy !== null}/>
+          <Button variant="secondary" className="crm-icon-button" title={t("products.quickSave")} aria-label={`${t("products.quickSave")}: ${t("products.stockQuantity")}`} isLoading={busy === "stock"} disabled={busy !== null} onClick={updateStock}><ActionIcon name="save"/></Button>
         </div>
       </td>
       <td>
@@ -354,11 +409,17 @@ function ProductRow({
         </span>
       </td>
       <td>
-        <div className="crm-inline-actions">
-          <ButtonLink href={`/products/${product.id}`} variant="secondary">{t("common.edit")}</ButtonLink>
-          <Button variant="danger" isLoading={busy === "archive"} disabled={busy !== null && busy !== "archive"} onClick={archive}>
-            {t("common.delete")}
-          </Button>
+        <div className="crm-product-row__actions">
+          <ButtonLink href={`/products/${product.id}`} variant="secondary" className="crm-icon-button" title={t("common.edit")} aria-label={t("common.edit")}><ActionIcon name="edit"/></ButtonLink>
+          {product.status === "ARCHIVED" ? (
+            <Button variant="danger" className="crm-icon-button" title={t("catalogTools.delete")} aria-label={t("catalogTools.delete")} disabled={busy !== null} onClick={() => setDeleteOpen(true)}><ActionIcon name="trash"/></Button>
+          ) : (
+            <Button variant="danger" className="crm-icon-button" title={t("common.delete")} aria-label={t("common.delete")} isLoading={busy === "archive"} disabled={busy !== null && busy !== "archive"} onClick={archive}><ActionIcon name="archive"/></Button>
+          )}
+          <ConfirmDialog open={deleteOpen} title={t("catalogTools.deleteTitle")} description={t("catalogTools.deleteWarning")}
+            confirmLabel={t("catalogTools.delete")} cancelLabel={t("common.cancel")} isLoading={busy === "delete"}
+            onConfirm={deletePermanently} onOpenChange={(open) => { if (!busy) setDeleteOpen(open); }}/>
+
         </div>
       </td>
     </tr>

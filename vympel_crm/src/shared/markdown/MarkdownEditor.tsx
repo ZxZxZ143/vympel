@@ -233,7 +233,7 @@ export function MarkdownEditor({ id, label, value, maxLength, labels, onChange }
             <div className="crm-markdown-editor__toolbar" role="toolbar" aria-label={labels.toolbar}>
               {toolbarActions.map((action) => (
                 <button
-                  key={action.label}
+                  key={action.id}
                   type="button"
                   className={["crm-markdown-editor__format", action.className].filter(Boolean).join(" ")}
                   aria-label={action.label}

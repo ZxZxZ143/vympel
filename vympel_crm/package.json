@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
-    "postinstall": "node scripts/patch-minimatch-brace-expansion.mjs",
+    "postinstall": "node scripts/patch-minimatch-brace-expansion.mjs && node scripts/check-glob-security.mjs",
     "start": "next start -p 3001",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -14,10 +14,11 @@
     "test:security": "node --test --test-isolation=none scripts/test-security-headers.mjs",
     "test:budgets": "node ../scripts/check-performance-budgets.mjs",
     "test:budgets:ci": "node ../scripts/check-performance-budgets.mjs --require-build",
-    "test:production-headers": "node scripts/test-production-headers.mjs"
+    "test:production-headers": "node scripts/test-production-headers.mjs",
+    "test:glob-security": "node scripts/check-glob-security.mjs"
   },
   "dependencies": {
-    "next": "16.3.4",
+    "next": "16.3.8",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.80.0",
@@ -33,19 +34,20 @@
     "@types/react-dom": "^19",
     "@testing-library/react": "^16.3.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.4",
+    "eslint-config-next": "16.3.8",
     "jsdom": "^26.1.0",
     "typescript": "^5",
-    "vitest": "^3.2.7"
+    "vitest": "4.1.12"
   },
   "overrides": {
     "minimatch@3.1.5": {
-      "brace-expansion": "5.0.9"
+      "brace-expansion": "5.0.12"
     },
     "js-yaml": "4.3.2",
     "next": {
       "postcss": "8.5.26",
-      "sharp": "^0.35.4"
-    }
+      "sharp": "^0.35.5"
+    },
+    "braces": "npm:@dieub/braces-depth-guard@3.0.3-pn.0"
   }
 }

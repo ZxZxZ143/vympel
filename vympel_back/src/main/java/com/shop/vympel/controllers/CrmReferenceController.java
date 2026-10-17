@@ -28,6 +28,14 @@ public class CrmReferenceController {
         return crmReferenceService.getReferences(Language.from(lang));
     }
 
+    @DeleteMapping("/{type}/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteReference(@PathVariable String type, @PathVariable Long id, HttpServletRequest request) {
+        crmReferenceMutationService.delete(type, id);
+        crmActivityService.log("REFERENCE_VALUE_DELETED", "REFERENCE_VALUE", id, Map.of("type", type), request);
+    }
+
     @PostMapping("/{type}")
     @ResponseStatus(HttpStatus.CREATED)
     @org.springframework.transaction.annotation.Transactional

@@ -1,5 +1,8 @@
 "use client";
 
+import ProductPrice from "@/components/ProductPrice";
+import {customerPrice} from "@/utils/productPricing";
+
 import Image from "next/image";
 import {Minus, Plus, Trash2} from "lucide-react";
 import {useEffect, useMemo, useRef, useState} from "react";
@@ -60,6 +63,8 @@ const CartPage = ({locale}: Props) => {
     const cartIdKey = useMemo(() => (
         items.map((item) => item.productId).sort((left, right) => left - right).join(",")
     ), [items]);
+    const checkoutBusy = useRef(false);
+    const [checkoutLoading, setCheckoutLoading] = useState(false);
     const [cartRefreshLoading, setCartRefreshLoading] = useState(false);
     const [cartRefreshError, setCartRefreshError] = useState(false);
     const [cartRefreshKey, setCartRefreshKey] = useState(0);
@@ -67,7 +72,7 @@ const CartPage = ({locale}: Props) => {
     const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
     const pendingFocusRef = useRef<number | "heading" | null>(null);
     const total = useMemo(() => (
-        items.reduce((sum, item) => sum + ((item.snapshot?.price ?? 0) * item.quantity), 0)
+        items.reduce((sum, item) => sum + ((item.snapshot ? customerPrice(item.snapshot) : 0) * item.quantity), 0)
     ), [items]);
 
     useEffect(() => {
@@ -156,8 +161,17 @@ const CartPage = ({locale}: Props) => {
         }
     };
 
-    const checkoutViaWhatsApp = () => {
-        const checkoutIssue = getCartCheckoutIssue(items);
+    const checkoutViaWhatsApp = async () => {
+        if (checkoutBusy.current) return;
+        checkoutBusy.current = true;
+        setCheckoutLoading(true);
+        try {
+        // Refresh immediately before composing the order; never quote a stale saved price.
+        const response = await PublicApiController.getProductBatchSummary(itemsRef.current.map((item) => item.productId), locale);
+        const fresh = new Map(response.items.map((product) => [product.id, createProductSnapshotFromBatchSummary(product)]));
+        const checkoutItems = itemsRef.current.map((item) => ({...item, snapshot: fresh.get(item.productId)}));
+        fresh.forEach(updateItemSnapshot);
+        const checkoutIssue = getCartCheckoutIssue(checkoutItems);
 
         if (checkoutIssue === "empty") {
             actionToasts.cartCheckoutEmpty();
@@ -179,7 +193,7 @@ const CartPage = ({locale}: Props) => {
             return;
         }
 
-        const message = buildWhatsAppOrderMessage(items, {
+        const message = buildWhatsAppOrderMessage(checkoutItems, {
             currencySymbol: goodT("currencySymbol"),
             labels: {
                 greeting: cartT("whatsapp.greeting"),
@@ -193,7 +207,14 @@ const CartPage = ({locale}: Props) => {
             locale: activeLocale,
         });
 
-        window.open(buildWhatsAppOrderUrl(CONTACT_LINKS.whatsapp, message), "_blank", "noopener,noreferrer");
+        window.location.assign(buildWhatsAppOrderUrl(CONTACT_LINKS.whatsapp, message));
+        } catch {
+            setCartRefreshError(true);
+            actionToasts.cartFailed();
+        } finally {
+            checkoutBusy.current = false;
+            setCheckoutLoading(false);
+        }
     };
 
     const removeProduct = (productId: number) => {
@@ -301,7 +322,7 @@ const CartPage = ({locale}: Props) => {
                             const snapshot = item.snapshot;
                             const href = snapshot?.href ?? routes.product(item.productId);
                             const productName = snapshot?.name ?? cartT("unknownProduct", {id: item.productId});
-                            const productPrice = snapshot?.price ?? 0;
+                            const productPrice = snapshot ? customerPrice(snapshot) : 0;
                             const unavailable = snapshot ? isProductUnavailable(snapshot) : true;
                             const availableStock = snapshot ? getAvailableStock(snapshot) : null;
                             const stockLimitReached = snapshot ? isStockLimitReached(snapshot, item.quantity) : false;
@@ -363,7 +384,7 @@ const CartPage = ({locale}: Props) => {
                                             </Text>
                                         ) : null}
                                         <Text size="bodyLg" className="mt-5">
-                                            {formatProductPrice(productPrice, activeLocale, goodT("currencySymbol"))}
+                                            {snapshot ? <ProductPrice {...snapshot}/> : formatProductPrice(productPrice, activeLocale, goodT("currencySymbol"))}
                                         </Text>
                                     </div>
 
@@ -410,7 +431,7 @@ const CartPage = ({locale}: Props) => {
                         })}
                         </div>
 
-                        <aside className="sticky bottom-0 z-20 h-fit rounded-2xl border border-border-default bg-primary-bg px-6 py-5 shadow-state lg:static lg:px-8 lg:py-7">
+                        <aside className="cart-checkout-summary sticky bottom-0 z-20 h-fit rounded-2xl border border-border-default bg-primary-bg px-6 py-5 shadow-state lg:static lg:px-8 lg:py-7">
                         <Text size="bodyLg" colors="headingSecondary">
                             {cartT("total")}
                         </Text>
@@ -422,6 +443,7 @@ const CartPage = ({locale}: Props) => {
                                 variant="action"
                                 className="mt-8 w-full"
                                 onClick={checkoutViaWhatsApp}
+                                disabled={checkoutLoading || cartRefreshLoading}
                             >
                                 {cartT("checkout")}
                             </Button>
