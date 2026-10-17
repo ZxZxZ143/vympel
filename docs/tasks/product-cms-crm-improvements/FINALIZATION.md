@@ -56,6 +56,10 @@ Only `Step7ExternalDatabaseRehearsalTest` was skipped: it requires explicit exte
 
 The first PR run rejected both lockfiles before tests because optional `@emnapi/core` and `@emnapi/runtime` entries were absent after a Windows install. Regenerating metadata from the existing manifests in an empty Linux directory restored these entries without changing any existing package version. Both Docker dependency stages now copy the glob guard as well as the minimatch patch. Clean Linux Node 22 `npm ci` and both postinstall guards pass; the repaired dependency metadata also audits clean.
 
+## Support registry recovery
+
+Pre-merge Full Release Gate confirmed the pinned MinIO Server/Client repositories no longer allowed pulls. The user authorized recovery from locally cached approved content into owned GHCR packages. Every amd64/ARM64 manifest/config/layer hash was verified before copying, and published child digests remain unchanged. Three Compose definitions and the support-image gate now reference the two-platform mirror indexes. Provenance and exact digests: `docs/deployment/MINIO_IMAGE_MIRRORS.md`. No running MinIO instance or data was changed.
+
 ## Git and immutable release boundary
 
 The work began at `bf670ad` with accumulated uncommitted task changes. Fetch found `origin/main` advanced to `45366a4fc846eb529194279fef36ffedfebf1547` with project-navigation documentation only. Preserve that main update; do not merge any unrelated task/automation branch.

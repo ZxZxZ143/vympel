@@ -37,8 +37,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
-      MINIO_SERVER_IMAGE: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-      MINIO_CLIENT_IMAGE: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+      MINIO_SERVER_IMAGE: ghcr.io/zxzxz143/vympel-minio@sha256:fef3b9cf8ce1bcb83cd30b9a41273c8585855c0a269fa97cf297c6615745b969
+      MINIO_CLIENT_IMAGE: ghcr.io/zxzxz143/vympel-minio-client@sha256:b13adbe0366ec9311957246a2303d69f561f224e58a6eed6687e25db27791bc5
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Parse workflow and deployment YAML

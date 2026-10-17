@@ -2100,6 +2100,8 @@
 
 ## Environment & Setup Gotchas
 
+* If an upstream support registry stops serving a pinned image, do not bypass the availability gate or silently substitute a new binary. With explicit user authorization, validate cached OCI indexes/child manifests/config/layers against recorded digests, mirror the existing platform content into owned packages and pin the new index. An index limited to available required architectures has a different digest even when each child is unchanged. Ensure packages permit anonymous reads before credential-free CI; see `docs/deployment/MINIO_IMAGE_MIRRORS.md`.
+
 * Spring Boot 4 imports separate `jackson-2-bom.version` and `jackson-bom.version` properties. Security patching must align each family as a BOM (currently 2.21.7 / 3.1.7), retain the correct namespace and rerun backend HTTP/auth/migration tests. A digest-pinned JRE image can still contain old OpenSSL packages: explicitly install/upgrade `libssl3` and `openssl` alongside curl, then require the unchanged image vulnerability gate.
 
 * After changing native/optional npm dependencies on Windows, validate a clean Linux `npm ci` with the Docker-pinned Node version. Existing node_modules can hide omitted platform/peer lock entries. Repair lock metadata in an empty directory, retain existing versions, and copy every postinstall script into the Docker dependency stage.
@@ -2683,6 +2685,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-17 — Documented verified cached-image recovery, unchanged platform digests and the public-read requirement for owned GHCR support packages.
 
 2026-10-17 — Added clean Linux lockfile validation, Docker postinstall script coverage and aligned Jackson/OpenSSL release-scan remediation.
 
