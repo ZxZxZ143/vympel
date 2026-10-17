@@ -1240,6 +1240,8 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
+2026-10-17 — Repaired cross-platform npm lock metadata after Linux CI exposed omitted optional emnapi dependencies; both frontend Docker dependency stages now include the glob guard and pass clean Linux npm ci. Existing locked package versions are unchanged.
+
 2026-10-17 — Finalized the integrated discounts, deletion, consent, banners and characteristic pickers; added populated-database migration proof and documented dependency security fixes, final local gates and the same-main-SHA publication-only contract. No server deployment is authorized.
 
 2026-10-14 — Added README engineering overview and direct architecture, local setup, UI evidence and release-status navigation. Documentation only; application and deployment contracts remain as documented.

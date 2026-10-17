@@ -50,6 +50,10 @@ CRM tests now await asynchronous confirmation completion before Escape and ident
 
 Only `Step7ExternalDatabaseRehearsalTest` was skipped: it requires explicit external-database settings and access, which this publication-only task does not authorize. Earlier 21-container-skip limitations no longer apply. Final logs/results remain in ignored `.cache/final-release/`; they are not committed with secrets or runtime artifacts.
 
+## Linux CI follow-up
+
+The first PR run rejected both lockfiles before tests because optional `@emnapi/core` and `@emnapi/runtime` entries were absent after a Windows install. Regenerating metadata from the existing manifests in an empty Linux directory restored these entries without changing any existing package version. Both Docker dependency stages now copy the glob guard as well as the minimatch patch. Clean Linux Node 22 `npm ci` and both postinstall guards pass; the repaired dependency metadata also audits clean.
+
 ## Git and immutable release boundary
 
 The work began at `bf670ad` with accumulated uncommitted task changes. Fetch found `origin/main` advanced to `45366a4fc846eb529194279fef36ffedfebf1547` with project-navigation documentation only. Preserve that main update; do not merge any unrelated task/automation branch.

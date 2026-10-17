@@ -2100,6 +2100,8 @@
 
 ## Environment & Setup Gotchas
 
+* After changing native/optional npm dependencies on Windows, validate a clean Linux `npm ci` with the Docker-pinned Node version. Existing node_modules can hide omitted platform/peer lock entries. Repair lock metadata in an empty directory, retain existing versions, and copy every postinstall script into the Docker dependency stage.
+
 * Next.js 16 blocks optimization of images resolving to private/loopback addresses even when `remotePatterns` allows the origin. For this local MinIO stack, storefront `images.dangerouslyAllowLocalIP` is true only when `NEXT_PUBLIC_APP_ENV=local`; staging, production, and unset modes keep it false. Keep `remotePatterns` restrictions and verify an actual `/_next/image` request, not only direct MinIO HTTP.
 * When Docker Desktop fails successively on `Docker/run/dockerInference` and `docker-secrets-engine/engine.sock`, preserve both socket directories in the same stopped-Docker cycle before restarting. A partial startup recreates the first socket, so repairing one directory per restart can alternate the errors. The 2026-10-17 recovery renamed only the confirmed runtime directories, kept all volumes/settings, and restored the existing database and media.
 
@@ -2679,6 +2681,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-17 — Added clean Linux lockfile validation and Docker postinstall script coverage after PR CI caught missing optional emnapi entries.
 
 2026-10-17 — Recorded populated-schema migration verification, final finite gate results, strict audit remediation with reviewed glob guards and dependency pins, and test synchronization lessons. Preserve release artifacts for the merged main SHA without deploying or mutating an existing image tag.
 
