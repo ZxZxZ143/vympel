@@ -851,6 +851,12 @@
 
 ## Fullstack Integration Patterns
 
+### PR component checks do not prove the full main release gate
+
+* **When to use:** Checking main after merging a PR that changed only part of this repository.
+* **How:** Inspect all workflows for the exact merge SHA, including Full Release Gate and the build-only Release Images matrix. PR path filters can omit CRM, while main gates run all apps. Resolve component-specific audit/image findings without weakening severity thresholds or enabling publication. For the CRM lint graph, update transitive Zod in the lockfile rather than adding an unused application dependency.
+* **Why:** PR #20's storefront/backend checks passed, but main additionally exposed CRM's old Next and transitive Zod versions. Re-running unchanged code cannot fix those findings.
+
 ### Keep base and customer prices separate
 
 * **When to use:** Discount display, pricing APIs, saved cart/favorite snapshots, or checkout.
@@ -2140,7 +2146,7 @@
 ### Release-blocking dependencies and unpatched glob recursion
 
 * **When to use:** The mandatory npm high/critical gate blocks an otherwise verified release.
-* **How:** Keep Next/eslint-config-next aligned (16.3.8), use Vitest 4.1.12, sharp >=0.35.5, brace-expansion 5.0.12 and source-map-js 1.2.2, then rerun all finite gates. The exact `braces -> npm:@dieub/braces-depth-guard@3.0.3-pn.0` alias is a reviewed derivative, not an upstream fix or audit exemption. Its lockfile integrity and runtime diff were inspected; only parse/AST depth guards were added. App-local `check-glob-security.mjs` resolves micromatch's actual dependency, checks identity/version and tests normal output plus deep string/AST rejection during postinstall. The bootstrap package does not claim OIDC provenance; reviewed artifact/source and compatibility tests are the acceptance basis. Replace it with a reviewed upstream fix when available.
+* **How:** Keep Next/eslint-config-next aligned in each app (currently 16.4.3), use Vitest 4.1.12, sharp >=0.35.5, brace-expansion 5.0.12 and source-map-js 1.2.2, then rerun all finite gates. Storefront Zod is 4.6.6 and the CRM lint-tool graph locks 4.6.7. The exact `braces -> npm:@dieub/braces-depth-guard@3.0.3-pn.0` alias is a reviewed derivative, not an upstream fix or audit exemption. Its lockfile integrity and runtime diff were inspected; only parse/AST depth guards were added. App-local `check-glob-security.mjs` resolves micromatch's actual dependency, checks identity/version and tests normal output plus deep string/AST rejection during postinstall. The bootstrap package does not claim OIDC provenance; reviewed artifact/source and compatibility tests are the acceptance basis. Replace it with a reviewed upstream fix when available.
 * **Why:** Renaming a package or weakening severity does not establish remediation. Avoid `npm audit fix --force` downgrades and retain strict CI/Docker audits. Next source updates require fresh builds; do not claim compatibility from audit output alone.
 
 ## Dependencies - Gotchas
@@ -2754,6 +2760,10 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-24 — Recorded the difference between PR component checks and main's complete release matrix; CRM's untouched dependency graph caused the post-PR #20 failures. Updated the aligned Next baseline and documented targeted transitive Zod remediation, preserving strict audits and build-only publication policy.
+
+2026-10-24 — Merged PR #20 only after confirming the exact reviewed head, all three successful CI checks and resolved review feedback. Used GitHub's expected-head SHA guard. The main-push release workflow defaults to build-only; image publication requires explicit workflow_dispatch with publish_images=true. No deployment was requested or performed.
 
 2026-10-24 — Reproduced PR #20's stale-disabled finding before fixing it; recorded freshness gating for both counts and disabled flags. Storefront audit remediation pins aligned Next/eslint-config-next 16.4.3 and Zod 4.6.6. Generate and validate optional npm lock entries on clean Linux with the Docker-pinned Node image; Windows-only lock generation can omit nested emnapi entries even without node_modules.
 

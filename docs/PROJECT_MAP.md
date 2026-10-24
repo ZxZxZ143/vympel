@@ -9,7 +9,7 @@ Vympel is a fullstack catalog application for watches, accessories, and related 
 ### Frontend
 
 * Language/Runtime: TypeScript on Node.js.
-* Framework: Next.js App Router with React 19; public storefront Next/eslint-config-next 16.4.3, separate CRM 16.3.8. Storefront Zod is pinned to 4.6.6 after PR #20 audit remediation.
+* Framework: Next.js App Router with React 19; storefront and CRM both align Next/eslint-config-next at 16.4.3. Storefront Zod is pinned to 4.6.6; CRM's lint-tool transitive Zod is locked at 4.6.7 after the post-merge release-gate audit.
 * UI libraries: shadcn-compatible structure, Radix UI (`radix-ui` package), lucide-react, sonner, Embla Carousel, NProgress.
 * State management: Redux Toolkit configured in `src/store/store.ts`, currently with no reducers; local React state, URL search params, and the SSR-safe `localProductStorage` localStorage service are used for catalog, favorites, and cart interactions.
 * Styling: Public storefront uses Tailwind CSS 4 through `src/app/globals.css`, CSS variables, and custom shared components; CRM uses plain global CSS tokens in `vympel_crm/src/app/globals.css`.
@@ -1268,6 +1268,10 @@ Provider-neutral deployment templates and runbooks live under `infrastructure`, 
 The 2026-08-21 SHA-only preview publication contract compiles the storefront for `https://preview.vympel.kz`, public API/media for `https://api.vympel.kz`, CRM API for the same protected CRM origin at `https://x7m2q9k4n6p8.vympel.kz/api/crm`, staging environment, exact commit release metadata, disabled telemetry, and explicit `SITE_INDEXING_ENABLED=false`. No `crm.vympel.kz` or public `api.vympel.kz/api/crm` contract is introduced. Future host Nginx routes the protected CRM `/` to the CRM frontend and `/api/crm/*` to the backend; UI plus login/refresh/logout use VM-only Basic Auth, while remaining CRM API paths have Nginx Basic Auth disabled so their Bearer header reaches Spring. Backend JWT/RBAC, trusted-origin checks, rate limiting, and the host-only Secure/HttpOnly/Lax refresh cookie remain unchanged. `deployment/scripts/verify-published-images.sh` requires the exact published CRM API base in both platform bundles and rejects the superseded sslip API origin; `verify-preview-indexing.sh` still requires global noindex, no canonical/alternate/social discovery metadata, no advertised sitemap, and no sitemap locations. Publication uses only the full 40-character SHA and creates no RC or mutable alias. The checked-in GCP env remains historical sslip deployment state until a separately authorized VM/Nginx/DNS/TLS change; the old sslip CRM origin is rollback-only and must later be removed from CORS/routing after verification.
 
 ## Last Updated
+
+2026-10-24 — Diagnosed main commit `95185e8` failures: Full Release Gate's CRM npm audit and Release Images' CRM image scan still used Next 16.3.8; the CRM lint graph also retained Zod 4.4.3. Aligned CRM Next/eslint-config-next to 16.4.3 and updated only transitive Zod to 4.6.7 with clean Linux lockfile generation. No application logic, API, schema, CI thresholds, image publication or deployment changes.
+
+2026-10-24 — PR [#20](https://github.com/ZxZxZ143/vympel/pull/20) was merged into `main` as `95185e8d3ad389b76abef2f094cd3c863f7eac31`, preserving the feature commits. The reviewed head `1361e42` passed Storefront CI, Backend CI and Performance budgets; its sole review thread was resolved. No deployment or manual image publication was initiated.
 
 2026-10-24 — Addressed PR #20's stale-disabled filter finding and Storefront CI audit failure: contextual disabled flags now share count validity; storefront Next/eslint-config-next 16.4.3 and Zod 4.6.6 replace vulnerable versions. Added the pending/failure/reopen regression to the browser verifier; backend/CRM contracts and CI security thresholds are unchanged.
 

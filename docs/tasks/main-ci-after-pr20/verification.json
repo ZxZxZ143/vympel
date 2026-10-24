@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-24",
+  "baseCommit": "95185e8d3ad389b76abef2f094cd3c863f7eac31",
+  "versions": {
+    "next": "16.4.3",
+    "eslintConfigNext": "16.4.3",
+    "transitiveZod": "4.6.7"
+  },
+  "tests": {
+    "passed": 153,
+    "files": 20
+  },
+  "lint": "passed",
+  "typecheck": "passed",
+  "build": "passed",
+  "cleanWindowsInstall": "passed",
+  "cleanLinuxInstall": "passed",
+  "audit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "budget": {
+    "measuredMiB": 1.52,
+    "limitMiB": 1.53,
+    "passed": true
+  },
+  "securityHeaderTests": 3,
+  "productionHeaders": "passed",
+  "sharp": "passed",
+  "glob": "passed",
+  "dockerBuild": "passed",
+  "bundleUrls": "passed",
+  "trivy": {
+    "version": "0.70.0",
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "ignoreUnfixed": true,
+    "targets": [
+      {
+        "target": "vympel-crm-main-ci-fix:local (alpine 3.24.1)",
+        "findings": 0
+      },
+      {
+        "target": "Node.js",
+        "findings": 0
+      }
+    ]
+  },
+  "published": false,
+  "deployed": false
+}
