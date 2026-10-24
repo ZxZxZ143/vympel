@@ -1,7 +1,7 @@
 import type {IProductListParams} from "@/api/types/ProductTypes";
-import {ProductSortEnum} from "@/enums/SortEnum";
+import {effectiveCatalogSort} from "@/lib/catalogSort";
 import {LocaleEnum} from "@/i18n/routing";
-import {DEFAULT_CATALOG_SORT} from "@/lib/catalogUrl";
+import {positivePage} from "@/lib/paginationUrl";
 import {
     CATALOG_CONTROL_PARAM_SET,
     REMOVED_CATALOG_FILTER_PARAM_SET,
@@ -28,18 +28,17 @@ export function catalogRequestParams(
     categoryCode: string | undefined,
     searchParams: URLSearchParams,
 ): IProductListParams {
-    const page = parsePositiveInt(searchParams.get("page"), 1);
-    const sort = normalizeCatalogQueryValue(searchParams.get("sort")) ?? DEFAULT_CATALOG_SORT;
+    const page = positivePage(searchParams.get("page"));
     const accessories = isAccessoryCategoryCode(categoryCode);
     return {
         page: page - 1,
         size: 9,
         categoryCode,
         lang: locale,
-        sort: sort as ProductSortEnum,
+        sort: effectiveCatalogSort(searchParams),
         search: normalizeCatalogQueryValue(searchParams.get("search")) ?? undefined,
-        priceMin: accessories ? undefined : normalizeCatalogQueryValue(searchParams.get("priceMin")) ?? undefined,
-        priceMax: accessories ? undefined : normalizeCatalogQueryValue(searchParams.get("priceMax")) ?? undefined,
+        priceMin: accessories ? undefined : normalizeCatalogQueryValue(searchParams.get("priceMin") ?? searchParams.get("minPrice")) ?? undefined,
+        priceMax: accessories ? undefined : normalizeCatalogQueryValue(searchParams.get("priceMax") ?? searchParams.get("maxPrice")) ?? undefined,
         filters: accessories ? accessoryFilters(searchParams) : catalogFilters(searchParams),
     };
 }
@@ -61,9 +60,4 @@ function accessoryFilters(searchParams: URLSearchParams): Record<string, string[
     const allowed = new Set<string>([SEEDED_FILTER_VALUES.gender.women, SEEDED_FILTER_VALUES.gender.men]);
     const gender = normalizeCatalogQueryValues(searchParams.getAll("gender")).find((value) => allowed.has(value));
     return gender ? {gender: [gender]} : {};
-}
-
-function parsePositiveInt(value: string | null, fallback: number): number {
-    const parsed = Number(value);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }

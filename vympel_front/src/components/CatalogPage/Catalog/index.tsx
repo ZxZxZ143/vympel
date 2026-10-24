@@ -8,25 +8,15 @@ import {LocaleEnum} from "@/i18n/routing";
 import {IProduct, IProductListParams} from "@/api/types/ProductTypes";
 import {useFetch} from "@/hooks/useFetch";
 import {ApiError} from "@/api/types/ApiError";
-import {usePagination} from "@/hooks/usePagination";
 import {PublicApiController} from "@/api/controllers/PublicController";
 import {Page} from "@/api/types/PageType";
-import {ProductSortEnum} from "@/enums/SortEnum";
 import GoodCard from "@/components/GoodCard";
 import GoodCardSkeleton from "@/components/GoodCard/Skeleton";
 import Pagination from "@/components/ui/shared/Pagination";
-import {useSort} from "@/hooks/useSort";
-import {SortValue} from "@/components/CatalogPage/Catalog/Sort/type";
-import {
-    CATALOG_CONTROL_PARAM_SET,
-    REMOVED_CATALOG_FILTER_PARAM_SET,
-    normalizeCatalogQueryValue,
-    normalizeCatalogQueryValues
-} from "@/utils/catalogFilterParams";
-import {routes, SEEDED_FILTER_VALUES} from "@/config/routes";
+import {catalogRequestParams} from "@/lib/catalogQuery";
+import {routes} from "@/config/routes";
 import EmptyState from "@/components/ui/shared/EmptyState";
 import ErrorState from "@/components/ui/shared/ErrorState";
-import {isAccessoryCategoryCode} from "@/utils/catalogCategories";
 
 type Props = {
     locale: LocaleEnum;
@@ -42,26 +32,9 @@ const Catalog: FC<Props> = ({locale, categoryCode, initialPage, initialLoadError
     const [goods, setGoods] = useState<Page<IProduct> | null>(initialPage);
     const [serverError, setServerError] = useState(initialLoadError);
     const [retryKey, setRetryKey] = useState(0);
-    const {
-        page,
-        size,
-    } = usePagination()
-    const {sort} = useSort<SortValue>({
-        defaultSort: "priceAsc"
-    })
-    const isAccessories = isAccessoryCategoryCode(categoryCode);
-
-    const requestParams = useMemo<IProductListParams>(() => ({
-        page: page - 1,
-        size,
-        categoryCode,
-        lang: locale,
-        sort: sort as ProductSortEnum,
-        search: normalizeCatalogQueryValue(searchParams?.get("search")) ?? undefined,
-        priceMin: isAccessories ? undefined : normalizeCatalogQueryValue(searchParams?.get("priceMin") ?? searchParams?.get("minPrice")) ?? undefined,
-        priceMax: isAccessories ? undefined : normalizeCatalogQueryValue(searchParams?.get("priceMax") ?? searchParams?.get("maxPrice")) ?? undefined,
-        filters: isAccessories ? parseAccessoryGenderFilter(searchParams) : parseCatalogFilters(searchParams),
-    }), [page, size, categoryCode, locale, sort, searchParams, isAccessories])
+    const requestParams = useMemo<IProductListParams>(() => catalogRequestParams(
+        locale, categoryCode, new URLSearchParams(searchParams?.toString()),
+    ), [locale, categoryCode, searchParams]);
 
     const fetchGoods = useCallback(() => {
         void retryKey;
@@ -161,41 +134,9 @@ const Catalog: FC<Props> = ({locale, categoryCode, initialPage, initialLoadError
                 {renderGoods()}
             </div>
 
-            {goods && <Pagination pageData={goods} />}
+            {goods && <Pagination pageData={goods} scrollTargetId="catalog-product-list" />}
         </>
     );
 };
 
 export default Catalog;
-
-function parseCatalogFilters(searchParams: ReturnType<typeof useSearchParams>): Record<string, string[]> {
-    const filters: Record<string, string[]> = {};
-
-    searchParams?.forEach((value, key) => {
-        if (CATALOG_CONTROL_PARAM_SET.has(key)) return;
-
-        const filterKey = normalizeCatalogQueryValue(key);
-        const values = normalizeCatalogQueryValues([value]);
-
-        if (filterKey && REMOVED_CATALOG_FILTER_PARAM_SET.has(filterKey)) return;
-        if (!filterKey || values.length === 0) return;
-
-        filters[filterKey] = Array.from(new Set([
-            ...(filters[filterKey] ?? []),
-            ...values,
-        ]));
-    });
-
-    return filters;
-}
-
-function parseAccessoryGenderFilter(searchParams: ReturnType<typeof useSearchParams>): Record<string, string[]> {
-    const validGenderValues = new Set<string>([
-        SEEDED_FILTER_VALUES.gender.women,
-        SEEDED_FILTER_VALUES.gender.men,
-    ]);
-    const genderValue = normalizeCatalogQueryValues(searchParams?.getAll("gender") ?? [])
-        .find((value) => validGenderValues.has(value));
-
-    return genderValue ? {gender: [genderValue]} : {};
-}

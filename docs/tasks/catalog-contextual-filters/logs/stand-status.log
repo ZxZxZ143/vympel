@@ -1,0 +1,18 @@
+127.0.0.1:55440 - accepting connections
+ products | unique_skus
+----------+-------------
+      100 |         100
+(1 row)
+
+{"status":"UP"}
+Storefront HTTP 200
+{
+    "frontend":  {
+                     "id":  31496,
+                     "created":  "639284438986570870"
+                 },
+    "backend":  {
+                    "id":  9256,
+                    "created":  "639284434156860470"
+                }
+}

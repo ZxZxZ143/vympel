@@ -1,0 +1,15 @@
+
+> vympel@0.1.0 test:security
+> node --test --test-isolation=none scripts/test-security-headers.mjs
+
+✔ production CSP is enforced and excludes unsafe-eval and wildcards (1.4558ms)
+✔ report-only mode is explicit and never leaves an enforcing duplicate (1.053ms)
+✔ development-only unsafe-eval does not leak into production (0.2287ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20.111

@@ -1,0 +1,9 @@
+{
+  "test:sharp-security": 0,
+  "build": 0,
+  "test:budgets:ci": 0,
+  "test:security": 0,
+  "test:glob-security": 0,
+  "test:production-status": 0,
+  "audit": 1
+}

@@ -2,6 +2,38 @@
 
 ## Frontend Patterns That Work
 
+### Contextual disabled flags need the same freshness check as counts
+
+* **When to use:** Retaining filter metadata while a draft-triggered refresh is pending or fails.
+* **How:** Apply `option.disabled` only when the snapshot matches the current scope and serialized draft, is not updating and has no error. Use that same predicate to show counts. Keep display-only placeholders disabled independently and allow selected zero-count options to be removed.
+* **Why:** Hiding stale numbers alone leaves a previously restrictive snapshot able to block valid choices indefinitely. The browser regression must remove a restriction, fail the refresh, reopen the panel and successfully select an option previously disabled by the old snapshot; fresh zero-count options must still be disabled.
+
+### Two visual groups driven by one Ark pagination model
+
+* **When to use:** Catalog (9) and brand (15) lists using the original Vympel left/right composition.
+* **How:** Keep one controlled `ArkPagination.Root`/`Context` with response-owned page/count/size. Both numeric controls and range pills render the complete `pagination.pages` sequence, including its non-interactive ellipses. Do not slice away the boundary segments. Never calculate a second page window. Both use the same `pageHref` and `ArkPagination.Item` click/selected semantics. Because rendering Ark items or ellipses twice repeats generated IDs, suffix each left-hand instance ID; retain one selected item per labeled group. Range labels are `(page-1)*size+1` through `min(page*size,count)`, with a single number when equal.
+* **Layout:** At >=1024px preserve flex space-between (range pills left, circles/arrows right). Below 1024px hide the entire range group and arrow links with CSS display:none, so they cannot receive focus or appear in the accessibility tree. Center only the numeric group with flex-nowrap, 2px gaps and compact 8px ellipses. A CSS container-width budget subtracts those gaps/ellipses/padding and divides the remaining space among the already-generated Ark number tokens, capped at 44px (about 36px in the widest 320px case). This is presentation sizing, not a second pagination algorithm. Never clip controls with overflow:hidden or wrap this mobile row. Preserve shared siblingCount=1/boundaryCount=1, edge expansion, single-missing-page handling and identical SSR/hydration markup; no viewport subscription is needed. Desktop retains its 44px controls, spacing and bounded overflow; ResizeObserver keeps the active link in view without scrolling the document or moving focus.
+* **Why:** This restores the original visual language without reintroducing zero-based ranges, duplicate pagination state or independent routing handlers. Real browser checks compare both groups' hrefs/content/history and CSS geometry. The DOM has two aria-current links, but only one is visible/exposed below 1024px. One root nav has two explicitly labeled groups and unique DOM IDs.
+
+
+### Verify pagination at the actual breakpoint and widest Ark window
+
+* **When to use:** Changing responsive pagination presentation.
+* **How:** Run `scripts/pagination-stand/verify.mjs --skip-seed` against the preserved real stand, with `PLAYWRIGHT_MODULE` and `PAGINATION_EVIDENCE_DIR` set. Check 320/360/375/390/430/768/1024/1440px, catalog first/middle/last and brand first/middle/last. Also filter the existing products to seven pages: Ark expands that case to seven contiguous numbers, wider than a middle 12-page row. Check element geometry, no body/row overflow, active/neighbor/end links, hidden focus attempts, sequential Tab/Enter, visible outlines, href parity and zero hydration errors. Mobile display:none means target-size checks must ignore hidden range/arrow rectangles. Compare desktop screenshots against the prior range-boundary baseline. `PAGINATION_BROWSER=true npm run test:production-status` runs the independent fixture browser gate.
+* **Why:** SSR string tests cannot prove CSS visibility, fitting or keyboard exclusion, and testing only a middle page misses the widest row. Small fractional dimensions come from existing fluid page gutters; inspect actual geometry before choosing assertions.
+
+### Implicit search relevance differs from explicit price sorting
+
+* **When to use:** Any catalog URL, SSR request, retry or sort control.
+* **How:** Use `catalogSort.ts` / `catalogRequestParams`; with search and no valid chosen sort, return undefined and omit the API parameter. Explicit search `sort=priceAsc` must survive canonicalization. Without search, storefront requests priceAsc as before. Reset removes `sort` and `page`, retaining search/facets. Keep four radio choices; render localized Not selected with no checked radio for relevance.
+* **Why:** Treating omitted sort as priceAsc pushes exact matches onto later pages and creates disagreement between SSR, the trigger and retry requests.
+
+### Resolve brand pagination before rendering the route
+
+* **When to use:** All configured `/brands/{slug}` pages and their metadata.
+* **How:** Share `loadBrandProducts` through React.cache; resolve the actual facet ID, request `(URL page - 1, 15, newest)`, use the ordinary catalog out-of-range policy, and pass the result to the screen. Normalize malformed/page-one URLs before rendering; preserve 404 versus dependency failure. Self-canonicalize genuine page 2+.
+* **Why:** Fetching inside a late screen boundary can stream a 200 before notFound; fetching every model and slicing hides API and total-count errors.
+
 ### Reference deletion in the actual field option picker
 
 * **When to use:** A user-manageable product dictionary or collection needs cleanup during create/edit, including bulk defaults and per-row overrides.
@@ -29,7 +61,7 @@
 ### Shared sale styling and responsive consent placement
 
 * **When to use:** Showing discounts or consent in storefront cards/detail and compact CRM rows.
-* **How:** Reuse `DiscountBadge`; cards place it top-left and disable the price component's duplicate badge. Final price precedes the struck-through original. Preserve the user-approved original price typography: `Text size="h6"`, Inter 28px regular, without a separate mobile size or tabular-numeral override; allow normal wrapping. Keep the notice centered with bounded width/height, concise localized summary and full truthful details, equal-weight actions, mobile navigation clearance and the existing measured cart offset. CRM quick controls use one nonwrapping row; the 920px minimum table scrolls inside its wrapper on phones.
+* **How:** Reuse `DiscountBadge`; cards place it top-left and disable the price component's duplicate badge. Final price precedes the struck-through original. Preserve the user-approved original price typography: `Text size="h6"`, Inter 28px regular, without a separate mobile size or tabular-numeral override; allow normal wrapping. Keep the notice centered with bounded width/height, concise localized summary and plain-language details, equal-weight actions, mobile navigation clearance and the existing measured cart offset. CRM quick controls use one nonwrapping row; the 920px minimum table scrolls inside its wrapper on phones.
 * **Why:** The supplied marketplace reference informs placement while Vympel retains neutral colors and restrained typography. Consent remains usable at 320px without changing storage behavior.
 
 ### Stable localized prices across server and browser ICU
@@ -107,7 +139,7 @@
 ### URL-driven catalog controls
 
 * **When to use:** When catalog UI needs shareable pagination, sort, filter, or search state.
-* **How:** Use `usePagination` for one-based UI page values mapped to zero-based backend page requests, `useSort` for the `sort` query param, and URL search params for backend-driven filter keys/values. Applying filters must set `page=1`; catalog search must clear existing filters and redirect through `routes.searchCatalog(query)`. When pagination controls change the page in a product list, pass a `scrollTargetId` so the hook returns the user to the product list/top after the URL updates.
+* **How:** Use response-driven `usePagination(pageData, scrollTargetId)` for shared link generation, `catalogRequestParams` / `loadBrandProducts` for zero-based backend requests, and `useSort` for the optional `sort` query param, and URL search params for backend-driven filter keys/values. Applying filters must set `page=1`; catalog search must clear existing filters and redirect through `routes.searchCatalog(query)`. When pagination controls change the page in a product list, pass a `scrollTargetId` so real Next links include the product-section hash and browser navigation owns scrolling.
 * **Why:** Catalog state survives navigation and refresh without needing Redux.
 
 ### React Hook Form for frontend forms
@@ -169,6 +201,13 @@
 * **When to use:** When adding or changing public catalog filters.
 * **How:** Fetch `/api/public/product/filters/{lang}` through `PublicApiController.getCatalogFilters`, render labels/options/counts/source from the response, keep selected values in URL params, remove keys that are not present in the current category metadata, drop removed aliases such as `brandCountry`, and use global catalog filter tokens from `globals.css`. Draft filter state belongs in React Hook Form; use `Controller` for the reusable animated `Checkbox` and price inputs, then write the URL only on Apply/Reset. Filter category and option hover should use the shared underline hover utility so hover does not move text, change element height, or flicker.
 * **Why:** Filter dictionaries, localized labels, counts, and category-specific visibility belong to the backend; hardcoded frontend filters drift from product data.
+
+### Contextual counts without resetting the filter draft
+
+* **When to use:** Updating catalog filter counts while the user selects multiple characteristics.
+* **How:** Send the complete draft, category, search and price range to the existing metadata endpoint. Count each facet against all other dimensions, excluding itself; use OR within a dimension and AND across dimensions. Keep the category's known options with truthful zero counts, and allow selected zero-count options to be unchecked. Preserve batched SQL aggregations; do not issue a count query per option or load whole products. Match product-list parsing/profile/search semantics and test API count parity.
+* **UI:** Debounce 200ms, abort obsolete requests and ignore late responses. Keep the active filter tab and RHF values when metadata changes. Reset drafts only on URL navigation, never on count responses. Hide stale counts while pending or failed. Contextual price min/max are metadata, not moving HTML input limits: keep nonnegative price inputs valid when other selections narrow the available range. Render all active reference options, including gender and stone, with real IDs and truthful zero counts even when no products have those attributes. Keep CASE/STRAP material groups and interior feature types separate. Do not remove unused dictionary values when positive options appear. Truly empty lists show the localized unavailable message; only stone adds a display-only disabled Swarovski placeholder, which disappears when real dictionary options arrive. Never invent numeric size options.
+* **Testing:** Exercise ceramic/mechanism intersections, own-facet alternatives, multiple selections, zero results, empty categories, unassigned gender/strap/glass/stone, typed interior dictionaries, search/price, locale/category scopes, Apply/Reset/Back/Forward, stale requests and UI placeholder replacement. `scripts/pagination-stand/verify-zero-filters.mjs` checks real API/browser zero options at 1440/390px. Use the separate disposable facet-test database for transactional integration fixtures. The 100-product stand may be enriched with the guarded additive `seed-filter-details.sql`; never recreate it merely to test filters.
 
 ### Catalog hero banners under header
 
@@ -498,6 +537,12 @@
 
 ## Backend Patterns That Work
 
+### Rank the matched IDs before pagination without changing matching
+
+* **When to use:** Default catalog searches without explicit sorting.
+* **How:** Preserve an unsorted Pageable for implicit search; pass only that search to the relevance-enabled `findIds` overload. Add a CASE ORDER BY ahead of availability: normalized exact name across stored locales, exact model/SKU, name prefix, contained phrase, remaining matches. Prefix precedes the broader contains bucket so it remains meaningful. Rank-only text normalization/LIKE escaping does not belong in `searchSpecification`. Reuse the unchanged count specification and batched summary hydration; stable createdAt/ID ties keep pages consistent. Quick search retains the old overload.
+* **Why:** Per-page sorting cannot recover a globally misplaced exact match. Joining every locale name can duplicate products; correlated EXISTS preserves one row per product and unchanged eligibility.
+
 ### Closed supported catalog domain
 
 * **When to use:** Any backend read or write involving brand identity, country identity, brand-country mapping, CRM references, product validation, or public brand/country filters.
@@ -795,8 +840,8 @@
 ### Public product availability ordering
 
 * **When to use:** When changing any public product list endpoint, selected sort mapping, catalog/category/brand/search listing, or pagination behavior.
-* **How:** Keep in-stock-first ordering in the backend through `PublicProductQueryService`: order by a computed availability bucket first (`status == ACTIVE` and `stockQuantity > 0`), then by the selected sort field/direction, then by a stable id fallback. Apply this before pagination. Do not sort by raw `stockQuantity` and do not patch this as frontend-only sorting.
-* **Why:** Out-of-stock products must be visible but always after available products, and pagination must not show unavailable products before available products that exist later in the full result set.
+* **How:** For explicit sorting, ordinary browsing, brand pages and quick search, keep in-stock-first ordering in the backend through `PublicProductQueryService`: order by a computed availability bucket first (`status == ACTIVE` and `stockQuantity > 0`), then by the selected sort field/direction, then by a stable id fallback. Apply this before pagination. Do not sort by raw `stockQuantity` and do not patch this as frontend-only sorting.
+* **Why:** Preserve the established browsing policy. Exception: default full-catalog search ranks relevance before availability so an exact match cannot be displaced by less relevant in-stock products; availability breaks ties within each relevance rank.
 
 ### Public quick product search
 
@@ -835,6 +880,7 @@
 * **When to use:** Public privacy notice or analytics integration.
 * **How:** Distinguish next-intl's functional `NEXT_LOCALE` cookie from localStorage cart/favorites/preferences and sessionStorage product analytics. `privacyPreferences` defaults to essential only, subscribes across tabs, permits withdrawal, and denies analytics on missing/removed preference values. If browser storage throws, honor a choice only in the current tab. Keep product event IDs/dedup and optional web vitals behind permission; operational error reporting remains independent.
 * **Why:** The storefront has no advertising cookies. A small truthful storage notice is sufficient; no third-party consent framework was added. Do not mistake CRM HttpOnly refresh cookies for storefront tracking.
+* **User-facing copy:** Keep RU/KZ/EN notice details short and purpose-based: remembering preferences, convenient shopping and analytics only with consent. Do not list cookie identifiers, localStorage/sessionStorage or implementation mechanics in the notice. Preserve the actual choices and permission checks when editing copy.
 
 
 ### Optional category-detail groups
@@ -1202,6 +1248,13 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### Clearing search while applying catalog filters
+
+* **What happened:** Applying a price/brand filter deleted `search`; ordinary-browsing canonicalization then removed explicit `priceAsc` too.
+* **Root cause:** The filter submit handler treated a refinement as a new search.
+* **Fix:** Preserve search and sort when applying filters; reset only page and the edited facets.
+* **How to avoid:** Browser-test search + explicit priceAsc + page 2 -> apply price bounds -> page 1; verify the search/sort/bounds survive the next pagination link.
 
 ### Treating a generated SKU collision as a duplicate product
 
@@ -1841,6 +1894,22 @@
 * **How to avoid:** Treat revalidation as an idempotent durable side effect. Keep 30-second ISR as a safety net, require deployment secrets/URL, and show pending/not-configured/permanent outcomes as localized partial-success warnings.
 
 ## Testing Patterns
+
+### Reproducible real-data pagination stand
+
+* **When to use:** User explicitly requests a persistent local demo and end-to-end proof of database pagination/search.
+* **How:** Use `scripts/pagination-stand/stand.ps1` and its README. Never source deployment env files. Bind DB/backend/frontend to dedicated loopback ports, migrate only the marked disposable DB, and resolve reference IDs from migrated codes. Seed via guarded SKU upserts outside production Liquibase; assert IDs, counts, translations and categories, then traverse every API/browser page. Reapply seed and compare snapshots to prove idempotence. Compare ordering membership for every explicit sort.
+* **Why:** Fixture HTTP mocks cannot prove database filtering/ranking. Keep the full regression suite on its separate disposable `pagination_test` database (55439) so its fixtures cannot alter the delivered 100-product demo (55440).
+* **Search gotcha:** A phrase containing Vympel also matches every `VYMPEL-PAG-DEMO-*` SKU under existing token matching. Use `Orion Atlas` (26 matches) to discriminate exact/model/prefix/contains ranking, and separately test exact SKU. Do not change matching to accommodate test data. Explicit sorting remains availability-first, so assert price/date monotonicity separately in each availability group.
+* **Windows/Next gotchas:** Build a source copy without `.env` or the user's AGENTS/CLAUDE files. A node_modules junction outside Turbopack's inferred filesystem root fails; adjust only the disposable config root to encompass both. Use the generated standalone server with copied public/static assets. In Windows PowerShell 5, native stderr under ErrorAction Stop can abort on ordinary build diagnostics; collect output and test the native exit code explicitly. Print status as strings/JSON before `exit` to avoid deferred formatter output being lost. Launch pg_ctl with separate redirected handles: PostgreSQL children can otherwise keep the caller output pipeline open after the script exits. Verify pg_isready because PowerShell can expose a null process ExitCode after WaitForExit.
+* **Frontend-only changes:** Use `stand.ps1 RefreshFrontend` to build beside the running copy and switch only Node after a successful build; keep the database/backend and existing products untouched. Use `verify.mjs --skip-seed` plus a separate `PAGINATION_EVIDENCE_DIR` for read-only UI regression evidence. After browser reload, allow network/hydration to settle before immediately exercising Back/Forward; an SSR-selected marker alone is not proof that client history handlers are ready. Use a fresh browser page for exact history.length deltas: Chromium caps long-session history at 50 entries.
+* **Process safety:** Record PID + creation time + owned command-line directory. Verify these before stopping Java/Node; stop PostgreSQL only through the marked data directory. Restart was exercised with data preserved. Leave the stand alive only when the user requests it; ordinary tests remain finite. Shared installed dependencies mean dependency updates require rebuilding/restarting the stand.
+* **Evidence/limits:** `local-stand/REPORT.md` records real DB/API/browser proof at 320/390/768/1024/1440 and all locales. Browser navigation can cancel product prefetch RSC streams, producing Next server "destination stream closed early" diagnostics; navigated product pages returned 200 and no pageerror occurred. Do not describe that as a clean server log. Docker unavailable means 21 container cases skipped plus one intentional external-database case; PG18 does not establish PG16 parity. Next critical/Zod high audit objects remain identical to saved main baseline.
+
+
+* Pagination/search evidence (2026-10-24): `docs/tasks/catalog-brand-pagination-search-order/REPORT.md`; 227 storefront tests; browser checks at 320/390/768/1024/1440 verify a single active item, unique numeric links, 44px targets, no document overflow, page contents, history/reload, keyboard activation and sort/reset. Optional finite browser gate: `PAGINATION_BROWSER=true` with `PLAYWRIGHT_MODULE` pointing to an installed Playwright entry, then `npm run test:production-status`. Browser traffic is intercepted to the same disposable API fixture as SSR.
+* `CatalogSearchOrderingIntegrationTest` executes actual PostgreSQL Criteria ranking and counts, multi-locale names, expensive unavailable exact matches, stable disjoint pages, explicit sorts and unchanged match sets. Measure SQL count at the ID-query boundary (ID select + count = 2) rather than comparing whole-request cold/warm category contexts. Full suite on disposable PostgreSQL 18: 329 passed, 22 skipped because Docker was unavailable (21) or external database rehearsal disabled (1). No live database was used.
+* Ark 5.39.3 added 46,411 raw static JS bytes in the same production build environment (1,324,705 -> 1,371,116); the existing 1.65 MiB budget was unchanged. Audit against an untouched main lockfile confirmed identical pre-existing Next critical and Zod high findings; a successful feature gate is not a clean dependency audit.
 
 * Catalog improvements: `CatalogImprovementsIntegrationTest` uses disposable fixtures, all 15 creatable reference paths, 20 detail-column dependency cases plus feature joins, database discount bounds, media ownership, audit persistence and CMS revalidation. `CrmAuthLifecycleIntegrationTest` checks real HTTP validation and preserved RBAC. Enable `app.cms.public-revalidate.enabled=true` in the transaction-scoped banner test to verify actual queue insertion; default test profile intentionally disables it.
 * Final release verification on 2026-10-17 used Java 17, a dedicated disposable PostgreSQL 16 loopback database and working Docker/Testcontainers. The full suite discovers 345 tests: 344 pass, only `Step7ExternalDatabaseRehearsalTest` skips because no real external database is authorized. `ProductDiscountMigrationTest` adds prior-schema/populated-data/checksum/bounds/idempotence proof. Liquibase changes JDBC auto-commit mode; restore it before independent expected constraint failures or later assertions will only see an aborted transaction. Do not report skipped tests as passed.
@@ -2685,6 +2754,30 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-24 — Reproduced PR #20's stale-disabled finding before fixing it; recorded freshness gating for both counts and disabled flags. Storefront audit remediation pins aligned Next/eslint-config-next 16.4.3 and Zod 4.6.6. Generate and validate optional npm lock entries on clean Linux with the Docker-pinned Node image; Windows-only lock generation can omit nested emnapi entries even without node_modules.
+
+2026-10-24 — PR [#20](https://github.com/ZxZxZ143/vympel/pull/20) records the final implementation and separates completed local checks from GitHub CI. When preparing review descriptions, use the latest zero-option verification totals (265 frontend tests; 359 backend passes and one external rehearsal skip), link earlier browser matrices as scoped evidence, and retain the documented npm-audit limitations.
+
+2026-10-24 — Verified that the feature branch still tracked `origin/main` before its first push. Use an explicit same-name branch refspec and set its upstream; never rely on the inherited main tracking target. Release-image push triggers target main, so this feature-branch push does not publish images or deploy.
+
+2026-10-24 — Reviewed the complete filter change set for a local commit; existing frontend/backend/build/browser verification remains applicable because no application code changed during commit preparation. Keep unrelated local instruction files outside the filter commit.
+
+2026-10-24 — Recorded dictionary-first zero-count options, material/interior dictionary scoping, empty numeric-list messaging and real desktop/mobile gender verification; active dictionary values must not disappear merely because products omit that characteristic.
+
+2026-10-24 — Added contextual facet counting, stable draft/active-tab refresh, stale-response handling and safe dictionary-placeholder lessons.
+
+2026-10-24 — Recorded plain-language cookie-notice copy in all three locales, without exposing storage implementation details or changing consent choices.
+
+2026-10-24 — Documented mobile CSS hiding/focus exclusion, single-row sizing from Ark tokens, widest-window browser coverage and preserved desktop behavior.
+
+2026-10-24 — Recorded full-window range mapping, shared permanent boundary/neighbor settings, duplicate-ellipsis-ID avoidance and responsive boundary-link verification.
+
+2026-10-24 — Documented one Ark model across range/number groups, inclusive labels, unique IDs, responsive alignment, keyboard/history checks and database-preserving frontend refresh.
+
+2026-10-24 — Documented real-data stand isolation, idempotent fixtures, search-token gotcha, Windows/Next lifecycle pitfalls and verified results/limitations.
+
+2026-10-24 — Added shared Ark pagination, response-owned sizes, search-aware URL/request ordering, rank-before-pagination SQL patterns, responsive/browser/database verification and documented existing environment/audit limitations.
 
 2026-10-17 — Documented verified cached-image recovery, unchanged platform digests and the public-read requirement for owned GHCR support packages.
 

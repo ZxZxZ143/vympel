@@ -1,0 +1,934 @@
+{
+  "passed": true,
+  "errors": [],
+  "results": [
+    {
+      "width": 320,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "/en/catalog?page=7",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "/en/brands/romanson?page=2",
+      "js": false,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 1,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "/en/catalog?page=7",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 6,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 7,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 8,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 12,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "/en/brands/romanson?page=2",
+      "js": true,
+      "overflow": false,
+      "visibleActive": 2,
+      "pages": [
+        {
+          "page": 1,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 2,
+          "width": 44,
+          "height": 44
+        },
+        {
+          "page": 3,
+          "width": 44,
+          "height": 44
+        }
+      ]
+    }
+  ]
+}

@@ -75,12 +75,12 @@ class ProductCatalogServiceTest {
         List<Long> scope = List.of(10L, 11L);
         when(categoryProfileService.resolveContext("watch-wrist"))
                 .thenReturn(new CatalogCategoryContext(category(10L, "WATCH_WRIST"), CatalogCategoryProfile.WRISTWATCH, null, scope));
-        when(facetRepository.findBaseFacets(scope, "ru")).thenReturn(List.of(
+        when(facetRepository.findBaseFacets(scope, "ru", CatalogFacetRepository.Selection.EMPTY)).thenReturn(List.of(
                 row("price", null, null, 2, "100", "200"),
                 row("brand", "1", "Brand", 2, null, null),
                 row("country", "2", "Country", 2, null, null)
         ));
-        when(facetRepository.findWristFacets(scope, "ru")).thenReturn(List.of(
+        when(facetRepository.findWristFacets(scope, "ru", CatalogFacetRepository.Selection.EMPTY)).thenReturn(List.of(
                 row("mechanism", "101", "Quartz", 1, null, null),
                 row("mechanism", "102", "Mechanical", 1, null, null),
                 row("caseSize", "40", "40", 1, null, null)
@@ -90,8 +90,8 @@ class ProductCatalogServiceTest {
 
         assertThat(response.getFilters()).hasSize(10);
         assertThat(response.getFilters().get(3).getOptions()).hasSize(2);
-        verify(facetRepository).findBaseFacets(scope, "ru");
-        verify(facetRepository).findWristFacets(scope, "ru");
+        verify(facetRepository).findBaseFacets(scope, "ru", CatalogFacetRepository.Selection.EMPTY);
+        verify(facetRepository).findWristFacets(scope, "ru", CatalogFacetRepository.Selection.EMPTY);
         verify(productRepository, never()).findAll(org.mockito.ArgumentMatchers.any(org.springframework.data.jpa.domain.Specification.class));
         verify(productRepository, never()).count(org.mockito.ArgumentMatchers.any(org.springframework.data.jpa.domain.Specification.class));
     }
@@ -101,17 +101,17 @@ class ProductCatalogServiceTest {
         List<Long> scope = List.of(20L);
         when(categoryProfileService.resolveContext("interior"))
                 .thenReturn(new CatalogCategoryContext(category(20L, "INTERIOR"), CatalogCategoryProfile.INTERIOR_CLOCK, null, scope));
-        when(facetRepository.findBaseFacets(scope, "kk")).thenReturn(List.of(row("price", null, null, 0, null, null)));
-        when(facetRepository.findInteriorFacets(scope, "kk")).thenReturn(List.of(
+        when(facetRepository.findBaseFacets(scope, "kk", CatalogFacetRepository.Selection.EMPTY)).thenReturn(List.of(row("price", null, null, 0, null, null)));
+        when(facetRepository.findInteriorFacets(scope, "kk", CatalogFacetRepository.Selection.EMPTY)).thenReturn(List.of(
                 row("interiorStyle", "7", "Classic", 4, null, null)
         ));
 
         CatalogFiltersResponse response = service.getFilters("interior", Language.KZ);
 
         assertThat(response.getFilters()).hasSize(8);
-        verify(facetRepository).findBaseFacets(scope, "kk");
-        verify(facetRepository).findInteriorFacets(scope, "kk");
-        verify(facetRepository, never()).findWristFacets(scope, "kk");
+        verify(facetRepository).findBaseFacets(scope, "kk", CatalogFacetRepository.Selection.EMPTY);
+        verify(facetRepository).findInteriorFacets(scope, "kk", CatalogFacetRepository.Selection.EMPTY);
+        verify(facetRepository, never()).findWristFacets(scope, "kk", CatalogFacetRepository.Selection.EMPTY);
     }
 
     private Category category(Long id, String code) {

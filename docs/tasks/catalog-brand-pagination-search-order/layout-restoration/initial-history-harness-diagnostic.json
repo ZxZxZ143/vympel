@@ -1,0 +1,197 @@
+{
+  "url": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n50 !== 51\n",
+  "errors": [],
+  "results": [
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog?page=3",
+      "itemCount": 9,
+      "page": 3
+    },
+    {
+      "route": "/en/catalog?page=4",
+      "itemCount": 9,
+      "page": 4
+    },
+    {
+      "route": "/en/catalog?page=5",
+      "itemCount": 9,
+      "page": 5
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "route": "/en/catalog?page=7",
+      "itemCount": 9,
+      "page": 7
+    },
+    {
+      "route": "/en/catalog?page=8",
+      "itemCount": 9,
+      "page": 8
+    },
+    {
+      "route": "/en/catalog?page=9",
+      "itemCount": 9,
+      "page": 9
+    },
+    {
+      "route": "/en/catalog?page=10",
+      "itemCount": 9,
+      "page": 10
+    },
+    {
+      "route": "/en/catalog?page=11",
+      "itemCount": 9,
+      "page": 11
+    },
+    {
+      "route": "/en/catalog?page=12",
+      "itemCount": 1,
+      "page": 12
+    },
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/romanson?page=3",
+      "itemCount": 5,
+      "page": 3
+    },
+    {
+      "route": "/en/brands/adriatica",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/adriatica?page=2",
+      "itemCount": 10,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/appella",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/appella?page=2",
+      "itemCount": 5,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/pierre-ricaud",
+      "itemCount": 10,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/rhythm",
+      "itemCount": 5,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/royal-london",
+      "itemCount": 5,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/ru/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/ru/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/ru/catalog?search=Orion%20Atlas",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/kz/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/kz/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/kz/catalog?search=Orion%20Atlas",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas&page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas&brand=1&sort=priceAsc&page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    }
+  ]
+}

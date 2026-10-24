@@ -1,0 +1,131 @@
+{
+  "counts": {
+    "tests": 351,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 22,
+    "passed": 329
+  },
+  "ranking": {
+    "name": "com.shop.vympel.services.catalog.CatalogSearchOrderingIntegrationTest",
+    "tests": "6",
+    "skipped": "0",
+    "failures": "0",
+    "errors": "0",
+    "timestamp": "2026-10-24T10:58:18.923Z",
+    "hostname": "YEVGENII",
+    "time": "5.045"
+  },
+  "skipped": [
+    {
+      "suite": "com.shop.vympel.db.ProductDiscountMigrationTest",
+      "case": "upgradesPopulatedPreviousSchemaWithoutRewritingHistoryOrProductData()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "authoritativeReferenceQueryCoversEveryDesktopMobileAndLocaleSlot()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "liquibaseBuildsRefreshSessionSchemaOnDisposablePostgres()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentLastAdminDisablesLeaveOneActiveAdministrator()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentCmsReordersRemainUniqueAndTenStepNormalized()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "directInvalidWritesAreRejectedByStep7Constraints()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentCustomerRequestEditsPreserveStatusAndComment()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "liquibaseBuildsCmsLifecycleAndDurableRevalidationOutbox()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentStockDecrementsNeverProduceNegativeInventory()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentProductFieldUpdatesPreserveBothCommittedChanges()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "recommendationsExcludeActiveChildrenBelowAnInactiveAncestor()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentReviewDeleteAndApproveCannotRepublishDeletedReview()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "liquibaseBuildsStep7IntegrityConstraintsAndNormalizesAuditedData()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentProductImageReordersRemainCanonical()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.RefreshSessionMigrationTest",
+      "case": "concurrentRoleReplacementNeverMergesDisjointRequestedRoleSets()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.Step7ExternalDatabaseRehearsalTest",
+      "case": "restoredLiveDataMigratesAndRejectsInvalidWrites()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.SupportedCatalogMigrationTest",
+      "case": "migrationBuildsTheExactSupportedDomainAndLocalizedLabels()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.SupportedCatalogMigrationTest",
+      "case": "migrationContractContainsOnlyClearAliasConversionsAndFkSafeProductDeletion()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.db.SupportedCatalogMigrationTest",
+      "case": "databaseRejectsUnsupportedRowsAndMappingDrift()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.security.ratelimit.RedisRateLimitStoreIntegrationTest",
+      "case": "twoServiceInstancesShareAtomicBurstAndTtlState()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.services.product.ProductModelVariantIntegrationTest",
+      "case": "migrationAddsTheDerivedGroupingIndexWithoutPersistentVariantState()",
+      "message": ""
+    },
+    {
+      "suite": "com.shop.vympel.services.product.ProductModelVariantIntegrationTest",
+      "case": "groupsByBrandNormalizedModelAndCategoryProfileWithPublicVisibilityRules()",
+      "message": ""
+    }
+  ]
+}

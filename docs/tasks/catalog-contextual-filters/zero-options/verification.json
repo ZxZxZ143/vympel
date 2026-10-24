@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-24",
+  "frontend": {
+    "build": "passed (RefreshFrontend)",
+    "lint": "passed",
+    "typecheck": "passed",
+    "tests": 265,
+    "files": 45
+  },
+  "backend": {
+    "skipped": "com.shop.vympel.db.Step7ExternalDatabaseRehearsalTest.restoredLiveDataMigratesAndRejectsInvalidWrites()",
+    "facetTests": 9,
+    "errors": 0.0,
+    "build": "BUILD SUCCESSFUL in 3m 31s",
+    "failures": 0.0,
+    "tests": 360.0
+  },
+  "browser": {
+    "widths": [
+      1440,
+      390
+    ],
+    "interceptedResilience": "passed",
+    "contextualRegression": "passed",
+    "zeroOptions": "passed"
+  },
+  "stand": {
+    "frontend": "http://127.0.0.1:3300",
+    "detailRecords": 43,
+    "postgresStartTime": "2026-10-24 16:10:31.710019+05",
+    "backend": "http://127.0.0.1:18080",
+    "readiness": "UP",
+    "preserved": true,
+    "products": 100
+  },
+  "branch": "codex/catalog-brand-pagination-search-order",
+  "pushed": false
+}

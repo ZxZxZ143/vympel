@@ -315,7 +315,7 @@ class PublicController {
 
         url.searchParams.set("page", String(params.page))
         url.searchParams.set("size", String(params.size))
-        url.searchParams.set("sort", String(params.sort))
+        if (params.sort) url.searchParams.set("sort", params.sort)
 
         const res = await fetch(url.toString(), {
             method: "GET",
@@ -366,7 +366,7 @@ class PublicController {
         return Array.isArray(payload) ? payload : []
     }
 
-    public async getCatalogFilters(lang: LocaleEnum, categoryCode?: string): Promise<ICatalogFiltersResponse | null> {
+    public async getCatalogFilters(lang: LocaleEnum, categoryCode?: string, selection?: URLSearchParams, signal?: AbortSignal): Promise<ICatalogFiltersResponse | null> {
         const base = this.getBaseUrl()
 
         if (!base) {
@@ -376,6 +376,10 @@ class PublicController {
         const path = PublicEndpoints.catalogFilters(lang)
         const url = new URL(base + path)
 
+        selection?.forEach((value, key) => {
+            if (!["categoryCode", "page", "size", "sort"].includes(key)) url.searchParams.append(key, value)
+        })
+
         if (categoryCode) {
             url.searchParams.set("categoryCode", categoryCode)
         }
@@ -383,7 +387,7 @@ class PublicController {
         const res = await fetch(url.toString(), {
             method: "GET",
             cache: "no-cache",
-            signal: boundedSignal(),
+            signal: boundedSignal(signal),
         })
 
         if (!res.ok) {

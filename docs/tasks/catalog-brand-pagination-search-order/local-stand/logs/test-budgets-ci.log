@@ -1,0 +1,9 @@
+
+> vympel@0.1.0 test:budgets:ci
+> node ../scripts/check-performance-budgets.mjs --require-build
+
+asset budget detector self-test: oversized fixture rejected; explicit exception honored
+public assets: 8.90 MiB / 24.00 MiB
+vympel_front static JS: 1.31 MiB / 1.65 MiB
+vympel_crm static JS: 1.51 MiB / 1.53 MiB
+Performance budgets passed.

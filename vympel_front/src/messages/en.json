@@ -111,9 +111,13 @@
     "supportReference": "Support reference: {requestId}"
   },
   "pagination": {
+    "ranges": "Product ranges",
+    "pages": "Page numbers",
+    "items": "Show items {range}",
     "aria": "Catalog pagination",
     "page": "Go to page {page}",
-    "items": "Go to items {range}"
+    "previous": "Previous page",
+    "next": "Next page"
   },
   "carousel": {
     "region": "Carousel",
@@ -192,14 +196,14 @@
     "historyTitle": "Brand history",
     "catalogLink": "Go to catalog",
     "catalogLinkAria": "Go to the {brand} catalog",
-    "newProducts": "New arrivals",
     "notFoundTitle": "Brand not found",
     "notFoundDescription": "Check the page address or choose a brand from the navigation.",
     "productsError": "Failed to load products for this brand.",
     "productsEmpty": "No products for this brand were found yet.",
     "bannerFallback": "{brand} banner is temporarily unavailable.",
     "brandBannerAlt": "{brand} brand banner",
-    "catalogBannerAlt": "{brand} catalog banner"
+    "catalogBannerAlt": "{brand} catalog banner",
+    "models": "Brand models"
   },
   "aboutPage": {
     "title": "About Us",
@@ -379,9 +383,12 @@
         "priceDesc": "Price",
         "newest": "Newest",
         "oldest": "Oldest"
-      }
+      },
+      "notSelected": "Not selected",
+      "reset": "Reset"
     },
     "filters": {
+      "noOptions": "No options are currently available.",
       "trigger": "Filters",
       "close": "Close filters",
       "loading": "Loading filters...",
@@ -727,7 +734,7 @@
     "title": "Cookies and browser storage",
     "body": "We remember your language, cart and favorites. Analytics is optional.",
     "details": "Details",
-    "detailText": "The NEXT_LOCALE cookie remembers language. Cart, favorites and this choice use localStorage. If allowed, product analytics uses sessionStorage to count interest without repeated views; we also measure page performance. There are no advertising cookies.",
+    "detailText": "Cookies and other stored data remember your preferences and make shopping easier. With your permission, we use analytics to improve the site.",
     "essential": "Necessary only",
     "analytics": "Allow analytics",
     "settings": "Browser storage preferences"

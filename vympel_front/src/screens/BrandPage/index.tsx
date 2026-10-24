@@ -8,24 +8,25 @@ import {Heading} from "@/components/ui/shared/text/Heading";
 import {Link} from "@/i18n/navigation";
 import {LocaleEnum} from "@/i18n/routing";
 import {PublicApiController} from "@/api/controllers/PublicController";
-import {ICatalogFiltersResponse, IProduct} from "@/api/types/ProductTypes";
-import {ProductSortEnum} from "@/enums/SortEnum";
 import ArrowRight from "@/assets/icons/ArrowRight";
 import {getBrandPageData, BrandPageData} from "@/config/brandPages";
-import {normalizeBrandLookup} from "@/config/brandRoutes";
 import {cn} from "@/lib/utils";
 import {routes} from "@/config/routes";
 import {PUBLIC_BREADCRUMB_SEPARATOR} from "@/config/publicBreadcrumb";
 import CmsResponsiveImage from "@/components/ui/shared/CmsResponsiveImage";
 import {cmsImageSources, findCmsBlock} from "@/utils/cmsContent";
 
+import Pagination from "@/components/ui/shared/Pagination";
+import type {BrandProductsData} from "@/lib/brandPageData";
+
 type Props = {
     locale: LocaleEnum;
     brandSlug: string;
     initialBrand: BrandPageData;
+    productsData: BrandProductsData;
 };
 
-const BrandPage = async ({locale, brandSlug, initialBrand}: Props) => {
+const BrandPage = async ({locale, brandSlug, initialBrand, productsData}: Props) => {
     const t = await getTranslations({locale, namespace: "brandPage"});
     const catalogT = await getTranslations({locale, namespace: "catalog"});
     const brand = initialBrand ?? getBrandPageData(brandSlug, locale);
@@ -41,37 +42,10 @@ const BrandPage = async ({locale, brandSlug, initialBrand}: Props) => {
     const cmsBlocks = cmsPage?.blocks ?? [];
     const heroBlock = findCmsBlock(cmsBlocks, `brands.${brand.slug}.heroBanner`);
     const heroImages = cmsImageSources(heroBlock, locale, brand.brandBannerSrc);
-    let brandFilterValue: string | undefined;
-    let products: IProduct[] = [];
-    let productsError = false;
-
-    try {
-        const filters = await PublicApiController.getCatalogFilters(locale);
-        brandFilterValue = getBrandFilterValue(filters, brand);
-    } catch (error) {
-        console.error(error);
-        productsError = true;
-    }
-
-    if (brandFilterValue) {
-        try {
-            const response = await PublicApiController.getCatalogProducts({
-                lang: locale,
-                page: 0,
-                size: 15,
-                sort: ProductSortEnum.NEWEST,
-                filters: {
-                    brand: [brandFilterValue],
-                },
-            });
-            products = response.content;
-        } catch (error) {
-            console.error(error);
-            productsError = true;
-        }
-    } else {
-        productsError = true;
-    }
+    const {brandFilterValue, result} = productsData;
+    const pageData = result.status === "success" ? result.page : null;
+    const products = pageData?.content ?? [];
+    const productsError = result.status === "transient_error";
 
     const catalogHref = brandFilterValue
         ? routes.filteredCatalog({filters: {brand: brandFilterValue}})
@@ -176,7 +150,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand}: Props) => {
                     </Link>
                 </section>
 
-                <section className="relative mt-brand-products-offset" aria-labelledby="brand-products-title">
+                <section id="brand-product-list" className="relative mt-brand-products-offset scroll-mt-28" aria-labelledby="brand-products-title">
                     <Heading
                         id="brand-products-title"
                         as="h2"
@@ -185,7 +159,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand}: Props) => {
                         weight="regular"
                         className="leading-none"
                     >
-                        {t("newProducts")}
+                        {t("models")}
                     </Heading>
 
                     {productsError ? (
@@ -195,6 +169,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand}: Props) => {
                     ) : products.length ? (
                         <div className="relative w-full">
                             <BrandProductsGrid products={products}/>
+                            {pageData && <Pagination pageData={pageData} scrollTargetId="brand-product-list"/>}
                         </div>
                     ) : (
                         <Text size="bodySm" colors="secondary" className="mt-8">
@@ -245,16 +220,4 @@ function BrandImage({
             )}
         </div>
     );
-}
-
-function getBrandFilterValue(filters: ICatalogFiltersResponse | null, brand: BrandPageData): string | undefined {
-    const brandFilter = filters?.filters.find((filter) => filter.key === "brand");
-
-    if (!brandFilter) {
-        return undefined;
-    }
-
-    const matchingNames = new Set(brand.matchingNames.map(normalizeBrandLookup));
-
-    return brandFilter.options.find((option) => matchingNames.has(normalizeBrandLookup(option.label)))?.value;
 }

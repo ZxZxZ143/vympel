@@ -1,0 +1,52 @@
+{
+  "checkedAtUtc": "2026-10-24T11:12:25.223726+00:00",
+  "statuses": [
+    {
+      "url": "http://127.0.0.1:3300/en",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/catalog?page=2",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/brands/romanson?page=2",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/catalog?search=Orion%20Atlas",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/catalog?search=Orion%20Atlas&sort=priceAsc",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18080/actuator/health/readiness",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18080/api/public/product/catalog/en?size=9",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/product/1",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/product/10",
+      "status": 200
+    }
+  ],
+  "processes": {
+    "frontend": {
+      "id": 11816,
+      "created": "639284370533073030"
+    },
+    "backend": {
+      "id": 27736,
+      "created": "639284370320500450"
+    }
+  },
+  "standRetained": true
+}

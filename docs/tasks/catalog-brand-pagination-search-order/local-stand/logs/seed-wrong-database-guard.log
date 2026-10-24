@@ -1,0 +1,3 @@
+BEGIN
+psql:scripts/pagination-stand/seed.sql:15: ERROR:  Not the isolated pagination stand
+CONTEXT:  PL/pgSQL function inline_code_block line 3 at RAISE

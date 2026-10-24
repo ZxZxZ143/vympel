@@ -4,7 +4,9 @@ import {
     normalizeCatalogQueryValues,
 } from "@/utils/catalogFilterParams";
 
-export const DEFAULT_CATALOG_SORT = "priceAsc";
+import {DEFAULT_CATALOG_SORT} from "@/lib/catalogSort";
+import {positivePage} from "@/lib/paginationUrl";
+export {DEFAULT_CATALOG_SORT};
 const CLEAN_PARAMS = new Set(["page", "sort", "size", "categoryCode"]);
 const ALLOWED_SORTS = new Set(["priceAsc", "priceDesc", "newest", "oldest", "nameAsc", "nameDesc"]);
 
@@ -43,7 +45,7 @@ export function classifyCatalogUrl(
 
         if (key === "sort") {
             const sort = normalizeCatalogQueryValue(input.get(key));
-            if (sort && ALLOWED_SORTS.has(sort) && sort !== DEFAULT_CATALOG_SORT) {
+            if (sort && ALLOWED_SORTS.has(sort) && (sort !== DEFAULT_CATALOG_SORT || normalizeCatalogQueryValue(input.get("search")))) {
                 normalized.set("sort", sort);
                 hasFacets = true;
             }
@@ -77,9 +79,4 @@ export function classifyCatalogUrl(
 
 export function catalogHrefFromPolicy(policy: CatalogUrlPolicy): string {
     return policy.normalizedSearch ? `${policy.path}?${policy.normalizedSearch}` : policy.path;
-}
-
-function positivePage(value: string | null): number {
-    const parsed = Number(value);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
 }

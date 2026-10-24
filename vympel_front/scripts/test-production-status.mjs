@@ -59,11 +59,22 @@ try {
     await expectStatusAndText(origin, "/ru", 200);
     await expectStatusAndText(origin, "/ru/product/1", 200, "Romanson TM9A19MMW(BK)");
     await expectStatusAndText(origin, "/ru/catalog", 200, "/ru/product/1");
-    await expectStatusAndText(origin, "/ru/catalog?page=2", 200, "/ru/product/1");
-    await expectStatusAndText(origin, "/ru/catalog?page=3", 404, notFoundTitles.ru);
+    await expectStatusAndText(origin, "/ru/catalog?page=2", 200, "/ru/product/10");
+    await expectStatusAndText(origin, "/ru/catalog?page=8", 404, notFoundTitles.ru);
     await expectPermanentRedirect(origin, "/ru/catalog?categoryCode=WATCH_WRIST&page=1", "/ru/catalog/WATCH_WRIST");
     await expectStatusAndText(origin, "/ru/brands/romanson", 200, "ROMANSON");
 
+    for (const locale of locales) {
+        for (const slug of ["romanson", "adriatica", "appella", "pierre-ricaud", "rhythm", "royal-london"]) {
+            await expectStatusAndText(origin, `/${locale}/brands/${slug}?page=2`, 200, `/${locale}/product/16`);
+        }
+        await expectStatusAndText(origin, `/${locale}/brands/romanson?page=4`, 200, `/${locale}/product/57`);
+        await expectStatusAndText(origin, `/${locale}/brands/romanson?page=5`, 404, notFoundTitles[locale]);
+        await expectPermanentRedirect(origin, `/${locale}/brands/romanson?page=1`, `/${locale}/brands/romanson`);
+        await expectPermanentRedirect(origin, `/${locale}/brands/romanson?page=-1`, `/${locale}/brands/romanson`);
+        await expectPermanentRedirect(origin, `/${locale}/brands/romanson?page=02`, `/${locale}/brands/romanson?page=2`);
+        await expectStatusAndText(origin, `/${locale}/catalog?search=Romanson&sort=priceAsc`, 200);
+    }
     if (process.env.SITE_INDEXING_ENABLED?.trim().toLowerCase() === "true") {
         await expectApprovedIndexingPolicy(origin);
         await expectMetadataMatrix(origin);
@@ -99,6 +110,10 @@ try {
 
     console.log("Production status matrix passed: valid=200, missing=404, localized UI=ru/kz/en, temporary failure!=404");
     console.log("Production initial self-hosted transfer bytes:", JSON.stringify(transfer));
+    if (process.env.PAGINATION_BROWSER === "true") {
+        const {verifyPaginationBrowser} = await import("./test-pagination-browser.mjs");
+        await verifyPaginationBrowser(origin, `http://127.0.0.1:${mockPort}`);
+    }
     if (process.env.BROWSER_VERIFY_HOLD === "true") {
         console.log(`Browser verification server ready: ${origin}`);
         await new Promise((resolve) => {
@@ -152,7 +167,8 @@ async function expectStatusAndText(originUrl, pathname, expectedStatus, expected
 async function expectPermanentRedirect(originUrl, pathname, expectedLocation) {
     const response = await fetch(originUrl + pathname, {redirect: "manual"});
     assert.equal(response.status, 308, `${pathname} must permanently redirect`);
-    assert.equal(new URL(response.headers.get("location"), originUrl).pathname, expectedLocation);
+    const target = new URL(response.headers.get("location"), originUrl);
+    assert.equal(target.pathname + target.search, expectedLocation);
 }
 
 async function expectApprovedIndexingPolicy(originUrl) {
@@ -166,7 +182,7 @@ async function expectApprovedIndexingPolicy(originUrl) {
     const pageTwo = await fetch(`${originUrl}/ru/catalog?page=2`);
     const pageTwoHtml = await pageTwo.text();
     assert.match(pageTwoHtml, /<link rel="canonical" href="[^"]*\/ru\/catalog\?page=2"/i);
-    assert.match(pageTwoHtml, /href="\/ru\/catalog"/i, "page two must link crawlably to page one");
+    assert.match(pageTwoHtml, /href="\/ru\/catalog#catalog-product-list"/i, "page two must link crawlably to page one");
 
     const productResponse = await fetch(`${originUrl}/en/product/1`);
     const productHtml = await productResponse.text();
@@ -409,6 +425,9 @@ function createMockApi() {
         const url = new URL(request.url ?? "/", "http://127.0.0.1");
         const pathname = decodeURIComponent(url.pathname);
 
+        if (/^\/api\/public\/product\/search\/quick\/(ru|kz|en)$/.test(pathname)) {
+            return json(response, 200, [product(pathname.split("/").at(-1))]);
+        }
         const productMatch = pathname.match(/^\/api\/public\/product\/(ru|kz|en)\/(\d+)$/);
         if (productMatch) {
             if (productMatch[2] === "999") return json(response, 404, apiError(404, "Resource not found."));
@@ -427,14 +446,19 @@ function createMockApi() {
         if (/^\/api\/public\/product\/catalog\/(ru|kz|en)$/.test(pathname)) {
             const locale = pathname.match(/^\/api\/public\/product\/catalog\/(ru|kz|en)$/)?.[1] ?? "ru";
             const requestedPage = Number(url.searchParams.get("page") ?? 0);
-            if (requestedPage <= 1) {
-                return json(response, 200, page([product(locale)], {
-                    number: requestedPage,
-                    totalElements: 2,
-                    totalPages: 2,
-                }));
+            const size = Number(url.searchParams.get("size") ?? 9);
+            assert.ok(size === 9 || size === 15, "catalog uses 9; brand uses 15");
+            if (size === 15) {
+                assert.ok(url.searchParams.has("brand"), "brand filter is required");
+                assert.equal(url.searchParams.get("sort"), "newest");
             }
-            return json(response, 200, page([], {number: requestedPage, totalElements: 2, totalPages: 2}));
+            assert.notEqual(url.searchParams.get("sort"), "undefined");
+            const total = 57;
+            const content = Array.from({length: Math.max(0, Math.min(size, total - requestedPage * size))}, (_, index) => {
+                const id = requestedPage * size + index + 1;
+                return {...product(locale), id, name: `Romanson TM9A19MMW(BK) ${id}`};
+            });
+            return json(response, 200, page(content, {number: requestedPage, size, totalElements: total, totalPages: Math.ceil(total / size)}));
         }
         if (/^\/api\/public\/product\/filters\/(ru|kz|en)$/.test(pathname)) {
             return json(response, 200, catalogFilters());
@@ -504,12 +528,12 @@ function category(code, locale = "ru") {
 function catalogFilters() {
     return {
         category: {id: null, slug: null, label: "Catalog", parentSlug: null, inheritsFiltersFrom: null},
-        filters: [{
+        filters: [{key: "price", label: "Price", type: "range", source: "product", min: 0, max: 1000000, options: []}, {
             key: "brand",
             label: "Brand",
             type: "checkbox",
             source: "product",
-            options: [{value: "1", label: "Romanson", count: 1, disabled: false}],
+            options: ["Romanson", "Adriatica", "Appella", "Pierre Ricaud", "Rhythm", "Royal London"].map((label, index) => ({value: String(index + 1), label, count: 57, disabled: false})),
         }],
     };
 }
@@ -525,7 +549,7 @@ function page(content, options = {}) {
         last: number >= totalPages - 1,
         number,
         numberOfElements: content.length,
-        size: Math.max(content.length, 1),
+        size: options.size ?? Math.max(content.length, 1),
         totalElements,
         totalPages,
     };

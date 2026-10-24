@@ -1,0 +1,61 @@
+
+> Task :compileJava
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\UserMapper.java:20: warning: Unmapped target property: "phone".
+    public abstract User toEntity(RegisterByEmailRequest req, @Context PasswordEncoder encoder);
+                         ^
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\UserMapper.java:40: warning: Unmapped target property: "email".
+    public abstract User toEntity(RegisterByPhoneRequest req, @Context PasswordEncoder encoder);
+                         ^
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\product\ProductMapper.java:24: warning: Unmapped target properties: "discountPercent, promotionMode, promotionScore, promotedUntil, promotionUpdatedAt".
+    Product toEntity(ProductCreateRequest req, @Context EntityReferenceMapper ref);
+            ^
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\product\ProductMapper.java:34: warning: Unmapped target properties: "discountPercent, promotionMode, promotionScore, promotedUntil, promotionUpdatedAt".
+    void updateEntity(@MappingTarget Product entity, ProductUpdateRequest req, @Context EntityReferenceMapper ref);
+         ^
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\product\ProductMapper.java:48: warning: Unmapped target properties: "name, category, description".
+    ProductResponse toResponse(Product entity, @Context Language lang);
+                    ^
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\product\ProductMapper.java:67: warning: Unmapped target properties: "name, imageUrl".
+    ProductShortResponse toShortResponse(Product entity);
+                         ^
+E:\vympel_full\vympel_back\src\main\java\com\shop\vympel\mappers\product\ProductDescriptionMapper.java:15: warning: Unmapped target property: "description".
+    ProductDescriptionI18n toEntity(DescriptionCreateRequest descriptionCreateRequest);
+                           ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+7 warnings
+
+> Task :processResources
+> Task :classes
+> Task :resolveMainClassName
+> Task :bootJar
+
+> Task :compileTestJava
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :processTestResources
+> Task :testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :test
+
+2026-10-24T15:58:30.597+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] o.s.o.jpa.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-24T15:58:30.601+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-10-24T15:58:30.605+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2026-10-24T15:58:30.609+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] o.springframework.boot.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-24T15:58:30.949+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [tomcat-shutdown] o.springframework.boot.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-10-24T15:58:30.959+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] o.s.o.jpa.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-24T15:58:30.959+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+2026-10-24T15:58:30.961+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+2026-10-24T15:58:30.978+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] o.s.o.jpa.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-24T15:58:30.979+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown initiated...
+2026-10-24T15:58:30.982+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown completed.
+2026-10-24T15:58:30.999+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] o.s.o.jpa.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-10-24T15:58:30.999+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Shutdown initiated...
+2026-10-24T15:58:31.002+05:00 INFO  requestId=system userId=anonymous roles=none method=- path=- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Shutdown completed.
+
+[Incubating] Problems report is available at: file:///E:/vympel_full/vympel_back/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 31s
+7 actionable tasks: 7 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.0/userguide/configuration_cache_enabling.html
