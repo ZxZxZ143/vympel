@@ -2,6 +2,12 @@
 
 ## Frontend Patterns That Work
 
+### Contextual disabled flags need the same freshness check as counts
+
+* **When to use:** Retaining filter metadata while a draft-triggered refresh is pending or fails.
+* **How:** Apply `option.disabled` only when the snapshot matches the current scope and serialized draft, is not updating and has no error. Use that same predicate to show counts. Keep display-only placeholders disabled independently and allow selected zero-count options to be removed.
+* **Why:** Hiding stale numbers alone leaves a previously restrictive snapshot able to block valid choices indefinitely. The browser regression must remove a restriction, fail the refresh, reopen the panel and successfully select an option previously disabled by the old snapshot; fresh zero-count options must still be disabled.
+
 ### Two visual groups driven by one Ark pagination model
 
 * **When to use:** Catalog (9) and brand (15) lists using the original Vympel left/right composition.
@@ -2748,6 +2754,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-24 — Reproduced PR #20's stale-disabled finding before fixing it; recorded freshness gating for both counts and disabled flags. Storefront audit remediation pins aligned Next/eslint-config-next 16.4.3 and Zod 4.6.6. Generate and validate optional npm lock entries on clean Linux with the Docker-pinned Node image; Windows-only lock generation can omit nested emnapi entries even without node_modules.
 
 2026-10-24 — PR [#20](https://github.com/ZxZxZ143/vympel/pull/20) records the final implementation and separates completed local checks from GitHub CI. When preparing review descriptions, use the latest zero-option verification totals (265 frontend tests; 359 backend passes and one external rehearsal skip), link earlier browser matrices as scoped evidence, and retain the documented npm-audit limitations.
 

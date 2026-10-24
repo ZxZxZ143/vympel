@@ -53,7 +53,7 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
     const watched = useWatch({control});
     const selection = catalogFacetParams({filters: watched.filters as Record<string, string[]> ?? {},
         priceMin: watched.priceMin ?? "", priceMax: watched.priceMax ?? ""}, searchParams?.get("search") ?? null).toString();
-    const countsReady = !updating && !error && snapshot?.selection === selection;
+    const countsReady = !updating && !error && snapshot?.scope === scope && snapshot.selection === selection;
 
     const filters = useMemo(() => metadata?.filters ?? [], [metadata]);
     const filterKeySignature = filters.map((filter) => filter.key).join(",");
@@ -266,7 +266,7 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                                     label={option.label}
                                     count={countsReady ? option.count : undefined}
                                     checked={normalizedValue ? selectedValues.includes(normalizedValue) : false}
-                                    disabled={option.disabled && !selectedValues.includes(normalizedValue ?? "")}
+                                    disabled={countsReady && option.disabled && !selectedValues.includes(normalizedValue ?? "")}
                                     onCheckedChange={(checked) => {
                                         if (!normalizedValue) {
                                             return;

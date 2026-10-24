@@ -5,6 +5,10 @@
   "realOptionsReplacePlaceholder": true,
   "lateResponseIgnored": true,
   "failureHidesStaleCounts": true,
+  "pendingDoesNotEnforceStaleDisabled": true,
+  "failureDoesNotEnforceStaleDisabled": true,
+  "reopenAfterFailureSelectable": true,
+  "freshZeroStillDisabled": true,
   "recovery": true,
   "errors": []
 }

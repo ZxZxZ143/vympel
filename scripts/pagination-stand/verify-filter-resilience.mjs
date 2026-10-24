@@ -21,6 +21,10 @@ try{
   const stone=body.filters.find(f=>f.key==='stoneInlay');
   if(current==='empty')stone.options=[];
   if(current==='actual')stone.options=[{value:'1',label:'Тестовая вставка',count:1,disabled:false}];
+  if(current==='restricted'){
+   const mechanical=body.filters.find(f=>f.key==='mechanism').options.find(o=>o.label==='Механический');
+   mechanical.count=0;mechanical.disabled=true;
+  }
   if(current==='late'&&new URL(route.request().url()).searchParams.has('caseMaterial')){
    body.filters.find(f=>f.key==='mechanism').options.forEach(o=>o.count=999);
    started();await oldGate;
@@ -41,7 +45,24 @@ try{
  await page.waitForFunction(()=>[...document.querySelectorAll('.text-error')].some(e=>e.getClientRects().length));
  assert.equal(await form.getByRole('checkbox',{name:'Кварцевый',exact:true}).count(),1,'Unknown counts must not appear current after failure');
  mode='pass';await toggle();await tab('Механизм');await form.getByRole('checkbox',{name:'Кварцевый(41)',exact:true}).waitFor();
+ // A failed refresh after removing a restriction must not enforce its stale disabled flags.
+ mode='restricted';await toggle();await tab('Механизм');
+ await form.getByRole('checkbox',{name:'Механический(0)',exact:true}).waitFor();
+ assert.equal(await form.getByRole('checkbox',{name:'Механический(0)',exact:true}).isEnabled(),false);
+ mode='error';await toggle();await tab('Механизм');
+ const mechanical=form.getByRole('checkbox',{name:'Механический',exact:true});
+ await mechanical.waitFor();
+ assert.equal(await mechanical.isEnabled(),true,'Pending refresh must not enforce disabled flags from a different draft');
+ await page.waitForFunction(()=>[...document.querySelectorAll('.text-error')].some(e=>e.getClientRects().length));
+ assert.equal(await mechanical.isEnabled(),true,'Failed refresh must not leave now-valid choices disabled');
+ await page.getByRole('button',{name:'Фильтры',exact:true}).click();
+ await page.getByRole('button',{name:'Фильтры',exact:true}).click();
+ await tab('Механизм');assert.equal(await mechanical.isEnabled(),true);
+ mode='pass';await mechanical.locator('..').click();
+ await form.getByRole('checkbox',{name:'Механический(2)',exact:true}).waitFor();
+ assert.equal(await form.getByRole('checkbox',{name:'Механический(2)',exact:true}).isChecked(),true);
+ assert.equal(await form.getByRole('checkbox',{name:'Автоматический(0)',exact:true}).isEnabled(),false,'Fresh zero counts still disable unavailable options');
  assert.deepEqual(errors,[]);
- await writeFile('docs/tasks/catalog-contextual-filters/resilience-results.json',JSON.stringify({passed:true,mocked:true,emptyDictionaryPlaceholder:true,realOptionsReplacePlaceholder:true,lateResponseIgnored:true,failureHidesStaleCounts:true,recovery:true,errors},null,2));
+ await writeFile('docs/tasks/catalog-contextual-filters/resilience-results.json',JSON.stringify({passed:true,mocked:true,emptyDictionaryPlaceholder:true,realOptionsReplacePlaceholder:true,lateResponseIgnored:true,failureHidesStaleCounts:true,pendingDoesNotEnforceStaleDisabled:true,failureDoesNotEnforceStaleDisabled:true,reopenAfterFailureSelectable:true,freshZeroStillDisabled:true,recovery:true,errors},null,2));
  console.log('Browser resilience passed (explicit intercepted responses): empty dictionary/replacement, late response ignored, failed counts hidden, recovery.');
 }finally{await browser.close();}
