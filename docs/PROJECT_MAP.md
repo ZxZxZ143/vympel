@@ -1269,6 +1269,8 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
+2026-10-24 — Opened PR [#20](https://github.com/ZxZxZ143/vympel/pull/20), `codex/catalog-brand-pagination-search-order` → `main`, covering pagination, search relevance, contextual filters, zero-count options and cookie copy. The PR includes recorded local test/build results, screenshots, the external-test skip and existing audit limitations. No merge, auto-merge, image publication or deployment.
+
 2026-10-24 — Prepared the user-authorized push of all commits on `codex/catalog-brand-pagination-search-order` to the same branch at `origin` (`ZxZxZ143/vympel`). No merge, image publication or deployment is authorized; application code and prior validation are unchanged.
 
 2026-10-24 — Consolidated the verified contextual-filter and persistent zero-count-option changes, tests, browser evidence and local stand helpers into a local commit on `codex/catalog-brand-pagination-search-order`; no push or deployment.
