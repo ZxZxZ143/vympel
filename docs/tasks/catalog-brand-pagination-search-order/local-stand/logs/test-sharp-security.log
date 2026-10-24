@@ -1,0 +1,11 @@
+
+> vympel@0.1.0 test:sharp-security
+> node ../scripts/check-sharp-security.mjs
+
+vympel@0.1.0 E:\vympel_full\vympel_front
+├─┬ next-intl@4.13.2
+│ └── next@16.3.8 deduped
+└─┬ next@16.3.8
+  └── sharp@0.35.5
+
+Verified 1 installed sharp dependency path(s) at >=0.35.5.

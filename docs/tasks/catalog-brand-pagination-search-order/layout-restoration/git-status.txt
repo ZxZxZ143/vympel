@@ -1,0 +1,35 @@
+ M docs/PROJECT_MAP.md
+ M docs/PROJECT_SKILLS.md
+ M vympel_back/src/main/java/com/shop/vympel/controllers/ProductPublicController.java
+ M vympel_back/src/main/java/com/shop/vympel/services/catalog/ProductCatalogService.java
+ M vympel_back/src/main/java/com/shop/vympel/services/catalog/PublicProductQueryService.java
+ M vympel_front/package-lock.json
+ M vympel_front/package.json
+ M vympel_front/scripts/test-production-status.mjs
+ M vympel_front/src/api/controllers/PublicController.test.ts
+ M vympel_front/src/api/controllers/PublicController.ts
+ M vympel_front/src/app/[locale]/brands/[brandSlug]/page.tsx
+ M vympel_front/src/components/CatalogPage/Catalog/Filters/index.tsx
+ M vympel_front/src/components/CatalogPage/Catalog/Sort/index.tsx
+ M vympel_front/src/components/CatalogPage/Catalog/index.tsx
+ M vympel_front/src/components/ui/shared/Pagination/index.tsx
+ M vympel_front/src/hooks/usePagination.tsx
+ M vympel_front/src/hooks/useSort.ts
+ M vympel_front/src/lib/catalogQuery.test.ts
+ M vympel_front/src/lib/catalogQuery.ts
+ M vympel_front/src/lib/catalogUrl.ts
+ M vympel_front/src/messages/en.json
+ M vympel_front/src/messages/kz.json
+ M vympel_front/src/messages/ru.json
+ M vympel_front/src/screens/BrandPage/index.tsx
+?? docs/tasks/catalog-brand-pagination-search-order/
+?? scripts/pagination-stand/
+?? vympel_back/src/test/java/com/shop/vympel/services/catalog/CatalogSearchOrderingIntegrationTest.java
+?? vympel_front/AGENTS.md
+?? vympel_front/CLAUDE.md
+?? vympel_front/scripts/test-pagination-browser.mjs
+?? vympel_front/src/components/ui/shared/Pagination/index.test.tsx
+?? vympel_front/src/lib/brandPageData.test.ts
+?? vympel_front/src/lib/brandPageData.ts
+?? vympel_front/src/lib/catalogSort.ts
+?? vympel_front/src/lib/paginationUrl.ts

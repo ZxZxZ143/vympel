@@ -25,20 +25,19 @@ const Sort: FC = () => {
     const t = useTranslations("catalog.sort");
     const {activeOverlay, closeOverlay, openOverlay} = useCatalogOverlay();
     const isMobileViewport = useIsMobileViewport();
-    const {sort, setSort} = useSort<SortValue>({
-        defaultSort: "priceAsc",
-    });
+    const {sort, setSort, hasExplicitSort} = useSort();
     const {control, reset} = useForm<FormValues>({
         defaultValues: {
-            sort,
+            sort: sort ?? "",
         },
     });
     const isVisible = activeOverlay === "sorting";
     const isMobileVisible = isVisible;
-    const activeOption = sortOptions.find((option) => option.value === sort) ?? sortOptions[0];
+    const activeOption = sortOptions.find((option) => option.value === sort);
+    const activeLabel = activeOption ? t(activeOption.shortLabelKey) : t("notSelected");
 
     useEffect(() => {
-        reset({sort});
+        reset({sort: sort ?? ""});
     }, [reset, sort]);
 
     useEffect(() => {
@@ -63,6 +62,13 @@ const Sort: FC = () => {
         }
     };
 
+    const resetAction = hasExplicitSort ? (
+        <button type="button" className="mt-4 min-h-11 rounded-full px-4 text-sm underline underline-offset-4 focus-visible:outline-2"
+                onClick={() => { setSort(); closeOverlay("sorting"); }}>
+            {t("reset")}
+        </button>
+    ) : null;
+
     const radioOptions = sortOptions.map((option) => ({
         value: option.value,
         label: t(option.labelKey),
@@ -74,7 +80,7 @@ const Sort: FC = () => {
                 type="button"
                 aria-expanded={isMobileVisible}
                 aria-haspopup="dialog"
-                aria-label={`${t("trigger")}: ${t(activeOption.shortLabelKey)}`}
+                aria-label={`${t("trigger")}: ${activeLabel}`}
                 className={cn(
                     "flex min-w-12 cursor-pointer items-center justify-center rounded-full border border-border-default p-0 transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40 min-[1440px]:hidden",
                     CATALOG_TOOLBAR_CONTROL_HEIGHT_CLASS
@@ -93,7 +99,7 @@ const Sort: FC = () => {
             <button
                 type="button"
                 aria-expanded={isVisible}
-                aria-label={`${t("trigger")}: ${t(activeOption.shortLabelKey)}`}
+                aria-label={`${t("trigger")}: ${activeLabel}`}
                 className={cn(
                     "hidden w-fit cursor-pointer items-center justify-start gap-5 border-0 px-0 py-0 transition-vympel-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40 min-[1440px]:flex",
                     CATALOG_TOOLBAR_CONTROL_HEIGHT_CLASS
@@ -108,7 +114,7 @@ const Sort: FC = () => {
             >
                 <SortIcon className="size-8"/>
                 <Text size="bodyXl" colors="headingSecondary" className="min-w-0 text-center leading-tight">
-                    {t(activeOption.shortLabelKey)}
+                    {activeLabel}
                 </Text>
             </button>
 
@@ -141,6 +147,7 @@ const Sort: FC = () => {
                         className="items-stretch gap-1"
                         onValueChange={handleSortChange}
                     />
+                    {resetAction}
                 </form>
             </CatalogMobileSheet>
 
@@ -161,6 +168,7 @@ const Sort: FC = () => {
                         className="items-center justify-between gap-4 lg:flex-row"
                         onValueChange={handleSortChange}
                     />
+                    {resetAction}
                 </form>
             ) : null}
         </div>

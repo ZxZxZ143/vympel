@@ -1,0 +1,7 @@
+
+> vympel@0.1.0 test:production-status
+> node scripts/test-production-status.mjs
+
+Preview indexing policy passed: noindex headers/metadata, no discovery metadata, and no indexable sitemap.
+Production status matrix passed: valid=200, missing=404, localized UI=ru/kz/en, temporary failure!=404
+Production initial self-hosted transfer bytes: {"/ru":{"document":301964,"referencedResources":1641882,"total":1943846},"/ru/catalog?categoryCode=WATCH_WRIST":{"document":214463,"referencedResources":1704158,"total":1918621},"/ru/product/1":{"document":136301,"referencedResources":1486299,"total":1622600}}

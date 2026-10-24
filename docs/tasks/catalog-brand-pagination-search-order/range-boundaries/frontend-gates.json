@@ -1,0 +1,8 @@
+{
+  "test:production-status": 0,
+  "typecheck": 0,
+  "test": 0,
+  "test:budgets:ci": 0,
+  "build": 0,
+  "lint": 0
+}

@@ -1,0 +1,5 @@
+
+> vympel@0.1.0 test:glob-security
+> node scripts/check-glob-security.mjs
+
+Verified reviewed braces depth guards and normal glob/range compatibility.

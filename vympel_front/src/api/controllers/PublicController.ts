@@ -315,7 +315,7 @@ class PublicController {
 
         url.searchParams.set("page", String(params.page))
         url.searchParams.set("size", String(params.size))
-        url.searchParams.set("sort", String(params.sort))
+        if (params.sort) url.searchParams.set("sort", params.sort)
 
         const res = await fetch(url.toString(), {
             method: "GET",

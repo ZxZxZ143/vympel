@@ -107,7 +107,10 @@ public class ProductCatalogService {
         CatalogCategoryContext context = categoryProfileService.resolveContext(catalogQuery.getCategoryCode());
         Specification<Product> specification = catalogSpecification(catalogQuery, context);
 
-        Page<Long> productIds = publicProductQueryService.findIds(specification, pageable);
+        String relevanceSearch = pageable.getSort().isUnsorted() ? selectedValue(catalogQuery.getSearch()) : null;
+        Page<Long> productIds = relevanceSearch == null
+                ? publicProductQueryService.findIds(specification, pageable)
+                : publicProductQueryService.findIds(specification, pageable, relevanceSearch);
         List<ProductShortResponse> content = orderedSummaries(productIds.getContent(), language).stream()
                 .map(this::toShortResponse)
                 .toList();

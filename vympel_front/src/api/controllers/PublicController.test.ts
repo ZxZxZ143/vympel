@@ -67,3 +67,19 @@ describe("PublicController product batch summary", () => {
         expect(fetchMock).toHaveBeenCalledOnce();
     });
 });
+
+import {catalogRequestParams} from "@/lib/catalogQuery";
+
+describe("catalog sort serialization", () => {
+    it.each(["search=romanson", "search=romanson&sort=priceAsc", "search=romanson&sort=newest", ""]) ("serializes %s consistently", async (query) => {
+        (PublicApiController as unknown as {baseApiUrl: string}).baseApiUrl = "https://example.test/api/public";
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({content: [], totalElements: 0}), {status: 200}));
+        vi.stubGlobal("fetch", fetchMock);
+        const params = catalogRequestParams(LocaleEnum.RU, undefined, new URLSearchParams(query));
+        await PublicApiController.getCatalogProducts(params);
+        const url = new URL(fetchMock.mock.calls[0][0]);
+        expect(url.searchParams.get("sort")).toBe(params.sort ?? null);
+        expect(url.searchParams.get("size")).toBe("9");
+        expect(url.toString()).not.toContain("undefined");
+    });
+});

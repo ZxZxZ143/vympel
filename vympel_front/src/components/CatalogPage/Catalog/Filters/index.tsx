@@ -184,7 +184,6 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
     const applyFilters = (values: CatalogFilterFormValues) => {
         const params = new URLSearchParams(searchParams?.toString());
         clearKnownFilters(params);
-        params.delete("search");
         params.set("page", "1");
 
         Object.entries(values.filters ?? {}).forEach(([key, selectedFilterValues]) => {

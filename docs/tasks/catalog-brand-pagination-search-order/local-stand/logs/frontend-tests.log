@@ -1,0 +1,16 @@
+
+> vympel@0.1.0 test
+> vitest run
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.12 E:/vympel_full/vympel_front
+
+
+ Test Files  44 passed (44)
+      Tests  227 passed (227)
+   Start at  15:56:07
+   Duration  2.82s (transform 4.03s, setup 0ms, import 8.55s, tests 1.39s, environment 8ms)
+

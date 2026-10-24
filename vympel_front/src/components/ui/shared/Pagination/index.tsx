@@ -1,158 +1,110 @@
 "use client";
 
-import {useMemo} from "react";
-import {useSearchParams} from "next/navigation";
-
-import {Page} from "@/api/types/PageType";
-import {Text} from "@/components/ui/shared/text";
-import {usePagination} from "@/hooks/usePagination";
-import {cn} from "@/lib/utils";
+import {useEffect, useRef, type CSSProperties} from "react";
+import {Pagination as ArkPagination} from "@ark-ui/react/pagination";
+import {ArrowLeft, ArrowRight} from "lucide-react";
 import {useTranslations} from "use-intl";
-import {Link, usePathname} from "@/i18n/navigation";
+import type {Page} from "@/api/types/PageType";
+import {usePagination} from "@/hooks/usePagination";
+import {Link} from "@/i18n/navigation";
 
-type Props = {
-    pageData: Page<unknown>;
-}
+const rangeClass = "flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-transparent px-4 text-base leading-none text-text-heading-secondary transition-vympel-fast hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-heading-primary data-[selected]:border-text-heading-primary data-[selected]:bg-button-bg-action data-[selected]:text-text-inverse data-[selected]:font-semibold";
 
-const MAX_VISIBLE_PAGES = 5;
+const controlClass = "flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-border-default bg-primary-bg px-2 text-text-heading-secondary transition-vympel-fast hover:border-text-heading-primary hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-heading-primary data-[selected]:border-text-heading-primary data-[selected]:bg-button-bg-action data-[selected]:text-text-inverse data-[selected]:font-semibold";
+const numericClass = `${controlClass} max-lg:size-[var(--pagination-mobile-size)] max-lg:min-w-[var(--pagination-mobile-size)] max-lg:px-0`;
 
-const Pagination = ({pageData}: Props) => {
+type Props = {pageData: Page<unknown>; scrollTargetId?: string};
+
+export default function Pagination({pageData, scrollTargetId}: Props) {
     const t = useTranslations("pagination");
-    const {page, size} = usePagination();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-
-    const currentPage = Math.min(Math.max(page, 1), Math.max(pageData.totalPages, 1));
-
-    const visiblePages = useMemo(() => {
-        if (pageData.totalPages <= MAX_VISIBLE_PAGES) {
-            return Array.from({length: pageData.totalPages}, (_, index) => index + 1);
-        }
-
-        const half = Math.floor(MAX_VISIBLE_PAGES / 2);
-        const startPage = Math.min(
-            Math.max(currentPage - half, 1),
-            pageData.totalPages - MAX_VISIBLE_PAGES + 1
-        );
-
-        return Array.from({length: MAX_VISIBLE_PAGES}, (_, index) => startPage + index);
-    }, [currentPage, pageData.totalPages]);
-
-    const getRangeLabel = (pageNumber: number) => {
-        const startIndex = (pageNumber - 1) * size;
-        const endIndex = Math.min(startIndex + size - 1, Math.max(pageData.totalElements - 1, 0));
-
-        return `${startIndex}-${endIndex}`;
-    };
-
-    const renderPaginationButton = (pageNumber: number) => {
-        const isActive = pageNumber === currentPage;
-
-        return (
-            <Link
-                key={pageNumber}
-                href={pageHref(pageNumber)}
-                aria-label={t("page", {page: pageNumber})}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                    "flex h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border px-3 transition",
-                    "hover:border-text-heading-primary hover:bg-surface-card",
-                    isActive && "cursor-default",
-                    isActive
-                        ? "border-text-heading-primary bg-button-bg-action text-text-inverse hover:text-text-heading-secondary"
-                        : "border-border-default bg-primary-bg text-text-heading-secondary"
-                )}
-            >
-                <Text
-                    size="bodyLg"
-                    font="sans"
-                    weight={isActive ? "semibold" : "regular"}
-                    colors={isActive ? "inverse" : "headingSecondary"}
-                    className="leading-none transition"
-                >
-                    {pageNumber}
-                </Text>
-            </Link>
-        );
-    };
-
-    const pageHref = (pageNumber: number) => {
-        const params = new URLSearchParams(searchParams?.toString());
-        if (pageNumber === 1) params.delete("page");
-        else params.set("page", String(pageNumber));
-        params.delete("size");
-        const query = params.toString();
-        return query ? `${pathname}?${query}` : pathname;
-    };
-
-    if (pageData.totalPages <= 1) {
-        return null;
-    }
+    const {page, size, pageHref} = usePagination(pageData, scrollTargetId);
+    const rangesRef = useRef<HTMLDivElement>(null);
+    const pagesRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const revealActive = () => {
+            for (const group of [rangesRef.current, pagesRef.current]) {
+                const active = group?.querySelector<HTMLElement>('[aria-current="page"]');
+                if (group && active && group.scrollWidth > group.clientWidth) {
+                    // Move only the horizontal scroller, never the document or keyboard focus.
+                    group.scrollLeft += active.getBoundingClientRect().left - group.getBoundingClientRect().left
+                        - (group.clientWidth - active.offsetWidth) / 2;
+                }
+            }
+        };
+        revealActive();
+        const observer = new ResizeObserver(revealActive);
+        for (const group of [rangesRef.current, pagesRef.current]) if (group) observer.observe(group);
+        return () => observer.disconnect();
+    }, [page, size, pageData.totalElements]);
+    if (pageData.totalPages <= 1) return null;
 
     return (
-        <div className="mt-21">
-            <nav aria-label={t("aria")} className="w-full overflow-hidden">
-                <div className="flex w-full min-w-0 flex-nowrap items-center justify-between gap-4 sm:gap-7">
-                    <div className="catalog-filter-scroll min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-2">
-                        <div className="flex w-max flex-nowrap items-center gap-3 sm:gap-7">
-                            {visiblePages.map((pageNumber) => {
-                                const isActive = pageNumber === currentPage;
-
-                                return (
-                                    <Link
-                                        key={`range-${pageNumber}`}
-                                        href={pageHref(pageNumber)}
-                                        aria-label={t("items", {range: getRangeLabel(pageNumber)})}
-                                        aria-current={isActive ? "page" : undefined}
-                                        className={cn(
-                                            "cursor-pointer rounded-full border px-4 py-2 transition",
-                                            "hover:border-text-heading-primary hover:bg-surface-card",
-                                            isActive && "cursor-default",
-                                            isActive
-                                                ? "border-text-heading-primary bg-button-bg-action"
-                                                : "border-transparent bg-transparent"
-                                        )}
-                                    >
-                                        <Text
-                                            size="bodyLg"
-                                            font="sans"
-                                            weight={isActive ? "semibold" : "regular"}
-                                            colors={isActive ? "inverse" : "headingSecondary"}
-                                            className="leading-none transition"
-                                        >
-                                            {getRangeLabel(pageNumber)}
-                                        </Text>
-                                    </Link>
-                                );
+        <ArkPagination.Root
+            className="mt-21 flex w-full min-w-0 flex-col items-center gap-4 lg:flex-row lg:justify-between"
+            count={pageData.totalElements} pageSize={size} page={page}
+            siblingCount={1} boundaryCount={1}
+            type="link" getPageUrl={({page: target}) => pageHref(target)}
+            translations={{rootLabel: t("aria"), prevTriggerLabel: t("previous"),
+                nextTriggerLabel: t("next"), itemLabel: ({page: target}) => t("page", {page: target})}}
+        >
+            <ArkPagination.Context>
+                {(pagination) => {
+                    // Both groups render Ark's complete page/ellipsis model.
+                    // This is only a CSS space budget, not another page-window calculation.
+                    const numberCount = pagination.pages.filter((item) => item.type === "page").length;
+                    const ellipsisCount = pagination.pages.length - numberCount;
+                    const mobileSpacing = ellipsisCount * 8 + (pagination.pages.length - 1) * 2 + 8;
+                    const mobileStyle = {
+                        "--pagination-mobile-size": `min(44px, calc((100cqw - ${mobileSpacing}px) / ${numberCount}))`,
+                    } as CSSProperties;
+                    return <>
+                    <div ref={rangesRef} role="group" aria-label={t("ranges")}
+                         data-pagination-group="ranges" className="catalog-filter-scroll hidden w-full min-w-0 overflow-x-auto lg:block lg:w-auto lg:flex-1">
+                        <div className="flex w-full flex-wrap items-center gap-1 p-1 sm:gap-2 lg:w-max lg:flex-nowrap">
+                            {pagination.pages.map((item, index) => {
+                                if (item.type === "ellipsis") {
+                                    return <ArkPagination.Ellipsis key={`range-ellipsis-${index}`} index={index}
+                                        id={`${pagination.getEllipsisProps({index}).id}-range`}
+                                        className="flex h-11 w-4 shrink-0 items-center justify-center text-text-heading-secondary"
+                                        aria-hidden="true">…</ArkPagination.Ellipsis>;
+                                }
+                                const first = (item.value - 1) * pagination.pageSize + 1;
+                                const last = Math.min(item.value * pagination.pageSize, pagination.count);
+                                const label = first === last ? String(first) : `${first}–${last}`;
+                                return <ArkPagination.Item key={item.value} {...item} asChild
+                                    id={`${pagination.getItemProps(item).id}-range`}
+                                    aria-label={t("items", {range: label})}>
+                                    <Link href={pageHref(item.value)} prefetch={false} className={rangeClass}>{label}</Link>
+                                </ArkPagination.Item>;
                             })}
                         </div>
                     </div>
-
-                    <div className="catalog-filter-scroll ml-auto min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-2">
-                        <div className="flex w-max min-w-full flex-nowrap items-center justify-end gap-3">
-                            {visiblePages.map(renderPaginationButton)}
-
-                            {visiblePages.at(-1) !== pageData.totalPages && (
-                                <>
-                                    <Text
-                                        size="bodyLg"
-                                        font="sans"
-                                        weight="regular"
-                                        colors="secondary"
-                                        className="leading-none"
-                                    >
-                                        ...
-                                    </Text>
-
-                                    {renderPaginationButton(pageData.totalPages)}
-                                </>
-                            )}
-                        </div>
+                    <div ref={pagesRef} role="group" aria-label={t("pages")} data-pagination-group="pages"
+                         className="catalog-filter-scroll w-full min-w-0 [container-type:inline-size] lg:w-auto lg:shrink-0 lg:overflow-x-auto lg:[container-type:normal]">
+                    <div style={mobileStyle} className="mx-auto flex w-full flex-nowrap items-center justify-center gap-0.5 p-1 lg:w-max lg:gap-2 lg:justify-end">
+                    {pagination.previousPage != null && <ArkPagination.PrevTrigger asChild>
+                        <Link href={pageHref(pagination.previousPage)} prefetch={false} className={`${controlClass} hidden lg:flex`}>
+                            <ArrowLeft className="size-4" aria-hidden="true"/>
+                        </Link>
+                    </ArkPagination.PrevTrigger>}
+                    {pagination.pages.map((item, index) => item.type === "page" ? (
+                        <ArkPagination.Item key={item.value} {...item} asChild>
+                            <Link href={pageHref(item.value)} prefetch={false} className={numericClass}>{item.value}</Link>
+                        </ArkPagination.Item>
+                    ) : (
+                        <ArkPagination.Ellipsis key={`ellipsis-${index}`} index={index}
+                                                className="flex h-11 w-2 shrink-0 items-center justify-center lg:w-4" aria-hidden="true">…</ArkPagination.Ellipsis>
+                    ))}
+                    {pagination.nextPage != null && <ArkPagination.NextTrigger asChild>
+                        <Link href={pageHref(pagination.nextPage)} prefetch={false} className={`${controlClass} hidden lg:flex`}>
+                            <ArrowRight className="size-4" aria-hidden="true"/>
+                        </Link>
+                    </ArkPagination.NextTrigger>}
                     </div>
-                </div>
-            </nav>
-        </div>
+                    </div>
+                    </>;
+                }}
+            </ArkPagination.Context>
+        </ArkPagination.Root>
     );
-};
-
-export default Pagination;
+}

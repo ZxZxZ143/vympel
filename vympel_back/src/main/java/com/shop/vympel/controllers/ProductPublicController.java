@@ -188,11 +188,15 @@ public class ProductPublicController {
             @RequestParam MultiValueMap<String, String> requestParams,
             Pageable pageable
     ) {
-        Pageable mappedPageable = mapToProductSort(pageable);
+        CatalogProductQuery query = toCatalogQuery(requestParams);
+        // Unsorted is the internal relevance signal only for a search with no chosen sort.
+        Pageable mappedPageable = query.getSearch() != null && pageable.getSort().isUnsorted()
+                ? PageableUtils.cap(pageable, PUBLIC_PRODUCT_MAX_SIZE)
+                : mapToProductSort(pageable);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(productCatalogService.getProducts(toCatalogQuery(requestParams), mappedPageable, lang));
+                .body(productCatalogService.getProducts(query, mappedPageable, lang));
     }
 
     @GetMapping("/search/quick/{lang}")

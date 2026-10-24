@@ -1,0 +1,12 @@
+{
+  "browserPageErrors": [],
+  "serverDiagnosticTypes": [
+    "\u2a2f Error: The destination stream closed early."
+  ],
+  "cancelledPrefetchStreams": 6,
+  "stableProductPages200": [
+    1,
+    10
+  ],
+  "note": "Rapid navigation cancels speculative product RSC requests; these diagnostics are not counted as clean server logs."
+}

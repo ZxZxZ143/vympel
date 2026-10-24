@@ -1,0 +1,53 @@
+
+> vympel@0.1.0 build
+> next build
+
+▲ Next.js 16.3.8 (Turbopack)
+- Environments: .env
+✓ Running next.config.mjs took 82ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1639ms
+  Running TypeScript ...
+  Finished TypeScript in 3.3s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/33) ...
+  Generating static pages using 11 workers (8/33) 
+  Generating static pages using 11 workers (16/33) 
+  Generating static pages using 11 workers (24/33) 
+✓ Generating static pages using 11 workers (33/33) in 573ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /_not-found
+├   /[locale]
+│ ├ ● /ru
+│ ├ ● /kz
+│ └ ● /en
+├ ƒ /[locale]/[...notFound]
+├   /[locale]/about
+│ ├ ● /ru/about
+│ ├ ● /kz/about
+│ └ ● /en/about
+├ ƒ /[locale]/brands
+├ ƒ /[locale]/brands/[brandSlug]
+├ ƒ /[locale]/cart
+├ ƒ /[locale]/catalog
+├ ƒ /[locale]/catalog/[...slug]
+├ ƒ /[locale]/delivery
+├ ƒ /[locale]/favorites
+├ ƒ /[locale]/guarantee
+├ ƒ /[locale]/payment
+├ ƒ /[locale]/product/[id]
+├ ƒ /api/revalidate
+├ ƒ /api/telemetry
+├ ○ /robots.txt
+└ ƒ /sitemap.xml
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

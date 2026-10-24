@@ -1,0 +1,2 @@
+Database/API passed: 100 unique products, 12 catalog pages, six brands, 26 search matches and all sort overrides.
+Real browser passed: full catalog/brand traversal, history, search/sort/reset/filter, three locales, five widths; no runtime errors.

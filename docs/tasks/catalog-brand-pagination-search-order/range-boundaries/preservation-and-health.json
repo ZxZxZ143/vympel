@@ -1,0 +1,36 @@
+{
+  "checkedAtUtc": "2026-10-24T11:56:27.773447+00:00",
+  "backendAndUnrelatedFilesUnchanged": true,
+  "productSnapshotIdentical": true,
+  "products": 100,
+  "seedRerun": false,
+  "backendProcessUnchanged": true,
+  "processes": {
+    "frontend": {
+      "id": 20944,
+      "created": "639284396282544710"
+    },
+    "backend": {
+      "id": 27736,
+      "created": "639284370320500450"
+    }
+  },
+  "http": [
+    {
+      "url": "http://127.0.0.1:18080/actuator/health/readiness",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/catalog?page=7",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/catalog?page=12",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:3300/en/brands/romanson?page=2",
+      "status": 200
+    }
+  ]
+}

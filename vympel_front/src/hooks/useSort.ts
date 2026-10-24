@@ -1,63 +1,17 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-
+import {usePathname, useSearchParams} from "next/navigation";
 import {useProgressRouter} from "@/hooks/useProgressRouter";
+import {catalogSortSearch, effectiveCatalogSort, explicitCatalogSort} from "@/lib/catalogSort";
 
-type UseSortOptions<TSort extends string> = {
-    defaultSort: TSort;
-    sortParamName?: string;
-    pageParamName?: string;
-};
-
-type UseSortReturn<TSort extends string> = {
-    sort: TSort;
-    setSort: (sort: TSort) => void;
-};
-
-function parseSortValue<TSort extends string>(
-    value: string | null | undefined,
-    defaultSort: TSort
-): TSort {
-    if (!value) {
-        return defaultSort;
-    }
-
-    return value as TSort;
-}
-
-export function useSort<TSort extends string>(
-    options: UseSortOptions<TSort>
-): UseSortReturn<TSort> {
-    const {
-        defaultSort,
-        sortParamName = "sort",
-        pageParamName = "page",
-    } = options;
-
+export function useSort() {
     const router = useProgressRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-
-    const sort = useMemo(() => {
-        return parseSortValue(searchParams?.get(sortParamName), defaultSort);
-    }, [searchParams, sortParamName, defaultSort]);
-
-    const setSort = useCallback(
-        (nextSort: TSort) => {
-            const params = new URLSearchParams(searchParams?.toString());
-
-            params.set(sortParamName, nextSort);
-            params.set(pageParamName, "1");
-
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
-        },
-        [router, pathname, searchParams, sortParamName, pageParamName]
-    );
-
-    return {
-        sort,
-        setSort,
+    const params = new URLSearchParams(searchParams?.toString());
+    const setSort = (sort?: string) => {
+        const query = catalogSortSearch(new URLSearchParams(searchParams?.toString()), sort).toString();
+        router.push(query ? `${pathname}?${query}` : pathname ?? "", {scroll: false});
     };
+    return {sort: effectiveCatalogSort(params), hasExplicitSort: Boolean(explicitCatalogSort(params)), setSort};
 }

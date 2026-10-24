@@ -1,0 +1,41 @@
+[
+  {
+    "file": "catalog-page-1-1440.png",
+    "beforeSize": [
+      1289,
+      53
+    ],
+    "afterSize": [
+      1289,
+      53
+    ],
+    "identicalPixels": true,
+    "differenceBounds": null
+  },
+  {
+    "file": "catalog-page-7-1440.png",
+    "beforeSize": [
+      1289,
+      53
+    ],
+    "afterSize": [
+      1289,
+      53
+    ],
+    "identicalPixels": true,
+    "differenceBounds": null
+  },
+  {
+    "file": "catalog-page-12-1440.png",
+    "beforeSize": [
+      1289,
+      52
+    ],
+    "afterSize": [
+      1289,
+      52
+    ],
+    "identicalPixels": true,
+    "differenceBounds": null
+  }
+]

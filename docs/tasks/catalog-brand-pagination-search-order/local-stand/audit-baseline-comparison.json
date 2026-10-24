@@ -1,0 +1,9 @@
+{
+  "identicalVulnerabilityObjects": true,
+  "packages": [
+    "next",
+    "zod"
+  ],
+  "base": "3977907",
+  "note": "Compared against untouched main audit saved during preceding implementation verification."
+}

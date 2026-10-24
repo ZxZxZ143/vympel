@@ -1,0 +1,2474 @@
+{
+  "passed": true,
+  "origin": "http://127.0.0.1:3300",
+  "api": "http://127.0.0.1:18080/api/public",
+  "mocked": false,
+  "errors": [],
+  "requests": [
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/ru",
+    "http://127.0.0.1:18080/api/public/product/filters/ru",
+    "http://127.0.0.1:18080/api/public/category/all/ru",
+    "http://127.0.0.1:18080/api/public/category/all/ru",
+    "http://127.0.0.1:18080/api/public/category/all/ru",
+    "http://127.0.0.1:18080/api/public/product/filters/ru",
+    "http://127.0.0.1:18080/api/public/category/all/ru",
+    "http://127.0.0.1:18080/api/public/category/all/kz",
+    "http://127.0.0.1:18080/api/public/product/filters/kz",
+    "http://127.0.0.1:18080/api/public/category/all/kz",
+    "http://127.0.0.1:18080/api/public/category/all/kz",
+    "http://127.0.0.1:18080/api/public/category/all/kz",
+    "http://127.0.0.1:18080/api/public/product/filters/kz",
+    "http://127.0.0.1:18080/api/public/category/all/kz",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/product/search/quick/en?q=Orion+Atlas&limit=6",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/category/all/en",
+    "http://127.0.0.1:18080/api/public/product/filters/en",
+    "http://127.0.0.1:18080/api/public/category/all/en"
+  ],
+  "results": [
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog?page=3",
+      "itemCount": 9,
+      "page": 3
+    },
+    {
+      "route": "/en/catalog?page=4",
+      "itemCount": 9,
+      "page": 4
+    },
+    {
+      "route": "/en/catalog?page=5",
+      "itemCount": 9,
+      "page": 5
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "route": "/en/catalog?page=7",
+      "itemCount": 9,
+      "page": 7
+    },
+    {
+      "route": "/en/catalog?page=8",
+      "itemCount": 9,
+      "page": 8
+    },
+    {
+      "route": "/en/catalog?page=9",
+      "itemCount": 9,
+      "page": 9
+    },
+    {
+      "route": "/en/catalog?page=10",
+      "itemCount": 9,
+      "page": 10
+    },
+    {
+      "route": "/en/catalog?page=11",
+      "itemCount": 9,
+      "page": 11
+    },
+    {
+      "route": "/en/catalog?page=12",
+      "itemCount": 1,
+      "page": 12
+    },
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/romanson?page=3",
+      "itemCount": 5,
+      "page": 3
+    },
+    {
+      "route": "/en/brands/adriatica",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/adriatica?page=2",
+      "itemCount": 10,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/appella",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/appella?page=2",
+      "itemCount": 5,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/pierre-ricaud",
+      "itemCount": 10,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/rhythm",
+      "itemCount": 5,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/royal-london",
+      "itemCount": 5,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/ru/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/ru/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/ru/catalog?search=Orion%20Atlas",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/kz/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/kz/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/kz/catalog?search=Orion%20Atlas",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas&page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas&brand=1&sort=priceAsc&page=2",
+      "itemCount": 9,
+      "page": 2
+    },
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?search=Orion%20Atlas&brand=1&sort=priceAsc",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/brands/romanson",
+      "itemCount": 15,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "width": 320,
+      "route": "/en/catalog?page=6",
+      "composition": {
+        "ranges": {
+          "left": 16.953125,
+          "right": 288.046875,
+          "top": 367.515625,
+          "bottom": 515.515625
+        },
+        "numbers": {
+          "left": 16.953125,
+          "right": 288.046875,
+          "top": 531.515625,
+          "bottom": 631.515625
+        },
+        "activeRange": {
+          "left": 20.953125,
+          "right": 116.640625,
+          "top": 419.515625,
+          "bottom": 463.515625
+        },
+        "rangeTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "numberTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "activeNumber": {
+          "left": 188.5,
+          "right": 232.5,
+          "top": 535.515625,
+          "bottom": 579.515625
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–9",
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "name": "Show items 1–9",
+            "bounds": {
+              "left": 20.953125,
+              "right": 85.5,
+              "top": 371.515625,
+              "bottom": 415.515625
+            }
+          },
+          {
+            "page": 5,
+            "text": "37–45",
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "name": "Show items 37–45",
+            "bounds": {
+              "left": 109.5,
+              "right": 201.96875,
+              "top": 371.515625,
+              "bottom": 415.515625
+            }
+          },
+          {
+            "page": 6,
+            "text": "46–54",
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "name": "Show items 46–54",
+            "bounds": {
+              "left": 20.953125,
+              "right": 116.640625,
+              "top": 419.515625,
+              "bottom": 463.515625
+            }
+          },
+          {
+            "page": 7,
+            "text": "55–63",
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "name": "Show items 55–63",
+            "bounds": {
+              "left": 120.640625,
+              "right": 213.140625,
+              "top": 419.515625,
+              "bottom": 463.515625
+            }
+          },
+          {
+            "page": 12,
+            "text": "100",
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "name": "Show items 100",
+            "bounds": {
+              "left": 20.953125,
+              "right": 88.328125,
+              "top": 467.515625,
+              "bottom": 511.515625
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "bounds": {
+              "left": 72.5,
+              "right": 116.5,
+              "top": 535.515625,
+              "bottom": 579.515625
+            }
+          },
+          {
+            "page": 5,
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "bounds": {
+              "left": 140.5,
+              "right": 184.5,
+              "top": 535.515625,
+              "bottom": 579.515625
+            }
+          },
+          {
+            "page": 6,
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "bounds": {
+              "left": 188.5,
+              "right": 232.5,
+              "top": 535.515625,
+              "bottom": 579.515625
+            }
+          },
+          {
+            "page": 7,
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "bounds": {
+              "left": 236.5,
+              "right": 280.5,
+              "top": 535.515625,
+              "bottom": 579.515625
+            }
+          },
+          {
+            "page": 12,
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "bounds": {
+              "left": 116.5,
+              "right": 160.5,
+              "top": 583.515625,
+              "bottom": 627.515625
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_suav5t9ivb_:item:1-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:1-range",
+          "pagination:_R_suav5t9ivb_:item:5-range",
+          "pagination:_R_suav5t9ivb_:item:6-range",
+          "pagination:_R_suav5t9ivb_:item:7-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:5-range",
+          "pagination:_R_suav5t9ivb_:item:12-range",
+          "pagination:_R_suav5t9ivb_:prev",
+          "pagination:_R_suav5t9ivb_:item:1",
+          "pagination:_R_suav5t9ivb_:ellipsis:1",
+          "pagination:_R_suav5t9ivb_:item:5",
+          "pagination:_R_suav5t9ivb_:item:6",
+          "pagination:_R_suav5t9ivb_:item:7",
+          "pagination:_R_suav5t9ivb_:ellipsis:5",
+          "pagination:_R_suav5t9ivb_:item:12",
+          "pagination:_R_suav5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "route": "/en/catalog?page=6",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 95.6875,
+          "height": 44
+        },
+        {
+          "width": 92.5,
+          "height": 44
+        },
+        {
+          "width": 67.375,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "5",
+        "6",
+        "7",
+        "12"
+      ]
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "width": 320,
+      "route": "/en/brands/romanson?page=2",
+      "composition": {
+        "ranges": {
+          "left": 16.953125,
+          "right": 288.046875,
+          "top": 439.84375,
+          "bottom": 491.84375
+        },
+        "numbers": {
+          "left": 16.953125,
+          "right": 288.046875,
+          "top": 507.84375,
+          "bottom": 559.84375
+        },
+        "activeRange": {
+          "left": 97.09375,
+          "right": 188.265625,
+          "top": 443.84375,
+          "bottom": 487.84375
+        },
+        "rangeTokens": [
+          1,
+          2,
+          3
+        ],
+        "numberTokens": [
+          1,
+          2,
+          3
+        ],
+        "activeNumber": {
+          "left": 130.5,
+          "right": 174.5,
+          "top": 511.84375,
+          "bottom": 555.84375
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–15",
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "name": "Show items 1–15",
+            "bounds": {
+              "left": 20.953125,
+              "right": 93.09375,
+              "top": 443.84375,
+              "bottom": 487.84375
+            }
+          },
+          {
+            "page": 2,
+            "text": "16–30",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "name": "Show items 16–30",
+            "bounds": {
+              "left": 97.09375,
+              "right": 188.265625,
+              "top": 443.84375,
+              "bottom": 487.84375
+            }
+          },
+          {
+            "page": 3,
+            "text": "31–35",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "name": "Show items 31–35",
+            "bounds": {
+              "left": 192.265625,
+              "right": 280.984375,
+              "top": 443.84375,
+              "bottom": 487.84375
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "bounds": {
+              "left": 82.5,
+              "right": 126.5,
+              "top": 511.84375,
+              "bottom": 555.84375
+            }
+          },
+          {
+            "page": 2,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "bounds": {
+              "left": 130.5,
+              "right": 174.5,
+              "top": 511.84375,
+              "bottom": 555.84375
+            }
+          },
+          {
+            "page": 3,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "bounds": {
+              "left": 178.5,
+              "right": 222.5,
+              "top": 511.84375,
+              "bottom": 555.84375
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_595fiv5t9ivb_:item:1-range",
+          "pagination:_R_595fiv5t9ivb_:item:2-range",
+          "pagination:_R_595fiv5t9ivb_:item:3-range",
+          "pagination:_R_595fiv5t9ivb_:prev",
+          "pagination:_R_595fiv5t9ivb_:item:1",
+          "pagination:_R_595fiv5t9ivb_:item:2",
+          "pagination:_R_595fiv5t9ivb_:item:3",
+          "pagination:_R_595fiv5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 88.71875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "width": 390,
+      "route": "/en/catalog?page=6",
+      "composition": {
+        "ranges": {
+          "left": 20.65625,
+          "right": 354.34375,
+          "top": 392.28125,
+          "bottom": 492.28125
+        },
+        "numbers": {
+          "left": 20.65625,
+          "right": 354.34375,
+          "top": 508.28125,
+          "bottom": 608.28125
+        },
+        "activeRange": {
+          "left": 209.671875,
+          "right": 305.359375,
+          "top": 396.28125,
+          "bottom": 440.28125
+        },
+        "rangeTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "numberTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "activeNumber": {
+          "left": 189.5,
+          "right": 233.5,
+          "top": 512.28125,
+          "bottom": 556.28125
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–9",
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "name": "Show items 1–9",
+            "bounds": {
+              "left": 24.65625,
+              "right": 89.203125,
+              "top": 396.28125,
+              "bottom": 440.28125
+            }
+          },
+          {
+            "page": 5,
+            "text": "37–45",
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "name": "Show items 37–45",
+            "bounds": {
+              "left": 113.203125,
+              "right": 205.671875,
+              "top": 396.28125,
+              "bottom": 440.28125
+            }
+          },
+          {
+            "page": 6,
+            "text": "46–54",
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "name": "Show items 46–54",
+            "bounds": {
+              "left": 209.671875,
+              "right": 305.359375,
+              "top": 396.28125,
+              "bottom": 440.28125
+            }
+          },
+          {
+            "page": 7,
+            "text": "55–63",
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "name": "Show items 55–63",
+            "bounds": {
+              "left": 24.65625,
+              "right": 117.15625,
+              "top": 444.28125,
+              "bottom": 488.28125
+            }
+          },
+          {
+            "page": 12,
+            "text": "100",
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "name": "Show items 100",
+            "bounds": {
+              "left": 141.15625,
+              "right": 208.53125,
+              "top": 444.28125,
+              "bottom": 488.28125
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "bounds": {
+              "left": 73.5,
+              "right": 117.5,
+              "top": 512.28125,
+              "bottom": 556.28125
+            }
+          },
+          {
+            "page": 5,
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "bounds": {
+              "left": 141.5,
+              "right": 185.5,
+              "top": 512.28125,
+              "bottom": 556.28125
+            }
+          },
+          {
+            "page": 6,
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "bounds": {
+              "left": 189.5,
+              "right": 233.5,
+              "top": 512.28125,
+              "bottom": 556.28125
+            }
+          },
+          {
+            "page": 7,
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "bounds": {
+              "left": 237.5,
+              "right": 281.5,
+              "top": 512.28125,
+              "bottom": 556.28125
+            }
+          },
+          {
+            "page": 12,
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "bounds": {
+              "left": 305.5,
+              "right": 349.5,
+              "top": 512.28125,
+              "bottom": 556.28125
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_suav5t9ivb_:item:1-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:1-range",
+          "pagination:_R_suav5t9ivb_:item:5-range",
+          "pagination:_R_suav5t9ivb_:item:6-range",
+          "pagination:_R_suav5t9ivb_:item:7-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:5-range",
+          "pagination:_R_suav5t9ivb_:item:12-range",
+          "pagination:_R_suav5t9ivb_:prev",
+          "pagination:_R_suav5t9ivb_:item:1",
+          "pagination:_R_suav5t9ivb_:ellipsis:1",
+          "pagination:_R_suav5t9ivb_:item:5",
+          "pagination:_R_suav5t9ivb_:item:6",
+          "pagination:_R_suav5t9ivb_:item:7",
+          "pagination:_R_suav5t9ivb_:ellipsis:5",
+          "pagination:_R_suav5t9ivb_:item:12",
+          "pagination:_R_suav5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "route": "/en/catalog?page=6",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 95.6875,
+          "height": 44
+        },
+        {
+          "width": 92.5,
+          "height": 44
+        },
+        {
+          "width": 67.375,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "5",
+        "6",
+        "7",
+        "12"
+      ]
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "width": 390,
+      "route": "/en/brands/romanson?page=2",
+      "composition": {
+        "ranges": {
+          "left": 20.65625,
+          "right": 354.34375,
+          "top": 439.578125,
+          "bottom": 491.578125
+        },
+        "numbers": {
+          "left": 20.65625,
+          "right": 354.34375,
+          "top": 507.578125,
+          "bottom": 559.578125
+        },
+        "activeRange": {
+          "left": 100.796875,
+          "right": 191.96875,
+          "top": 443.578125,
+          "bottom": 487.578125
+        },
+        "rangeTokens": [
+          1,
+          2,
+          3
+        ],
+        "numberTokens": [
+          1,
+          2,
+          3
+        ],
+        "activeNumber": {
+          "left": 165.5,
+          "right": 209.5,
+          "top": 511.578125,
+          "bottom": 555.578125
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–15",
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "name": "Show items 1–15",
+            "bounds": {
+              "left": 24.65625,
+              "right": 96.796875,
+              "top": 443.578125,
+              "bottom": 487.578125
+            }
+          },
+          {
+            "page": 2,
+            "text": "16–30",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "name": "Show items 16–30",
+            "bounds": {
+              "left": 100.796875,
+              "right": 191.96875,
+              "top": 443.578125,
+              "bottom": 487.578125
+            }
+          },
+          {
+            "page": 3,
+            "text": "31–35",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "name": "Show items 31–35",
+            "bounds": {
+              "left": 195.96875,
+              "right": 284.6875,
+              "top": 443.578125,
+              "bottom": 487.578125
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "bounds": {
+              "left": 117.5,
+              "right": 161.5,
+              "top": 511.578125,
+              "bottom": 555.578125
+            }
+          },
+          {
+            "page": 2,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "bounds": {
+              "left": 165.5,
+              "right": 209.5,
+              "top": 511.578125,
+              "bottom": 555.578125
+            }
+          },
+          {
+            "page": 3,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "bounds": {
+              "left": 213.5,
+              "right": 257.5,
+              "top": 511.578125,
+              "bottom": 555.578125
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_595fiv5t9ivb_:item:1-range",
+          "pagination:_R_595fiv5t9ivb_:item:2-range",
+          "pagination:_R_595fiv5t9ivb_:item:3-range",
+          "pagination:_R_595fiv5t9ivb_:prev",
+          "pagination:_R_595fiv5t9ivb_:item:1",
+          "pagination:_R_595fiv5t9ivb_:item:2",
+          "pagination:_R_595fiv5t9ivb_:item:3",
+          "pagination:_R_595fiv5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 88.71875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "width": 768,
+      "route": "/en/catalog?page=6",
+      "composition": {
+        "ranges": {
+          "left": 40.703125,
+          "right": 712.296875,
+          "top": 439.75,
+          "bottom": 491.75
+        },
+        "numbers": {
+          "left": 40.703125,
+          "right": 712.296875,
+          "top": 507.75,
+          "bottom": 559.75
+        },
+        "activeRange": {
+          "left": 241.71875,
+          "right": 337.40625,
+          "top": 443.75,
+          "bottom": 487.75
+        },
+        "rangeTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "numberTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "activeNumber": {
+          "left": 354.5,
+          "right": 398.5,
+          "top": 511.75,
+          "bottom": 555.75
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–9",
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "name": "Show items 1–9",
+            "bounds": {
+              "left": 44.703125,
+              "right": 109.25,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          },
+          {
+            "page": 5,
+            "text": "37–45",
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "name": "Show items 37–45",
+            "bounds": {
+              "left": 141.25,
+              "right": 233.71875,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          },
+          {
+            "page": 6,
+            "text": "46–54",
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "name": "Show items 46–54",
+            "bounds": {
+              "left": 241.71875,
+              "right": 337.40625,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          },
+          {
+            "page": 7,
+            "text": "55–63",
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "name": "Show items 55–63",
+            "bounds": {
+              "left": 345.40625,
+              "right": 437.90625,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          },
+          {
+            "page": 12,
+            "text": "100",
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "name": "Show items 100",
+            "bounds": {
+              "left": 469.90625,
+              "right": 537.28125,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "bounds": {
+              "left": 226.5,
+              "right": 270.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          },
+          {
+            "page": 5,
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "bounds": {
+              "left": 302.5,
+              "right": 346.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          },
+          {
+            "page": 6,
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "bounds": {
+              "left": 354.5,
+              "right": 398.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          },
+          {
+            "page": 7,
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "bounds": {
+              "left": 406.5,
+              "right": 450.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          },
+          {
+            "page": 12,
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "bounds": {
+              "left": 482.5,
+              "right": 526.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_suav5t9ivb_:item:1-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:1-range",
+          "pagination:_R_suav5t9ivb_:item:5-range",
+          "pagination:_R_suav5t9ivb_:item:6-range",
+          "pagination:_R_suav5t9ivb_:item:7-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:5-range",
+          "pagination:_R_suav5t9ivb_:item:12-range",
+          "pagination:_R_suav5t9ivb_:prev",
+          "pagination:_R_suav5t9ivb_:item:1",
+          "pagination:_R_suav5t9ivb_:ellipsis:1",
+          "pagination:_R_suav5t9ivb_:item:5",
+          "pagination:_R_suav5t9ivb_:item:6",
+          "pagination:_R_suav5t9ivb_:item:7",
+          "pagination:_R_suav5t9ivb_:ellipsis:5",
+          "pagination:_R_suav5t9ivb_:item:12",
+          "pagination:_R_suav5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "route": "/en/catalog?page=6",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 95.6875,
+          "height": 44
+        },
+        {
+          "width": 92.5,
+          "height": 44
+        },
+        {
+          "width": 67.375,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "5",
+        "6",
+        "7",
+        "12"
+      ]
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "width": 768,
+      "route": "/en/brands/romanson?page=2",
+      "composition": {
+        "ranges": {
+          "left": 40.703125,
+          "right": 712.296875,
+          "top": 439.75,
+          "bottom": 491.75
+        },
+        "numbers": {
+          "left": 40.703125,
+          "right": 712.296875,
+          "top": 507.75,
+          "bottom": 559.75
+        },
+        "activeRange": {
+          "left": 124.84375,
+          "right": 216.015625,
+          "top": 443.75,
+          "bottom": 487.75
+        },
+        "rangeTokens": [
+          1,
+          2,
+          3
+        ],
+        "numberTokens": [
+          1,
+          2,
+          3
+        ],
+        "activeNumber": {
+          "left": 354.5,
+          "right": 398.5,
+          "top": 511.75,
+          "bottom": 555.75
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–15",
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "name": "Show items 1–15",
+            "bounds": {
+              "left": 44.703125,
+              "right": 116.84375,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          },
+          {
+            "page": 2,
+            "text": "16–30",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "name": "Show items 16–30",
+            "bounds": {
+              "left": 124.84375,
+              "right": 216.015625,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          },
+          {
+            "page": 3,
+            "text": "31–35",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "name": "Show items 31–35",
+            "bounds": {
+              "left": 224.015625,
+              "right": 312.734375,
+              "top": 443.75,
+              "bottom": 487.75
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "bounds": {
+              "left": 302.5,
+              "right": 346.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          },
+          {
+            "page": 2,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "bounds": {
+              "left": 354.5,
+              "right": 398.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          },
+          {
+            "page": 3,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "bounds": {
+              "left": 406.5,
+              "right": 450.5,
+              "top": 511.75,
+              "bottom": 555.75
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_595fiv5t9ivb_:item:1-range",
+          "pagination:_R_595fiv5t9ivb_:item:2-range",
+          "pagination:_R_595fiv5t9ivb_:item:3-range",
+          "pagination:_R_595fiv5t9ivb_:prev",
+          "pagination:_R_595fiv5t9ivb_:item:1",
+          "pagination:_R_595fiv5t9ivb_:item:2",
+          "pagination:_R_595fiv5t9ivb_:item:3",
+          "pagination:_R_595fiv5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 88.71875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "width": 1024,
+      "route": "/en/catalog?page=6",
+      "composition": {
+        "ranges": {
+          "left": 54.265625,
+          "right": 526.734375,
+          "top": 474.328125,
+          "bottom": 526.328125
+        },
+        "numbers": {
+          "left": 542.734375,
+          "right": 954.734375,
+          "top": 474.328125,
+          "bottom": 526.328125
+        },
+        "activeRange": {
+          "left": 242.28125,
+          "right": 337.96875,
+          "top": 478.328125,
+          "bottom": 522.328125
+        },
+        "rangeTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "numberTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "activeNumber": {
+          "left": 726.734375,
+          "right": 770.734375,
+          "top": 478.328125,
+          "bottom": 522.328125
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–9",
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "name": "Show items 1–9",
+            "bounds": {
+              "left": 45.265625,
+              "right": 109.8125,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 5,
+            "text": "37–45",
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "name": "Show items 37–45",
+            "bounds": {
+              "left": 141.8125,
+              "right": 234.28125,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 6,
+            "text": "46–54",
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "name": "Show items 46–54",
+            "bounds": {
+              "left": 242.28125,
+              "right": 337.96875,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 7,
+            "text": "55–63",
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "name": "Show items 55–63",
+            "bounds": {
+              "left": 345.96875,
+              "right": 438.46875,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 12,
+            "text": "100",
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "name": "Show items 100",
+            "bounds": {
+              "left": 470.46875,
+              "right": 537.84375,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "bounds": {
+              "left": 598.734375,
+              "right": 642.734375,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 5,
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "bounds": {
+              "left": 674.734375,
+              "right": 718.734375,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 6,
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "bounds": {
+              "left": 726.734375,
+              "right": 770.734375,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 7,
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "bounds": {
+              "left": 778.734375,
+              "right": 822.734375,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          },
+          {
+            "page": 12,
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "bounds": {
+              "left": 854.734375,
+              "right": 898.734375,
+              "top": 478.328125,
+              "bottom": 522.328125
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_suav5t9ivb_:item:1-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:1-range",
+          "pagination:_R_suav5t9ivb_:item:5-range",
+          "pagination:_R_suav5t9ivb_:item:6-range",
+          "pagination:_R_suav5t9ivb_:item:7-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:5-range",
+          "pagination:_R_suav5t9ivb_:item:12-range",
+          "pagination:_R_suav5t9ivb_:prev",
+          "pagination:_R_suav5t9ivb_:item:1",
+          "pagination:_R_suav5t9ivb_:ellipsis:1",
+          "pagination:_R_suav5t9ivb_:item:5",
+          "pagination:_R_suav5t9ivb_:item:6",
+          "pagination:_R_suav5t9ivb_:item:7",
+          "pagination:_R_suav5t9ivb_:ellipsis:5",
+          "pagination:_R_suav5t9ivb_:item:12",
+          "pagination:_R_suav5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "route": "/en/catalog?page=6",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 95.6875,
+          "height": 44
+        },
+        {
+          "width": 92.5,
+          "height": 44
+        },
+        {
+          "width": 67.375,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "5",
+        "6",
+        "7",
+        "12"
+      ]
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "width": 1024,
+      "route": "/en/brands/romanson?page=2",
+      "composition": {
+        "ranges": {
+          "left": 54.265625,
+          "right": 678.734375,
+          "top": 474,
+          "bottom": 526
+        },
+        "numbers": {
+          "left": 694.734375,
+          "right": 954.734375,
+          "top": 474,
+          "bottom": 526
+        },
+        "activeRange": {
+          "left": 138.40625,
+          "right": 229.578125,
+          "top": 478,
+          "bottom": 522
+        },
+        "rangeTokens": [
+          1,
+          2,
+          3
+        ],
+        "numberTokens": [
+          1,
+          2,
+          3
+        ],
+        "activeNumber": {
+          "left": 802.734375,
+          "right": 846.734375,
+          "top": 478,
+          "bottom": 522
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–15",
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "name": "Show items 1–15",
+            "bounds": {
+              "left": 58.265625,
+              "right": 130.40625,
+              "top": 478,
+              "bottom": 522
+            }
+          },
+          {
+            "page": 2,
+            "text": "16–30",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "name": "Show items 16–30",
+            "bounds": {
+              "left": 138.40625,
+              "right": 229.578125,
+              "top": 478,
+              "bottom": 522
+            }
+          },
+          {
+            "page": 3,
+            "text": "31–35",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "name": "Show items 31–35",
+            "bounds": {
+              "left": 237.578125,
+              "right": 326.296875,
+              "top": 478,
+              "bottom": 522
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "bounds": {
+              "left": 750.734375,
+              "right": 794.734375,
+              "top": 478,
+              "bottom": 522
+            }
+          },
+          {
+            "page": 2,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "bounds": {
+              "left": 802.734375,
+              "right": 846.734375,
+              "top": 478,
+              "bottom": 522
+            }
+          },
+          {
+            "page": 3,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "bounds": {
+              "left": 854.734375,
+              "right": 898.734375,
+              "top": 478,
+              "bottom": 522
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_595fiv5t9ivb_:item:1-range",
+          "pagination:_R_595fiv5t9ivb_:item:2-range",
+          "pagination:_R_595fiv5t9ivb_:item:3-range",
+          "pagination:_R_595fiv5t9ivb_:prev",
+          "pagination:_R_595fiv5t9ivb_:item:1",
+          "pagination:_R_595fiv5t9ivb_:item:2",
+          "pagination:_R_595fiv5t9ivb_:item:3",
+          "pagination:_R_595fiv5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 88.71875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "route": "/en/catalog?page=6",
+      "itemCount": 9,
+      "page": 6
+    },
+    {
+      "width": 1440,
+      "route": "/en/catalog?page=6",
+      "composition": {
+        "ranges": {
+          "left": 68,
+          "right": 929,
+          "top": 473.78125,
+          "bottom": 525.78125
+        },
+        "numbers": {
+          "left": 945,
+          "right": 1357,
+          "top": 473.78125,
+          "bottom": 525.78125
+        },
+        "activeRange": {
+          "left": 269.015625,
+          "right": 364.703125,
+          "top": 477.78125,
+          "bottom": 521.78125
+        },
+        "rangeTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "numberTokens": [
+          1,
+          "…",
+          5,
+          6,
+          7,
+          "…",
+          12
+        ],
+        "activeNumber": {
+          "left": 1129,
+          "right": 1173,
+          "top": 477.78125,
+          "bottom": 521.78125
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–9",
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "name": "Show items 1–9",
+            "bounds": {
+              "left": 72,
+              "right": 136.546875,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 5,
+            "text": "37–45",
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "name": "Show items 37–45",
+            "bounds": {
+              "left": 168.546875,
+              "right": 261.015625,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 6,
+            "text": "46–54",
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "name": "Show items 46–54",
+            "bounds": {
+              "left": 269.015625,
+              "right": 364.703125,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 7,
+            "text": "55–63",
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "name": "Show items 55–63",
+            "bounds": {
+              "left": 372.703125,
+              "right": 465.203125,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 12,
+            "text": "100",
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "name": "Show items 100",
+            "bounds": {
+              "left": 497.203125,
+              "right": 564.578125,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/catalog#catalog-product-list",
+            "bounds": {
+              "left": 1001,
+              "right": 1045,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 5,
+            "href": "http://127.0.0.1:3300/en/catalog?page=5#catalog-product-list",
+            "bounds": {
+              "left": 1077,
+              "right": 1121,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 6,
+            "href": "http://127.0.0.1:3300/en/catalog?page=6#catalog-product-list",
+            "bounds": {
+              "left": 1129,
+              "right": 1173,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 7,
+            "href": "http://127.0.0.1:3300/en/catalog?page=7#catalog-product-list",
+            "bounds": {
+              "left": 1181,
+              "right": 1225,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          },
+          {
+            "page": 12,
+            "href": "http://127.0.0.1:3300/en/catalog?page=12#catalog-product-list",
+            "bounds": {
+              "left": 1257,
+              "right": 1301,
+              "top": 477.78125,
+              "bottom": 521.78125
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_suav5t9ivb_:item:1-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:1-range",
+          "pagination:_R_suav5t9ivb_:item:5-range",
+          "pagination:_R_suav5t9ivb_:item:6-range",
+          "pagination:_R_suav5t9ivb_:item:7-range",
+          "pagination:_R_suav5t9ivb_:ellipsis:5-range",
+          "pagination:_R_suav5t9ivb_:item:12-range",
+          "pagination:_R_suav5t9ivb_:prev",
+          "pagination:_R_suav5t9ivb_:item:1",
+          "pagination:_R_suav5t9ivb_:ellipsis:1",
+          "pagination:_R_suav5t9ivb_:item:5",
+          "pagination:_R_suav5t9ivb_:item:6",
+          "pagination:_R_suav5t9ivb_:item:7",
+          "pagination:_R_suav5t9ivb_:ellipsis:5",
+          "pagination:_R_suav5t9ivb_:item:12",
+          "pagination:_R_suav5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 1440,
+      "route": "/en/catalog?page=6",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 95.6875,
+          "height": 44
+        },
+        {
+          "width": 92.5,
+          "height": 44
+        },
+        {
+          "width": 67.375,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "5",
+        "6",
+        "7",
+        "12"
+      ]
+    },
+    {
+      "route": "/en/brands/romanson?page=2",
+      "itemCount": 15,
+      "page": 2
+    },
+    {
+      "width": 1440,
+      "route": "/en/brands/romanson?page=2",
+      "composition": {
+        "ranges": {
+          "left": 68,
+          "right": 1081,
+          "top": 473.59375,
+          "bottom": 525.59375
+        },
+        "numbers": {
+          "left": 1097,
+          "right": 1357,
+          "top": 473.59375,
+          "bottom": 525.59375
+        },
+        "activeRange": {
+          "left": 152.140625,
+          "right": 243.3125,
+          "top": 477.59375,
+          "bottom": 521.59375
+        },
+        "rangeTokens": [
+          1,
+          2,
+          3
+        ],
+        "numberTokens": [
+          1,
+          2,
+          3
+        ],
+        "activeNumber": {
+          "left": 1205,
+          "right": 1249,
+          "top": 477.59375,
+          "bottom": 521.59375
+        },
+        "rangeLinks": [
+          {
+            "page": 1,
+            "text": "1–15",
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "name": "Show items 1–15",
+            "bounds": {
+              "left": 72,
+              "right": 144.140625,
+              "top": 477.59375,
+              "bottom": 521.59375
+            }
+          },
+          {
+            "page": 2,
+            "text": "16–30",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "name": "Show items 16–30",
+            "bounds": {
+              "left": 152.140625,
+              "right": 243.3125,
+              "top": 477.59375,
+              "bottom": 521.59375
+            }
+          },
+          {
+            "page": 3,
+            "text": "31–35",
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "name": "Show items 31–35",
+            "bounds": {
+              "left": 251.3125,
+              "right": 340.03125,
+              "top": 477.59375,
+              "bottom": 521.59375
+            }
+          }
+        ],
+        "numberLinks": [
+          {
+            "page": 1,
+            "href": "http://127.0.0.1:3300/en/brands/romanson#brand-product-list",
+            "bounds": {
+              "left": 1153,
+              "right": 1197,
+              "top": 477.59375,
+              "bottom": 521.59375
+            }
+          },
+          {
+            "page": 2,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=2#brand-product-list",
+            "bounds": {
+              "left": 1205,
+              "right": 1249,
+              "top": 477.59375,
+              "bottom": 521.59375
+            }
+          },
+          {
+            "page": 3,
+            "href": "http://127.0.0.1:3300/en/brands/romanson?page=3#brand-product-list",
+            "bounds": {
+              "left": 1257,
+              "right": 1301,
+              "top": 477.59375,
+              "bottom": 521.59375
+            }
+          }
+        ],
+        "ids": [
+          "pagination:_R_595fiv5t9ivb_:item:1-range",
+          "pagination:_R_595fiv5t9ivb_:item:2-range",
+          "pagination:_R_595fiv5t9ivb_:item:3-range",
+          "pagination:_R_595fiv5t9ivb_:prev",
+          "pagination:_R_595fiv5t9ivb_:item:1",
+          "pagination:_R_595fiv5t9ivb_:item:2",
+          "pagination:_R_595fiv5t9ivb_:item:3",
+          "pagination:_R_595fiv5t9ivb_:next"
+        ]
+      }
+    },
+    {
+      "width": 1440,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "active": 2,
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 88.71875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=7",
+      "itemCount": 9,
+      "page": 7
+    },
+    {
+      "route": "/en/catalog?page=12",
+      "itemCount": 1,
+      "page": 12
+    },
+    {
+      "route": "/en/catalog",
+      "itemCount": 9,
+      "page": 1
+    },
+    {
+      "route": "/en/catalog?page=7",
+      "itemCount": 9,
+      "page": 7
+    },
+    {
+      "route": "/en/catalog?page=12",
+      "itemCount": 1,
+      "page": 12
+    }
+  ]
+}

@@ -1,0 +1,943 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 16.953125,
+        "right": 288.046875
+      },
+      "targets": [
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        },
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        },
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        },
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        },
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        },
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        },
+        {
+          "width": 35.859375,
+          "height": 35.859375
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        499.9453125,
+        499.9453125,
+        499.9453125,
+        499.9453125,
+        499.9453125,
+        499.9453125,
+        499.9453125
+      ]
+    },
+    {
+      "width": 320,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 16.953125,
+        "right": 288.046875
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        500.34375,
+        500.34375,
+        500.34375,
+        500.34375
+      ]
+    },
+    {
+      "width": 360,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 19.078125,
+        "right": 325.921875
+      },
+      "targets": [
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        },
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        },
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        },
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        },
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        },
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        },
+        {
+          "width": 40.96875,
+          "height": 40.96875
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        499.609375,
+        499.609375,
+        499.609375,
+        499.609375,
+        499.609375,
+        499.609375,
+        499.609375
+      ]
+    },
+    {
+      "width": 360,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 19.078125,
+        "right": 325.921875
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        500.203125,
+        500.203125,
+        500.203125,
+        500.203125
+      ]
+    },
+    {
+      "width": 375,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 19.875,
+        "right": 340.125
+      },
+      "targets": [
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        },
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        },
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        },
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        },
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        },
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        },
+        {
+          "width": 42.890625,
+          "height": 42.890625
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        500.1171875,
+        500.1171875,
+        500.1171875,
+        500.1171875,
+        500.1171875,
+        500.1171875,
+        500.1171875
+      ]
+    },
+    {
+      "width": 375,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 19.875,
+        "right": 340.125
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        499.953125,
+        499.953125,
+        499.953125,
+        499.953125
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 20.65625,
+        "right": 354.34375
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125
+      ]
+    },
+    {
+      "width": 390,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 20.65625,
+        "right": 354.34375
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        499.578125,
+        499.578125,
+        499.578125,
+        499.578125
+      ]
+    },
+    {
+      "width": 430,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 22.78125,
+        "right": 392.21875
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        500.375,
+        500.375,
+        500.375,
+        500.375,
+        500.375,
+        500.375,
+        500.375
+      ]
+    },
+    {
+      "width": 430,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 22.78125,
+        "right": 392.21875
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        499.578125,
+        499.578125,
+        499.578125,
+        499.578125
+      ]
+    },
+    {
+      "width": 768,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 40.703125,
+        "right": 712.296875
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        500.25,
+        500.25,
+        500.25,
+        500.25,
+        500.25,
+        500.25,
+        500.25
+      ]
+    },
+    {
+      "width": 768,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 40.703125,
+        "right": 712.296875
+      },
+      "targets": [
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 1,
+      "visibleRanges": 0,
+      "visibleArrows": 0,
+      "numericCenters": [
+        499.75,
+        499.75,
+        499.75,
+        499.75
+      ]
+    },
+    {
+      "width": 1024,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 54.265625,
+        "right": 954.734375
+      },
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 85.265625,
+          "height": 44
+        },
+        {
+          "width": 88.0625,
+          "height": 44
+        },
+        {
+          "width": 94.78125,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 94.109375,
+          "height": 44
+        },
+        {
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 2,
+      "visibleRanges": 7,
+      "visibleArrows": 2,
+      "numericCenters": [
+        499.828125,
+        499.828125,
+        499.828125,
+        499.828125,
+        499.828125,
+        499.828125,
+        499.828125
+      ]
+    },
+    {
+      "width": 1024,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 54.265625,
+        "right": 954.734375
+      },
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 89.28125,
+          "height": 44
+        },
+        {
+          "width": 92.515625,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 2,
+      "visibleRanges": 4,
+      "visibleArrows": 2,
+      "numericCenters": [
+        499.5,
+        499.5,
+        499.5,
+        499.5
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "/en/catalog?page=4",
+      "overflow": false,
+      "bounds": {
+        "left": 68,
+        "right": 1357
+      },
+      "targets": [
+        {
+          "width": 64.546875,
+          "height": 44
+        },
+        {
+          "width": 85.265625,
+          "height": 44
+        },
+        {
+          "width": 88.0625,
+          "height": 44
+        },
+        {
+          "width": 94.78125,
+          "height": 44
+        },
+        {
+          "width": 92.46875,
+          "height": 44
+        },
+        {
+          "width": 94.109375,
+          "height": 44
+        },
+        {
+          "width": 90.921875,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "active": 2,
+      "visibleRanges": 7,
+      "visibleArrows": 2,
+      "numericCenters": [
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125,
+        500.28125
+      ]
+    },
+    {
+      "width": 1440,
+      "route": "/en/brands/romanson?page=2",
+      "overflow": false,
+      "bounds": {
+        "left": 68,
+        "right": 1357
+      },
+      "targets": [
+        {
+          "width": 72.140625,
+          "height": 44
+        },
+        {
+          "width": 91.171875,
+          "height": 44
+        },
+        {
+          "width": 89.28125,
+          "height": 44
+        },
+        {
+          "width": 92.515625,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ],
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "active": 2,
+      "visibleRanges": 4,
+      "visibleArrows": 2,
+      "numericCenters": [
+        499.59375,
+        499.59375,
+        499.59375,
+        499.59375
+      ]
+    }
+  ],
+  "errors": [],
+  "navigation": "passed",
+  "sorting": "passed"
+}

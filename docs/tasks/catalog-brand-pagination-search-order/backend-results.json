@@ -1,0 +1,33 @@
+{
+  "counts": {
+    "tests": 351,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 22
+  },
+  "passed": 329,
+  "skippedTests": [
+    "com.shop.vympel.db.ProductDiscountMigrationTest.upgradesPopulatedPreviousSchemaWithoutRewritingHistoryOrProductData()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.authoritativeReferenceQueryCoversEveryDesktopMobileAndLocaleSlot()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.liquibaseBuildsRefreshSessionSchemaOnDisposablePostgres()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentLastAdminDisablesLeaveOneActiveAdministrator()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentCmsReordersRemainUniqueAndTenStepNormalized()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.directInvalidWritesAreRejectedByStep7Constraints()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentCustomerRequestEditsPreserveStatusAndComment()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.liquibaseBuildsCmsLifecycleAndDurableRevalidationOutbox()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentStockDecrementsNeverProduceNegativeInventory()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentProductFieldUpdatesPreserveBothCommittedChanges()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.recommendationsExcludeActiveChildrenBelowAnInactiveAncestor()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentReviewDeleteAndApproveCannotRepublishDeletedReview()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.liquibaseBuildsStep7IntegrityConstraintsAndNormalizesAuditedData()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentProductImageReordersRemainCanonical()",
+    "com.shop.vympel.db.RefreshSessionMigrationTest.concurrentRoleReplacementNeverMergesDisjointRequestedRoleSets()",
+    "com.shop.vympel.db.Step7ExternalDatabaseRehearsalTest.restoredLiveDataMigratesAndRejectsInvalidWrites()",
+    "com.shop.vympel.db.SupportedCatalogMigrationTest.migrationBuildsTheExactSupportedDomainAndLocalizedLabels()",
+    "com.shop.vympel.db.SupportedCatalogMigrationTest.migrationContractContainsOnlyClearAliasConversionsAndFkSafeProductDeletion()",
+    "com.shop.vympel.db.SupportedCatalogMigrationTest.databaseRejectsUnsupportedRowsAndMappingDrift()",
+    "com.shop.vympel.security.ratelimit.RedisRateLimitStoreIntegrationTest.twoServiceInstancesShareAtomicBurstAndTtlState()",
+    "com.shop.vympel.services.product.ProductModelVariantIntegrationTest.migrationAddsTheDerivedGroupingIndexWithoutPersistentVariantState()",
+    "com.shop.vympel.services.product.ProductModelVariantIntegrationTest.groupsByBrandNormalizedModelAndCategoryProfileWithPublicVisibilityRules()"
+  ]
+}
