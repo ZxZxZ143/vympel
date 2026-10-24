@@ -223,11 +223,11 @@ public class ProductPublicController {
     @GetMapping("/filters/{lang}")
     public ResponseEntity<CatalogFiltersResponse> getCatalogFilters(
             @PathVariable @NotNull Language lang,
-            @RequestParam(required = false) String categoryCode
+            @RequestParam MultiValueMap<String, String> requestParams
     ) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(productCatalogService.getFilters(categoryCode, lang));
+                .body(productCatalogService.getFilters(toCatalogQuery(requestParams), lang));
     }
 
     private Pageable mapToProductSort(Pageable pageable) {

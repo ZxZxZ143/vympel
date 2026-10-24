@@ -1,0 +1,944 @@
+{
+  "passed": true,
+  "mocked": false,
+  "results": [
+    {
+      "width": 1440,
+      "genderOptions": 3,
+      "zeroGroups": [
+        "gender",
+        "strapMaterial",
+        "glassType",
+        "stoneInlay"
+      ],
+      "emptyCategoryGroups": [
+        "mechanism",
+        "gender",
+        "caseMaterial",
+        "strapMaterial",
+        "glassType",
+        "stoneInlay"
+      ],
+      "emptyNumericMessage": true,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "genderOptions": 3,
+      "zeroGroups": [
+        "gender",
+        "strapMaterial",
+        "glassType",
+        "stoneInlay"
+      ],
+      "emptyCategoryGroups": [
+        "mechanism",
+        "gender",
+        "caseMaterial",
+        "strapMaterial",
+        "glassType",
+        "stoneInlay"
+      ],
+      "emptyNumericMessage": true,
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "wrist": {
+    "category": {
+      "id": 1,
+      "slug": "watch-wrist",
+      "label": "WATCH_WRIST",
+      "parentSlug": null,
+      "inheritsFiltersFrom": null
+    },
+    "filters": [
+      {
+        "key": "price",
+        "label": "Цена",
+        "type": "range",
+        "source": "product",
+        "options": [],
+        "min": 10000,
+        "max": 999999
+      },
+      {
+        "key": "brand",
+        "label": "Бренд",
+        "type": "checkbox",
+        "source": "product",
+        "options": [
+          {
+            "value": "4",
+            "label": "Adriatica",
+            "count": 25,
+            "disabled": false
+          },
+          {
+            "value": "2",
+            "label": "Appella",
+            "count": 20,
+            "disabled": false
+          },
+          {
+            "value": "3",
+            "label": "Pierre Ricaud",
+            "count": 10,
+            "disabled": false
+          },
+          {
+            "value": "5",
+            "label": "Rhythm",
+            "count": 5,
+            "disabled": false
+          },
+          {
+            "value": "1",
+            "label": "Romanson",
+            "count": 35,
+            "disabled": false
+          },
+          {
+            "value": "6",
+            "label": "Royal London",
+            "count": 5,
+            "disabled": false
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "country",
+        "label": "Страна",
+        "type": "checkbox",
+        "source": "brand_country",
+        "options": [
+          {
+            "value": "11",
+            "label": "Англия",
+            "count": 5,
+            "disabled": false
+          },
+          {
+            "value": "4",
+            "label": "Германия",
+            "count": 10,
+            "disabled": false
+          },
+          {
+            "value": "1",
+            "label": "Швейцария",
+            "count": 45,
+            "disabled": false
+          },
+          {
+            "value": "2",
+            "label": "Южная Корея",
+            "count": 35,
+            "disabled": false
+          },
+          {
+            "value": "3",
+            "label": "Япония",
+            "count": 5,
+            "disabled": false
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "mechanism",
+        "label": "Механизм",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "3",
+            "label": "Автоматический",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Кварцевый",
+            "count": 41,
+            "disabled": false
+          },
+          {
+            "value": "2",
+            "label": "Механический",
+            "count": 2,
+            "disabled": false
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "gender",
+        "label": "Пол",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "2",
+            "label": "Женские",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Мужские",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Унисекс",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "caseMaterial",
+        "label": "Корпус",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "4",
+            "label": "Карбоновый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Керамический",
+            "count": 9,
+            "disabled": false
+          },
+          {
+            "value": "9",
+            "label": "Нержавеющая сталь",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Стальной",
+            "count": 34,
+            "disabled": false
+          },
+          {
+            "value": "3",
+            "label": "Титановый",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "strapMaterial",
+        "label": "Браслет",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "6",
+            "label": "Каучуковый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "5",
+            "label": "Кожаный",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "8",
+            "label": "Металлический",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "7",
+            "label": "Силиконовый",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "glassType",
+        "label": "Стекло",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "4",
+            "label": "Комбинированное",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Минеральное",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Пластиковое",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Сапфировое",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "stoneInlay",
+        "label": "Камень-вставка",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "1",
+            "label": "Swarovski",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "caseSize",
+        "label": "Размер корпуса",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "40",
+            "label": "40",
+            "count": 43,
+            "disabled": false
+          }
+        ],
+        "min": null,
+        "max": null
+      }
+    ]
+  },
+  "empty": {
+    "category": {
+      "id": 8,
+      "slug": "watch-classic",
+      "label": "WATCH_CLASSIC",
+      "parentSlug": "watch-wrist",
+      "inheritsFiltersFrom": "watch-wrist"
+    },
+    "filters": [
+      {
+        "key": "price",
+        "label": "Цена",
+        "type": "range",
+        "source": "product",
+        "options": [],
+        "min": 0,
+        "max": 0
+      },
+      {
+        "key": "brand",
+        "label": "Бренд",
+        "type": "checkbox",
+        "source": "product",
+        "options": [
+          {
+            "value": "4",
+            "label": "Adriatica",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Appella",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Pierre Ricaud",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "5",
+            "label": "Rhythm",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Romanson",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "6",
+            "label": "Royal London",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "country",
+        "label": "Страна",
+        "type": "checkbox",
+        "source": "brand_country",
+        "options": [
+          {
+            "value": "11",
+            "label": "Англия",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "4",
+            "label": "Германия",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Швейцария",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Южная Корея",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Япония",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "mechanism",
+        "label": "Механизм",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "3",
+            "label": "Автоматический",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Кварцевый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Механический",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "gender",
+        "label": "Пол",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "2",
+            "label": "Женские",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Мужские",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Унисекс",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "caseMaterial",
+        "label": "Корпус",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "4",
+            "label": "Карбоновый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Керамический",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "9",
+            "label": "Нержавеющая сталь",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Стальной",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Титановый",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "strapMaterial",
+        "label": "Браслет",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "6",
+            "label": "Каучуковый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "5",
+            "label": "Кожаный",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "8",
+            "label": "Металлический",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "7",
+            "label": "Силиконовый",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "glassType",
+        "label": "Стекло",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "4",
+            "label": "Комбинированное",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Минеральное",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Пластиковое",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Сапфировое",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "stoneInlay",
+        "label": "Камень-вставка",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [
+          {
+            "value": "1",
+            "label": "Swarovski",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "caseSize",
+        "label": "Размер корпуса",
+        "type": "checkbox",
+        "source": "watch_details",
+        "options": [],
+        "min": null,
+        "max": null
+      }
+    ]
+  },
+  "interior": {
+    "category": {
+      "id": 2,
+      "slug": "watch-interior",
+      "label": "WATCH_INTERIOR",
+      "parentSlug": null,
+      "inheritsFiltersFrom": null
+    },
+    "filters": [
+      {
+        "key": "price",
+        "label": "Цена",
+        "type": "range",
+        "source": "product",
+        "options": [],
+        "min": 0,
+        "max": 0
+      },
+      {
+        "key": "brand",
+        "label": "Бренд",
+        "type": "checkbox",
+        "source": "product",
+        "options": [
+          {
+            "value": "4",
+            "label": "Adriatica",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Appella",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Pierre Ricaud",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "5",
+            "label": "Rhythm",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Romanson",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "6",
+            "label": "Royal London",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "country",
+        "label": "Страна",
+        "type": "checkbox",
+        "source": "brand_country",
+        "options": [
+          {
+            "value": "11",
+            "label": "Англия",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "4",
+            "label": "Германия",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Швейцария",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Южная Корея",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Япония",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "interiorCaseMaterial",
+        "label": "Материал корпуса",
+        "type": "checkbox",
+        "source": "interior_clock_details",
+        "options": [
+          {
+            "value": "4",
+            "label": "Карбоновый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "2",
+            "label": "Керамический",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "9",
+            "label": "Нержавеющая сталь",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Стальной",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Титановый",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "interiorColor",
+        "label": "Цвет",
+        "type": "checkbox",
+        "source": "interior_clock_details",
+        "options": [
+          {
+            "value": "2",
+            "label": "Белый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "5",
+            "label": "Дерево",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "17",
+            "label": "Зеленый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "3",
+            "label": "Золотой",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "16",
+            "label": "Коричневый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "18",
+            "label": "Красный",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "19",
+            "label": "Розовое золото",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "4",
+            "label": "Серебристый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "15",
+            "label": "Синий",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "1",
+            "label": "Черный",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "interiorStyle",
+        "label": "Стиль",
+        "type": "checkbox",
+        "source": "interior_clock_details",
+        "options": [
+          {
+            "value": "6",
+            "label": "Классика",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "8",
+            "label": "Лофт",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "9",
+            "label": "Минимализм",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "7",
+            "label": "Модерн",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "interiorMechanismType",
+        "label": "Механизм",
+        "type": "checkbox",
+        "source": "interior_clock_details",
+        "options": [
+          {
+            "value": "10",
+            "label": "Кварцевый",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "11",
+            "label": "Механический",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      },
+      {
+        "key": "powerType",
+        "label": "Тип питания",
+        "type": "checkbox",
+        "source": "interior_clock_details",
+        "options": [
+          {
+            "value": "12",
+            "label": "Батарейка",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "14",
+            "label": "Механический завод",
+            "count": 0,
+            "disabled": true
+          },
+          {
+            "value": "13",
+            "label": "От сети",
+            "count": 0,
+            "disabled": true
+          }
+        ],
+        "min": null,
+        "max": null
+      }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-param([ValidateSet('Start','Stop','Restart','Status','Seed','CleanSeed','RefreshFrontend')][string]$Action='Start', [switch]$Rebuild)
+param([ValidateSet('Start','Stop','Restart','Status','Seed','CleanSeed','RefreshFrontend','RefreshBackend')][string]$Action='Start', [switch]$Rebuild)
 $ErrorActionPreference='Stop'
 $Repo=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $Stand=Join-Path $Repo '.cache/pagination-stand'
@@ -78,6 +78,23 @@ if($Action -eq 'Status') {
   Get-Content $StateFile; exit 0
 }
 if($Action -in @('Seed','CleanSeed')) { $seedFile=if($Action -eq 'Seed') {'seed.sql'} else {'cleanup.sql'}; Pg 'psql' @('-X','-h','127.0.0.1','-p','55440','-U','pagination_demo','-d','vympel_pagination_demo','-f',(Join-Path $PSScriptRoot $seedFile)); exit 0 }
+if($Action -eq 'RefreshBackend') {
+  # Use an already verified build; preserve the cluster, fixtures and frontend process.
+  $builtJar=Join-Path $Repo 'vympel_back/build/libs/vympel.jar'
+  if(!(Test-Path -LiteralPath $builtJar)) { throw 'Run backend tests and bootJar before RefreshBackend.' }
+  Pg 'pg_isready' @('-h','127.0.0.1','-p','55440','-U','pagination_demo','-d','vympel_pagination_demo')
+  $jar=Join-Path $Stand ('vympel-demo-'+[DateTime]::UtcNow.ToString('yyyyMMddHHmmssfff')+'.jar')
+  Copy-Item -LiteralPath $builtJar -Destination $jar
+  SetDemoEnvironment
+  $jdk=Get-ChildItem (Join-Path $env:USERPROFILE '.jdks') -Directory -Filter '*17*' | Select-Object -First 1
+  $java=if($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin/java.exe' } elseif($jdk) { Join-Path $jdk.FullName 'bin/java.exe' } else { (Get-Command java).Source }
+  StopOwned 'backend'
+  $proc=Start-Process -FilePath $java -ArgumentList '-jar',('"'+$jar+'"') -WorkingDirectory $Stand -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Stand 'backend.log') -RedirectStandardError (Join-Path $Stand 'backend-error.log')
+  RecordProcess 'backend' $proc
+  WaitHttp 'http://127.0.0.1:18080/actuator/health/readiness'
+  'Backend refreshed; PostgreSQL, all fixtures and frontend preserved.'
+  exit 0
+}
 if($Action -eq 'RefreshFrontend') {
   WaitHttp 'http://127.0.0.1:18080/actuator/health/readiness'
   SetDemoEnvironment

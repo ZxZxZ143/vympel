@@ -148,10 +148,16 @@ public class ProductCatalogService {
 
     @Transactional(readOnly = true)
     public CatalogFiltersResponse getFilters(String categoryCode, Language language) {
+        return getFilters(new CatalogProductQuery(categoryCode, null, null, null, Map.of()), language);
+    }
+
+    @Transactional(readOnly = true)
+    public CatalogFiltersResponse getFilters(CatalogProductQuery query, Language language) {
         long started = System.nanoTime();
-        CatalogCategoryContext context = categoryProfileService.resolveContext(categoryCode);
+        CatalogCategoryContext context = categoryProfileService.resolveContext(query.getCategoryCode());
+        CatalogFacetRepository.Selection selection = facetSelection(query, context.getProfile());
         List<CatalogFacetRepository.FacetRow> baseRows = catalogFacetRepository.findBaseFacets(
-                context.getScopeCategoryIds(), language.getValue());
+                context.getScopeCategoryIds(), language.getValue(), selection);
         List<CatalogFilterResponse> filters = new ArrayList<>();
         filters.add(rangeFacet("price", PRODUCT_FILTER_SOURCE, baseRows, language));
         filters.add(optionFacet("brand", PRODUCT_FILTER_SOURCE, baseRows, language));
@@ -159,13 +165,13 @@ public class ProductCatalogService {
 
         if (context.getProfile() == CatalogCategoryProfile.WRISTWATCH) {
             List<CatalogFacetRepository.FacetRow> rows = catalogFacetRepository.findWristFacets(
-                    context.getScopeCategoryIds(), language.getValue());
+                    context.getScopeCategoryIds(), language.getValue(), selection);
             for (String key : List.of("mechanism", "gender", "caseMaterial", "strapMaterial", "glassType", "stoneInlay", "caseSize")) {
                 filters.add(optionFacet(key, WATCH_DETAIL_FILTER_SOURCE, rows, language));
             }
         } else if (context.getProfile() == CatalogCategoryProfile.INTERIOR_CLOCK) {
             List<CatalogFacetRepository.FacetRow> rows = catalogFacetRepository.findInteriorFacets(
-                    context.getScopeCategoryIds(), language.getValue());
+                    context.getScopeCategoryIds(), language.getValue(), selection);
             for (String key : List.of("interiorCaseMaterial", "interiorColor", "interiorStyle", "interiorMechanismType", "powerType")) {
                 filters.add(optionFacet(key, INTERIOR_DETAIL_FILTER_SOURCE, rows, language));
             }
@@ -176,6 +182,38 @@ public class ProductCatalogService {
                 || context.getProfile() == CatalogCategoryProfile.INTERIOR_CLOCK ? 2 : 1;
         recordMetric("facets", context.getProfile().name().toLowerCase(Locale.ROOT), queryCount, started);
         return response;
+    }
+
+    private CatalogFacetRepository.Selection facetSelection(CatalogProductQuery query, CatalogCategoryProfile profile) {
+        Map<String, List<String>> selected = selectedFilters(query.getFilters());
+        Map<String, List<? extends Number>> values = new LinkedHashMap<>();
+        Set<String> keys = new HashSet<>(List.of("brand", COUNTRY_FILTER_KEY));
+        if (profile == CatalogCategoryProfile.WRISTWATCH) {
+            keys.addAll(WRISTWATCH_DETAIL_FILTER_FIELDS.keySet());
+            keys.add("caseSize");
+        } else if (profile == CatalogCategoryProfile.INTERIOR_CLOCK) {
+            keys.addAll(INTERIOR_DETAIL_FILTER_FIELDS.keySet());
+        } else if (profile == CatalogCategoryProfile.ACCESSORY) {
+            keys.add("gender");
+        }
+        for (String key : keys) {
+            if (!selected.containsKey(key)) continue;
+            List<? extends Number> parsed;
+            if ("caseSize".equals(key)) parsed = parseDecimalValues(selected.get(key));
+            else {
+                List<Long> ids = parseLongValues(selected.get(key));
+                if ("brand".equals(key)) {
+                    Set<Long> supported = supportedCatalogDomainService.supportedBrandIds();
+                    ids = ids.stream().filter(supported::contains).toList();
+                } else if (COUNTRY_FILTER_KEY.equals(key)) {
+                    Set<Long> supported = supportedCatalogDomainService.supportedCountryIds();
+                    ids = ids.stream().filter(supported::contains).toList();
+                }
+                parsed = ids;
+            }
+            if (!parsed.isEmpty()) values.put(key, parsed);
+        }
+        return new CatalogFacetRepository.Selection(selectedValue(query.getSearch()), query.getPriceMin(), query.getPriceMax(), values);
     }
 
     private void recordMetric(String operation, String profile, int queryCount, long started) {

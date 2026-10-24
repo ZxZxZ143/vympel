@@ -388,6 +388,7 @@
       "reset": "Reset"
     },
     "filters": {
+      "noOptions": "No options are currently available.",
       "trigger": "Filters",
       "close": "Close filters",
       "loading": "Loading filters...",

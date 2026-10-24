@@ -3,7 +3,7 @@
 import {FC, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {X} from "lucide-react";
 import {usePathname, useSearchParams} from "next/navigation";
-import {Controller, useForm} from "react-hook-form";
+import {Controller, useForm, useWatch} from "react-hook-form";
 import {useTranslations} from "use-intl";
 import {useProgressRouter} from "@/hooks/useProgressRouter";
 
@@ -29,13 +29,7 @@ type Props = {
     categoryCode?: string;
 };
 
-type DraftFilters = Record<string, string[]>;
-
-type CatalogFilterFormValues = {
-    filters: DraftFilters;
-    priceMin: string;
-    priceMax: string;
-};
+import {catalogFacetParams, readCatalogFilterDraft, type CatalogFilterFormValues} from "@/utils/catalogFacetDraft";
 
 const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
     const rootRef = useRef<HTMLDivElement | null>(null);
@@ -45,82 +39,62 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
     const searchParams = useSearchParams();
     const {activeOverlay, closeOverlay, openOverlay} = useCatalogOverlay();
     const isMobileViewport = useIsMobileViewport();
-    const [metadata, setMetadata] = useState<ICatalogFiltersResponse | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [snapshot, setSnapshot] = useState<{scope: string; selection: string; data: ICatalogFiltersResponse} | null>(null);
+    const scope = `${locale}:${categoryCode ?? ""}`;
+    const metadata = snapshot?.scope === scope ? snapshot.data : null;
+    const [updating, setUpdating] = useState(true);
+    const loading = updating && !metadata;
     const [error, setError] = useState(false);
     const [activeKey, setActiveKey] = useState<string | null>(null);
+    const queryString = searchParams?.toString() ?? "";
     const {control, handleSubmit, reset} = useForm<CatalogFilterFormValues>({
-        defaultValues: {
-            filters: {},
-            priceMin: "",
-            priceMax: "",
-        },
+        defaultValues: readCatalogFilterDraft(new URLSearchParams(queryString)),
     });
+    const watched = useWatch({control});
+    const selection = catalogFacetParams({filters: watched.filters as Record<string, string[]> ?? {},
+        priceMin: watched.priceMin ?? "", priceMax: watched.priceMax ?? ""}, searchParams?.get("search") ?? null).toString();
+    const countsReady = !updating && !error && snapshot?.selection === selection;
 
     const filters = useMemo(() => metadata?.filters ?? [], [metadata]);
-    const filterKeys = useMemo(() => new Set(filters.map((filter) => filter.key)), [filters]);
+    const filterKeySignature = filters.map((filter) => filter.key).join(",");
+    const filterKeys = useMemo(() => new Set(filterKeySignature.split(",").filter(Boolean)), [filterKeySignature]);
     const activeFilter = filters.find((filter) => filter.key === activeKey) ?? filters[0];
     const isVisible = activeOverlay === "filters";
     const isMobileVisible = isVisible;
 
     useEffect(() => {
         let cancelled = false;
-
-        const loadMetadata = async () => {
-            setLoading(true);
+        const controller = new AbortController();
+        // Debounce the draft, not Apply: changing tabs must show counts for all current choices.
+        const timer = window.setTimeout(async () => {
+            setUpdating(true);
             setError(false);
-
             try {
-                const response = await PublicApiController.getCatalogFilters(locale, categoryCode);
+                const response = await PublicApiController.getCatalogFilters(locale, categoryCode, new URLSearchParams(selection), controller.signal);
                 if (cancelled) return;
-                setMetadata(response);
-                setActiveKey(response?.filters[0]?.key ?? null);
+                if (!response) throw new Error("Catalog filters unavailable");
+                setSnapshot({scope, selection, data: response});
+                setActiveKey(current => response.filters.some(filter => filter.key === current) ? current : response.filters[0]?.key ?? null);
             } catch {
-                if (cancelled) return;
-                setError(true);
-                setMetadata(null);
-                setActiveKey(null);
+                if (!cancelled) setError(true);
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!cancelled) setUpdating(false);
             }
-        };
-
-        void loadMetadata();
-
+        }, 200);
         return () => {
             cancelled = true;
+            window.clearTimeout(timer);
+            controller.abort();
         };
-    }, [locale, categoryCode]);
+    }, [locale, categoryCode, scope, selection]);
 
     useEffect(() => {
-        const nextDraft: DraftFilters = {};
-
-        filters
-            .filter((filter) => filter.type === "checkbox")
-            .forEach((filter) => {
-                const values = normalizeCatalogQueryValues(searchParams?.getAll(filter.key) ?? []);
-
-                if (values.length > 0) {
-                    nextDraft[filter.key] = values;
-                }
-            });
-
         let cancelled = false;
-
         queueMicrotask(() => {
-            if (cancelled) return;
-
-            reset({
-                filters: nextDraft,
-                priceMin: normalizeCatalogQueryValue(searchParams?.get("priceMin") ?? searchParams?.get("minPrice")) ?? "",
-                priceMax: normalizeCatalogQueryValue(searchParams?.get("priceMax") ?? searchParams?.get("maxPrice")) ?? "",
-            });
+            if (!cancelled) reset(readCatalogFilterDraft(new URLSearchParams(queryString)));
         });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [filters, reset, searchParams]);
+        return () => { cancelled = true; };
+    }, [queryString, reset]);
 
     useEffect(() => {
         if (!metadata) return;
@@ -245,8 +219,7 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                                 type="number"
                                 inputMode="numeric"
                                 className="catalog-filter-price-input w-full sm:w-40"
-                                min={filter.min ?? undefined}
-                                max={filter.max ?? undefined}
+                                min={0}
                                 placeholder={t("priceMin")}
                             />
                         )}
@@ -260,14 +233,20 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                                 type="number"
                                 inputMode="numeric"
                                 className="catalog-filter-price-input w-full sm:w-40"
-                                min={filter.min ?? undefined}
-                                max={filter.max ?? undefined}
+                                min={0}
                                 placeholder={t("priceMax")}
                             />
                         )}
                     />
                 </div>
             );
+        }
+
+        if (filter.options.length === 0) {
+            return <div className="grid grid-cols-1 gap-y-catalog-filter-option-y-gap">
+                {filter.key === "stoneInlay" && <Checkbox label="Swarovski" checked={false} disabled onCheckedChange={() => {}}/>}
+                <Text size="bodySm" className="text-catalog-filter-disabled">{t("noOptions")}</Text>
+            </div>;
         }
 
         return (
@@ -285,9 +264,9 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                             return (
                                 <Checkbox
                                     label={option.label}
-                                    count={option.count}
+                                    count={countsReady ? option.count : undefined}
                                     checked={normalizedValue ? selectedValues.includes(normalizedValue) : false}
-                                    disabled={option.disabled}
+                                    disabled={option.disabled && !selectedValues.includes(normalizedValue ?? "")}
                                     onCheckedChange={(checked) => {
                                         if (!normalizedValue) {
                                             return;
@@ -410,7 +389,7 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                 {loading ? <Text size="bodySm" className="px-5 py-6">{t("loading")}</Text> : null}
                 {error ? <Text size="bodySm" className="px-5 py-6 text-error">{t("error")}</Text> : null}
 
-                {!loading && !error ? (
+                {!loading && metadata ? (
                     <form className="flex min-h-0 flex-1 flex-col overflow-hidden" onSubmit={handleSubmit(applyFilters)}>
                         {filterMenu(true)}
                         <div className="catalog-filter-scroll min-h-0 min-w-0 flex-1 overflow-y-auto px-5 py-5">
@@ -447,7 +426,7 @@ const CatalogFilters: FC<Props> = ({locale, categoryCode}) => {
                     {loading && <Text size="bodySm">{t("loading")}</Text>}
                     {error && <Text size="bodySm" className="text-error">{t("error")}</Text>}
 
-                    {!loading && !error && !isMobileViewport ? (
+                    {!loading && metadata && !isMobileViewport ? (
                         <form
                             className="flex max-h-catalog-filter-panel-content min-h-0 gap-catalog-filter-sidebar-options-gap overflow-hidden"
                             onSubmit={handleSubmit(applyFilters)}

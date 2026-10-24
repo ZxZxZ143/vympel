@@ -17,6 +17,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "E:\vympel_full\scripts\
 
 For storefront-only changes, use `stand.ps1 RefreshFrontend`: it builds a versioned copy beside the running storefront and switches only Node after success. It preserves the database/backend PIDs and does not seed. The successful directory is remembered in `frontend-path.txt`. Use `Restart -Rebuild` when a full rebuild/restart is needed. Restart reuses the built isolated storefront, copies the current backend jar, runs existing Liquibase migrations in the disposable database, and reapplies the idempotent seed. It leaves services running. Stop terminates only recorded Node/Java processes after checking PID, creation time and command-line path, then stops only the owned PostgreSQL data directory. It retains all data and build files; it never deletes volumes or other workspaces. A bare Start refuses recorded processes or occupied ports; use Restart for recovery after a partial startup.
 
+For backend changes, run backend tests and `bootJar`, then use `stand.ps1 RefreshBackend`. It switches only the verified owned Java process; PostgreSQL, fixtures and the frontend remain in place. No reseed occurs.
+
 ## Boundaries and addresses
 
 | Service | Address / storage |
@@ -49,6 +51,10 @@ Storefront sources are copied without `.env`, `.next`, AGENTS.md or CLAUDE.md. T
 The catalog has 12 pages at size 9: eleven full pages and one final product. `Orion Atlas` has 26 matches: exact full name (SKU 001, price 999999, zero stock), exact model (002), prefix (003–013), and contains (014–026). The phrase deliberately avoids the common VYMPEL SKU prefix because unchanged matching accepts tokens from SKU. SKU search is checked separately with `VYMPEL-PAG-DEMO-050`. Explicit price/date sorting retains the application's availability-first policy; relevance ranks the exact name first even when unavailable.
 
 To reapply only fixtures, use `stand.ps1 Seed`. Optional `stand.ps1 CleanSeed` invokes `cleanup.sql`, which requires the same dedicated database/address/port and deletes only SKUs 001–100 with their FK-cascaded children. It retains migrated reference data. CleanSeed is not part of successful verification or shutdown; the delivered stand remains populated.
+
+For contextual filter demonstrations, apply `seed-filter-details.sql` to the same isolated database using psql. This optional additive, idempotent extension fills only absent `watch_details` for demo SKUs 001–043: quartz 41, mechanical 2; ceramic quartz 8, ceramic mechanical 1. Products, IDs, prices, names and counts stay unchanged. Gender/strap/glass/stone details remain absent to demonstrate visible disabled dictionary options with zero counts. Existing detail rows are never overwritten.
+
+Run `node scripts/pagination-stand/verify-filters.mjs` for contextual counts and `node scripts/pagination-stand/verify-zero-filters.mjs` for zero-option visibility, empty categories and typed interior dictionaries on desktop/mobile. Both use `PLAYWRIGHT_MODULE` below and preserve stand data. `verify-filter-resilience.mjs` separately labels intercepted-response checks for failures, obsolete responses and the empty-dictionary UI placeholder.
 
 ## Real verification
 

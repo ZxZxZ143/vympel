@@ -196,6 +196,13 @@
 * **How:** Fetch `/api/public/product/filters/{lang}` through `PublicApiController.getCatalogFilters`, render labels/options/counts/source from the response, keep selected values in URL params, remove keys that are not present in the current category metadata, drop removed aliases such as `brandCountry`, and use global catalog filter tokens from `globals.css`. Draft filter state belongs in React Hook Form; use `Controller` for the reusable animated `Checkbox` and price inputs, then write the URL only on Apply/Reset. Filter category and option hover should use the shared underline hover utility so hover does not move text, change element height, or flicker.
 * **Why:** Filter dictionaries, localized labels, counts, and category-specific visibility belong to the backend; hardcoded frontend filters drift from product data.
 
+### Contextual counts without resetting the filter draft
+
+* **When to use:** Updating catalog filter counts while the user selects multiple characteristics.
+* **How:** Send the complete draft, category, search and price range to the existing metadata endpoint. Count each facet against all other dimensions, excluding itself; use OR within a dimension and AND across dimensions. Keep the category's known options with truthful zero counts, and allow selected zero-count options to be unchecked. Preserve batched SQL aggregations; do not issue a count query per option or load whole products. Match product-list parsing/profile/search semantics and test API count parity.
+* **UI:** Debounce 200ms, abort obsolete requests and ignore late responses. Keep the active filter tab and RHF values when metadata changes. Reset drafts only on URL navigation, never on count responses. Hide stale counts while pending or failed. Contextual price min/max are metadata, not moving HTML input limits: keep nonnegative price inputs valid when other selections narrow the available range. Render all active reference options, including gender and stone, with real IDs and truthful zero counts even when no products have those attributes. Keep CASE/STRAP material groups and interior feature types separate. Do not remove unused dictionary values when positive options appear. Truly empty lists show the localized unavailable message; only stone adds a display-only disabled Swarovski placeholder, which disappears when real dictionary options arrive. Never invent numeric size options.
+* **Testing:** Exercise ceramic/mechanism intersections, own-facet alternatives, multiple selections, zero results, empty categories, unassigned gender/strap/glass/stone, typed interior dictionaries, search/price, locale/category scopes, Apply/Reset/Back/Forward, stale requests and UI placeholder replacement. `scripts/pagination-stand/verify-zero-filters.mjs` checks real API/browser zero options at 1440/390px. Use the separate disposable facet-test database for transactional integration fixtures. The 100-product stand may be enriched with the guarded additive `seed-filter-details.sql`; never recreate it merely to test filters.
+
 ### Catalog hero banners under header
 
 * **When to use:** When catalog/category hero banners need to match the product-page visual pattern.
@@ -2741,6 +2748,12 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-24 — Reviewed the complete filter change set for a local commit; existing frontend/backend/build/browser verification remains applicable because no application code changed during commit preparation. Keep unrelated local instruction files outside the filter commit.
+
+2026-10-24 — Recorded dictionary-first zero-count options, material/interior dictionary scoping, empty numeric-list messaging and real desktop/mobile gender verification; active dictionary values must not disappear merely because products omit that characteristic.
+
+2026-10-24 — Added contextual facet counting, stable draft/active-tab refresh, stale-response handling and safe dictionary-placeholder lessons.
 
 2026-10-24 — Recorded plain-language cookie-notice copy in all three locales, without exposing storage implementation details or changing consent choices.
 

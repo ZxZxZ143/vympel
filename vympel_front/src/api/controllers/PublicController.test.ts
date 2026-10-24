@@ -71,6 +71,22 @@ describe("PublicController product batch summary", () => {
 import {catalogRequestParams} from "@/lib/catalogQuery";
 
 describe("catalog sort serialization", () => {
+    it("passes current facet selections and search without pagination or sort controls", async () => {
+        (PublicApiController as unknown as {baseApiUrl: string}).baseApiUrl = "https://example.test/api/public";
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({filters: []}), {status: 200}));
+        vi.stubGlobal("fetch", fetchMock);
+        const controller = new AbortController();
+        await PublicApiController.getCatalogFilters(LocaleEnum.RU, "WATCH_WRIST",
+            new URLSearchParams("mechanism=2&mechanism=3&caseMaterial=4&search=clock&priceMin=100&page=9&size=9&sort=priceAsc"), controller.signal);
+        const url = new URL(fetchMock.mock.calls[0][0]);
+        expect(url.searchParams.getAll("mechanism")).toEqual(["2", "3"]);
+        expect(url.searchParams.get("caseMaterial")).toBe("4");
+        expect(url.searchParams.get("categoryCode")).toBe("WATCH_WRIST");
+        expect(url.searchParams.get("search")).toBe("clock");
+        expect(url.searchParams.get("priceMin")).toBe("100");
+        for (const key of ["page", "size", "sort"]) expect(url.searchParams.has(key)).toBe(false);
+        expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+    });
     it.each(["search=romanson", "search=romanson&sort=priceAsc", "search=romanson&sort=newest", ""]) ("serializes %s consistently", async (query) => {
         (PublicApiController as unknown as {baseApiUrl: string}).baseApiUrl = "https://example.test/api/public";
         const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({content: [], totalElements: 0}), {status: 200}));

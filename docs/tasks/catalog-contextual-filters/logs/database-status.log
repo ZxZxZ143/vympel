@@ -1,0 +1,17 @@
+ products | unique_skus
+----------+-------------
+      100 |         100
+(1 row)
+
+    code    | material | count
+------------+----------+-------
+ MECHANICAL | CERAMIC  |     1
+ MECHANICAL | STEEL    |     1
+ QUARTZ     | CERAMIC  |     8
+ QUARTZ     | STEEL    |    33
+(4 rows)
+
+   pg_postmaster_start_time
+-------------------------------
+ 2026-10-24 16:10:31.710019+05
+(1 row)

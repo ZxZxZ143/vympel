@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "mocked": true,
+  "emptyDictionaryPlaceholder": true,
+  "realOptionsReplacePlaceholder": true,
+  "lateResponseIgnored": true,
+  "failureHidesStaleCounts": true,
+  "recovery": true,
+  "errors": []
+}
