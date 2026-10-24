@@ -2749,6 +2749,8 @@
 
 ## Last Updated
 
+2026-10-24 — Verified that the feature branch still tracked `origin/main` before its first push. Use an explicit same-name branch refspec and set its upstream; never rely on the inherited main tracking target. Release-image push triggers target main, so this feature-branch push does not publish images or deploy.
+
 2026-10-24 — Reviewed the complete filter change set for a local commit; existing frontend/backend/build/browser verification remains applicable because no application code changed during commit preparation. Keep unrelated local instruction files outside the filter commit.
 
 2026-10-24 — Recorded dictionary-first zero-count options, material/interior dictionary scoping, empty numeric-list messaging and real desktop/mobile gender verification; active dictionary values must not disappear merely because products omit that characteristic.
