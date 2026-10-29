@@ -2563,7 +2563,7 @@
 ### Treat a partial multi-repository publication as a failed immutable RC
 
 * **When to use:** Some application repositories receive an RC/SHA image tag before another image fails.
-* **How:** Preserve every written tag, mark the candidate incomplete and non-deployable, record the missing image and skipped runtime/manifest gates, fix the workflow on a new commit, and use the next RC number. Run an all-repository absence preflight before the next fan-out.
+* **How:** Preserve every written tag, mark the candidate incomplete and non-deployable, record the missing image and skipped runtime/manifest gates, fix the workflow on a new commit, and use the next RC number. Run an all-repository absence preflight before the next fan-out. For tagless full-SHA publications, the next `main` commit replaces the next RC number. When the cause is a transient registry error rather than a workflow defect, the commit that records the failed attempt is that new commit. Never re-run failed jobs of the partial run: `c84a28b` lost only its backend amd64 job to a GHCR 401 during cosign attestation signing.
 * **Why:** GHCR cannot atomically commit tags across three repositories. Overwriting or retrying the same RC would destroy the evidence binding between source, publication attempt, and registry content.
 
 ### Resolve reusable-builder Dockerfiles from the Git context root
@@ -2799,6 +2799,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-29 — Applied the partial-publication rule to tagless SHA releases: `c84a28b` is preserved as non-deployable after a transient GHCR 401 during backend amd64 cosign signing, and publication continues from the next `main` commit instead of re-running the partial run.
 
 2026-10-29 — Recorded that the backend runtime OS-package upgrade list must grow when Ubuntu publishes a fix between releases (`libbrotli1`, CVE-2026-111497), instead of ignoring the finding or weakening the image gate.
 
