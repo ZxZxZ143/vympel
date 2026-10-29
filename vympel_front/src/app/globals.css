@@ -254,9 +254,13 @@
     --shadow-state: 0 24px 70px rgb(0 0 0 / 0.04);
 
     --ease-vympel: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-vympel-unveil: cubic-bezier(0.83, 0, 0.17, 1);
     --duration-vympel-fast: 140ms;
     --duration-vympel-base: 220ms;
     --duration-vympel-slow: 320ms;
+    --duration-vympel-reveal: 1200ms;
+    --duration-vympel-unveil: 1500ms;
+    --duration-vympel-settle: 2000ms;
 }
 
 :root {
@@ -310,7 +314,6 @@
     --spacing-responsive-product-card-min: 220px;
     --spacing-responsive-product-grid-x: 32px;
     --spacing-responsive-product-grid-y: 68px;
-    --spacing-responsive-home-banner-height: min(60vh, 620px);
     --spacing-responsive-page-banner-height: min(58vh, 620px);
     --spacing-responsive-banner-min-height: 420px;
 }
@@ -435,6 +438,74 @@
 
 .vympel-submenu-motion {
     animation: vympel-submenu-in var(--duration-vympel-base) var(--ease-vympel);
+}
+
+@keyframes home-hero-unveil {
+    from {
+        clip-path: inset(6% 4% round 28px);
+    }
+    to {
+        clip-path: inset(0 round 6px);
+    }
+}
+
+@keyframes home-hero-image-settle {
+    from {
+        transform: scale(1.14);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes home-intro-rise {
+    from {
+        opacity: 0;
+        transform: translateY(28px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* First-screen intro runs from the first paint, before hydration, so server HTML never flashes. */
+@media (prefers-reduced-motion: no-preference) {
+    .home-motion-hero-intro {
+        animation: home-hero-unveil var(--duration-vympel-unveil) var(--ease-vympel-unveil) backwards;
+    }
+
+    .home-motion-hero-intro .responsive-home-banner-image {
+        animation: home-hero-image-settle var(--duration-vympel-settle) var(--ease-vympel) backwards;
+    }
+
+    .home-motion-intro [data-motion="stagger"] > * {
+        animation: home-intro-rise var(--duration-vympel-reveal) var(--ease-vympel) 700ms backwards;
+    }
+
+    .home-motion-intro [data-motion="stagger"] > :nth-child(2) {
+        animation-delay: 820ms;
+    }
+
+    .home-motion-intro [data-motion="stagger"] > :nth-child(3) {
+        animation-delay: 940ms;
+    }
+}
+
+/* SplitText line masks: keep descenders inside the clip without changing line rhythm. */
+.home-motion-line-mask {
+    margin-bottom: -0.12em;
+    padding-bottom: 0.12em;
+}
+
+@media print {
+    [data-motion],
+    [data-motion="stagger"] > *,
+    [data-motion-inner] {
+        clip-path: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }
 
 .catalog-filter-scroll {
@@ -1881,7 +1952,8 @@
         --spacing-responsive-product-card-min: 136px;
         --spacing-responsive-product-grid-x: 12px;
         --spacing-responsive-product-grid-y: 34px;
-        --spacing-responsive-home-banner-height: clamp(430px, 76svh, 680px);
+        --aspect-responsive-home-banner-mobile: 9 / 16;
+        --spacing-responsive-home-banner-max-height: max(430px, 100svh);
         --spacing-responsive-page-banner-height: clamp(220px, 64vw, 340px);
         --spacing-responsive-banner-min-height: 0px;
         --spacing-brand-title-offset: 28px;
@@ -1928,11 +2000,12 @@
         line-height: 1.05;
     }
 
+    /* The frame keeps the CMS mobile banner ratio, so a 9:16 image fills it edge to edge on every phone. */
     .responsive-home-banner-frame {
-        aspect-ratio: auto;
+        aspect-ratio: var(--aspect-responsive-home-banner-mobile);
         background: var(--color-surface-card);
         border-radius: var(--radius-2xl);
-        height: var(--spacing-responsive-home-banner-height);
+        max-height: var(--spacing-responsive-home-banner-max-height);
         min-height: 0;
     }
 
@@ -1944,10 +2017,20 @@
         transform: scale(1.08);
     }
 
+    /*
+     * Any other ratio stays whole and centred over the blurred backdrop. Auto sizing with max bounds keeps
+     * the element box equal to the visible picture, so its own corners can be rounded:
+     * inner radius = frame radius - inset, and the inset is 0.
+     */
     .responsive-home-banner-image {
+        border-radius: var(--radius-2xl);
+        height: auto;
+        margin: auto;
+        max-height: 100%;
+        max-width: 100%;
         object-fit: contain;
         object-position: center;
-        padding: 16px;
+        width: auto;
     }
 
     .responsive-page-banner-image {

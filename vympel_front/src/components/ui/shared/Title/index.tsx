@@ -29,7 +29,7 @@ const Title: FC<PropsWithChildren<Props>> = ({ link, children, className, headin
 
     return (
         <header className={cn("flex w-full flex-wrap items-center justify-between gap-4", className)}>
-            <H2 id={id} size="h4" font="mono" className="leading-tight">
+            <H2 id={id} size="h4" font="mono" className="leading-tight" data-motion="title">
                 {children}
             </H2>
 
@@ -39,6 +39,7 @@ const Title: FC<PropsWithChildren<Props>> = ({ link, children, className, headin
                     aria-label={moreAria}
                     title={moreAria}
                     rel={isExternal ? "noopener noreferrer" : undefined}
+                    data-motion="title-link"
                     className={cn(
                         "group inline-flex min-h-11 items-center gap-3 sm:gap-4",
                         "rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"

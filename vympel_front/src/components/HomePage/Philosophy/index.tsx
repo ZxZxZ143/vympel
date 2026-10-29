@@ -17,6 +17,7 @@ const Philosophy = () => {
                     size="h2"
                     weight="light"
                     className="mb-5 whitespace-pre-wrap text-3xl leading-tight sm:mb-9 sm:text-4xl"
+                    data-motion="lines"
                 >
                     {t("title")}
                 </H3>
@@ -24,28 +25,41 @@ const Philosophy = () => {
                 <Text
                     colors="secondary"
                     className="text-sm leading-7 sm:text-sm sm:leading-8"
+                    data-motion="lines"
                 >
                     {t("start")}
                 </Text>
             </div>
 
-            <div className="order-2 flex justify-center rounded-3xl bg-primary-bg p-2 lg:-mt-6 lg:justify-end lg:bg-transparent lg:p-0">
+            <div
+                className="order-2 flex justify-center rounded-3xl bg-primary-bg p-2 lg:-mt-6 lg:justify-end lg:bg-transparent lg:p-0"
+                data-motion="parallax"
+                data-motion-y="140"
+                data-motion-rotate="8"
+            >
                 <Image
                     width={731}
                     height={731}
                     src="/philosophy_1.webp"
                     alt={t("redWatchAlt")}
                     className="h-auto w-full max-w-146 object-contain"
+                    data-motion="reveal"
                 />
             </div>
 
-            <div className="order-4 flex justify-center rounded-3xl bg-primary-bg p-2 lg:order-3 lg:-mt-12 lg:justify-start lg:bg-transparent lg:p-0">
+            <div
+                className="order-4 flex justify-center rounded-3xl bg-primary-bg p-2 lg:order-3 lg:-mt-12 lg:justify-start lg:bg-transparent lg:p-0"
+                data-motion="parallax"
+                data-motion-y="70"
+                data-motion-rotate="-5"
+            >
                 <Image
                     width={731}
                     height={731}
                     src="/philosophy_2.png"
                     alt={t("blackWatchAlt")}
                     className="h-auto w-full max-w-124 object-contain"
+                    data-motion="reveal"
                 />
             </div>
 
@@ -53,6 +67,7 @@ const Philosophy = () => {
                 <Text
                     colors="secondary"
                     className="max-w-118 text-sm leading-7 sm:text-sm sm:leading-8 lg:pb-8"
+                    data-motion="lines"
                 >
                     {t("end")}
                 </Text>

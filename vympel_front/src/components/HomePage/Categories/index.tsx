@@ -6,7 +6,7 @@ import CategoriesItem from "@/components/HomePage/Categories/Item";
 
 const Categories = () => {
     return (
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2" data-motion="stagger">
             {
                 CategoriesConfig().map((item, index) => (
                     <CategoriesItem
