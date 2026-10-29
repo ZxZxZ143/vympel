@@ -22,7 +22,11 @@ const BrandCarouselCard: FC<BrandCarouselCardProps> = ({link, img, alt, name, de
 
     return (
         <div className="flex w-full flex-col lg:flex-row">
-            <div className="min-h-54 flex-1 overflow-hidden bg-white sm:min-h-72 lg:h-max lg:max-h-121.25">
+            <div
+                className="min-h-54 flex-1 overflow-hidden bg-white sm:min-h-72 lg:h-max lg:max-h-121.25"
+                data-motion="media"
+                data-motion-direction="left"
+            >
                 <Image
                     src={img}
                     alt={alt || name}
@@ -33,7 +37,7 @@ const BrandCarouselCard: FC<BrandCarouselCardProps> = ({link, img, alt, name, de
             </div>
 
             <div className="flex min-h-54 flex-1 flex-col items-end justify-between border border-border-default p-5 sm:min-h-72 sm:p-8 lg:max-h-121.25 lg:p-9 lg:pb-7">
-                <div className="w-full">
+                <div className="w-full" data-motion="stagger">
                     <Text colors="headingSecondary" weight="light">
                         {
                             t("brand")
@@ -54,6 +58,7 @@ const BrandCarouselCard: FC<BrandCarouselCardProps> = ({link, img, alt, name, de
 
                 <Link
                     href={link}
+                    data-motion="reveal"
                     className={cn(
                         "group mt-8 inline-flex min-h-11 items-center gap-4",
                         "rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"

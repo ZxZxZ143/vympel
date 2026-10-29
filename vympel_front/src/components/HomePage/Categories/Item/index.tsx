@@ -23,6 +23,7 @@ const CategoriesItem: FC<CategoriesItemProps> = ({className, imageClassName, img
                     alt=""
                     width="400"
                     height="400"
+                    data-motion-inner=""
                     className={cn(imageClassName, "absolute w-auto max-w-[70%] object-cover sm:max-w-3/4")}
                 />
             </Card>

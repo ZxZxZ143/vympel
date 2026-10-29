@@ -12,7 +12,7 @@ const MarketPlaces = () => {
     const t = useTranslations("marketplaces");
 
     return (
-        <div className="grid w-full min-w-0 grid-cols-1 gap-5 md:auto-rows-fr md:grid-cols-2 xl:gap-16">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-5 md:auto-rows-fr md:grid-cols-2 xl:gap-16" data-motion="stagger">
             {
                 MarketPlacesConfig.map(item => (
                     <a

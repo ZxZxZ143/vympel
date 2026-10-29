@@ -23,7 +23,7 @@ const Benefits: FC<Props> = ({className}) => {
                 {t("title")}
             </h2>
 
-            <ul className="grid w-full gap-5 lg:grid-cols-2 xl:grid-cols-3 xl:gap-3">
+            <ul className="grid w-full gap-5 lg:grid-cols-2 xl:grid-cols-3 xl:gap-3" data-motion="stagger">
                 {benefitsConfig.map((benefit) => (
                     <BenefitsItem
                         key={benefit.id}

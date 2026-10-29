@@ -184,6 +184,12 @@
 * **How:** Reuse `--duration-vympel-fast`, `--duration-vympel-base`, `--duration-vympel-slow`, `--ease-vympel`, and `transition-vympel*` utilities from `globals.css`. Keep motion subtle and scoped to interactive state changes; rely on the global `prefers-reduced-motion` override instead of hand-writing separate reduced-motion code everywhere. Catalog/filter/category hover should use `.catalog-hover-trigger` + `.catalog-hover-label` underline motion, not translate-on-hover or hover-only font-weight changes that shift layout.
 * **Why:** Motion should feel consistent with VYMPEL and must not become a patchwork of arbitrary durations/easings.
 
+### Home scroll motion through `data-motion` markup
+
+* **When to use:** When adding, removing, or tuning scroll-triggered animation on the home page.
+* **How:** Keep all GSAP code in `src/components/HomePage/HomeMotion/index.tsx` and all timings/eases in `HomeMotion/motion.ts`; sections only declare intent with `data-motion="hero|title|title-link|lines|stagger|reveal|media|parallax"`, `data-motion-inner`, `data-motion-direction="left"`, `data-motion-y` and `data-motion-rotate`. Server sections stay server components because `HomeMotion` receives them through `children`. Use `power4.out` / `power4.inOut`, which are exactly `--ease-vympel` / `--ease-vympel-unveil`. Animate transform, opacity and clip-path only, run once, and clear inline styles on completion. Never animate an Embla slide element itself (loop carousels write slide transforms); animate its content or the `CarouselContent` children of a non-loop rail. Use `ScrollTrigger.batch` for repeated items and complete off-canvas slides immediately.
+* **Why:** One context gives one cleanup path, one reduced-motion gate and consistent choreography, while shared components such as `Title`, `Benefits` and `GoodsCarouselWithImage` carry inert attributes on other pages.
+
 ### Public storefront navigation progress
 
 * **When to use:** When adding or changing a public storefront link, locale switch, query-param control, or imperative App Router navigation that may wait for a route commit.
@@ -1255,6 +1261,35 @@
 
 ## Common Mistakes - DO NOT REPEAT
 
+### Sizing the mobile hero frame by viewport height and padding the contained image
+
+* **What happened:** A correct 9:16 mobile banner showed light backdrop bands on all sides: 16px from image padding, and roughly 26px per side on a ~400x760 phone because the frame height was `clamp(430px, 76svh, 680px)`, giving it about a 0.65 ratio.
+* **Root cause:** Frame width follows the viewport width while its height followed the viewport height, so no single banner ratio could fill it on every phone; `object-fit: contain` plus padding then letterboxed even matching assets. Rounding an `object-fit` image box also cannot round the letterboxed picture.
+* **Fix:** Below 640px the frame uses `aspect-ratio: 9 / 16` with a landscape-only `max(430px, 100svh)` cap; the foreground image drops padding and uses auto width/height with `max-width/max-height: 100%`, so its box equals the visible picture and takes `--radius-2xl`.
+* **Concentric radius:** A rounded child inset inside a rounded frame uses inner radius = outer radius − inset (never plus); with the inset at 0 the image radius equals the frame radius.
+* **How to avoid:** Measure the frame and image boxes on several phone sizes (375x667, 360x800, 400x760, 430x932) and in landscape with a 9:16 test image and a wide fallback before changing hero sizing.
+
+### Hiding first-screen content from a hydration-time effect
+
+* **What happened:** A JS entrance for content that is already visible would paint the server HTML, hide it when `useGSAP` runs after hydration, and then animate it back.
+* **Root cause:** Server-rendered markup is visible before client JavaScript exists; layout effects only run after that first paint.
+* **Fix:** `HomeMotion` skips every target for which `ScrollTrigger.isInViewport` is true at setup. The hero and benefits use CSS keyframes (`.home-motion-hero-intro`, `.home-motion-intro`) with `animation-fill-mode: backwards`, so they start from the very first paint and hand control back to inline GSAP styles afterwards.
+* **How to avoid:** JS reveals are only for content below the fold. First-screen entrances must be CSS-driven and gated by `prefers-reduced-motion: no-preference`.
+
+### Hiding pending reveals with visibility or leaving them invisible to keyboard and print
+
+* **What happened:** `autoAlpha` (opacity plus `visibility: hidden`) removes not-yet-revealed links from the tab order; an opacity-only reveal can still leave a focused small link invisible because focus scrolling may not cross the `top 88%` start.
+* **Root cause:** Scroll reveals assume pointer scrolling, not focus, find-in-page or printing.
+* **Fix:** Hide with opacity only, keep a pending-reveal map and complete the reveal on bubbling `focusin` for the focused element and its ancestors. A print rule forces `[data-motion]`, stagger children and inner layers visible with `!important`.
+* **How to avoid:** Every new hidden-until-scroll target must be registered with the pending map and covered by the print rule.
+
+### Pairing an in-out clip wipe with an out-eased image settle at the same start
+
+* **What happened:** The image scale settle (`power4.out`) finished almost entirely while the `power4.inOut` clip-path was still nearly closed, so the settle was invisible.
+* **Root cause:** An in-out curve barely moves in its first quarter, whereas an out curve does most of its work there.
+* **Fix:** Start the settle at `HOME_MOTION.settleDelay` (0.35s) inside the same timeline.
+* **How to avoid:** Sample `style.clipPath` and `style.transform` together over time before accepting layered timings.
+
 ### Clearing search while applying catalog filters
 
 * **What happened:** Applying a price/brand filter deleted `search`; ordinary-browsing canonicalization then removed explicit `priceAsc` too.
@@ -1953,6 +1988,8 @@
 
 ## Debugging Tips
 
+* Scroll-motion timing in the desktop app's Browser pane is only meaningful while the pane is shown: a hidden pane throttles `requestAnimationFrame` (tweens appeared to update roughly every 800ms). Disable scroll restoration (`history.scrollRestoration = 'manual'`) and scroll to the top before reloading, otherwise restored positions put targets in the viewport and correctly skip their reveals. Programmatic `element.focus()` does not fire `focusin` while the browser window lacks focus; dispatch a bubbling `FocusEvent('focusin')` to test the pending-reveal handler.
+
 * If frontend product/category requests return empty or null, check that `BASE_API_PUBLIC` or `NEXT_PUBLIC_BASE_API_PUBLIC` is set and includes `/api/public`.
 * If backend startup fails schema validation, inspect the Liquibase changelog order and the PostgreSQL database state because Hibernate uses `ddl-auto: validate`.
 * If backend startup fails before the Spring banner with a Logback configuration error, inspect `logback-spring.xml` class names and properties first; `VympelApplicationTests.contextLoads` is the finite reproduction.
@@ -2097,7 +2134,7 @@
 * Layout width: Main content commonly uses `max-w-360 mx-auto` with horizontal padding `px-[5.3vw]` and larger breakpoint overrides.
 * Responsive public layout: Use `.responsive-page-x`, `.responsive-section-gap`, `.responsive-product-grid`, `.responsive-home-banner-*`, `.responsive-page-banner-image`, `.goods-carousel-*`, `.mobile-bottom-nav-item`, `.product-card-*`, and `.vympel-toast-*` before adding one-off mobile widths. Public mobile support must remain stable at 480px, 390px, 360px, and 320px with no horizontal overflow, clipped critical text, overlapping controls, one-letter columns, or forced desktop layouts.
 * Assets: Use existing files in `public/` for banners and catalog imagery; custom icons live in `src/assets/icons`.
-* Large mobile banners: Do not force desktop `object-cover` crops when the asset contains important product/text composition. Use contained or controlled aspect mobile strategies for promotional banners, keep main mobile hero banners visually tall/near full-screen, and use a soft background/foreground strategy when a wide baked-text banner must remain readable on narrow phones.
+* Large mobile banners: Do not force desktop `object-cover` crops when the asset contains important product/text composition. Use contained or controlled aspect mobile strategies for promotional banners, keep main mobile hero banners visually tall/near full-screen, and use a soft background/foreground strategy when a wide baked-text banner must remain readable on narrow phones. The home hero's controlled aspect is 9:16: CMS mobile hero banners should be uploaded at 9:16 (for example 1080x1920) to fill the frame without backdrop bands.
 * Loading UI: Catalog cards use `GoodCardSkeleton` and the global `.skeleton` shimmer.
 * Product page images: Main product gallery must use the local shadcn/Embla carousel pattern, show one large selected image at a time, and loop when there are multiple images. Never render a vertical stack of full-size images. Keep a stable large desktop image area, moderately larger side thumbnails, clean dark/project-style active thumbnail border, and up/down thumbnail controls that render only when thumbnails overflow and stay within the main image height. Thumbnail lists should scroll/window by two items near edges when many photos exist, the main image must act as a synchronized previous/next slider, and enlarged photos must be browsable in a synchronized lightbox. Mobile uses a large main carousel image first and a small horizontal scroll thumbnail rail. Avoid stretching product photos with `object-cover`. When `images` is empty, render `ProductImageFallback` at the same frame size and omit thumbnails/slider/lightbox - never inject fake product art.
 * Product page summary sizing: Title `text-product-title`/`leading-product-title`, gender/category `text-product-meta text-text-product-muted`, price `Text size="h5"`, price-to-cart/request gap `--spacing-product-summary-actions-gap: 28px`, cart button `311x50 bg-button-bg-product` with `Text size="bodyMd"`, favorite button `50x50`, and non-interactive payment tiles `74x74`.
@@ -2111,6 +2148,7 @@
 * Public request dialog: Match the request-dialog Figma direction with centered 20px-radius content, desktop 50px x / 40px y padding, 24px/500 title, 16px/400 labels, pill inputs with `#D2D2D2` borders and black focus, full-width `#525252` submit button, responsive mobile padding, and localized success/error/loading states. The phone field uses the Kazakhstan `+7 XXX XXX XX XX` mask and submits normalized `+7XXXXXXXXXX`; email-or-phone validation must still require at least one valid contact method.
 * Product details tabs/specs/reviews: Use global product details tokens rather than arbitrary values. The description/spec grid and both children must be `min-width: 0`; administrator-entered description/feature text uses `.product-long-copy` so even unbroken strings wrap inside the column. Characteristic labels/values stay one visual row where possible. Warranty/delivery/payment tabs should use the localized 20px info-block copy and `Подробнее` arrow links to their detail pages. Reviews remain localized, approved-only, and inside the fifth tab.
 * Product Markdown: Use `.product-markdown` for paragraph/list/heading/blockquote/link/code rhythm and keep `.product-long-copy` overflow protection. Desktop headings must stay at or below 32px and mobile headings at or below 24px so admin copy cannot overpower the product page.
+* VYMPEL scroll motion: home-only; use `HomeMotion` data attributes and the `--ease-vympel-unveil` / `--duration-vympel-reveal|unveil|settle` tokens, never per-component GSAP setups.
 * VYMPEL motion: Use `--duration-vympel-fast/base/slow`, `--ease-vympel`, and `transition-vympel*` for search/dropdown/filter/category motion; global `prefers-reduced-motion` must keep motion near-instant for reduced-motion users. Catalog hover must use underline/color motion rather than translate or height-changing effects.
 * Product contact banner: Use `/contact_banner.png`, `--color-connect-*`, `--spacing-connect-banner-*`, `Button` `connectBanner` variant/size, desktop `Heading size="h1xl"`/60px, mobile `text-4xl` fallback for fit, and `Text` colors `connectButton`/`connectSide`.
 * About page: Use `/about-us-banner.png` full-width and the existing manual Embla carousel/dots. Published ordered CMS `INSTAGRAM_POST` cards replace the entire static set; only zero usable posts render `/insta-1.webp`, `/insta-2.png`, `/insta-3.webp`, and `/insta-4.webp`. Keep localized `aboutPage.*` strings, `Heading`/`Text`, and `.about-*` globals for section rhythm, company cards, and Instagram sizing. Company cards must be `min-width: 0`, one-column on mobile, and use fixed-size number badges so long headings/body copy wrap inside the card instead of clipping or creating body overflow.
@@ -2153,6 +2191,7 @@
 
 | Package | Version | Area | Gotcha |
 | ------- | ------- | ---- | ------ |
+| `gsap` / `@gsap/react` | 3.15.0 / 2.1.2 | frontend | Standard "no charge" license: commercial use and all plugins (ScrollTrigger, SplitText) are free since 3.13. Register plugins at module scope of the client component and create everything inside `useGSAP` + `gsap.matchMedia`. SplitText `aria: "auto"` puts `aria-label` on the element and `aria-hidden` on lines, but naming is prohibited on paragraphs, so home copy uses `aria: "none"` and reverts the split on completion; split only after `document.fonts.ready`. GSAP `power4` is the quint curve (`power4.out` = `cubic-bezier(0.22, 1, 0.36, 1)`). The lock entries were added by hand onto `origin/main`'s lockfile and validated with `npx npm@10.9.8 ci --dry-run`, because host npm 11 removed platform `@emnapi/*` records. |
 | `next` | 16.1.3 | frontend | App Router params are promises in existing route files; follow local route typing style. |
 | `next-intl` | 4.13.2 | frontend | Locale prefixes are mandatory and locale detection is disabled in `proxy.ts`; route prefix `kz` must emit HTML language `kk`. |
 | `tailwindcss` | ^4 | frontend | Tokens are mostly declared in `src/app/globals.css`; `tailwind.config.js` is minimal. |
@@ -2760,6 +2799,10 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-10-29 — PR [#24](https://github.com/ZxZxZ143/vympel/pull/24) records the home motion and mobile hero work. Recorded the viewport-height-plus-padding mobile hero mistake, the concentric radius rule (inner = outer − inset) and the 9:16 (1080x1920) CMS mobile banner recommendation. A new feature branch again tracked `origin/main`, so it was pushed with an explicit refspec as already documented.
+
+2026-10-29 — Added the home scroll-motion pattern (`HomeMotion` + `data-motion`), GSAP/SplitText accessibility and lockfile gotchas, first-screen/focus/print and layered-timing mistakes, and Browser-pane timing/scroll-restoration debugging tips.
 
 2026-10-24 — Recorded the difference between PR component checks and main's complete release matrix; CRM's untouched dependency graph caused the post-PR #20 failures. Updated the aligned Next baseline and documented targeted transitive Zod remediation, preserving strict audits and build-only publication policy.
 

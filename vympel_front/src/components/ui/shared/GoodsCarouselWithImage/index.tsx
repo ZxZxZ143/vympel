@@ -145,7 +145,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
             {loading ? <Text role="status" className="sr-only">{t("loading")}</Text> : null}
             {img && showBanner ? (
                 <div className="goods-carousel-banner w-full">
-                    <div className="h-full w-full overflow-hidden rounded-2xl sm:rounded-none">
+                    <div className="h-full w-full overflow-hidden rounded-2xl sm:rounded-none" data-motion="media">
                         <CmsResponsiveImage
                             desktopSrc={img}
                             mobileSrc={mobileImg}
@@ -169,7 +169,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
                     }}
                     className="relative mx-auto w-full sm:px-12 lg:w-[82vw] lg:max-w-[1128px] lg:px-14"
                 >
-                    <CarouselContent id={listId} className="ml-0 gap-3 sm:gap-9 lg:gap-17">
+                    <CarouselContent id={listId} className="ml-0 gap-3 sm:gap-9 lg:gap-17" data-motion="stagger">
                         {renderProducts()}
                     </CarouselContent>
 

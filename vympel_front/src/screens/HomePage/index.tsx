@@ -12,6 +12,7 @@ import {catalogLinks, PUBLIC_CATEGORY_CODES} from "@/config/routes";
 import {PublicApiController} from "@/api/controllers/PublicController";
 import {findCmsBlock, findCmsBlocksByType, cmsImageSources, cmsLink, cmsText} from "@/utils/cmsContent";
 import ProductCarouselSection from "@/components/HomePage/ProductCarouselSection";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 
 type Props = {
     titles: {
@@ -55,9 +56,9 @@ async function HomePage({titles, locale}: Props) {
         <main className="max-w-360 mx-auto">
             <h1 className="sr-only">Vympel</h1>
             <Navigation/>
-            <div className="responsive-page-x w-full">
+            <HomeMotion className="responsive-page-x w-full">
                 <BannerCarousel items={heroSlides}/>
-                <Benefits/>
+                <Benefits className="home-motion-intro"/>
                 <ProductCarouselSection
                     title={titles.new}
                     destinationLink={catalogLinks.wristWatches}
@@ -94,7 +95,7 @@ async function HomePage({titles, locale}: Props) {
                 <SectionWithTitle title={titles.marketplaces}>
                     <MarketPlaces />
                 </SectionWithTitle>
-            </div>
+            </HomeMotion>
         </main>
     );
 };

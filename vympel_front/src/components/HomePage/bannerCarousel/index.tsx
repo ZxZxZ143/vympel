@@ -37,7 +37,7 @@ const BannerCarousel = ({items}: Props) => {
     const autoplayHandlers = useCarouselAutoplayLifecycle(api, plugin, hasMultipleSlides);
 
     return (
-        <section className="relative group mt-11">
+        <section className="home-motion-hero-intro relative group mt-11" data-motion="hero">
             <Carousel
                 aria-label={t("aria")}
                 setApi={setApi}
