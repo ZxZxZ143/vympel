@@ -1270,6 +1270,8 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
+2026-10-29 — PR #24 was merged into `main` as `4a0e1a96e517fffa96d761e2d2f5efbd9fe0bd55` after Storefront CI and Performance budgets passed. Its GHCR publication attempt, Release Images run [40881406445](https://github.com/ZxZxZ143/vympel/actions/runs/40881406445), stopped inside the pre-publication gate before any registry write: the backend image scan found CVE-2026-111497 (HIGH) in `libbrotli1` 1.0.9-2build6, fixed by Ubuntu on 2026-10-26. The backend runtime stage now also upgrades `libbrotli1`; scan thresholds are unchanged.
+
 2026-10-29 — Opened PR [#24](https://github.com/ZxZxZ143/vympel/pull/24), `feature/home-scroll-animations` → `main`, with commit `2eba1c7`: home scroll motion plus the mobile hero fix (9:16 `--aspect-responsive-home-banner-mobile` frame capped by `--spacing-responsive-home-banner-max-height`, no frame padding, other ratios centred over the blurred backdrop with the frame radius). The branch was pushed with an explicit same-name refspec. No merge, auto-merge, image publication or deployment.
 
 2026-10-29 — Added home-page scroll motion on branch `feature/home-scroll-animations`: exact-pinned GSAP 3.15.0 + `@gsap/react` 2.1.2 (ScrollTrigger, SplitText), the `HomeMotion` orchestrator and `data-motion` markup on home sections, CSS first-paint hero/benefits intro, new `--ease-vympel-unveil` / `--duration-vympel-reveal|unveil|settle` tokens, print fallback, and helper tests. Storefront-only; no API, backend, schema, environment or deployment changes.
