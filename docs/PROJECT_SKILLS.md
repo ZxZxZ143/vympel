@@ -2799,6 +2799,8 @@
 
 ## Last Updated
 
+2026-10-29 — PR [#24](https://github.com/ZxZxZ143/vympel/pull/24) records the home motion and mobile hero work. Recorded the viewport-height-plus-padding mobile hero mistake, the concentric radius rule (inner = outer − inset) and the 9:16 (1080x1920) CMS mobile banner recommendation. A new feature branch again tracked `origin/main`, so it was pushed with an explicit refspec as already documented.
+
 2026-10-29 — Added the home scroll-motion pattern (`HomeMotion` + `data-motion`), GSAP/SplitText accessibility and lockfile gotchas, first-screen/focus/print and layered-timing mistakes, and Browser-pane timing/scroll-restoration debugging tips.
 
 2026-10-24 — Recorded the difference between PR component checks and main's complete release matrix; CRM's untouched dependency graph caused the post-PR #20 failures. Updated the aligned Next baseline and documented targeted transitive Zod remediation, preserving strict audits and build-only publication policy.
