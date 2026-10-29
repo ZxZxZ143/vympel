@@ -1266,6 +1266,7 @@
 * **What happened:** A correct 9:16 mobile banner showed light backdrop bands on all sides: 16px from image padding, and roughly 26px per side on a ~400x760 phone because the frame height was `clamp(430px, 76svh, 680px)`, giving it about a 0.65 ratio.
 * **Root cause:** Frame width follows the viewport width while its height followed the viewport height, so no single banner ratio could fill it on every phone; `object-fit: contain` plus padding then letterboxed even matching assets. Rounding an `object-fit` image box also cannot round the letterboxed picture.
 * **Fix:** Below 640px the frame uses `aspect-ratio: 9 / 16` with a landscape-only `max(430px, 100svh)` cap; the foreground image drops padding and uses auto width/height with `max-width/max-height: 100%`, so its box equals the visible picture and takes `--radius-2xl`.
+* **Concentric radius:** A rounded child inset inside a rounded frame uses inner radius = outer radius − inset (never plus); with the inset at 0 the image radius equals the frame radius.
 * **How to avoid:** Measure the frame and image boxes on several phone sizes (375x667, 360x800, 400x760, 430x932) and in landscape with a 9:16 test image and a wide fallback before changing hero sizing.
 
 ### Hiding first-screen content from a hydration-time effect
