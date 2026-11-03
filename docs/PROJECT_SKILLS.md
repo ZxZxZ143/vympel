@@ -883,6 +883,12 @@
 
 ## Fullstack Integration Patterns
 
+### Validate every workflow caller before adding cross-platform execution (2026-11-04)
+
+* **When to use:** A shared publication verifier starts an executable from another architecture.
+* **How:** Initialize the pinned QEMU action in every amd64 calling job before runtime checks; compare the complete parsed workflow with its parent after removing only the intended setup step. Preserve all other jobs/inputs, publication dependencies and manifest requirements. Run the existing manifest/security URL contracts and both exact published codec binaries locally.
+* **Why:** Docker Desktop emulation masked the missing setup in bccea7a's common runtime job; setup in the separate successful ARM job did not transfer between runners. Local execution supports the repair but cannot replace the new SHA's canonical GitHub-hosted release gates. Existing immutable tags must never be reused. See the [bounded CI repair](tasks/image-ci-arm64-fix-2026-11-04/README.md).
+
 ### PR component checks do not prove the full main release gate
 
 * **When to use:** Checking main after merging a PR that changed only part of this repository.
@@ -2833,6 +2839,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-11-04 — Recorded the applied four-line QEMU repair, complete-workflow comparison, unchanged standalone ARM checks and exact published amd64/ARM64 codec proof. Kept the new local candidate separate from external release approval and preserved unrelated pending documentation.
 
 2026-11-03 — Recorded responsive-family and cover-sizing conventions, pre-hydration fallback/focus fixes, bounded native/backfill verification, and honest cold/warm/slow-network measurement limits.
 

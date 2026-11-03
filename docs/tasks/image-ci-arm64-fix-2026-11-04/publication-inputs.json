@@ -1,0 +1,13 @@
+{
+  "ref": "main",
+  "inputs": {
+    "storefront_api_base": "https://api.vympel.kz/api/public",
+    "crm_api_base": "https://x7m2q9k4n6p8.vympel.kz/api/crm",
+    "media_origins": "https://api.vympel.kz",
+    "storefront_site_url": "https://preview.vympel.kz",
+    "deployment_environment": "staging",
+    "publish_images": "true",
+    "release_tag": "",
+    "acknowledge_placeholder_public_config": "false"
+  }
+}
