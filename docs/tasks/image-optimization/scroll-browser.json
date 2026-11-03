@@ -1,0 +1,554 @@
+[
+  {
+    "label": "before",
+    "width": 390,
+    "route": "/ru/catalog",
+    "totalBytes": 18136627,
+    "productBytes": 16018491,
+    "productRequests": 9,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/d28811e6-f5ab-4cb4-9858-ffb017a94dcf.png",
+        "bytes": 2640518
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/fe810e91-6ac0-4526-b62a-4c59c861ca32.png",
+        "bytes": 1381681
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/31e0850d-cede-4c40-923a-fcff6c95b5d1.png",
+        "bytes": 1962982
+      },
+      {
+        "url": "http://127.0.0.1:14442/catalog-hero-banner.webp?v=2026-07-28T23%3A00%3A39.868546Z",
+        "bytes": 60016
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8.png",
+        "bytes": 1317065
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/0fbd5295-5eb2-4d40-a4df-74bbb664efe2.png",
+        "bytes": 1440319
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/6124b75a-3be4-42d6-8a14-01bdec5963a5.png",
+        "bytes": 2281090
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/903e235d-17ce-429d-a7b0-c3cc821f32ca.png",
+        "bytes": 2155871
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/129ef743-acf3-458d-852c-02ddfa61fd21.png",
+        "bytes": 1115076
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/e09cd951-4f33-4028-a4d7-bc518cff53da.png",
+        "bytes": 1723889
+      },
+      {
+        "url": "http://127.0.0.1:14442/_next/image?url=%2Fkaspi.png&w=750&q=75",
+        "bytes": 8827
+      },
+      {
+        "url": "http://127.0.0.1:14442/_next/image?url=%2Fwb.png&w=750&q=75",
+        "bytes": 10751
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/cms/57a51bf8-6124-4c59-938a-cfa0ffa5036d.png?v=2026-10-27T14%3A46%3A29.824221Z",
+        "bytes": 2038542
+      }
+    ]
+  },
+  {
+    "label": "after",
+    "width": 390,
+    "route": "/ru/catalog",
+    "totalBytes": 708168,
+    "productBytes": 574174,
+    "productRequests": 9,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w480.webp",
+        "bytes": 45232
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w480.webp",
+        "bytes": 51000
+      },
+      {
+        "url": "http://127.0.0.1:14443/image-variants/v1/de9df92aaaf4a87e768c0657de775d40f130ceefd8f6a50bc40d6becf846d265-1200.webp",
+        "bytes": 32386
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w480.webp",
+        "bytes": 66528
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w480.webp",
+        "bytes": 43648
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w480.webp",
+        "bytes": 51932
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w480.webp",
+        "bytes": 91650
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w480.webp",
+        "bytes": 95076
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w480.webp",
+        "bytes": 36350
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/w480.webp",
+        "bytes": 92758
+      },
+      {
+        "url": "http://127.0.0.1:14443/_next/image?url=%2Fkaspi.png&w=750&q=75",
+        "bytes": 8829
+      },
+      {
+        "url": "http://127.0.0.1:14443/_next/image?url=%2Fwb.png&w=750&q=75",
+        "bytes": 10753
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/cms/responsive-v1/57a51bf8-6124-4c59-938a-cfa0ffa5036d/1e7ca57c436e72bfaa3947b0979fed51ee72a7827d933e7c113205b9e14dc6ac/887x1774/w800.webp",
+        "bytes": 82026
+      }
+    ]
+  },
+  {
+    "label": "before",
+    "width": 390,
+    "route": "/ru/brands/romanson",
+    "totalBytes": 24731072,
+    "productBytes": 24498740,
+    "productRequests": 15,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/8f891ae4-ac6d-4dd0-8a47-add4e5272e0f.png",
+        "bytes": 1757020
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/c2d10915-d1d9-422e-b65b-24591fbd7f5d.png",
+        "bytes": 2135995
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/0699f05c-c122-40a7-84df-9206c6b9db18.png",
+        "bytes": 2206848
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/28ec7093-7eca-451b-aa58-dab2aa9c5b97.png",
+        "bytes": 1296005
+      },
+      {
+        "url": "http://127.0.0.1:14442/Romanson_brand_banner.webp?v=2026-07-28T23%3A00%3A39.868546Z",
+        "bytes": 232332
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/5c70a440-ebd9-4d73-9ef4-66e2d99f6f88.png",
+        "bytes": 1591890
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/dad95e88-1f3e-4b79-9ec1-99c8912b072f.png",
+        "bytes": 1575167
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/83217353-012c-4ed8-a87b-c9f81cb5add0.png",
+        "bytes": 1617065
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/4c3bc5f3-9726-4e7b-9e4d-f3f5909c0ff0.png",
+        "bytes": 1572150
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/a7f8d02e-0fbe-4f1e-bf9c-3f95ad8cb770.png",
+        "bytes": 1704289
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/79bea7ec-852d-4e21-a5bd-ef739e7b3099.png",
+        "bytes": 2237545
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/7c8f7748-7c50-4bf5-b40d-2c3a3f9d3f80.png",
+        "bytes": 1886424
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/ce584e2d-44e7-4392-b461-97e2770ca370.png",
+        "bytes": 1321432
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/12fc68b7-61b6-41cd-8191-e63ab45e4e47.png",
+        "bytes": 1258066
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/cd9d4bdc-eb5a-4838-bdc9-04d08d468227.png",
+        "bytes": 712033
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/e0a7e876-3bf4-463e-9c44-b7099bd90779.png",
+        "bytes": 1626811
+      }
+    ]
+  },
+  {
+    "label": "after",
+    "width": 390,
+    "route": "/ru/brands/romanson",
+    "totalBytes": 1122792,
+    "productBytes": 890460,
+    "productRequests": 15,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14443/Romanson_brand_banner.webp",
+        "bytes": 232332
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/8f891ae4-ac6d-4dd0-8a47-add4e5272e0f/2d6819864aa1110bafe1ba5943421472286895983ecbf313bb3d0f4410cbb9f9/1086x1448/w480.webp",
+        "bytes": 65546
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/c2d10915-d1d9-422e-b65b-24591fbd7f5d/0af2ec55decfd45973072c95f2a84eb300d70e901b9d273bac9e5c6951c48686/855x1840/w480.webp",
+        "bytes": 98642
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/0699f05c-c122-40a7-84df-9206c6b9db18/8bd10cc9c16e48593799e265f5e598a1ba29fd4490a33376bbaf1f6bf4942932/1011x1555/w480.webp",
+        "bytes": 92132
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/28ec7093-7eca-451b-aa58-dab2aa9c5b97/a1b4708f0327d39e93c4970a4af792679ae44ada2a4f0225fcdcc155f60d8c57/1086x1448/w480.webp",
+        "bytes": 54014
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/5c70a440-ebd9-4d73-9ef4-66e2d99f6f88/82bcde4fda3e5f40ed0f0d3b9ba601ff55bfd21dccbe840e2911f706cf3abea8/1086x1448/w480.webp",
+        "bytes": 62704
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/dad95e88-1f3e-4b79-9ec1-99c8912b072f/ce58710b8d1baf83862b66c98875e50d4c3001062d73d2ecb024e7287cc8d70b/1086x1448/w480.webp",
+        "bytes": 49142
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/83217353-012c-4ed8-a87b-c9f81cb5add0/5d118024e88f4e186b51ccf96b65acb3d9d1305453055793d19e17d78c881c52/1086x1448/w480.webp",
+        "bytes": 47774
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/4c3bc5f3-9726-4e7b-9e4d-f3f5909c0ff0/3adc04b1798e70f50bb3b2496bca40cda8083ff0904048ef7f7d1b5a590420fc/1086x1448/w480.webp",
+        "bytes": 55256
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/a7f8d02e-0fbe-4f1e-bf9c-3f95ad8cb770/45c36f6e4e41d898f1057c45c776e19a8c4d4128e70a4d60fbd5bc82fdfab795/1086x1448/w480.webp",
+        "bytes": 52252
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/79bea7ec-852d-4e21-a5bd-ef739e7b3099/1d029564049ed90c633b4149175d4767b95e2e0331ad16f81af01e75b83f5813/1024x1536/w480.webp",
+        "bytes": 80308
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/7c8f7748-7c50-4bf5-b40d-2c3a3f9d3f80/ceba9bda8fa214b12a809c9549e98a31f07e4a81d382645fd64bfc38711150f2/1122x1402/w480.webp",
+        "bytes": 69366
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/ce584e2d-44e7-4392-b461-97e2770ca370/da79f9589bee6e69c2474c8d2209358eaca79a90dd5e62015b940a1e0ec96b54/1242x1266/w480.webp",
+        "bytes": 37090
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/12fc68b7-61b6-41cd-8191-e63ab45e4e47/5afa07c0af20be16121e4d7a728415406dd2e06ca479f283e7dc6c5f01209fc1/1168x1346/w480.webp",
+        "bytes": 41724
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/cd9d4bdc-eb5a-4838-bdc9-04d08d468227/772c451e98e42ae61522a05d4547aad8d46bbb4e8732a73bc0a88dfdb540495e/1159x1357/w480.webp",
+        "bytes": 26970
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/e0a7e876-3bf4-463e-9c44-b7099bd90779/35b0306f3e70fbe70d258fdda39c923c71febdb615d7e3629fb1c9440ae71ca4/1086x1448/w480.webp",
+        "bytes": 57540
+      }
+    ]
+  },
+  {
+    "label": "before",
+    "width": 1440,
+    "route": "/ru/catalog",
+    "totalBytes": 18202234,
+    "productBytes": 16018491,
+    "productRequests": 9,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/d28811e6-f5ab-4cb4-9858-ffb017a94dcf.png",
+        "bytes": 2640518
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/fe810e91-6ac0-4526-b62a-4c59c861ca32.png",
+        "bytes": 1381681
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/31e0850d-cede-4c40-923a-fcff6c95b5d1.png",
+        "bytes": 1962982
+      },
+      {
+        "url": "http://127.0.0.1:14442/catalog-hero-banner.webp?v=2026-07-28T23%3A00%3A39.868546Z",
+        "bytes": 60016
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8.png",
+        "bytes": 1317065
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/0fbd5295-5eb2-4d40-a4df-74bbb664efe2.png",
+        "bytes": 1440319
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/6124b75a-3be4-42d6-8a14-01bdec5963a5.png",
+        "bytes": 2281090
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/903e235d-17ce-429d-a7b0-c3cc821f32ca.png",
+        "bytes": 2155871
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/129ef743-acf3-458d-852c-02ddfa61fd21.png",
+        "bytes": 1115076
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/e09cd951-4f33-4028-a4d7-bc518cff53da.png",
+        "bytes": 1723889
+      },
+      {
+        "url": "http://127.0.0.1:14442/_next/image?url=%2Fkaspi.png&w=750&q=75",
+        "bytes": 8827
+      },
+      {
+        "url": "http://127.0.0.1:14442/_next/image?url=%2Fwb.png&w=750&q=75",
+        "bytes": 10751
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/cms/ad250688-23d4-4571-b24c-3ef81ab3e8b2.png?v=2026-10-27T14%3A46%3A22.182763Z",
+        "bytes": 2104149
+      }
+    ]
+  },
+  {
+    "label": "after",
+    "width": 1440,
+    "route": "/ru/catalog",
+    "totalBytes": 447298,
+    "productBytes": 305702,
+    "productRequests": 9,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w320.webp",
+        "bytes": 24512
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w320.webp",
+        "bytes": 27178
+      },
+      {
+        "url": "http://127.0.0.1:14443/image-variants/v1/9f22577445f1aeb1ab2a01c31a71a9c36c93700a1c386ac639018d82f45b0c6e-1600.webp",
+        "bytes": 46296
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w320.webp",
+        "bytes": 36086
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w320.webp",
+        "bytes": 23082
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w320.webp",
+        "bytes": 27504
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w320.webp",
+        "bytes": 47268
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w320.webp",
+        "bytes": 51082
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w320.webp",
+        "bytes": 20396
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/w320.webp",
+        "bytes": 48594
+      },
+      {
+        "url": "http://127.0.0.1:14443/_next/image?url=%2Fkaspi.png&w=750&q=75",
+        "bytes": 8827
+      },
+      {
+        "url": "http://127.0.0.1:14443/_next/image?url=%2Fwb.png&w=750&q=75",
+        "bytes": 10751
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/cms/responsive-v1/ad250688-23d4-4571-b24c-3ef81ab3e8b2/e5ab098af3d82773151ff921994fba8a71d073608c692bb2306c5dcb4d5e3d52/1949x807/w1600.webp",
+        "bytes": 75722
+      }
+    ]
+  },
+  {
+    "label": "before",
+    "width": 1440,
+    "route": "/ru/brands/romanson",
+    "totalBytes": 24731072,
+    "productBytes": 24498740,
+    "productRequests": 15,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/8f891ae4-ac6d-4dd0-8a47-add4e5272e0f.png",
+        "bytes": 1757020
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/c2d10915-d1d9-422e-b65b-24591fbd7f5d.png",
+        "bytes": 2135995
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/0699f05c-c122-40a7-84df-9206c6b9db18.png",
+        "bytes": 2206848
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/28ec7093-7eca-451b-aa58-dab2aa9c5b97.png",
+        "bytes": 1296005
+      },
+      {
+        "url": "http://127.0.0.1:14442/Romanson_brand_banner.webp?v=2026-07-28T23%3A00%3A39.868546Z",
+        "bytes": 232332
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/5c70a440-ebd9-4d73-9ef4-66e2d99f6f88.png",
+        "bytes": 1591890
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/dad95e88-1f3e-4b79-9ec1-99c8912b072f.png",
+        "bytes": 1575167
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/83217353-012c-4ed8-a87b-c9f81cb5add0.png",
+        "bytes": 1617065
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/4c3bc5f3-9726-4e7b-9e4d-f3f5909c0ff0.png",
+        "bytes": 1572150
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/a7f8d02e-0fbe-4f1e-bf9c-3f95ad8cb770.png",
+        "bytes": 1704289
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/79bea7ec-852d-4e21-a5bd-ef739e7b3099.png",
+        "bytes": 2237545
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/7c8f7748-7c50-4bf5-b40d-2c3a3f9d3f80.png",
+        "bytes": 1886424
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/ce584e2d-44e7-4392-b461-97e2770ca370.png",
+        "bytes": 1321432
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/12fc68b7-61b6-41cd-8191-e63ab45e4e47.png",
+        "bytes": 1258066
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/cd9d4bdc-eb5a-4838-bdc9-04d08d468227.png",
+        "bytes": 712033
+      },
+      {
+        "url": "http://127.0.0.1:14441/before/media/vympel-staging/product/e0a7e876-3bf4-463e-9c44-b7099bd90779.png",
+        "bytes": 1626811
+      }
+    ]
+  },
+  {
+    "label": "after",
+    "width": 1440,
+    "route": "/ru/brands/romanson",
+    "totalBytes": 629118,
+    "productBytes": 477268,
+    "productRequests": 15,
+    "pending": 0,
+    "network": [
+      {
+        "url": "http://127.0.0.1:14443/image-variants/v1/950c00e6175e6f26ee2839a924593926e5de95bbe0de1db3b1ba02e8d62610b7-1600.webp",
+        "bytes": 151850
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/8f891ae4-ac6d-4dd0-8a47-add4e5272e0f/2d6819864aa1110bafe1ba5943421472286895983ecbf313bb3d0f4410cbb9f9/1086x1448/w320.webp",
+        "bytes": 34332
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/c2d10915-d1d9-422e-b65b-24591fbd7f5d/0af2ec55decfd45973072c95f2a84eb300d70e901b9d273bac9e5c6951c48686/855x1840/w320.webp",
+        "bytes": 54208
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/0699f05c-c122-40a7-84df-9206c6b9db18/8bd10cc9c16e48593799e265f5e598a1ba29fd4490a33376bbaf1f6bf4942932/1011x1555/w320.webp",
+        "bytes": 49238
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/28ec7093-7eca-451b-aa58-dab2aa9c5b97/a1b4708f0327d39e93c4970a4af792679ae44ada2a4f0225fcdcc155f60d8c57/1086x1448/w320.webp",
+        "bytes": 27630
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/5c70a440-ebd9-4d73-9ef4-66e2d99f6f88/82bcde4fda3e5f40ed0f0d3b9ba601ff55bfd21dccbe840e2911f706cf3abea8/1086x1448/w320.webp",
+        "bytes": 33034
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/dad95e88-1f3e-4b79-9ec1-99c8912b072f/ce58710b8d1baf83862b66c98875e50d4c3001062d73d2ecb024e7287cc8d70b/1086x1448/w320.webp",
+        "bytes": 26500
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/83217353-012c-4ed8-a87b-c9f81cb5add0/5d118024e88f4e186b51ccf96b65acb3d9d1305453055793d19e17d78c881c52/1086x1448/w320.webp",
+        "bytes": 26364
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/4c3bc5f3-9726-4e7b-9e4d-f3f5909c0ff0/3adc04b1798e70f50bb3b2496bca40cda8083ff0904048ef7f7d1b5a590420fc/1086x1448/w320.webp",
+        "bytes": 29178
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/a7f8d02e-0fbe-4f1e-bf9c-3f95ad8cb770/45c36f6e4e41d898f1057c45c776e19a8c4d4128e70a4d60fbd5bc82fdfab795/1086x1448/w320.webp",
+        "bytes": 27130
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/79bea7ec-852d-4e21-a5bd-ef739e7b3099/1d029564049ed90c633b4149175d4767b95e2e0331ad16f81af01e75b83f5813/1024x1536/w320.webp",
+        "bytes": 44244
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/7c8f7748-7c50-4bf5-b40d-2c3a3f9d3f80/ceba9bda8fa214b12a809c9549e98a31f07e4a81d382645fd64bfc38711150f2/1122x1402/w320.webp",
+        "bytes": 36450
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/ce584e2d-44e7-4392-b461-97e2770ca370/da79f9589bee6e69c2474c8d2209358eaca79a90dd5e62015b940a1e0ec96b54/1242x1266/w320.webp",
+        "bytes": 20274
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/12fc68b7-61b6-41cd-8191-e63ab45e4e47/5afa07c0af20be16121e4d7a728415406dd2e06ca479f283e7dc6c5f01209fc1/1168x1346/w320.webp",
+        "bytes": 21840
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/cd9d4bdc-eb5a-4838-bdc9-04d08d468227/772c451e98e42ae61522a05d4547aad8d46bbb4e8732a73bc0a88dfdb540495e/1159x1357/w320.webp",
+        "bytes": 15636
+      },
+      {
+        "url": "http://127.0.0.1:14441/after/media/vympel-staging/product/responsive-v1/e0a7e876-3bf4-463e-9c44-b7099bd90779/35b0306f3e70fbe70d258fdda39c923c71febdb615d7e3629fb1c9440ae71ca4/1086x1448/w320.webp",
+        "bytes": 31210
+      }
+    ]
+  }
+]

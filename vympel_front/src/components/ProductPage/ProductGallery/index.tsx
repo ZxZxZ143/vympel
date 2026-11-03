@@ -1,6 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import ResponsiveProductImage from "@/components/ui/shared/ResponsiveProductImage";
+import {nearbySlide, PRODUCT_GALLERY_SIZES} from "@/utils/responsiveImages";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {ChevronDown, ChevronLeft, ChevronRight, ChevronUp, X} from "lucide-react";
 import {useTranslations} from "use-intl";
@@ -46,6 +47,7 @@ const ProductGallery = ({images, productName}: Props) => {
     const [lightboxCarouselApi, setLightboxCarouselApi] = useState<CarouselApi>();
     const [failedImageUrls, setFailedImageUrls] = useState<string[]>([]);
     const mobileThumbnailRefs = useRef(new Map<number, HTMLButtonElement>());
+    const mainImageRefs = useRef(new Map<number, HTMLButtonElement>());
 
     const orderedImages = useMemo(
         () => [...images]
@@ -226,13 +228,14 @@ const ProductGallery = ({images, productName}: Props) => {
                 {imageFailed ? (
                     <ProductImageFallback compact className="h-full w-full rounded-none border-0"/>
                 ) : (
-                    <Image
+                    <ResponsiveProductImage
                         src={image.url}
                         alt={image.alt || t("thumbnailAlt", {name: productName, number: imageNumber})}
                         width={96}
                         height={96}
                         className="h-full w-full object-contain"
-                        unoptimized
+                        maximumWidth={320}
+                        sizes="96px"
                         onError={() => markImageFailed(image.url)}
                     />
                 )}
@@ -307,6 +310,10 @@ const ProductGallery = ({images, productName}: Props) => {
                                     <button
                                         type="button"
                                         aria-label={t("openZoom")}
+                                        ref={node => {
+                                            if (node) mainImageRefs.current.set(index, node);
+                                            else mainImageRefs.current.delete(index);
+                                        }}
                                         disabled={imageFailed}
                                         onClick={() => openLightbox(index)}
                                         className={cn(
@@ -317,18 +324,18 @@ const ProductGallery = ({images, productName}: Props) => {
                                     >
                                         {imageFailed ? (
                                             <ProductImageFallback className="h-full w-full rounded-none border-0"/>
-                                        ) : (
-                                            <Image
+                                        ) : nearbySlide(index, selectedIndex, imageCount) ? (
+                                            <ResponsiveProductImage
                                                 src={image.url}
                                                 alt={image.alt || productName}
                                                 width={620}
                                                 height={502}
-                                                priority={index === 0}
+                                                priority={index === selectedIndex}
+                                                sizes={PRODUCT_GALLERY_SIZES}
                                                 className="h-full w-full object-contain"
-                                                unoptimized
                                                 onError={() => markImageFailed(image.url)}
                                             />
-                                        )}
+                                        ) : null}
                                     </button>
                                     </DialogPrimitive.Trigger>
                                 </CarouselItem>
@@ -369,6 +376,10 @@ const ProductGallery = ({images, productName}: Props) => {
             <DialogPrimitive.Portal>
                 <DialogPrimitive.Overlay className="fixed inset-0 z-[1000] bg-[var(--color-product-gallery-lightbox)] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none"/>
                 <DialogPrimitive.Content
+                    onCloseAutoFocus={event => {
+                        event.preventDefault();
+                        mainImageRefs.current.get(selectedIndex)?.focus({preventScroll: true});
+                    }}
                     className="fixed inset-0 z-[1010] flex items-center justify-center p-4 outline-none"
                 >
                     <DialogPrimitive.Title className="sr-only">{t("dialogAria")}</DialogPrimitive.Title>
@@ -391,17 +402,17 @@ const ProductGallery = ({images, productName}: Props) => {
                                     <CarouselItem key={`${image.id}-${index}`} className="relative h-[86vh] pl-0">
                                         {imageFailed ? (
                                             <ProductImageFallback className="h-full w-full rounded-none border-0 bg-transparent text-text-inverse"/>
-                                        ) : (
-                                            <Image
+                                        ) : isLightboxOpen && index === selectedIndex ? (
+                                            <ResponsiveProductImage
                                                 src={image.url}
                                                 alt={image.alt || productName}
-                                                fill
-                                                sizes="92vw"
-                                                className="object-contain"
-                                                unoptimized
+                                                maximumWidth={0}
+                                                priority={index === selectedIndex}
+                                                sizes="(min-width: 1283px) 1180px, 92vw"
+                                                className="absolute inset-0 h-full w-full object-contain"
                                                 onError={() => markImageFailed(image.url)}
                                             />
-                                        )}
+                                        ) : null}
                                     </CarouselItem>
                                 );
                             })}

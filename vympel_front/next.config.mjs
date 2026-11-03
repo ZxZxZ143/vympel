@@ -39,7 +39,10 @@ const nextConfig = {
         if (!indexingPolicy.enabled) {
             headers.push({key: "X-Robots-Tag", value: "noindex, nofollow"});
         }
-        return [{source: "/:path*", headers}];
+        return [
+            {source: "/:path*", headers},
+            {source: "/image-variants/v1/:path*", headers: [{key: "Cache-Control", value: "public, max-age=31536000, immutable"}]},
+        ];
     },
     webpack(config) {
         config.module.rules.push({

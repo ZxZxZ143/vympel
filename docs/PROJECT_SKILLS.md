@@ -2,6 +2,25 @@
 
 ## Frontend Patterns That Work
 
+### Responsive images without request-time conversion (2026-11-03)
+
+* **When to use:** Product/CMS photography on the 0.20 CPU storefront, and large committed static banner assets.
+* **How:** Advertise derivatives only for explicit completed responsive-v1 families or the generated static manifest; preserve legacy/signed URLs. Keep the original for a selected open lightbox. Use bounded neighbors, tiny backdrop variants, and art-directed mobile/desktop sources. For object-cover, use source aspect ratio and actual frame height in sizes; viewport width alone can under-resolve a tall crop.
+* **Why:** Measured originals cost 16 MB for nine catalog photos. Local full-grid replay used 0.57 MB mobile / 0.31 MB desktop after preparing variants. These are fixture results; live staging savings require reviewed media backfill and deployment.
+
+### Image errors before hydration and dialog focus
+
+* **When to use:** SSR native img/picture fallback and a gallery with several dialog triggers.
+* **How:** After hydration, inspect complete/currentSrc/naturalWidth and replay a missed error event before retrying the original and then the existing placeholder. Keep a selected-image button ref and restore focus explicitly on dialog close. Browser regressions inject immediate 404s, open/switch/close the lightbox, and test both mobile and desktop.
+* **Why:** A cached error can precede React's onError attachment; multiple Radix triggers can restore focus to an offscreen trigger. Both failures were reproduced and fixed.
+
+### Measure byte transfer with browser caching intact
+
+* **When to use:** Cold/warm image audits.
+* **How:** Use CDP instead of Playwright routing in performance runs; routing disables normal HTTP caching. Keep actual staging results separate from a local immutable-baseline replay. Record fixture-cap API rejections separately from successful image transfers; do not imply complete-site API/prefetch parity. Preserve pending requests and label 30-second slow-network LCP as provisional when images remain incomplete. Compare all rendered cards after scrolling as well as the initial viewport.
+* **Why:** An incomplete download is not a small completed resource, and a localhost LCP is not a deployed GCP result. Record actual LCP elements, wire/304 status, dimensions, priorities, CLS and cache headers.
+
+
 ### Contextual disabled flags need the same freshness check as counts
 
 * **When to use:** Retaining filter metadata while a draft-triggered refresh is pending or fails.
@@ -542,6 +561,13 @@
 * **Why:** A future implementation session can reproduce the issue, preserve working foundations, and apply fixes in dependency order without treating a scanner, stale prior report, or temporary deployment as current proof.
 
 ## Backend Patterns That Work
+
+### Bounded upload encoding and reviewed backfill
+
+* **When to use:** New product/CMS raster uploads or a separately authorized existing-media batch.
+* **How:** Validate bytes/dimensions first, use one native encoder slot and a shared 20-second product-batch deadline, preserve GIF/APNG/EXIF originals, upload checksummed derivatives before the original, and persist only completed family keys. Keep the backend's native codec/version in the backfill manifest. Use conditional writes and GET/verify before reference changes; generated SQL ends in ROLLBACK. Do not deduplicate separately owned upload records merely because their photo bytes match.
+* **Why:** This avoids request-time CPU spikes, broken srcSet promises, alpha/orientation/animation loss, and overwriting cached URLs. Cwebp versions can differ slightly in output; a checksum conflict requires review, not replacement. Both deletion paths must expand the same bounded family contract. Never run the sample as an automatic full-library migration.
+
 
 ### Rank the matched IDs before pagination without changing matching
 
@@ -2807,6 +2833,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-11-03 — Recorded responsive-family and cover-sizing conventions, pre-hydration fallback/focus fixes, bounded native/backfill verification, and honest cold/warm/slow-network measurement limits.
 
 2026-11-03 — Recorded existing-host Compose/OS Login constraints, consistent backup and isolated recovery verification, final staging deployment checks, and two corrected verifier false positives (Nginx output streams and the JVM OOM option).
 

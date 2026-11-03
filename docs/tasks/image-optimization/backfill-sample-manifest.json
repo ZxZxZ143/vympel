@@ -1,0 +1,720 @@
+{
+  "spec": "responsive-v1",
+  "codec": "1.6.0\r\nlibsharpyuv: 0.4.2",
+  "originalsPreserved": true,
+  "objects": [
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w160.webp",
+      "bytes": 9340,
+      "sha256": "2b9f4ef6712fa2ba9e7c6448715b84b9397f999db6926673563966dc42fae20a",
+      "contentMd5": "wF8CGpMxME7T7cSKwmu+3A==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 160
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w320.webp",
+      "bytes": 24178,
+      "sha256": "31de2d3e9704b1d2a4fcc10c9f1f07da178c95c8cb20f10cd9ba7cb1239a2346",
+      "contentMd5": "hn9X1OEp7WZoFiFU/dkHRg==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 320
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w480.webp",
+      "bytes": 44898,
+      "sha256": "20f311e1da5aaf776c46ef2eda6e79746d7a66fa9a69b061d9ff4d1dba258c90",
+      "contentMd5": "2k4sCXfCDWc0b6z3A8exWg==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 480
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w800.webp",
+      "bytes": 106550,
+      "sha256": "2bcf1ba929cb6a3a16a9ae1584b92f0649e4316e56286350b76efe08a4886067",
+      "contentMd5": "dWekMs2lHBS5rDLQtBFAZA==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 800
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w1200.webp",
+      "bytes": 222286,
+      "sha256": "dca3d644f089f04487e6958f7d26024c1ac496a1c197118dad2fa9146800f20c",
+      "contentMd5": "DNdWbh3YBiGSYKARI1bu0w==",
+      "contentType": "image/webp",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/w1254.webp",
+      "bytes": 303690,
+      "sha256": "fb9b3dd920a22afe12f9d72feac7eea6c407d689468f60964a0cad63441fbca0",
+      "contentMd5": "YVTdiqMJnIjB3x+QBjY4Ww==",
+      "contentType": "image/webp",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/original.png",
+      "bytes": 2640235,
+      "sha256": "5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943",
+      "contentMd5": "Kdclx1GWICCt1DgsIggp6Q==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w160.webp",
+      "bytes": 9594,
+      "sha256": "e463cea3512aa64e85f3922ed37cb8372f3773fbe9433f267c4ba94aa7e44ea8",
+      "contentMd5": "2i94mg1sSB4rxba1Sm95DA==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 214
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w320.webp",
+      "bytes": 26844,
+      "sha256": "7aae4c4d3c2a7e5200c724188be7e253ac4d00381a0335252c465e06e7c931eb",
+      "contentMd5": "FLbcb9pfkEH0oSB5p0noBQ==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 427
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w480.webp",
+      "bytes": 50666,
+      "sha256": "7229b351d7ea182fa841676c81aebe9728eed4bd4469fe1d313227b242d58c87",
+      "contentMd5": "GlVFhJeC28KjWeL8/DwOiQ==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 640
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w800.webp",
+      "bytes": 109612,
+      "sha256": "ab82bd8273782075f63407b0c8bb6b52fce8e5b5e455ace55dd2ffb947f79446",
+      "contentMd5": "r4WbWXlvYg7pom3QIoFRiA==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 1067
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/w1086.webp",
+      "bytes": 184180,
+      "sha256": "7c67c483f9845c4a8e23b99e20f8898e1c394305ba5384074187a530bcda51d8",
+      "contentMd5": "hYAUWRVET3AXWwYthRh55w==",
+      "contentType": "image/webp",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/original.png",
+      "bytes": 1381398,
+      "sha256": "254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44",
+      "contentMd5": "h/0U/tXj1mP3anmQPTw9uQ==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w160.webp",
+      "bytes": 12302,
+      "sha256": "9cff3d49af9610f79c10aeaeb627b29036d807e546595383b6ccd6efa3c89a51",
+      "contentMd5": "hn41fvxR+Z42XGlKDSz2VA==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 240
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w320.webp",
+      "bytes": 35752,
+      "sha256": "df1f04eda6a07ae9b00a7ba440877b165e8e80ee1fa8d178d75651f71f5b235d",
+      "contentMd5": "39jOmtDRtE6w0K1Xi0oC0A==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 480
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w480.webp",
+      "bytes": 66194,
+      "sha256": "eff91fe40211aff05bfdfe40e5ac35a748f8b8570ee3c4a7b6003638e976b0d3",
+      "contentMd5": "qB16djHW2B9L5FH0tFUX7A==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 720
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w800.webp",
+      "bytes": 143354,
+      "sha256": "8bb3b47a556262070870e140d8453f5539bd5a72ad85132a5517816b423d300f",
+      "contentMd5": "69jTMwsxr2nRwqpWtbyphg==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 1200
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/w1024.webp",
+      "bytes": 220806,
+      "sha256": "2b532b8a2bb4e596881fd4cdefda42ab056a937b43b764ce4b328c9259c59eae",
+      "contentMd5": "OZI0X9Kepl1c3o67mIwW/w==",
+      "contentType": "image/webp",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/original.png",
+      "bytes": 1962699,
+      "sha256": "1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5",
+      "contentMd5": "ZNgh26D8mVBqx+nNXQ3Zxg==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w160.webp",
+      "bytes": 8356,
+      "sha256": "082e06b2c2ab09eef352e3ab64e566f2fa2f6c499dfcaccfdd5b6c660955787d",
+      "contentMd5": "M/p/cSfpnmU0Lr6ITQIN0w==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 214
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w320.webp",
+      "bytes": 22748,
+      "sha256": "4b6dd9c56ffd99645a62cc8a3b6914ea8bc3f78b375e17b63efe42e8747e6883",
+      "contentMd5": "NmgHMfO+Viy1ShzqkZrRjg==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 427
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w480.webp",
+      "bytes": 43314,
+      "sha256": "32ac7c97a1dd19bbe8abb527fc8ab7871be96568d3e5c55463bd90ead7075feb",
+      "contentMd5": "TMmanM+w0q6WiL0F85ehQQ==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 640
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w800.webp",
+      "bytes": 94494,
+      "sha256": "80c8f42bcdbfb797d27097e560525b19c9f5084854ab3822e1823e3a6b26b2c4",
+      "contentMd5": "rHycxMGrluXWZf7I189Aqw==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 1067
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/w1086.webp",
+      "bytes": 160398,
+      "sha256": "048181938ca2fe72ea1d8b9ac67b6dd43ec2f1d7001216ff087bd06066ca3aaa",
+      "contentMd5": "/edij3G1kkKa30GX4uZ4qw==",
+      "contentType": "image/webp",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/original.png",
+      "bytes": 1316782,
+      "sha256": "7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705",
+      "contentMd5": "hCqtrS6yc206dzytNtcRKQ==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w160.webp",
+      "bytes": 9312,
+      "sha256": "77b566cee720740a0781a257d90a8151d0549f047f23d0fcb8ab94971d75c29f",
+      "contentMd5": "kLKuQeIOVzPy5crhTx32Uw==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 214
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w320.webp",
+      "bytes": 27170,
+      "sha256": "38a92100361cc26898caddc6f246e7fe72f9cac2230e86a50da79dd72c652372",
+      "contentMd5": "CqD5pAluYjaFvmasluGoEQ==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 427
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w480.webp",
+      "bytes": 51598,
+      "sha256": "9251f8f4e0a5882b71c370846b144bd93fdc94c5be390ab2ff1bd336867efad7",
+      "contentMd5": "d/MmqRkrL8ojK7IH5yLnlQ==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 640
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w800.webp",
+      "bytes": 114240,
+      "sha256": "ffc414a086f9dbe7c96d5385f3ae121e9115effaabbbf1d0b8ac47e75bafa387",
+      "contentMd5": "hXcbvIkt2llPGN9lNtIJ6g==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 1067
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/w1086.webp",
+      "bytes": 198628,
+      "sha256": "59bba02b54972df4b11f92f97021cc62c945d66f05af089941728f1529f7acaa",
+      "contentMd5": "no9u72J+VLDJfQtvuaGgqw==",
+      "contentType": "image/webp",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/original.png",
+      "bytes": 1440036,
+      "sha256": "3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84",
+      "contentMd5": "R/7pZhNAqU05q7OKAYHl1g==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w160.webp",
+      "bytes": 15208,
+      "sha256": "085df1fa1463fd7a215072dbc73ab8d3075b0b43539fe0a7687c4cc53a42cf4b",
+      "contentMd5": "BxMuKhcX7ZuwE5AY8I2jTQ==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 160
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w320.webp",
+      "bytes": 46934,
+      "sha256": "91dda3c73df5f961e549b8aa783b759ce0a83e093a75a98b22a5b723b0939000",
+      "contentMd5": "aEB7ZsB9rgNq+x34/D+rSQ==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 320
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w480.webp",
+      "bytes": 91316,
+      "sha256": "4f9f3e9724da1bcad72300ffa4bb48ae08d85822a65258355de19e53e2c2ce73",
+      "contentMd5": "HQoBp1tnMcYu2pcV/TxurQ==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 480
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w800.webp",
+      "bytes": 216416,
+      "sha256": "e1a2bf3bde795aac9bb981db557735ee0ba9f41a03327dfc558e8fb7e2d39e6e",
+      "contentMd5": "ecuJpLYh74h999/FhkiZnQ==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 800
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w1200.webp",
+      "bytes": 405896,
+      "sha256": "8b2f8322be1f3d2cfcec55f4c2cadde6f091575a1258a447e5495c71df9da57b",
+      "contentMd5": "1wcJWF2qjkkG9viWl5Yu0A==",
+      "contentType": "image/webp",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/w1254.webp",
+      "bytes": 474862,
+      "sha256": "7245e6386ec6b1b2c5e92b891b4d169d2dd460e082414e70498df33265b18040",
+      "contentMd5": "BRBKtw/6gj0ywcm61kTEMw==",
+      "contentType": "image/webp",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/original.png",
+      "bytes": 2280807,
+      "sha256": "026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84",
+      "contentMd5": "2JyawN6BZU8XGYTvc5jqzg==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w160.webp",
+      "bytes": 16588,
+      "sha256": "1fb884eed768469d9bbc7acb323abd0848f4452c06c32801875e1afcb013bf64",
+      "contentMd5": "VpEDJkmHgiYWfesxaHR5zA==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 271
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w320.webp",
+      "bytes": 50748,
+      "sha256": "f5a3ed9360d6df32564c655e1dcb5b944c4a6be65d970b0697c7fb6502ac8b73",
+      "contentMd5": "ty30x6SS3PGvSib/ot0neQ==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 542
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w480.webp",
+      "bytes": 94742,
+      "sha256": "ea5a10ee918558d55c86a8acc5d7ece05ee6e6c8d318f697ebdc59f43325f045",
+      "contentMd5": "6KbEHnrXUNOYnJR5hwuRnA==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 813
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w800.webp",
+      "bytes": 206766,
+      "sha256": "e0b3b020b626b0959fd3e888c09a448631354857a73180fac429422f752d3cd9",
+      "contentMd5": "Qa+G4X9RIZJCuUOm3EYCDQ==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 1355
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/w964.webp",
+      "bytes": 304974,
+      "sha256": "677ac9f0b2b94df5ff76c6f4a2535788f454fc67aa322f12128de6162c23d8e7",
+      "contentMd5": "ngZ/XiOhDFliEiE7QXXA9A==",
+      "contentType": "image/webp",
+      "width": 964,
+      "height": 1632
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/original.png",
+      "bytes": 2155588,
+      "sha256": "42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1",
+      "contentMd5": "ujtq0jnx30ZVTsm/2XgE9g==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w160.webp",
+      "bytes": 7522,
+      "sha256": "a4e6f60f90c5430c9fdec463b4807e57acba81f55d3704045bbcdb3d2cb5ec5c",
+      "contentMd5": "8uxTPc8rxadCPjrinEkytQ==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 166
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w320.webp",
+      "bytes": 20062,
+      "sha256": "a51465e549c9aed79eb0fbf4b9e28c201ff9fe2cf3d2a21ee7d8f9496d50e637",
+      "contentMd5": "nPEse5kewb7LfpkuTvx96w==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 332
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w480.webp",
+      "bytes": 36016,
+      "sha256": "9e25a2bba330979461db0ca293b312ecf1346d631d3b7d472a97bc6407bbdf90",
+      "contentMd5": "HxZCuOx3W4iO74xwytcy7w==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 497
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w800.webp",
+      "bytes": 76572,
+      "sha256": "bf57a85d44b856e25aa917885a156949507a2e66d17a5733d3ab9be50c17b3c5",
+      "contentMd5": "j0CPadTKCMW2Ynh3q1WW2Q==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 828
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w1200.webp",
+      "bytes": 136360,
+      "sha256": "eb46ffd8e94cf8b51d6df6945683a76d0d9933da947b373e311ef69f9826701c",
+      "contentMd5": "g7TSApYkxMx0z6Xh9eFkGw==",
+      "contentType": "image/webp",
+      "width": 1200,
+      "height": 1242
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/w1233.webp",
+      "bytes": 154586,
+      "sha256": "027e1fa16df379f18b6489e2a46240ff9c80b775b77ebfcb20f95e2a61ec8d67",
+      "contentMd5": "r1DSs1Q2iwzamxwem62tbA==",
+      "contentType": "image/webp",
+      "width": 1233,
+      "height": 1276
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/original.png",
+      "bytes": 1114793,
+      "sha256": "054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea",
+      "contentMd5": "OJaMJdUM1BvFweOGtjHpDQ==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/w160.webp",
+      "bytes": 15868,
+      "sha256": "9aeb13f76dd2606e6ededc2a69517ddc9b007dff009ee01f49c7edbb62170274",
+      "contentMd5": "3TOfUOzF2xDO+60oGtYJpA==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 401
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/w320.webp",
+      "bytes": 48260,
+      "sha256": "016f6cc8a9bf0cb60aec7d3b483d8414cf80be594cbfb9aa5390aedc9bb1a69f",
+      "contentMd5": "UMUiD/9snFhRyCmuVT+gAw==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 801
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/w480.webp",
+      "bytes": 92424,
+      "sha256": "1743953c02cc02abe97f7ac3f728d621da377b4917934116c7913c1e588b5799",
+      "contentMd5": "buE2wB2FsV8z1hE2lYn8fQ==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 1201
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/w793.webp",
+      "bytes": 210766,
+      "sha256": "3b6dc847f9aebb873e76f3b323380fe8b34c34d4ef1d8e8f04cd1909c1538944",
+      "contentMd5": "kmzls34xRBIDX54tObAb0w==",
+      "contentType": "image/webp",
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/original.png",
+      "bytes": 1723606,
+      "sha256": "11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c",
+      "contentMd5": "RXWruRbL9TXxK3GFPHFCuw==",
+      "contentType": "image/png"
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w160.webp",
+      "bytes": 2346,
+      "sha256": "40cae636f0592ae348980b89e22b75fff3a188b1c9cbb63b32feadb6b2b63ff6",
+      "contentMd5": "4C+X9QI5pi2gjOI4X+NzhA==",
+      "contentType": "image/webp",
+      "width": 160,
+      "height": 67
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w320.webp",
+      "bytes": 6790,
+      "sha256": "e35d89acbdef2e5d80038f7562cadc156a69b0799302daddf4562c7a0a67d0b6",
+      "contentMd5": "EAePZYv4+bMyJ7Ps7HwkuA==",
+      "contentType": "image/webp",
+      "width": 320,
+      "height": 134
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w480.webp",
+      "bytes": 12744,
+      "sha256": "3d41b400baf963834dab9cad2c8b24e1e210905abc87c15c601cdfd6d906a244",
+      "contentMd5": "MFi87ev7+U/Afub6EqLXKg==",
+      "contentType": "image/webp",
+      "width": 480,
+      "height": 200
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w800.webp",
+      "bytes": 27014,
+      "sha256": "0a8768ae3ec4da77724c448fb4789789d0b31c66f6bf196aafe9bc439d5b4340",
+      "contentMd5": "bUWGKRUcDp4u6eSxNg46Sw==",
+      "contentType": "image/webp",
+      "width": 800,
+      "height": 334
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w1200.webp",
+      "bytes": 48664,
+      "sha256": "36f2f5f03dcbab7a006ea844973241aa4aa3e043b79320119ebd03402a2c0412",
+      "contentMd5": "3sFm4Po8K28oGA9T/2/MzQ==",
+      "contentType": "image/webp",
+      "width": 1200,
+      "height": 500
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w1600.webp",
+      "bytes": 72574,
+      "sha256": "2b9b9c64fb116b6cdbe0358c81082ce7f88d664e20c04fbb8b654f736a67ffe9",
+      "contentMd5": "z06lwCsEZUR/fGAIzqrq2A==",
+      "contentType": "image/webp",
+      "width": 1600,
+      "height": 667
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w1920.webp",
+      "bytes": 89686,
+      "sha256": "3fc79d23626ce5767a8b297624e2ae84258b3bd83f1fa7ea8e8ccd3e0f6482db",
+      "contentMd5": "qhGIUY1WqRN30n460ZmKgQ==",
+      "contentType": "image/webp",
+      "width": 1920,
+      "height": 800
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/w1942.webp",
+      "bytes": 103582,
+      "sha256": "85c3396b454d6188df3507de26f94e249fc55e7faf0365b3e3c3ab4cc9bccfe5",
+      "contentMd5": "0SIbskB+dFqdXLtdtc8rVQ==",
+      "contentType": "image/webp",
+      "width": 1942,
+      "height": 809
+    },
+    {
+      "bucket": "vympel-staging",
+      "key": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/original.png",
+      "bytes": 1849887,
+      "sha256": "6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8",
+      "contentMd5": "4poL2/UKNMZZGjPZbvLQPA==",
+      "contentType": "image/png"
+    }
+  ],
+  "images": [
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/d28811e6-f5ab-4cb4-9858-ffb017a94dcf.png",
+      "originalKey": "product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/original.png",
+      "sourceSha256": "5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/fe810e91-6ac0-4526-b62a-4c59c861ca32.png",
+      "originalKey": "product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/original.png",
+      "sourceSha256": "254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/31e0850d-cede-4c40-923a-fcff6c95b5d1.png",
+      "originalKey": "product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/original.png",
+      "sourceSha256": "1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5",
+      "width": 1024,
+      "height": 1536
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8.png",
+      "originalKey": "product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/original.png",
+      "sourceSha256": "7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/0fbd5295-5eb2-4d40-a4df-74bbb664efe2.png",
+      "originalKey": "product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/original.png",
+      "sourceSha256": "3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/6124b75a-3be4-42d6-8a14-01bdec5963a5.png",
+      "originalKey": "product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/original.png",
+      "sourceSha256": "026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/903e235d-17ce-429d-a7b0-c3cc821f32ca.png",
+      "originalKey": "product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/original.png",
+      "sourceSha256": "42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1",
+      "width": 964,
+      "height": 1632
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/129ef743-acf3-458d-852c-02ddfa61fd21.png",
+      "originalKey": "product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/original.png",
+      "sourceSha256": "054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea",
+      "width": 1233,
+      "height": 1276
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "product/e09cd951-4f33-4028-a4d7-bc518cff53da.png",
+      "originalKey": "product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/original.png",
+      "sourceSha256": "11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c",
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "bucket": "vympel-staging",
+      "oldKey": "cms/2eba3c37-4e71-4017-9a6b-447592ccce7e.png",
+      "originalKey": "cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/original.png",
+      "sourceSha256": "6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8",
+      "width": 1942,
+      "height": 809
+    }
+  ],
+  "skipped": []
+}

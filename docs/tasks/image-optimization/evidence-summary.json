@@ -1,0 +1,109 @@
+{
+  "before": {
+    "cases": 36,
+    "maxCls": 0.00016669153968827156,
+    "pageErrors": null,
+    "broken": 0,
+    "overflow": 0,
+    "unexpectedHosts": [],
+    "maxPreloads": 4,
+    "timings": {
+      "cold": {
+        "medianTtfbMs": 936.45,
+        "medianDownloadMs": 759.23
+      },
+      "warm": {
+        "medianTtfbMs": 801.26,
+        "medianDownloadMs": 573.03
+      }
+    },
+    "note": "The original staging harness did not record pageerror events; use null instead of assuming zero."
+  },
+  "replay-before": {
+    "cases": 36,
+    "maxCls": 0.000014947554976851853,
+    "pageErrors": 0,
+    "broken": 0,
+    "overflow": 0,
+    "unexpectedHosts": [],
+    "maxPreloads": 4,
+    "timings": {
+      "cold": {
+        "medianTtfbMs": 13.33,
+        "medianDownloadMs": 12.93
+      },
+      "warm": {
+        "medianTtfbMs": 2.32,
+        "medianDownloadMs": 0.18
+      }
+    }
+  },
+  "replay-after": {
+    "cases": 36,
+    "maxCls": 0.0005768226755401235,
+    "pageErrors": 0,
+    "broken": 0,
+    "overflow": 0,
+    "unexpectedHosts": [],
+    "maxPreloads": 2,
+    "timings": {
+      "cold": {
+        "medianTtfbMs": 6.91,
+        "medianDownloadMs": 0.83
+      },
+      "warm": {
+        "medianTtfbMs": 1.84,
+        "medianDownloadMs": 0.3
+      }
+    }
+  },
+  "slow-before": {
+    "cases": 12,
+    "maxCls": 0.03784910144094705,
+    "pageErrors": 0,
+    "broken": 0,
+    "overflow": 0,
+    "unexpectedHosts": [],
+    "maxPreloads": 3,
+    "timings": {
+      "cold": {
+        "medianTtfbMs": 16.49,
+        "medianDownloadMs": 2069.58
+      },
+      "warm": {
+        "medianTtfbMs": 5.54,
+        "medianDownloadMs": 0.4
+      }
+    }
+  },
+  "slow-after": {
+    "cases": 12,
+    "maxCls": 0.0014696527777777776,
+    "pageErrors": 0,
+    "broken": 0,
+    "overflow": 0,
+    "unexpectedHosts": [],
+    "maxPreloads": 2,
+    "timings": {
+      "cold": {
+        "medianTtfbMs": 10.2,
+        "medianDownloadMs": 1648.74
+      },
+      "warm": {
+        "medianTtfbMs": null,
+        "medianDownloadMs": null
+      }
+    }
+  },
+  "backendScan": {
+    "createdAt": "2026-11-03T15:02:55.721061373Z",
+    "image": "vympel-image-optimization:validation",
+    "imageId": "sha256:df237df6b6bae6f9ff2909a47c81bef36009d5da4426acc67352111f49eeaff6",
+    "os": {
+      "Family": "ubuntu",
+      "Name": "22.04"
+    },
+    "filter": "HIGH,CRITICAL --ignore-unfixed",
+    "vulnerabilities": []
+  }
+}

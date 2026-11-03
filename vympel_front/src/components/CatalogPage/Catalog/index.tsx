@@ -80,7 +80,7 @@ const Catalog: FC<Props> = ({locale, categoryCode, initialPage, initialLoadError
                     ratingAverage={good.ratingAverage}
                     ratingCount={good.ratingCount}
                     href={routes.product(good.id)}
-                    priority={index < 3}
+                    priority={index < 2}
                     isCatalog
                 />
             ))

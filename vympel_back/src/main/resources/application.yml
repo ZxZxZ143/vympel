@@ -142,6 +142,9 @@ app:
     cleanup-max-batches: "${VYMPEL_ANALYTICS_CLEANUP_MAX_BATCHES:20}"
   performance:
     slow-operation-threshold-ms: "${VYMPEL_SLOW_OPERATION_THRESHOLD_MS:500}"
+  image-variants:
+    enabled: "${VYMPEL_IMAGE_VARIANTS_ENABLED:true}"
+    executable: "${VYMPEL_IMAGE_VARIANTS_EXECUTABLE:cwebp}"
   logging:
     max-file-size: "${APP_LOG_MAX_FILE_SIZE:50MB}"
     retention-days: "${APP_LOG_RETENTION_DAYS:30}"

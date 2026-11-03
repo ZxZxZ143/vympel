@@ -46,6 +46,7 @@ public class ObjectStorageService {
     private final MediaRepository mediaRepository;
     private final ObjectStorageDeletionOutboxService objectStorageDeletionOutboxService;
     private final ProductRepository productRepository;
+    private final ImageVariantEncoder imageVariantEncoder;
     private static final Map<String, Set<String>> SUPPORTED_IMAGE_EXTENSIONS = Map.of(
             "image/jpeg", Set.of("jpg", "jpeg"),
             "image/png", Set.of("png"),
@@ -88,24 +89,11 @@ public class ObjectStorageService {
                 .max(Integer::compareTo)
                 .orElse(-1) + 1;
         boolean hasMainImage = existingImages.stream().anyMatch(media -> Boolean.TRUE.equals(media.getMain()));
+        long encodingDeadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(20);
         try {
             for (MultipartFile file : files) {
-                String contentType = normalizedContentType(file);
-                String originalName = safeName(file.getOriginalFilename());
-                String extension = validatedExtension(file, contentType);
-                String key = ObjectStoragePath.PRODUCT.getValue() + "/" + UUID.randomUUID() + "." + extension;
-                PutObjectRequest uploadRequest = PutObjectRequest.builder()
-                        .bucket(props.bucket())
-                        .key(key)
-                        .contentType(contentType)
-                        .metadata(Map.of(
-                                "originalName", originalName
-                        ))
-                        .build();
-
-                s3.putObject(uploadRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-                uploadedKeys.add(key);
-                registerRollbackCleanup(key);
+                String key = uploadImage(file, ObjectStoragePath.PRODUCT.getValue(), uploadedKeys,
+                        encodingDeadline);
 
                 Media newMedia = new Media();
                 newMedia.setProduct(product);
@@ -151,22 +139,14 @@ public class ObjectStorageService {
         validateImage(file);
 
         String contentType = normalizedContentType(file);
-        byte[] bytes = file.getBytes();
-        validateImageContent(bytes, contentType);
         String originalName = safeName(file.getOriginalFilename());
-        String extension = validatedExtension(file, contentType);
-        String key = ObjectStoragePath.CMS.getValue() + "/" + UUID.randomUUID() + "." + extension;
-        PutObjectRequest uploadRequest = PutObjectRequest.builder()
-                .bucket(props.bucket())
-                .key(key)
-                .contentType(contentType)
-                .metadata(Map.of("originalName", originalName))
-                .build();
-
+        List<String> uploadedKeys = new ArrayList<>();
+        String key;
         try {
-            s3.putObject(uploadRequest, RequestBody.fromBytes(bytes));
-            registerRollbackCleanup(key);
-        } catch (RuntimeException ex) {
+            key = uploadImage(file, ObjectStoragePath.CMS.getValue(), uploadedKeys,
+                    System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(20));
+        } catch (IOException | RuntimeException ex) {
+            cleanupUploadedObjects(uploadedKeys);
             log.error(
                     "CMS image upload failed contentType={} sizeBytes={}",
                     contentType,
@@ -183,6 +163,50 @@ public class ObjectStorageService {
                 contentType,
                 file.getSize()
         );
+    }
+
+    private String uploadImage(MultipartFile file, String prefix, List<String> uploadedKeys,
+                               long encodingDeadline) throws IOException {
+        String contentType = normalizedContentType(file);
+        String extension = validatedExtension(file, contentType);
+        String id = UUID.randomUUID().toString();
+        byte[] bytes = file.getBytes();
+        String originalKey = prefix + "/" + id + "." + extension;
+        var encoded = imageVariantEncoder.encode(bytes, contentType, "cms".equals(prefix), encodingDeadline);
+        if (encoded.isPresent()) {
+            var image = encoded.get();
+            String base = ResponsiveImageLayout.base(prefix, id, bytes, image.width(), image.height());
+            for (var variant : image.variants().entrySet()) {
+                putImage(base + "/w" + variant.getKey() + ".webp", variant.getValue(), "image/webp",
+                        Map.of("source-sha256", ResponsiveImageLayout.sha256(bytes)), uploadedKeys);
+            }
+            originalKey = base + "/original." + extension;
+        }
+        // Publish the original last. A persisted responsive-v1 key promises a complete family.
+        putImage(originalKey, bytes, contentType,
+                Map.of("originalName", safeName(file.getOriginalFilename())), uploadedKeys);
+        return originalKey;
+    }
+
+    private void putImage(String key, byte[] bytes, String contentType, Map<String, String> metadata,
+                          List<String> uploadedKeys) {
+        var checksummedMetadata = new java.util.HashMap<>(metadata);
+        checksummedMetadata.put("sha256", ResponsiveImageLayout.sha256(bytes));
+        String md5;
+        try {
+            md5 = java.util.Base64.getEncoder().encodeToString(java.security.MessageDigest.getInstance("MD5").digest(bytes));
+        } catch (java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException(exception);
+        }
+        var request = PutObjectRequest.builder().bucket(props.bucket()).key(key).contentType(contentType)
+                .contentMD5(md5).metadata(checksummedMetadata)
+                .cacheControl("public, max-age=31536000, immutable")
+                .overrideConfiguration(config -> config.putHeader("If-None-Match", "*"))
+                .build();
+        // S3/MinIO validates Content-MD5 against the received bytes; SHA-256 is retained for audit/backfill.
+        s3.putObject(request, RequestBody.fromBytes(bytes));
+        uploadedKeys.add(key);
+        registerRollbackCleanup(key);
     }
 
     private void validateImageContent(byte[] bytes, String contentType) {
@@ -541,10 +565,10 @@ public class ObjectStorageService {
 
     public void delete(String key) {
         try {
-            s3.deleteObject(DeleteObjectRequest.builder()
-                    .bucket(props.bucket())
-                    .key(key)
-                    .build());
+            for (String ownedKey : ResponsiveImageLayout.ownedKeys(key)) {
+                s3.deleteObject(DeleteObjectRequest.builder()
+                        .bucket(props.bucket()).key(ownedKey).build());
+            }
         } catch (RuntimeException ex) {
             log.error("Object storage delete failed objectKey={}", key, ex);
             throw ex;

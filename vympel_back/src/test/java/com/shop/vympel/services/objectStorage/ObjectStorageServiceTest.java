@@ -46,6 +46,8 @@ class ObjectStorageServiceTest {
     @Mock
     private ProductRepository productRepository;
     @Mock
+    private ImageVariantEncoder imageVariantEncoder;
+    @Mock
     private ObjectStorageDeletionOutboxService objectStorageDeletionOutboxService;
     @Mock
     private MultipartFile file;
@@ -69,8 +71,49 @@ class ObjectStorageServiceTest {
                 ),
                 mediaRepository,
                 objectStorageDeletionOutboxService,
-                productRepository
+                productRepository,
+                imageVariantEncoder
         );
+    }
+
+    @Test
+    void publishesVariantFamilyBeforeOriginalAndKeepsOriginalBytes() throws Exception {
+        Product product = product(10L);
+        when(productRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(product));
+        when(mediaRepository.findAllByProductIdForUpdate(10L)).thenReturn(List.of());
+        mockImage(file, "watch.png", "image/png");
+        byte[] original = file.getBytes();
+        when(imageVariantEncoder.encode(any(byte[].class), any(String.class), org.mockito.ArgumentMatchers.eq(false), org.mockito.ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.of(new ImageVariantEncoder.Encoded(160, 240, java.util.Map.of(160, new byte[]{1, 2, 3}))));
+
+        List<String> keys = service.uploadProductImage(List.of(file), 10L);
+        var requests = ArgumentCaptor.forClass(PutObjectRequest.class);
+        var bodies = ArgumentCaptor.forClass(RequestBody.class);
+        verify(s3, times(2)).putObject(requests.capture(), bodies.capture());
+        assertTrue(requests.getAllValues().get(0).key().endsWith("/w160.webp"));
+        assertTrue(keys.get(0).endsWith("/160x240/original.png"));
+        assertEquals(keys.get(0), requests.getAllValues().get(1).key());
+        assertEquals(ResponsiveImageLayout.sha256(original), requests.getAllValues().get(1).metadata().get("sha256"));
+        assertEquals("public, max-age=31536000, immutable", requests.getValue().cacheControl());
+        org.junit.jupiter.api.Assertions.assertArrayEquals(original, bodies.getValue().contentStreamProvider().newStream().readAllBytes());
+        assertTrue(requests.getValue().contentMD5() != null);
+        assertEquals(List.of("*"), requests.getValue().overrideConfiguration().orElseThrow().headers().get("If-None-Match"));
+    }
+
+    @Test
+    void partialVariantFailureNeverPersistsAReadyReference() throws Exception {
+        Product product = product(10L);
+        when(productRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(product));
+        when(mediaRepository.findAllByProductIdForUpdate(10L)).thenReturn(List.of());
+        mockImage(file, "watch.png", "image/png");
+        when(imageVariantEncoder.encode(any(byte[].class), any(String.class), org.mockito.ArgumentMatchers.eq(false), org.mockito.ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.of(new ImageVariantEncoder.Encoded(160, 240, java.util.Map.of(160, new byte[]{1}))));
+        when(s3.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenReturn(software.amazon.awssdk.services.s3.model.PutObjectResponse.builder().build())
+                .thenThrow(new IllegalStateException("storage unavailable"));
+        assertThrows(IllegalStateException.class, () -> service.uploadProductImage(List.of(file), 10L));
+        verify(mediaRepository, never()).save(any(Media.class));
+        verify(s3).deleteObject(any(DeleteObjectRequest.class));
     }
 
     @Test
@@ -294,7 +337,6 @@ class ObjectStorageServiceTest {
         when(image.getOriginalFilename()).thenReturn(filename);
         when(image.getSize()).thenReturn((long) bytes.length);
         when(image.getBytes()).thenReturn(bytes);
-        when(image.getInputStream()).thenReturn(new ByteArrayInputStream(bytes));
     }
 
     private byte[] imageBytes(String format) throws Exception {

@@ -1,0 +1,9 @@
+{
+  "preparedSourceCount": 80,
+  "limit": 80,
+  "additionalApiExpansionsRejected": true,
+  "normalAndSlowImageHttpFailures": 0,
+  "normalAndSlowImageTransportFailures": 0,
+  "scrollPendingRequests": 0,
+  "limitation": "Bounded image comparison; additional API expansions hit the fixture cap. No claim of full-site API/prefetch parity."
+}

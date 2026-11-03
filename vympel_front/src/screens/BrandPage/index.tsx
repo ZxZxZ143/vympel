@@ -205,6 +205,11 @@ function BrandImage({
         <div className={cn("w-screen left-1/2 -translate-x-1/2 brand-page-image bg-surface-card", className)}>
             {src ? (
                 <CmsResponsiveImage
+                    coverHeight={{
+                        mobile: "clamp(360px, 68svh, 560px)",
+                        tablet: "max(360px, min(58vh, 560px))",
+                        desktop: "max(260px, min(700px, 44vw))",
+                    }}
                     desktopSrc={src}
                     mobileSrc={mobileSrc}
                     fallbackSrc={fallbackSrc ?? src}

@@ -4,7 +4,8 @@ import ProductPrice, {DiscountBadge} from "@/components/ProductPrice";
 import {customerPrice} from "@/utils/productPricing";
 
 import {FC, type MouseEvent, useMemo, useState} from "react";
-import Image from "next/image";
+import ResponsiveProductImage from "@/components/ui/shared/ResponsiveProductImage";
+import {PRODUCT_CARD_SIZES} from "@/utils/responsiveImages";
 import {useLocale, useTranslations} from "use-intl";
 
 import Card from "@/components/ui/shared/Card";
@@ -172,18 +173,17 @@ const GoodCard: FC<GoodCardProps> = ({
                         <Card className="relative flex aspect-27/37 w-full items-center justify-center overflow-hidden">
                             <DiscountBadge discountPercent={discountPercent} className="product-card-discount"/>
                             {canRenderImage ? (
-                                <Image
+                                <ResponsiveProductImage
                                     width={270}
                                     height={370}
                                     src={img ?? ""}
                                     alt={name}
-                                    sizes="(max-width: 640px) 70vw, (max-width: 1024px) 33vw, 270px"
+                                    sizes={PRODUCT_CARD_SIZES}
                                     className={cn(
                                         "h-full w-auto object-contain transition",
                                         isUnavailable && "opacity-45 saturate-50"
                                     )}
                                     priority={priority}
-                                    unoptimized
                                     onError={() => setFailedImageUrl(img ?? null)}
                                 />
                             ) : (

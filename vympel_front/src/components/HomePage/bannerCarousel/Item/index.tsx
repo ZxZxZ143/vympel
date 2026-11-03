@@ -16,6 +16,7 @@ export type BannerItemProps = {
     buttonText?: string | null;
     className?: string;
     priority?: boolean;
+    loadImage?: boolean;
 };
 
 const BannerItem: FC<BannerItemProps> = ({
@@ -31,25 +32,31 @@ const BannerItem: FC<BannerItemProps> = ({
                                              subtitle,
                                              buttonText,
                                              priority = false,
+                                             loadImage = true,
                                          }) => {
     const hasText = Boolean(title?.trim() || subtitle?.trim() || buttonText?.trim());
     const content = (
         <span className="responsive-home-banner-frame block">
             <CmsResponsiveImage
+                loadImage={loadImage}
                 desktopSrc={url}
                 mobileSrc={mobileUrl}
                 fallbackSrc={fallbackUrl}
                 alt=""
                 decorative
+                maximumWidth={160}
+                sizes="160px"
                 pictureClassName="absolute inset-0"
                 className="responsive-home-banner-backdrop absolute inset-0 h-full w-full"
             />
             <CmsResponsiveImage
+                loadImage={loadImage}
                 desktopSrc={url}
                 mobileSrc={mobileUrl}
                 fallbackSrc={fallbackUrl}
                 alt={alt}
                 priority={priority}
+                sizes="90vw"
                 pictureClassName="absolute inset-0"
                 className="responsive-home-banner-image absolute inset-0 h-full w-full"
             />

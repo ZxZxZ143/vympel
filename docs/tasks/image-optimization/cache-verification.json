@@ -1,0 +1,58 @@
+[
+  {
+    "name": "legacy",
+    "status": 200,
+    "cache": "public, max-age=3600",
+    "etag": "\"c497f06212e8c2cf15afa951a81b9402ab3adb7603f9e53f443754bb3b2edef8\"",
+    "type": "image/png"
+  },
+  {
+    "name": "variant",
+    "status": 200,
+    "cache": "public, max-age=31536000, immutable",
+    "etag": "\"74650a2ec9c08aa933fdf1e71df363ca85bc039c10cba5543eaa1d0e3c56ab86\"",
+    "type": "image/webp"
+  },
+  {
+    "name": "conditional",
+    "status": 304,
+    "cache": "public, max-age=31536000, immutable",
+    "etag": "\"74650a2ec9c08aa933fdf1e71df363ca85bc039c10cba5543eaa1d0e3c56ab86\"",
+    "type": "image/webp"
+  },
+  {
+    "name": "signed",
+    "status": 200,
+    "cache": "private, no-store",
+    "etag": "\"74650a2ec9c08aa933fdf1e71df363ca85bc039c10cba5543eaa1d0e3c56ab86\"",
+    "type": "image/webp"
+  },
+  {
+    "name": "authorized",
+    "status": 200,
+    "cache": "private, no-store",
+    "etag": "\"74650a2ec9c08aa933fdf1e71df363ca85bc039c10cba5543eaa1d0e3c56ab86\"",
+    "type": "image/webp"
+  },
+  {
+    "name": "write-denied",
+    "status": 403,
+    "cache": null,
+    "etag": null,
+    "type": "text/html"
+  },
+  {
+    "name": "unknown",
+    "status": 404,
+    "cache": null,
+    "etag": null,
+    "type": null
+  },
+  {
+    "name": "missing-variant",
+    "status": 404,
+    "cache": null,
+    "etag": null,
+    "type": null
+  }
+]

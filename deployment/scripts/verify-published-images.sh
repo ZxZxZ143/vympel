@@ -81,6 +81,10 @@ for image in vympel-backend vympel-storefront vympel-crm; do
     fi
 
     case "$image" in
+      vympel-backend)
+        # Native upload-time image encoding must exist in both published architectures.
+        docker run --rm --platform "linux/$architecture" --entrypoint cwebp "$child_ref" -version
+        ;;
       vympel-storefront|vympel-crm)
         scan_container="vympel-bundle-scan-${image#vympel-}-$architecture-$$"
         scan_dir=$(mktemp -d)

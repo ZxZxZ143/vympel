@@ -1,0 +1,17 @@
+{
+  "sampleImages": 10,
+  "objects": 65,
+  "repeatedManifestSha256": "f4a301375ffd25c53e8e0260cda73db5bc4370040dc789e44f7b90c6f3532c7e",
+  "checks": [
+    {
+      "name": "checksum",
+      "rejected": true,
+      "externalWrites": 0
+    },
+    {
+      "name": "batch-cap",
+      "rejected": true,
+      "externalWrites": 0
+    }
+  ]
+}

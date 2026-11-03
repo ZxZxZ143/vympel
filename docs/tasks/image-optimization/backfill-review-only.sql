@@ -1,0 +1,25 @@
+-- REVIEW ONLY. Upload and GET/verify every manifest object before changing references.
+-- Originals at oldKey are retained permanently by this plan. No DELETE is generated.
+BEGIN;
+SELECT id, url FROM media WHERE url = 'product/d28811e6-f5ab-4cb4-9858-ffb017a94dcf.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/d28811e6-f5ab-4cb4-9858-ffb017a94dcf/5877cefbca87be90b78877b7818d177e947a42685791ebd0d5b1ad0dbc537943/1254x1254/original.png' WHERE url = 'product/d28811e6-f5ab-4cb4-9858-ffb017a94dcf.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/fe810e91-6ac0-4526-b62a-4c59c861ca32.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/fe810e91-6ac0-4526-b62a-4c59c861ca32/254f793b3e175180458e343c076bd94cfc54bbc72f2c408801233d48c67aac44/1086x1448/original.png' WHERE url = 'product/fe810e91-6ac0-4526-b62a-4c59c861ca32.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/31e0850d-cede-4c40-923a-fcff6c95b5d1.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/31e0850d-cede-4c40-923a-fcff6c95b5d1/1dd1a9935b086649042dec809f26b5c18ba28098cadb7af14a9258d56aac53a5/1024x1536/original.png' WHERE url = 'product/31e0850d-cede-4c40-923a-fcff6c95b5d1.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8/7aad1371769307f466fcc06ee93b12c584c9837031f7a6c30a0ca4cd76e98705/1086x1448/original.png' WHERE url = 'product/e67868ae-cfc6-4f70-9826-5a7de4d0d6f8.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/0fbd5295-5eb2-4d40-a4df-74bbb664efe2.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/0fbd5295-5eb2-4d40-a4df-74bbb664efe2/3d5a0aa865d42c89b54aaf71ac1b09e3eb8eff43a6c2daabdb915d5e9ccd6d84/1086x1448/original.png' WHERE url = 'product/0fbd5295-5eb2-4d40-a4df-74bbb664efe2.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/6124b75a-3be4-42d6-8a14-01bdec5963a5.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/6124b75a-3be4-42d6-8a14-01bdec5963a5/026bcc8edddf815240cea4d25a68a69d07be6f2771f075abac36eb22530d7d84/1254x1254/original.png' WHERE url = 'product/6124b75a-3be4-42d6-8a14-01bdec5963a5.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/903e235d-17ce-429d-a7b0-c3cc821f32ca.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/903e235d-17ce-429d-a7b0-c3cc821f32ca/42fef0e33c024f17f2630cdf77b2cef7737634e4fbe707e56143c4e5b0daf4c1/964x1632/original.png' WHERE url = 'product/903e235d-17ce-429d-a7b0-c3cc821f32ca.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/129ef743-acf3-458d-852c-02ddfa61fd21.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/129ef743-acf3-458d-852c-02ddfa61fd21/054e9a10636f42b07d5e2c5aa5e8cc2930e50c5f87c69a6f6445bb4dee5e9aea/1233x1276/original.png' WHERE url = 'product/129ef743-acf3-458d-852c-02ddfa61fd21.png' RETURNING id;
+SELECT id, url FROM media WHERE url = 'product/e09cd951-4f33-4028-a4d7-bc518cff53da.png' FOR UPDATE;
+UPDATE media SET url = 'product/responsive-v1/e09cd951-4f33-4028-a4d7-bc518cff53da/11c0b9dc49a018df67ef2ff8865bd3e706da4d467990ab27fb5c41382032276c/793x1983/original.png' WHERE url = 'product/e09cd951-4f33-4028-a4d7-bc518cff53da.png' RETURNING id;
+SELECT id, object_key FROM cms_media WHERE object_key = 'cms/2eba3c37-4e71-4017-9a6b-447592ccce7e.png' FOR UPDATE;
+UPDATE cms_media SET object_key = 'cms/responsive-v1/2eba3c37-4e71-4017-9a6b-447592ccce7e/6a3aeef0f1d7a22ff16ad8b12cacb6c2c36b242d67ade8ab3179e8108817f8d8/1942x809/original.png', updated_at = CURRENT_TIMESTAMP WHERE object_key = 'cms/2eba3c37-4e71-4017-9a6b-447592ccce7e.png' AND storage_type = 'OBJECT_STORAGE' AND lifecycle_status = 'ACTIVE' RETURNING id;
+-- Review row counts and public URLs before separately authorizing COMMIT.
+ROLLBACK;

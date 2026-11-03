@@ -1,0 +1,17 @@
+variant 160 9304
+variant 320 24148
+variant 480 45012
+variant 800 107222
+variant 1200 224268
+variant 1254 306370
+elapsed_ms 10481
+codec 1.2.2
+memory_peak 53149696
+usage_usec 9750741
+user_usec 3697254
+system_usec 6053486
+nr_periods 115
+nr_throttled 92
+throttled_usec 4234002
+nr_bursts 0
+burst_usec 0

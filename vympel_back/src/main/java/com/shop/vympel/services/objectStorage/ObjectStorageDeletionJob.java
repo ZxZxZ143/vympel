@@ -29,10 +29,10 @@ public class ObjectStorageDeletionJob {
         }
         for (ObjectStorageDeletionOutboxService.DeletionClaim claim : outboxService.claimDue()) {
             try {
-                s3Client.deleteObject(DeleteObjectRequest.builder()
-                        .bucket(storageProps.bucket())
-                        .key(claim.objectKey())
-                        .build());
+                for (String key : ResponsiveImageLayout.ownedKeys(claim.objectKey())) {
+                    s3Client.deleteObject(DeleteObjectRequest.builder()
+                            .bucket(storageProps.bucket()).key(key).build());
+                }
                 outboxService.complete(claim.id());
                 meterRegistry.counter("object_storage_deletion_total", "outcome", "success").increment();
             } catch (RuntimeException exception) {

@@ -24,6 +24,12 @@ const BannerWithFlorContent: FC<PropsWithChildren<Props>> = ({
         <div className="relative w-full">
             <div className="w-full">
                 <CmsResponsiveImage
+                    coverHeight={{
+                        mobile: "clamp(220px, 64vw, 340px)",
+                        tablet: "max(420px, min(58vh, 620px))",
+                        desktop: imageClassName?.includes("catalog-page-banner-image")
+                            ? "max(605px, min(58vh, 620px))" : "max(420px, min(58vh, 620px))",
+                    }}
                     desktopSrc={image}
                     mobileSrc={mobileImage}
                     fallbackSrc={fallbackImage ?? image}

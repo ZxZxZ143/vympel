@@ -10,7 +10,7 @@ type Props = {
 
 const BrandProductsGrid = ({products}: Props) => (
     <div className="brand-product-grid mt-12">
-        {products.map((product, index) => (
+        {products.map((product) => (
             <GoodCard
                 key={product.id}
                 id={product.id}
@@ -25,7 +25,6 @@ const BrandProductsGrid = ({products}: Props) => (
                 ratingAverage={product.ratingAverage}
                 ratingCount={product.ratingCount}
                 href={routes.product(product.id)}
-                priority={index < 4}
                 isCatalog
             />
         ))}

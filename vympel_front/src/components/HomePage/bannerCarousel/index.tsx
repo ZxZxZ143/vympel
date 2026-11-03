@@ -1,6 +1,7 @@
 "use client";
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {nearbySlide} from "@/utils/responsiveImages";
 
 import {
     Carousel,
@@ -33,6 +34,14 @@ const BannerCarousel = ({items}: Props) => {
     }));
     const hasMultipleSlides = slides.length > 1;
     const [api, setApi] = useState<CarouselApi>();
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    useEffect(() => {
+        if (!api) return;
+        const update = () => setSelectedIndex(api.selectedScrollSnap());
+        api.on("select", update);
+        api.on("reInit", update);
+        return () => { api.off("select", update); api.off("reInit", update); };
+    }, [api]);
     const [plugin] = useState(createHomeBannerAutoplay);
     const autoplayHandlers = useCarouselAutoplayLifecycle(api, plugin, hasMultipleSlides);
 
@@ -49,7 +58,7 @@ const BannerCarousel = ({items}: Props) => {
                 <CarouselContent className="ml-0">
                     {slides.map((item, index) => (
                         <CarouselItem key={item.id} className="pl-0">
-                            <BannerItem {...item} priority={index === 0}/>
+                            <BannerItem {...item} priority={index === 0} loadImage={nearbySlide(index, selectedIndex, slides.length)}/>
                         </CarouselItem>
                     ))}
                 </CarouselContent>

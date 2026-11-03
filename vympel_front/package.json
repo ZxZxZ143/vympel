@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "images:generate": "node scripts/generate-responsive-images.mjs",
+    "test:images": "node scripts/check-responsive-images.mjs",
     "postinstall": "node scripts/patch-minimatch-brace-expansion.mjs && node scripts/check-glob-security.mjs",
     "start": "next start",
     "lint": "eslint",
