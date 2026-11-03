@@ -1,0 +1,164 @@
+{
+  "status": "STAGING DEPLOYMENT PASSED",
+  "active_release": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+  "previous_release": "83af6ad8a8d8c5ef3569d0592b5e9e324e59f688",
+  "migration_exit": 0,
+  "applications": [
+    {
+      "service": "backend",
+      "container_id": "e2b8cd81b99f8a8f54a35a30c3ecb0842d5772c23c1314663dc251c93bfc2e74",
+      "image": "sha256:bf1f2eb3e6c7c11d271d3e82a0820ef876e63ed991d716b7f017a5677546cc12",
+      "health": "healthy",
+      "oom_killed": false
+    },
+    {
+      "service": "storefront",
+      "container_id": "778ee5c77b8647efc0bb5e4db385eeea548702af0897443651fcb246853a0708",
+      "image": "sha256:7550e7cca797199ceeb02d9e6243e17d2fead3b3ae3fc80d3986b063552aa509",
+      "health": "healthy",
+      "oom_killed": false
+    },
+    {
+      "service": "crm",
+      "container_id": "30a26ce69405d1f20a7e5ed2611a0267ece985d7e0436982661520d81248ac1b",
+      "image": "sha256:b6b4f7b619bf9d347c2490e0933e07ebca82085b55f1990568456a6470184a16",
+      "health": "healthy",
+      "oom_killed": false
+    }
+  ],
+  "persistent_container_ids_unchanged": true,
+  "nginx_unchanged": true,
+  "pages": [
+    {
+      "path": "/ru",
+      "status": 200
+    },
+    {
+      "path": "/ru/catalog",
+      "status": 200
+    },
+    {
+      "path": "/ru/product/70",
+      "status": 200
+    },
+    {
+      "path": "/en",
+      "status": 200
+    },
+    {
+      "path": "/en/catalog",
+      "status": 200
+    },
+    {
+      "path": "/en/product/70",
+      "status": 200
+    },
+    {
+      "path": "/kz",
+      "status": 200
+    },
+    {
+      "path": "/kz/catalog",
+      "status": 200
+    },
+    {
+      "path": "/kz/product/70",
+      "status": 200
+    }
+  ],
+  "javascript_chunks_checked": 26,
+  "optimized_images_checked": 3,
+  "external": [
+    {
+      "url": "https://preview.vympel.kz/ru",
+      "status": 401,
+      "tls_verified": true,
+      "www_authenticate": "Basic realm=\"VYMPEL Preview\""
+    },
+    {
+      "url": "https://api.vympel.kz/api/public/ping",
+      "status": 200,
+      "tls_verified": true,
+      "www_authenticate": null
+    },
+    {
+      "url": "https://api.vympel.kz/api/crm",
+      "status": 404,
+      "tls_verified": true,
+      "www_authenticate": null
+    },
+    {
+      "url": "https://api.vympel.kz/actuator/health",
+      "status": 404,
+      "tls_verified": true,
+      "www_authenticate": null
+    },
+    {
+      "url": "https://api.vympel.kz/swagger-ui/index.html",
+      "status": 404,
+      "tls_verified": true,
+      "www_authenticate": null
+    },
+    {
+      "url": "https://x7m2q9k4n6p8.vympel.kz/login",
+      "status": 401,
+      "tls_verified": true,
+      "www_authenticate": "Basic realm=\"VYMPEL CRM\""
+    },
+    {
+      "url": "https://x7m2q9k4n6p8.vympel.kz/api/crm/auth/login",
+      "status": 401,
+      "tls_verified": true,
+      "www_authenticate": "Basic realm=\"VYMPEL CRM\""
+    },
+    {
+      "url": "https://x7m2q9k4n6p8.vympel.kz/actuator/health",
+      "status": 404,
+      "tls_verified": true,
+      "www_authenticate": null
+    },
+    {
+      "url": "https://x7m2q9k4n6p8.vympel.kz/api/crm/products",
+      "status": 401,
+      "bearer_reached_spring": true
+    }
+  ],
+  "rollback_needed": false,
+  "events": [
+    {
+      "at": "2026-11-03T09:22:29.594787+00:00",
+      "event": "selector_activation"
+    },
+    {
+      "at": "2026-11-03T09:24:36.986996+00:00",
+      "event": "migration_passed"
+    },
+    {
+      "at": "2026-11-03T09:24:37.054881+00:00",
+      "event": "backend_recreate_started"
+    },
+    {
+      "at": "2026-11-03T09:26:43.213840+00:00",
+      "event": "backend_healthy"
+    },
+    {
+      "at": "2026-11-03T09:27:13.134456+00:00",
+      "event": "frontends_healthy"
+    },
+    {
+      "at": "2026-11-03T09:27:38.769741+00:00",
+      "event": "internal_smoke_passed",
+      "pages": 9,
+      "scripts": 26,
+      "optimized_images": 3
+    },
+    {
+      "at": "2026-11-03T09:27:41.301949+00:00",
+      "event": "external_smoke_passed"
+    },
+    {
+      "at": "2026-11-03T09:27:41.504809+00:00",
+      "event": "rollout_passed"
+    }
+  ]
+}

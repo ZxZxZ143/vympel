@@ -1,0 +1,64 @@
+apiVersion: deployment.vympel.dev/v1
+kind: PublishedReleaseManifest
+commit_sha: "d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+git_tag: null
+generated_at: "2026-10-29T16:58:02Z"
+images:
+  backend:
+    repository: ghcr.io/zxzxz143/vympel-backend
+    tag: "d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    digest: "sha256:bf1f2eb3e6c7c11d271d3e82a0820ef876e63ed991d716b7f017a5677546cc12"
+    platforms:
+      linux/amd64: "sha256:e684106425cc310b16433a6eb736fcb80c6425531fd3a38d13dbd2db8950777a"
+      linux/arm64: "sha256:4c929f6efcd772844bdb9bb8577f76d0425f687bac8c0b4ee9218f1b3a32a231"
+  storefront:
+    repository: ghcr.io/zxzxz143/vympel-storefront
+    tag: "d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    digest: "sha256:7550e7cca797199ceeb02d9e6243e17d2fead3b3ae3fc80d3986b063552aa509"
+    platforms:
+      linux/amd64: "sha256:1210e7432d2f267545344e86f16336c2d920e323a806f2587af009ce6d88a90d"
+      linux/arm64: "sha256:f075c3014adec8b94959903d5d34372fb4b248dd875c114b2b21d3b1fd8492a6"
+  crm:
+    repository: ghcr.io/zxzxz143/vympel-crm
+    tag: "d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    digest: "sha256:b6b4f7b619bf9d347c2490e0933e07ebca82085b55f1990568456a6470184a16"
+    platforms:
+      linux/amd64: "sha256:c0678fe082c6e52c22cf89f6023843be73ae5d598b06324123d3918299c07214"
+      linux/arm64: "sha256:b0f567d55cb73438fa6daef1a91039ef882b14e0a36b855e91af8340f0ef5fd2"
+public_build_configuration:
+  strategy: build-time-release-contract
+  variables:
+    NEXT_PUBLIC_BASE_API_PUBLIC: "https://api.vympel.kz/api/public"
+    NEXT_PUBLIC_CRM_API_BASE: "https://x7m2q9k4n6p8.vympel.kz/api/crm"
+    NEXT_PUBLIC_MEDIA_ORIGINS: "https://api.vympel.kz"
+    NEXT_PUBLIC_SITE_URL: "https://preview.vympel.kz"
+    NEXT_PUBLIC_APP_ENV: "staging"
+    NEXT_PUBLIC_APP_RELEASE: "d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    NEXT_PUBLIC_TELEMETRY_ENABLED: false
+    SITE_INDEXING_ENABLED: false
+  storefront_api_base: "https://api.vympel.kz/api/public"
+  crm_api_base: "https://x7m2q9k4n6p8.vympel.kz/api/crm"
+  media_origins: "https://api.vympel.kz"
+  storefront_site_url: "https://preview.vympel.kz"
+  deployment_environment: "staging"
+  release: "d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+  telemetry_enabled: false
+  site_indexing_enabled: false
+  placeholder_acknowledged: false
+database:
+  changelog: classpath:db/changelog/db.changelog-master.xml
+  expected_latest_change: 2026-10-17-01-product-discounts
+  migration_mode: one-time-job
+verification:
+  workflow_run: "https://github.com/ZxZxZ143/vympel/actions/runs/40913646976"
+  registry_manifest: passed
+  linux_amd64_runtime: passed
+  linux_arm64_runtime: passed
+  deployment_performed: false
+remaining_oracle_decisions:
+  - Oracle tenancy, compartment, region, VCN, and subnet
+  - final DNS names and public build configuration
+  - Ampere A1 VM shape allocation and boot volume size
+  - SSH ingress source CIDRs
+  - backup destination and retention policy
+  - alert routing

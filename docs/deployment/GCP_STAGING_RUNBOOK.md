@@ -1,6 +1,35 @@
 # Google Compute Engine Single-VM Staging Runbook
 
-## Status and deployment boundary
+## Verified existing installation — 2026-11-03
+
+Use [the staging deployment record](GCP_STAGING_DEPLOYMENT_2026-11-03.md) for
+the observed active/rollback releases, digests, backups and verification result.
+The existing VM is `vympel-staging` in project `vympel-staging`, zone
+`me-central1-b`, immutable ID `3531996634123212598`. It is actually an
+`e2-medium` with about 4 GB RAM, not the 8 GB reference host below.
+
+The installed checkout is `/opt/vympel/repository`; the environment is
+`/etc/vympel/staging.env`; Compose project `vympel-gcp-staging` uses the
+single-VM file **and** `/etc/vympel/compose.host-ports.yml`. That override adds
+the existing host-access network and preserves loopback-only application ports.
+Host Nginx already routes the preview, API and protected CRM domains; both
+preview and CRM UI require Basic Auth, and legacy sslip hosts return 404.
+Instance-only OS Login was explicitly authorized and enabled on this date;
+connect through IAP with explicit project/zone and a bounded-lived registered key.
+
+The provisioning and historical publication sections below are reference
+material, not instructions to recreate this host or rewrite its routing.
+For updates, compare the fully rendered installed configuration and recreate
+only application services with `--no-deps`. A finite migration must also use
+both Compose files and `run --no-deps`; do not let a generic update recreate
+PostgreSQL, Redis, MinIO or the media gateway.
+
+## Historical publication boundary
+
+This section records the earlier publication-only authorization. The explicit
+2026-11-03 staging deployment authorization and verified installation above
+supersede it for that deployment; they do not authorize future infrastructure
+or production changes.
 
 The checked-in GCP environment example remains a record of the previously
 deployed sslip.io routing contract and its immutable image selector. The
@@ -30,7 +59,10 @@ The exact registry and public-build record is
 `deployment/releases/v1.0.0-rc.8.yml`. No Google Cloud resource or external
 deployment was created.
 
-## Preview-domain runtime changes required later
+## Historical preview-domain migration requirements
+
+These routes and restrictions were already installed when verified on
+2026-11-03. Preserve the actual configuration; do not reapply this migration.
 
 These are requirements for a separately authorized future deployment, not
 commands to apply during image publication:

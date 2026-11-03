@@ -1,0 +1,27 @@
+{
+  "at": "2026-11-03T08:56:15.152503+00:00",
+  "images": [
+    {
+      "service": "backend",
+      "image_id": "sha256:bf1f2eb3e6c7c11d271d3e82a0820ef876e63ed991d716b7f017a5677546cc12",
+      "index": "sha256:bf1f2eb3e6c7c11d271d3e82a0820ef876e63ed991d716b7f017a5677546cc12",
+      "revision": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "platform": "linux/amd64"
+    },
+    {
+      "service": "storefront",
+      "image_id": "sha256:7550e7cca797199ceeb02d9e6243e17d2fead3b3ae3fc80d3986b063552aa509",
+      "index": "sha256:7550e7cca797199ceeb02d9e6243e17d2fead3b3ae3fc80d3986b063552aa509",
+      "revision": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "platform": "linux/amd64"
+    },
+    {
+      "service": "crm",
+      "image_id": "sha256:b6b4f7b619bf9d347c2490e0933e07ebca82085b55f1990568456a6470184a16",
+      "index": "sha256:b6b4f7b619bf9d347c2490e0933e07ebca82085b55f1990568456a6470184a16",
+      "revision": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "platform": "linux/amd64"
+    }
+  ],
+  "previous_apps_still_healthy": true
+}

@@ -1,0 +1,173 @@
+{
+  "at": "2026-11-03T09:28:09.456768+00:00",
+  "active_release": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+  "git_status": "",
+  "database": {
+    "products": 66,
+    "media": 94,
+    "changesets": 92,
+    "locked": false
+  },
+  "liquibase_history_unchanged": true,
+  "env_equals_reviewed_candidate": true,
+  "containers": [
+    {
+      "name": "vympel-gcp-staging-crm-1",
+      "status": "Up About a minute (healthy)",
+      "image": "ghcr.io/zxzxz143/vympel-crm:d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    },
+    {
+      "name": "vympel-gcp-staging-storefront-1",
+      "status": "Up About a minute (healthy)",
+      "image": "ghcr.io/zxzxz143/vympel-storefront:d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    },
+    {
+      "name": "vympel-gcp-staging-backend-1",
+      "status": "Up 3 minutes (healthy)",
+      "image": "ghcr.io/zxzxz143/vympel-backend:d8e661620a330431dc8bfd94ae06e5ef95c58f89"
+    },
+    {
+      "name": "vympel-gcp-staging-media-gateway-1",
+      "status": "Up 7 days (healthy)",
+      "image": "nginx:1.28-alpine"
+    },
+    {
+      "name": "vympel-gcp-staging-postgres-1",
+      "status": "Up 7 days (healthy)",
+      "image": "postgres:16-alpine"
+    },
+    {
+      "name": "vympel-gcp-staging-redis-1",
+      "status": "Up 7 days (healthy)",
+      "image": "redis:7.4-alpine"
+    },
+    {
+      "name": "vympel-gcp-staging-minio-1",
+      "status": "Up 7 days (healthy)",
+      "image": "minio/minio:RELEASE.2025-09-07T16-13-09Z"
+    }
+  ],
+  "memory": "total        used        free      shared  buff/cache   available\nMem:            3908        1571        1519          25        1102        2336\nSwap:           2047          85        1962",
+  "disk": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/root        77G   17G   60G  23% /",
+  "migration_summary": [
+    "2026-11-03T09:23:28.359Z INFO  requestId=system userId=anonymous roles=none method=- path=- [main] liquibase.ui - Database is up to date, no changesets to execute",
+    "2026-11-03T09:23:28.654Z INFO  requestId=system userId=anonymous roles=none method=- path=- [main] liquibase.util - Run:                          0",
+    "2026-11-03T09:23:28.655Z INFO  requestId=system userId=anonymous roles=none method=- path=- [main] liquibase.util - Previously run:              92",
+    "2026-11-03T09:23:28.657Z INFO  requestId=system userId=anonymous roles=none method=- path=- [main] liquibase.util - Total change sets:           92"
+  ],
+  "redis_ping": "PONG",
+  "volumes_ports_limits_preserved_from_original": true,
+  "persistent_containers_never_recreated": true,
+  "no_container_oom": true,
+  "previous_attempts": [
+    {
+      "status": "DEPLOYMENT FAILED \u2014 ROLLED BACK",
+      "reason": "",
+      "active_release": "83af6ad8a8d8c5ef3569d0592b5e9e324e59f688",
+      "rollback_needed": true,
+      "events": [
+        {
+          "at": "2026-11-03T09:00:15.536462+00:00",
+          "event": "selector_activation"
+        },
+        {
+          "at": "2026-11-03T09:02:31.266064+00:00",
+          "event": "migration_passed"
+        },
+        {
+          "at": "2026-11-03T09:02:31.483933+00:00",
+          "event": "backend_recreate_started"
+        },
+        {
+          "at": "2026-11-03T09:04:37.896047+00:00",
+          "event": "backend_healthy"
+        },
+        {
+          "at": "2026-11-03T09:05:07.847122+00:00",
+          "event": "frontends_healthy"
+        },
+        {
+          "at": "2026-11-03T09:05:32.794923+00:00",
+          "event": "internal_smoke_passed",
+          "pages": 9,
+          "scripts": 26,
+          "optimized_images": 3
+        },
+        {
+          "at": "2026-11-03T09:05:36.262195+00:00",
+          "event": "failure",
+          "reason": ""
+        },
+        {
+          "at": "2026-11-03T09:08:12.869899+00:00",
+          "event": "rollback_passed"
+        }
+      ]
+    },
+    {
+      "status": "DEPLOYMENT FAILED \u2014 ROLLED BACK",
+      "reason": "",
+      "active_release": "83af6ad8a8d8c5ef3569d0592b5e9e324e59f688",
+      "rollback_needed": true,
+      "events": [
+        {
+          "at": "2026-11-03T09:09:30.452647+00:00",
+          "event": "selector_activation"
+        },
+        {
+          "at": "2026-11-03T09:11:39.759317+00:00",
+          "event": "migration_passed"
+        },
+        {
+          "at": "2026-11-03T09:11:39.825678+00:00",
+          "event": "backend_recreate_started"
+        },
+        {
+          "at": "2026-11-03T09:13:35.488856+00:00",
+          "event": "backend_healthy"
+        },
+        {
+          "at": "2026-11-03T09:14:07.260129+00:00",
+          "event": "frontends_healthy"
+        },
+        {
+          "at": "2026-11-03T09:14:29.915362+00:00",
+          "event": "internal_smoke_passed",
+          "pages": 9,
+          "scripts": 26,
+          "optimized_images": 3
+        },
+        {
+          "at": "2026-11-03T09:14:32.539568+00:00",
+          "event": "external_smoke_passed"
+        },
+        {
+          "at": "2026-11-03T09:14:32.682088+00:00",
+          "event": "failure",
+          "reason": ""
+        },
+        {
+          "at": "2026-11-03T09:17:08.715859+00:00",
+          "event": "rollback_passed"
+        }
+      ]
+    }
+  ],
+  "verifier_corrections": [
+    {
+      "previous_release_restored": true,
+      "nginx_configuration_unchanged": true,
+      "verifier_defect": "Original assertion combined nginx -T stderr syntax diagnostics with stdout, while the saved baseline contained stdout only. The corrected assertion compares stdout and checks exit status separately."
+    },
+    {
+      "old_release_all_healthy": true,
+      "no_container_oom": true,
+      "nginx_unchanged": true,
+      "actual_backend_error_matches": 0,
+      "false_positive": "JVM startup option -XX:+ExitOnOutOfMemoryError matched an unbounded substring search. It is not an OutOfMemoryError exception.",
+      "negative_fixture_passed": true,
+      "real_error_fixtures_passed": 7,
+      "second_attempt_preserved": "/var/backups/vympel/releases/20261103-d8e6616/attempt2"
+    }
+  ]
+}

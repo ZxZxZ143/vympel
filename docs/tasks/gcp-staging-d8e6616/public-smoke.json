@@ -1,0 +1,66 @@
+{
+  "at": "2026-11-03T09:28:13.273725+00:00",
+  "source": "operator Windows workstation, public HTTPS",
+  "dns": {
+    "preview.vympel.kz": "34.18.200.58",
+    "api.vympel.kz": "34.18.200.58",
+    "x7m2q9k4n6p8.vympel.kz": "34.18.200.58"
+  },
+  "checks": [
+    {
+      "url": "https://preview.vympel.kz/ru",
+      "status": 401,
+      "tls_verified": true,
+      "redirected": false,
+      "www_authenticate": "Basic realm=\"VYMPEL Preview\"",
+      "content_type": "text/html",
+      "x_robots_tag": "noindex, nofollow, noarchive, nosnippet"
+    },
+    {
+      "url": "https://api.vympel.kz/api/public/ping",
+      "status": 200,
+      "tls_verified": true,
+      "redirected": false,
+      "www_authenticate": null,
+      "content_type": "text/plain;charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow, noarchive, nosnippet"
+    },
+    {
+      "url": "https://api.vympel.kz/api/crm",
+      "status": 404,
+      "tls_verified": true,
+      "redirected": false,
+      "www_authenticate": null,
+      "content_type": "text/html",
+      "x_robots_tag": "noindex, nofollow, noarchive, nosnippet"
+    },
+    {
+      "url": "https://api.vympel.kz/actuator/health",
+      "status": 404,
+      "tls_verified": true,
+      "redirected": false,
+      "www_authenticate": null,
+      "content_type": "text/html",
+      "x_robots_tag": "noindex, nofollow, noarchive, nosnippet"
+    },
+    {
+      "url": "https://x7m2q9k4n6p8.vympel.kz/login",
+      "status": 401,
+      "tls_verified": true,
+      "redirected": false,
+      "www_authenticate": "Basic realm=\"VYMPEL CRM\"",
+      "content_type": "text/html",
+      "x_robots_tag": "noindex, nofollow, noarchive, nosnippet"
+    },
+    {
+      "url": "https://x7m2q9k4n6p8.vympel.kz/api/crm/products",
+      "status": 401,
+      "tls_verified": true,
+      "redirected": false,
+      "www_authenticate": null,
+      "content_type": "application/json;charset=UTF-8",
+      "x_robots_tag": "noindex, nofollow, noarchive, nosnippet"
+    }
+  ],
+  "status": "PASS"
+}

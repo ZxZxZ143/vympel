@@ -1,0 +1,13 @@
+{
+  "at": "2026-11-03T08:54:39.177300+00:00",
+  "gates": {
+    "validate-environment.sh": "Environment validation passed for immutable release d8e661620a330431dc8bfd94ae06e5ef95c58f89.",
+    "backup-check.sh": "Backup and restore evidence passed checksum, scope, linkage, result, and freshness validation.",
+    "check-liquibase-history.sh": "No unreconciled 2026-07-13-01-seed-accessory-split-categories row exists in the target database."
+  },
+  "compose_change_scope": [
+    "RELEASE_TAG",
+    "NEXT_PUBLIC_APP_RELEASE"
+  ],
+  "migration_source_diff": []
+}

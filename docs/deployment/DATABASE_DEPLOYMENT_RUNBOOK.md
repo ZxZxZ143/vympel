@@ -19,7 +19,7 @@
 
 Run `deployment/scripts/verify-migrations.sh <compose-file> <env-file>`. The one-time `migrate` service runs the backend image with Liquibase enabled, scheduled jobs disabled, and no published port, then verifies the changelog table and closes its context. It retains the normal Spring web application type because the project security configuration requires `HttpSecurity` at startup. Only after success may backend replicas start with `SPRING_LIQUIBASE_ENABLED=false`.
 
-After migration, compare the expected/latest changeset (currently `2026-09-10-01-wildberries-product-source-links`) and review migration logs for errors without copying credentials into evidence.
+After migration, compare the expected/latest changeset from the exact release manifest and packaged master changelog, not a stale runbook constant. The 2026-11-03 staging release boundary is `2026-10-17-01-product-discounts`; the verified database contains 92 changesets. Review migration logs for errors without copying credentials into evidence.
 
 ## Failure policy
 

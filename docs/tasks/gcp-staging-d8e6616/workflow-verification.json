@@ -1,0 +1,146 @@
+{
+  "workflow_run": 40913646976,
+  "commit_sha": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+  "jobs": [
+    {
+      "name": "publication_policy",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publication_gate / shared-deployment-gates",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publication_gate / backend / verify",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "build",
+      "conclusion": "skipped",
+      "status": "completed"
+    },
+    {
+      "name": "publication_gate / crm / verify",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publication_gate / storefront / verify",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publication_gate / release-metadata",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publication_preflight",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_storefront / prepare (vympel-storefront)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_storefront / build (vympel-storefront, 1, linux/arm64, ubuntu-24.04-arm)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_storefront / build (vympel-storefront, 0, linux/amd64, ubuntu-24.04)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_storefront / finalize (vympel-storefront)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_crm / prepare (vympel-crm)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_backend / prepare (vympel-backend)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_backend / build (vympel-backend, 0, linux/amd64, ubuntu-24.04)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_backend / build (vympel-backend, 1, linux/arm64, ubuntu-24.04-arm)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_crm / build (vympel-crm, 0, linux/amd64, ubuntu-24.04)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_crm / build (vympel-crm, 1, linux/arm64, ubuntu-24.04-arm)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_backend / finalize (vympel-backend)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publish_crm / finalize (vympel-crm)",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "attest_published_indexes (vympel-backend, sha256:bf1f2eb3e6c7c11d271d3e82a0820ef876e63ed991d716b7...",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "attest_published_indexes (vympel-storefront, sha256:7550e7cca797199ceeb02d9e6243e17d2fead3b3ae3fc...",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "attest_published_indexes (vympel-crm, sha256:b6b4f7b619bf9d347c2490e0933e07ebca82085b55f199056845...",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "record_published_metadata",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "verify_published_images",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "verify_arm64_images",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "published_manifest",
+      "conclusion": "success",
+      "status": "completed"
+    },
+    {
+      "name": "publication_result",
+      "conclusion": "success",
+      "status": "completed"
+    }
+  ]
+}

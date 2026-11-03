@@ -1,0 +1,49 @@
+{
+  "backup_dir": "/var/backups/vympel/releases/20261103-d8e6616",
+  "previous_release": "83af6ad8a8d8c5ef3569d0592b5e9e324e59f688",
+  "backup_at": "2026-11-03T08:02:33.218694+00:00",
+  "database_summary": {
+    "products": 66,
+    "media": 94,
+    "cms_blocks": 20,
+    "users": 3,
+    "changesets": 92,
+    "invalid_constraints": 0,
+    "latest": "2026-10-17-01-product-discounts"
+  },
+  "minio_files_verified": 269,
+  "checksums": {
+    "staging.env": "a36f2d427dfa62be1bbb89bb82fd8cfa480f98ad8d14f688b7958821a2c45619",
+    "postgres.dump": "d49ce4216ad4cde5121b4d6ca311c80b5636710d6b6f607f2663d59977323c69",
+    "minio-data.tar.gz": "5cbf3ff01060049e241d41a948fbdbc45eb444aa7c6fde23bf89a17289c46180",
+    "configuration.tar.gz": "9fce2fe5a529b81ffcc1404c7bc73c9b72f31bdfca844c5292e4e058f1063344",
+    "compose.host-ports.yml": "d9a86a9cb30606a0426ec1209b75a94a7cc660dea2c8b6c95d375a723ae664ce"
+  },
+  "restore_started": true,
+  "restore_completed_at": "2026-11-03T08:05:54.459198+00:00",
+  "restored_backend_readiness": "UP",
+  "catalog_total": 63,
+  "product_detail_read": true,
+  "restored_media_reads": [
+    {
+      "bytes": 387891,
+      "sha256": "faee13c8bf33f106046e82dd8027a826df33ab25fbcb9b7cf6dec140785b61a9"
+    },
+    {
+      "bytes": 1074254,
+      "sha256": "8a62f08061cbcfb337fc4781ba4d88881d1b8229c944f955cc3cc506e7dd257d"
+    },
+    {
+      "bytes": 1245485,
+      "sha256": "25b440ae01781819584916297baeb64f6100592097b5e9375d4e2f910ba49f72"
+    }
+  ],
+  "database_restore_result": "PASS",
+  "application_checks": "PASS",
+  "object_storage_recovery_checks": "PASS",
+  "pause_window": {
+    "started_at": "2026-11-03T08:02:30.631902+00:00",
+    "resumed_at": "2026-11-03T08:02:33.218694+00:00",
+    "seconds": 2.59
+  }
+}

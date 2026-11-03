@@ -1,0 +1,41 @@
+{
+  "checked_at": "2026-11-03T07:42:05.410441+00:00",
+  "artifact_id": 12915598089,
+  "artifact_sha256": "f5563e927add008f7706f84e21ece88d952a8b1faabf958a511ac206c62122e2",
+  "artifact_matches_local_manifest": true,
+  "images": [
+    {
+      "image": "ghcr.io/zxzxz143/vympel-backend",
+      "tag": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "index": "sha256:bf1f2eb3e6c7c11d271d3e82a0820ef876e63ed991d716b7f017a5677546cc12",
+      "linux_amd64": "sha256:e684106425cc310b16433a6eb736fcb80c6425531fd3a38d13dbd2db8950777a",
+      "config_digest": "sha256:3b90c72527902ef63dd625f1073e85e5a40d27beb1abc47d6e0af720a53223e6",
+      "architecture": "amd64",
+      "source": "https://github.com/ZxZxZ143/vympel",
+      "revision": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "user": "vympel"
+    },
+    {
+      "image": "ghcr.io/zxzxz143/vympel-storefront",
+      "tag": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "index": "sha256:7550e7cca797199ceeb02d9e6243e17d2fead3b3ae3fc80d3986b063552aa509",
+      "linux_amd64": "sha256:1210e7432d2f267545344e86f16336c2d920e323a806f2587af009ce6d88a90d",
+      "config_digest": "sha256:2a83791c6d09ba2ac50c2e2c721113778896f9cd46685cc6aa90e2a97a98898d",
+      "architecture": "amd64",
+      "source": "https://github.com/ZxZxZ143/vympel",
+      "revision": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "user": "node"
+    },
+    {
+      "image": "ghcr.io/zxzxz143/vympel-crm",
+      "tag": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "index": "sha256:b6b4f7b619bf9d347c2490e0933e07ebca82085b55f1990568456a6470184a16",
+      "linux_amd64": "sha256:c0678fe082c6e52c22cf89f6023843be73ae5d598b06324123d3918299c07214",
+      "config_digest": "sha256:fa7af04c4802cf1cc576acf713b8ce87f0fac81841a53d5197de08769a133f63",
+      "architecture": "amd64",
+      "source": "https://github.com/ZxZxZ143/vympel",
+      "revision": "d8e661620a330431dc8bfd94ae06e5ef95c58f89",
+      "user": "node"
+    }
+  ]
+}

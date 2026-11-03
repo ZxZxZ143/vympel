@@ -2214,6 +2214,14 @@
 
 ## Environment & Setup Gotchas
 
+### Existing GCP staging deployment and verification
+
+* **When to use:** Updating the existing staging VM; see the [2026-11-03 deployment record](deployment/GCP_STAGING_DEPLOYMENT_2026-11-03.md).
+* **How:** Verify immutable VM identity and actual resources first. This host has 4 GB RAM and an installed host-ports override, so pass both Compose files and use `--no-deps` for finite migrations and application-only recreation. Compare final persistent container IDs, mounts, ports and limits with the original pre-deployment snapshot. Keep the previous images and exact env for rollback.
+* **Backup lesson:** Reject changing live MinIO copies. A bounded backend/MinIO pause produced a consistent copy; verify database restore, object hashes and application reads in an isolated internal recovery project before admission. Keep encrypted off-VM recovery material with its DPAPI-protected key and verified decryption evidence.
+* **Verifier mistakes:** `nginx -T` writes configuration to stdout and syntax diagnostics to stderr; compare configuration stdout and check exit status separately. An unbounded `OutOfMemoryError` search falsely matches the normal JVM option `-XX:+ExitOnOutOfMemoryError`; use exception-name boundaries plus Docker OOM state, and test the detector against actual logs and real error examples before deployment. These two mistakes caused unnecessary application rollbacks in this task.
+* **Access lesson:** IAP reachability alone does not establish SSH access. Changing `enable-oslogin` alters login policy and required separate explicit approval; scope it to the verified VM and register a key with bounded expiry.
+
 * If an upstream support registry stops serving a pinned image, do not bypass the availability gate or silently substitute a new binary. With explicit user authorization, validate cached OCI indexes/child manifests/config/layers against recorded digests, mirror the existing platform content into owned packages and pin the new index. An index limited to available required architectures has a different digest even when each child is unchanged. Ensure packages permit anonymous reads before credential-free CI; see `docs/deployment/MINIO_IMAGE_MIRRORS.md`.
 
 * Spring Boot 4 imports separate `jackson-2-bom.version` and `jackson-bom.version` properties. Security patching must align each family as a BOM (currently 2.21.7 / 3.1.7), retain the correct namespace and rerun backend HTTP/auth/migration tests. A digest-pinned JRE image can still contain old OS packages: explicitly install/upgrade `libbrotli1`, `libssl3` and `openssl` alongside curl, then require the unchanged image vulnerability gate. Ubuntu fixes published after the last release turn an `ignore-unfixed` finding into a blocking one (CVE-2026-111497 in `libbrotli1` stopped the 4a0e1a9 publication gate), so add the fixed package to that list instead of ignoring it.
@@ -2799,6 +2807,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-11-03 — Recorded existing-host Compose/OS Login constraints, consistent backup and isolated recovery verification, final staging deployment checks, and two corrected verifier false positives (Nginx output streams and the JVM OOM option).
 
 2026-10-29 — Applied the partial-publication rule to tagless SHA releases: `c84a28b` is preserved as non-deployable after a transient GHCR 401 during backend amd64 cosign signing, and publication continues from the next `main` commit instead of re-running the partial run.
 
