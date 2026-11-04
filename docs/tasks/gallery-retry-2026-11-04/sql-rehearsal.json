@@ -1,0 +1,15 @@
+{
+  "engine": "local isolated PostgreSQL 16, tmpfs, no network or published ports",
+  "exactProductCAS": 9,
+  "syntheticCmsFingerprintOnly": [
+    17
+  ],
+  "forwardRows": 10,
+  "staleRowAbortsAllAndNoOutbox": true,
+  "repeatForwardRejected": true,
+  "staleRollbackReceiptAbortsAll": true,
+  "restorationMatchesInitialIncludingTimestamp": true,
+  "oneDeduplicatedHomeJob": true,
+  "applySha256": "c1471c313dfd984d57c17a88656a63cab68d78d01aa92fe838046cb3cd64d482",
+  "restoreSha256": "b33845166a98f873afeb39315683549a11f2184648e8980a3a59f08461b68c0c"
+}

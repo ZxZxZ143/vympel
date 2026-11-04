@@ -1,0 +1,28 @@
+[
+  {
+    "width": 390,
+    "test": "gallery selection, bounded thumbnails, on-demand originals, Escape and focus",
+    "passed": true
+  },
+  {
+    "width": 1440,
+    "test": "gallery selection, bounded thumbnails, on-demand originals, Escape and focus",
+    "passed": true
+  },
+  {
+    "test": "failed derivative retries original",
+    "passed": true
+  },
+  {
+    "test": "missing original shows existing accessible placeholder",
+    "passed": true
+  },
+  {
+    "test": "CMS derivative failure retries art-directed original",
+    "passed": true
+  },
+  {
+    "test": "CMS failure uses approved static fallback",
+    "passed": true
+  }
+]

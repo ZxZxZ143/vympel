@@ -11,6 +11,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next");
 const buildId = path.join(root, ".next", "BUILD_ID");
 const locales = ["ru", "kz", "en"];
+const galleryCheck = process.argv.includes("--gallery") || process.argv.includes("--reproduce-old-gallery");
+const galleryTest = galleryCheck ? await import("./test-gallery-browser.mjs") : null;
 
 await readFile(buildId, "utf8").catch(() => {
     throw new Error("Production build is missing. Run `npm run build` before this status test.");
@@ -22,7 +24,7 @@ const notFoundTitles = Object.fromEntries(await Promise.all(locales.map(async (l
 })));
 
 const mockApi = createMockApi();
-const mockPort = await listen(mockApi);
+const mockPort = await listen(mockApi, galleryCheck ? Number(process.env.GALLERY_MOCK_PORT || 19746) : 0);
 const appPort = await availablePort();
 const output = [];
 const nextProcess = spawn(process.execPath, [nextBin, "start", "-H", "127.0.0.1", "-p", String(appPort)], {
@@ -47,6 +49,9 @@ const origin = `http://127.0.0.1:${appPort}`;
 
 try {
     await waitForServer(origin, nextProcess, output);
+    if (galleryTest) {
+        await galleryTest.verifyGalleryBrowser(origin, {reproduce: process.argv.includes("--reproduce-old-gallery")});
+    }
     await expectSecurityHeaders(origin, "/ru");
     await expectSecurityHeaders(origin, "/kaspi.png");
     await expectSecurityHeaders(origin, "/api/telemetry");
@@ -431,6 +436,9 @@ function createMockApi() {
         const productMatch = pathname.match(/^\/api\/public\/product\/(ru|kz|en)\/(\d+)$/);
         if (productMatch) {
             if (productMatch[2] === "999") return json(response, 404, apiError(404, "Resource not found."));
+            if (galleryTest && ["46", "47"].includes(productMatch[2])) {
+                return json(response, 200, galleryTest.galleryProduct(product(productMatch[1]), Number(productMatch[2])));
+            }
             return json(response, 200, product(productMatch[1]));
         }
 
@@ -564,10 +572,10 @@ function json(response, status, body) {
     response.end(JSON.stringify(body));
 }
 
-async function listen(server) {
+async function listen(server, port = 0) {
     await new Promise((resolve, reject) => {
         server.once("error", reject);
-        server.listen(0, "127.0.0.1", resolve);
+        server.listen(port, "127.0.0.1", resolve);
     });
     return server.address().port;
 }

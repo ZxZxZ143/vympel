@@ -2,6 +2,12 @@
 
 ## Frontend Patterns That Work
 
+### Gate gallery controls on the hydrated carousel API
+
+* **When to use:** Server-rendered product gallery buttons depend on React, Embla and the controlled Radix dialog.
+* **How:** Render `aria-busy` and native disabled controls until Embla publishes the main API. Leave the composed Radix trigger in charge of opening the dialog. Hold JS chunks to exercise a real early pointer attempt, then wait for public readiness and a thumbnail state transition before testing pointer, keyboard, Escape, focus return and original loading. Use the same interaction helper for local production and staging admission.
+* **Why:** Decoded images and an enabled SSR button previously allowed input before handlers attached. Browser timestamps reproduce the failure for both URL contracts. A stale reference or rollback timestamp must abort the entire retry transaction. [Regression evidence](tasks/gallery-retry-2026-11-04/TESTING.md) · [Retry procedure](tasks/gallery-retry-2026-11-04/RETRY.md)
+
 ### Responsive images without request-time conversion (2026-11-03)
 
 * **When to use:** Product/CMS photography on the 0.20 CPU storefront, and large committed static banner assets.
@@ -2839,6 +2845,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-11-04 — Recorded the reproduced hydration race, public carousel readiness contract, deterministic gallery/fallback gates and rehearsed compare-and-swap retry against retained objects. The previously failed backfill remains restored.
 
 2026-11-04 — Recorded the applied four-line QEMU repair, complete-workflow comparison, unchanged standalone ARM checks and exact published amd64/ARM64 codec proof. Kept the new local candidate separate from external release approval and preserved unrelated pending documentation.
 

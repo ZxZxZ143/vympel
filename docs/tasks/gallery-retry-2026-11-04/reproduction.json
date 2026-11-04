@@ -1,0 +1,281 @@
+{
+  "mode": "historical-reproduction",
+  "cases": [
+    {
+      "width": 390,
+      "urlKind": "legacy",
+      "pre": {
+        "ms": 559.0999999940395,
+        "disabled": false,
+        "busy": null,
+        "dialog": "closed"
+      },
+      "firstAttempt": 566.2999999970198,
+      "hydrationObserved": 708.0999999940395,
+      "heldScripts": 25,
+      "interaction": {
+        "explicitPostHydrationClickOpened": true
+      },
+      "timeline": [
+        {
+          "event": "pointerdown",
+          "ms": 569.2000000029802,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 569.7000000029802,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "pointerdown",
+          "ms": 867.5999999940395,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 868.5999999940395,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 886,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 886,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 886,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 905.2000000029802,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 905.2000000029802,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 905.2999999970198,
+          "value": "closed"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "urlKind": "responsive",
+      "pre": {
+        "ms": 273.8999999910593,
+        "disabled": false,
+        "busy": null,
+        "dialog": "closed"
+      },
+      "firstAttempt": 280.8999999910593,
+      "hydrationObserved": 424.3999999910593,
+      "heldScripts": 25,
+      "interaction": {
+        "explicitPostHydrationClickOpened": true
+      },
+      "timeline": [
+        {
+          "event": "pointerdown",
+          "ms": 282.79999999701977,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 283.19999998807907,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "pointerdown",
+          "ms": 560.5999999940395,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 562.3999999910593,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 584.6999999880791,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 584.6999999880791,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 584.6999999880791,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 665.5,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 665.5,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 665.5,
+          "value": "closed"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "urlKind": "legacy",
+      "pre": {
+        "ms": 270.79999999701977,
+        "disabled": false,
+        "busy": null,
+        "dialog": "closed"
+      },
+      "firstAttempt": 277.5,
+      "hydrationObserved": 420.79999999701977,
+      "heldScripts": 25,
+      "interaction": {
+        "explicitPostHydrationClickOpened": true
+      },
+      "timeline": [
+        {
+          "event": "pointerdown",
+          "ms": 280.20000000298023,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 280.79999999701977,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "pointerdown",
+          "ms": 541.7000000029802,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 543.2000000029802,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 561.0999999940395,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 561.0999999940395,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 561.0999999940395,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 580.8999999910593,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 580.8999999910593,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 580.8999999910593,
+          "value": "closed"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "urlKind": "responsive",
+      "pre": {
+        "ms": 222.8999999910593,
+        "disabled": false,
+        "busy": null,
+        "dialog": "closed"
+      },
+      "firstAttempt": 229.09999999403954,
+      "hydrationObserved": 398.3999999910593,
+      "heldScripts": 25,
+      "interaction": {
+        "explicitPostHydrationClickOpened": true
+      },
+      "timeline": [
+        {
+          "event": "pointerdown",
+          "ms": 231.3999999910593,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 231.8999999910593,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "pointerdown",
+          "ms": 533.0999999940395,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "click",
+          "ms": 535.2999999970198,
+          "button": "Открыть увеличенное изображение товара"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 562.1999999880791,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 562.1999999880791,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 562.1999999880791,
+          "value": "open"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 672.0999999940395,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 672.0999999940395,
+          "value": "closed"
+        },
+        {
+          "event": "dialog-state",
+          "ms": 672.0999999940395,
+          "value": "closed"
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

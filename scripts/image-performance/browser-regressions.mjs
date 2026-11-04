@@ -15,9 +15,8 @@ try {
         const requests = [];
         page.on("request", request => {if (request.resourceType() === "image") requests.push(request.url());});
         await page.goto(origin + "/ru/product/46");
-        const gallery = page.locator('section[aria-label="Изображения товара"]');
+        const gallery = page.locator('section[aria-label="Изображения товара"][aria-busy="false"]');
         await gallery.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(1000);
         const originalRequests = () => requests.filter(url => /\/product\/responsive-v1\/.*\/original\./.test(url));
         assert.equal(originalRequests().length, 0, "original must not load before lightbox");
         const main = gallery.locator('button[aria-label="Открыть увеличенное изображение товара"]');
@@ -25,19 +24,21 @@ try {
         const thumbs = await gallery.locator('button[aria-pressed] img').evaluateAll(images => images.map(i => i.currentSrc));
         assert(thumbs.filter(Boolean).every(src => /\/w(160|320)\.webp$/.test(src)), "thumbnail candidates are bounded");
         await gallery.locator('button[aria-label="Показать изображение 2"]:visible').click();
-        await page.waitForTimeout(300);
+        await gallery.locator('button[aria-label="Показать изображение 2"][aria-pressed="true"]:visible').waitFor();
         await main.nth(1).click();
         const dialog = page.getByRole("dialog");
         await dialog.waitFor();
-        await page.waitForTimeout(500);
+        await dialog.locator('img').evaluate(image => image.decode());
         assert.equal(await dialog.locator("img").count(), 1);
         assert.equal(originalRequests().length, 1);
         await dialog.getByRole("button", {name: "Следующее изображение", exact: true}).click();
-        await page.waitForTimeout(500);
+        await gallery.locator('button[aria-label="Показать изображение 3"][aria-pressed="true"]').first().waitFor({state: 'attached'});
+        await dialog.locator('img').evaluate(image => image.decode());
         assert.equal(await dialog.locator("img").count(), 1);
         assert.equal(originalRequests().length, 2);
         await page.keyboard.press("Escape");
-        await page.waitForTimeout(300); // Radix restores focus after its close animation.
+        await dialog.waitFor({state: 'hidden'});
+        await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Открыть увеличенное изображение товара');
         assert.equal(await dialog.count(), 0);
         assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("aria-label")), "Открыть увеличенное изображение товара");
         assert.equal(await gallery.locator('button[aria-label="Показать изображение 3"]:visible').getAttribute("aria-pressed"), "true");
@@ -48,31 +49,43 @@ try {
         const context = await browser.newContext({viewport: {width: 390, height: 844}});
         const page = await context.newPage();
         // Interception is restricted to failure tests; performance tests never use routing.
+        const failed = [];
         await page.route(/\/product\/responsive-v1\//, route => {
-            if (failOriginal || /\/w\d+\.webp$/.test(route.request().url())) return route.fulfill({status: 404});
+            if (failOriginal || /\/w\d+\.webp$/.test(route.request().url())) {
+                failed.push(route.request().url());
+                return route.fulfill({status: 404});
+            }
             return route.continue();
         });
         await page.goto(origin + "/ru/product/46");
         const gallery = page.locator('section[aria-label="Изображения товара"]');
         await gallery.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(1500);
-        if (failOriginal) assert(await gallery.locator(".product-image-fallback").count() > 0);
-        else assert(await gallery.locator('img[src*="/original."]').evaluateAll(images => images.some(i => i.complete && i.naturalWidth > 0)));
+        if (failOriginal) await gallery.locator(".product-image-fallback").first().waitFor({state: 'attached'});
+        else await gallery.locator('img[src*="/original."]').first().evaluate(i => i.decode());
+        assert(failed.some(url => url.endsWith('.webp')));
+        if (failOriginal) assert(failed.some(url => url.includes('/original.')));
         results.push({test: failOriginal ? "missing original shows existing accessible placeholder" : "failed derivative retries original", passed: true});
         await context.close();
     }
     for (const failOriginal of [false, true]) {
         const context = await browser.newContext({viewport: {width: 390, height: 844}});
         const page = await context.newPage();
+        const failed = [];
         await page.route(/\/cms\/responsive-v1\//, route => {
-            if (failOriginal || /\/w\d+\.webp$/.test(route.request().url())) return route.fulfill({status: 404});
+            if (failOriginal || /\/w\d+\.webp$/.test(route.request().url())) {
+                failed.push(route.request().url());
+                return route.fulfill({status: 404});
+            }
             return route.continue();
         });
         await page.goto(origin + "/ru");
-        await page.waitForTimeout(1500);
-        const hero = await page.locator("img.responsive-home-banner-image").first().evaluate(i => ({src: i.currentSrc, complete: i.complete, width: i.naturalWidth}));
-        assert(hero.complete && hero.width > 0);
-        assert(failOriginal ? !hero.src.includes("/cms/") : hero.src.includes("/original."));
+        await page.waitForFunction(fullFailure => {
+            const image = document.querySelector('img.responsive-home-banner-image');
+            return image?.complete && image.naturalWidth > 0 && (fullFailure
+                ? !image.currentSrc.includes('/cms/') : image.currentSrc.includes('/original.'));
+        }, failOriginal);
+        assert(failed.some(url => url.endsWith('.webp')));
+        if (failOriginal) assert(failed.some(url => url.includes('/original.')));
         results.push({test: failOriginal ? "CMS failure uses approved static fallback" : "CMS derivative failure retries art-directed original", passed: true});
         await context.close();
     }

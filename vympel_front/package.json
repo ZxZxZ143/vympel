@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:sharp-security": "node ../scripts/check-sharp-security.mjs",
     "test:production-status": "node scripts/test-production-status.mjs",
+    "test:gallery": "node scripts/test-production-status.mjs --gallery",
     "test:security": "node --test --test-isolation=none scripts/test-security-headers.mjs",
     "test:budgets": "node ../scripts/check-performance-budgets.mjs",
     "test:budgets:ci": "node ../scripts/check-performance-budgets.mjs --require-build",

@@ -44,6 +44,8 @@ const ProductGallery = ({images, productName}: Props) => {
     const [thumbnailStart, setThumbnailStart] = useState(0);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [mainCarouselApi, setMainCarouselApi] = useState<CarouselApi>();
+    // The carousel publishes its API after hydration, when the gallery can acknowledge input.
+    const interactive = Boolean(mainCarouselApi);
     const [lightboxCarouselApi, setLightboxCarouselApi] = useState<CarouselApi>();
     const [failedImageUrls, setFailedImageUrls] = useState<string[]>([]);
     const mobileThumbnailRefs = useRef(new Map<number, HTMLButtonElement>());
@@ -211,6 +213,7 @@ const ProductGallery = ({images, productName}: Props) => {
                 type="button"
                 aria-label={t("showImage", {number: imageNumber})}
                 aria-pressed={isActive}
+                disabled={!interactive}
                 ref={trackMobileVisibility ? (node) => {
                     if (node) {
                         mobileThumbnailRefs.current.set(index, node);
@@ -222,6 +225,7 @@ const ProductGallery = ({images, productName}: Props) => {
                 className={cn(
                     thumbnailClassName,
                     focusVisibleClassName,
+                    "disabled:cursor-wait",
                     isActive ? thumbnailActiveClassName : thumbnailInactiveClassName
                 )}
             >
@@ -256,6 +260,7 @@ const ProductGallery = ({images, productName}: Props) => {
         <DialogPrimitive.Root open={isLightboxOpen} onOpenChange={setIsLightboxOpen} modal>
             <section
                 aria-label={t("sectionAria")}
+                aria-busy={!interactive}
                 className="grid w-full min-w-0 gap-3.5 sm:max-w-[760px] sm:grid-cols-[var(--spacing-product-gallery-rail-width)_minmax(0,1fr)] sm:items-start sm:gap-6"
             >
                 <div
@@ -271,7 +276,7 @@ const ProductGallery = ({images, productName}: Props) => {
                             type="button"
                             className={cn(thumbnailNavClassName, focusVisibleClassName)}
                             aria-label={t("previousThumbnails")}
-                            disabled={!canScrollThumbnailsUp}
+                            disabled={!interactive || !canScrollThumbnailsUp}
                             onClick={() => moveThumbnailWindow(-1)}
                         >
                             <ChevronUp className="size-6" aria-hidden="true"/>
@@ -287,7 +292,7 @@ const ProductGallery = ({images, productName}: Props) => {
                             type="button"
                             className={cn(thumbnailNavClassName, focusVisibleClassName)}
                             aria-label={t("nextThumbnails")}
-                            disabled={!canScrollThumbnailsDown}
+                            disabled={!interactive || !canScrollThumbnailsDown}
                             onClick={() => moveThumbnailWindow(1)}
                         >
                             <ChevronDown className="size-6" aria-hidden="true"/>
@@ -314,11 +319,11 @@ const ProductGallery = ({images, productName}: Props) => {
                                             if (node) mainImageRefs.current.set(index, node);
                                             else mainImageRefs.current.delete(index);
                                         }}
-                                        disabled={imageFailed}
+                                        disabled={!interactive || imageFailed}
                                         onClick={() => openLightbox(index)}
                                         className={cn(
                                             "flex h-full w-full items-center justify-center border-0 bg-transparent [touch-action:pan-y]",
-                                            imageFailed ? "cursor-default" : "cursor-zoom-in",
+                                            imageFailed ? "cursor-default" : interactive ? "cursor-zoom-in" : "cursor-wait",
                                             focusVisibleClassName
                                         )}
                                     >
