@@ -1282,6 +1282,8 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
+2026-11-04 — Updated the CRM reference-deletion tests to check that closing the confirmation returns focus to the original single- or multi-select field button. Coverage also checks focus inside a rejected confirmation and after Escape.
+
 2026-11-04 — Added local gallery readiness behavior, deterministic production browser coverage and a guarded zero-upload ten-row retry package. Fresh read-only staging integrity passed. No publication, deployment or live retry occurred.
 
 2026-11-04 — Applied and locally verified the minimal per-job ARM64 emulation prerequisite; documented new-SHA publication preparation and conditional staging admission. Created a narrowly scoped local commit while preserving pre-existing working changes; no push/publication/deployment.

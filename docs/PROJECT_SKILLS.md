@@ -2846,6 +2846,8 @@
 
 ## Last Updated
 
+2026-11-04 — In CRM reference-deletion tests, capture the field button before opening confirmation and wait for both dialog removal and focus on that exact element. React can remove the portal before the passive cleanup in `ConfirmDialog` restores focus. The original assertion failed on Ubuntu 24.04.5 with Node 22.23.4 even though the button stayed mounted.
+
 2026-11-04 — Recorded the reproduced hydration race, public carousel readiness contract, deterministic gallery/fallback gates and rehearsed compare-and-swap retry against retained objects. The previously failed backfill remains restored.
 
 2026-11-04 — Recorded the applied four-line QEMU repair, complete-workflow comparison, unchanged standalone ARM checks and exact published amd64/ARM64 codec proof. Kept the new local candidate separate from external release approval and preserved unrelated pending documentation.

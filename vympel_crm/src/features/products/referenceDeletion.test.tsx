@@ -36,6 +36,13 @@ const open = () => fireEvent.click(screen.getByRole("button", {name: "Field"}));
 const trash = () => screen.getByRole("button", {name: `catalogTools.deleteOption: ${custom.name}`});
 const confirm = () => screen.getByRole("button", {name: "catalogTools.referenceDeleteConfirm"});
 
+function waitForFocusAfterDeletion(trigger: HTMLElement) {
+  return waitFor(() => {
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+}
+
 describe("reference deletion in field options", () => {
   it("keeps canonical values protected, separates selection from deletion, and cancels without mutation", () => {
     render(<Harness/>);open();
@@ -45,25 +52,32 @@ describe("reference deletion in field options", () => {
     expect(mocks.changed).not.toHaveBeenCalled();expect(mocks.remove).not.toHaveBeenCalled();
     expect(screen.getByRole("alertdialog").textContent).toContain(custom.name);
     fireEvent.click(within(screen.getByRole("alertdialog")).getAllByRole("button",{name:"common.cancel"}).at(-1)!);
-    expect(mocks.remove).not.toHaveBeenCalled();expect(document.activeElement?.id).toBe("field");
+    expect(mocks.remove).not.toHaveBeenCalled();expect(document.activeElement).toBe(screen.getByRole("button", {name: "Field"}));
     expect(trash()).toBeTruthy();
   });
   it("deletes only after confirmation, suppresses repeated submits, refreshes options and restores focus after the last custom option", async () => {
     let finish!: () => void;
     mocks.remove.mockReturnValue(new Promise<void>((resolve) => {finish = resolve;}));
-    render(<Harness/>);open();fireEvent.click(trash());const button=confirm();
+    render(<Harness/>);
+    const trigger = screen.getByRole("button", {name: "Field"});
+    open();fireEvent.click(trash());const button=confirm();
     fireEvent.click(button);fireEvent.click(button);
     expect(mocks.remove).toHaveBeenCalledTimes(1);expect(mocks.remove).toHaveBeenCalledWith("case-materials",2);
-    finish();await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
-    expect(screen.queryByText(custom.name)).toBeNull();expect(document.activeElement?.id).toBe("field");
+    finish();
+    await waitForFocusAfterDeletion(trigger);
+    expect(screen.queryByText(custom.name)).toBeNull();
     expect(screen.getByRole("button", {name: "Field"}).textContent).toBe("Canonical");
   });
   it.each(["REFERENCE_IN_USE", "REFERENCE_PROTECTED"])("preserves options on %s with an accessible localized error", async (code) => {
     mocks.remove.mockRejectedValue({code});render(<Harness/>);open();fireEvent.click(trash());
     await act(async () => { fireEvent.click(confirm()); });
     const error = await screen.findByRole("alert");expect(error.textContent).toBe(code === "REFERENCE_IN_USE" ? "catalogTools.referenceInUse" : "catalogTools.referenceProtected");
-    expect(screen.getByRole("alertdialog")).toBeTruthy();expect(mocks.success).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement?.matches("button:enabled")).toBe(true);
+    expect(mocks.success).not.toHaveBeenCalled();
     fireEvent.keyDown(document,{key:"Escape"});expect(trash()).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByRole("button", {name: "Field"}));
   });
   it("supports search, arrow navigation, Escape and selection without deleting", () => {
     render(<Harness/>);open();const search=screen.getByRole("searchbox");
@@ -74,12 +88,13 @@ describe("reference deletion in field options", () => {
     open();fireEvent.keyDown(screen.getByRole("searchbox"),{key:"Escape"});expect(screen.queryByRole("dialog")).toBeNull();expect(document.activeElement?.id).toBe("field");
   });
   it("does not toggle multi-selection when its delete icon is clicked", async () => {
-    render(<Harness multi type="watch-features"/>);open();fireEvent.click(trash());
+    render(<Harness multi type="watch-features"/>);
+    const trigger = screen.getByRole("button", {name: "Field"});
+    open();fireEvent.click(trash());
     expect(mocks.changed).not.toHaveBeenCalled();fireEvent.click(confirm());
     await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith("watch-features",2));
-    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await waitForFocusAfterDeletion(trigger);
     expect(screen.getByRole("button",{name:"Canonical"}).getAttribute("aria-pressed")).toBe("true");
-    expect(document.activeElement?.id).toBe("field");
   });
   it("uses the existing collection endpoint and retains in-use collections", async () => {
     mocks.removeCollection.mockRejectedValue({code:"COLLECTION_IN_USE"});render(<Harness type="collections"/>);open();fireEvent.click(trash());fireEvent.click(confirm());
