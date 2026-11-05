@@ -10,7 +10,17 @@ COPY src ./src
 RUN ./gradlew --no-daemon --console=plain bootJar
 
 FROM eclipse-temurin:17.0.19_10-jre-jammy@sha256:1e38389ecd9e5c444e40d4385be4a4a5f56a836a38a6e41c099810c32ec1c595 AS runtime
-RUN apt-get update \
+# CVE-2026-109518: disable retries until both APT packages are verified fixed.
+RUN apt-get -o Acquire::Retries=0 update \
+    && apt-get -o Acquire::Retries=0 install -y --no-install-recommends --only-upgrade apt libapt-pkg6.0 \
+    && for package in apt libapt-pkg6.0; do \
+        status="$(dpkg-query -W -f='${db:Status-Status}' "$package")" \
+        && test "$status" = installed \
+        && version="$(dpkg-query -W -f='${Version}' "$package")" \
+        && dpkg --validate-version "$version" \
+        && dpkg --compare-versions "$version" ge 2.4.15ubuntu0.1 \
+        || exit 1; \
+    done \
     && apt-get install -y --no-install-recommends curl libbrotli1 libssl3 openssl webp \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 10001 vympel \

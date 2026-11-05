@@ -592,6 +592,12 @@
 
 ## Backend Patterns That Work
 
+### Safely bootstrap a vulnerable APT client
+
+* **When to use:** The pinned Jammy runtime predates the CVE-2026-109518 security update.
+* **How:** Apply `-o Acquire::Retries=0` separately to the initial update and the apt/libapt-pkg6.0 upgrade. Before installing other packages, require successful dpkg queries, installed status, `dpkg --validate-version` and both versions >= 2.4.15ubuntu0.1. Explicitly exit on a failed loop iteration so a later passing package cannot mask failure. Keep signature checks and the canonical Trivy threshold unchanged.
+* **Why:** Retry suppression protects the bootstrap acquisition itself. Successful apt-get alone does not prove a fixed installed package. The network-free rehearsal executes the Dockerfile guard with real dpkg and independent old/missing/malformed package controls.
+
 ### Bounded upload encoding and reviewed backfill
 
 * **When to use:** New product/CMS raster uploads or a separately authorized existing-media batch.
@@ -2869,6 +2875,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-11-05 — Verified the APT bootstrap boundary and documented local image admission. Windows `git archive` produced CRLF resource bytes different from Linux publication; compare canonical Git blobs and the final JAR rather than assuming export byte identity. Node 22 rejects the auxiliary `--test-isolation=none` flag; direct `node --test scripts/test-security-headers.mjs` is supported, and canonical release workflows do not invoke that auxiliary npm script. See [APT validation](deployment/BACKEND_APT_SECURITY.md).
 
 2026-11-05 — Recorded bounded Embla image discovery, four-image SSR bootstrap, retained resource identities, native fallback lifecycle, real network/ECT validation and separate Next streaming/TTFB limits. No new media encoding or external mutation. [Carousel review](tasks/carousel-discovery-2026-11-05/REPORT.md)
 
