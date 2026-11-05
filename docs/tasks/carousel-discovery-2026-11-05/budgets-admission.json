@@ -1,0 +1,16 @@
+[
+  {
+    "side": "baseline",
+    "image": "ghcr.io/zxzxz143/vympel-storefront@sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+    "imageId": "sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+    "jsBytes": 1551448,
+    "budgetExit": 0
+  },
+  {
+    "side": "candidate",
+    "image": "vympel-carousel-local:review",
+    "imageId": "sha256:8692a97036572ba27d2cf8444dad7cec9d9dce483c8e023b0834054bc556a337",
+    "jsBytes": 1556078,
+    "budgetExit": 0
+  }
+]

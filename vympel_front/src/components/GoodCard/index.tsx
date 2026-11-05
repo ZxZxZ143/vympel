@@ -45,6 +45,7 @@ export type GoodCardProps = {
     href?: string;
     link?: string;
     priority?: boolean;
+    loadImage?: boolean;
     isCatalog?: boolean;
     headingLevel?: "h2" | "h3";
     className?: string;
@@ -67,6 +68,7 @@ const GoodCard: FC<GoodCardProps> = ({
                                          href,
                                          link,
                                          priority = false,
+                                         loadImage = true,
                                          isCatalog = true,
                                          headingLevel = "h2",
                                          className,
@@ -184,6 +186,7 @@ const GoodCard: FC<GoodCardProps> = ({
                                         isUnavailable && "opacity-45 saturate-50"
                                     )}
                                     priority={priority}
+                                    loadImage={loadImage}
                                     onError={() => setFailedImageUrl(img ?? null)}
                                 />
                             ) : (

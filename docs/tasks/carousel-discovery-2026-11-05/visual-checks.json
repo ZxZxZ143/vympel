@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "method": "direct visual inspection of four matched final-image pairs; file hashes are supplementary",
+  "pairs": [
+    {
+      "file": "4G-normal-390-home-rail.png",
+      "baseline": "1b10adaaea74ec671122d9197a6ad99536c361f9f1bedc0b16957cae5cc3dbf0",
+      "candidate": "be971cbf338a58c5ab73dde19ca88951d375766762e8d906f0748d7e7ec44a92"
+    },
+    {
+      "file": "4G-normal-1440-home-rail.png",
+      "baseline": "42910ad2a622ceb0390f57fcfc243cedab5e12d410b36fd727c0b70c981cc2ff",
+      "candidate": "f61a3a1b34e34946568194488d59ef299334ec0c91ae11aad9b46985c0dd2bd1"
+    },
+    {
+      "file": "4G-normal-390-56-rail.png",
+      "baseline": "9b79b614b9477539689ff7a5319607165e0612727c12e85d7c1659c9e3f84003",
+      "candidate": "d71ac89dcade35e0a8d7ebcb114d68c5044448a081f6754162ea5a76432a627e"
+    },
+    {
+      "file": "4G-normal-1440-56-rail.png",
+      "baseline": "e017e263beca6c96e740e8cfc4b72bbaf4a01490e4fa6444559833aaf305be9a",
+      "candidate": "e017e263beca6c96e740e8cfc4b72bbaf4a01490e4fa6444559833aaf305be9a"
+    }
+  ]
+}

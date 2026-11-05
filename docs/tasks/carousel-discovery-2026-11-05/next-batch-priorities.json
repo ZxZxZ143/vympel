@@ -1,0 +1,505 @@
+[
+  {
+    "priorRank": 1,
+    "key": "product/c2d10915-d1d9-422e-b65b-24591fbd7f5d.png",
+    "originalSha256": "0af2ec55decfd45973072c95f2a84eb300d70e901b9d273bac9e5c6951c48686",
+    "originalBytes": 2135712,
+    "dimensions": [
+      855,
+      1840
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      855
+    ],
+    "owners": [
+      {
+        "productId": 67,
+        "name": "ROMANSON 0224",
+        "mediaRow": 114,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/c2d10915-d1d9-422e-b65b-24591fbd7f5d.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2756932,
+      "storageAdditionBytesRange": [
+        2570566,
+        2943298
+      ],
+      "card320SavingsPercentPoint": 97.47746887220748,
+      "card480SavingsPercentPoint": 95.39694490642933,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 12816192,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 12816192,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 3,
+    "key": "product/4127f720-8f86-4da6-821b-544cc20b15b0.png",
+    "originalSha256": "c497f06212e8c2cf15afa951a81b9402ab3adb7603f9e53f443754bb3b2edef8",
+    "originalBytes": 1760721,
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      1024
+    ],
+    "owners": [
+      {
+        "productId": 70,
+        "name": "Adriatica A1290.2163Q",
+        "mediaRow": 117,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/4127f720-8f86-4da6-821b-544cc20b15b0.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2188761,
+      "storageAdditionBytesRange": [
+        2060349,
+        2317173
+      ],
+      "card320SavingsPercentPoint": 98.03921234539715,
+      "card480SavingsPercentPoint": 96.42203392814648,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 10566246,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 10566246,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 5,
+    "key": "product/8f891ae4-ac6d-4dd0-8a47-add4e5272e0f.png",
+    "originalSha256": "2d6819864aa1110bafe1ba5943421472286895983ecbf313bb3d0f4410cbb9f9",
+    "originalBytes": 1756737,
+    "dimensions": [
+      1086,
+      1448
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      1086
+    ],
+    "owners": [
+      {
+        "productId": 69,
+        "name": "ROMANSON CB9A08HM Blue",
+        "mediaRow": 116,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/8f891ae4-ac6d-4dd0-8a47-add4e5272e0f.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2252365,
+      "storageAdditionBytesRange": [
+        2103677,
+        2401053
+      ],
+      "card320SavingsPercentPoint": 98.06470746617167,
+      "card480SavingsPercentPoint": 96.28789056073846,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 10542342,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 10542342,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 4,
+    "key": "product/ca76b1eb-6683-4056-bcc2-a3f4e38c5a8c.png",
+    "originalSha256": "3f8c79692e06b528290cbee0225faf76a45bf2ddd6dd7e0aa7753edc17bf4767",
+    "originalBytes": 2619980,
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      1200,
+      1254
+    ],
+    "owners": [
+      {
+        "productId": 46,
+        "name": "Rhythm CMG839DR19",
+        "mediaRow": 87,
+        "isMain": false,
+        "sortOrder": 1,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/ca76b1eb-6683-4056-bcc2-a3f4e38c5a8c.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 3232416,
+      "storageAdditionBytesRange": [
+        3048685,
+        3416147
+      ],
+      "card320SavingsPercentPoint": 99.28701745814854,
+      "card480SavingsPercentPoint": 98.58716478751747,
+      "derivativeAndOriginalObjects": 7,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 4,
+      "normalColdWireBytes": 10481200,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 4,
+      "normalColdWireBytes": 10481200,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 7,
+    "key": "product/3b5f319b-88dd-47fa-927c-2984906fd250.png",
+    "originalSha256": "041c56c41cccd30d3c97a74a963641166dafc86f2dd4fc0d8e7e733236021911",
+    "originalBytes": 2268710,
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      1200,
+      1254
+    ],
+    "owners": [
+      {
+        "productId": 46,
+        "name": "Rhythm CMG839DR19",
+        "mediaRow": 89,
+        "isMain": false,
+        "sortOrder": 3,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/3b5f319b-88dd-47fa-927c-2984906fd250.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2606540,
+      "storageAdditionBytesRange": [
+        2505191,
+        2707889
+      ],
+      "card320SavingsPercentPoint": 99.36624777957518,
+      "card480SavingsPercentPoint": 98.94786023775626,
+      "derivativeAndOriginalObjects": 7,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 4,
+      "normalColdWireBytes": 9076120,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 4,
+      "normalColdWireBytes": 9076120,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 9,
+    "key": "product/a2e95087-3115-482c-bd2c-5b09afbfce88.png",
+    "originalSha256": "0e379a2bd08bf65f75140112f79651db4727e4ba41783959ca03ef0d64e48296",
+    "originalBytes": 2133310,
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      1200,
+      1254
+    ],
+    "owners": [
+      {
+        "productId": 46,
+        "name": "Rhythm CMG839DR19",
+        "mediaRow": 88,
+        "isMain": false,
+        "sortOrder": 2,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/a2e95087-3115-482c-bd2c-5b09afbfce88.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2481316,
+      "storageAdditionBytesRange": [
+        2376914,
+        2585718
+      ],
+      "card320SavingsPercentPoint": 99.25852314009684,
+      "card480SavingsPercentPoint": 98.72789233632243,
+      "derivativeAndOriginalObjects": 7,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 4,
+      "normalColdWireBytes": 8534520,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 4,
+      "normalColdWireBytes": 8534520,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 6,
+    "key": "product/c1951dcd-fdd7-411d-949b-a633fd2ee9ac.png",
+    "originalSha256": "acf9a3cc01d73a889150a0e35eb06ca5bec6ff3d7c3442bebc6347272685e023",
+    "originalBytes": 1124726,
+    "dimensions": [
+      1086,
+      1448
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      1086
+    ],
+    "owners": [
+      {
+        "productId": 68,
+        "name": "Adriatica A1290.5166Q",
+        "mediaRow": 115,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/c1951dcd-fdd7-411d-949b-a633fd2ee9ac.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 1427892,
+      "storageAdditionBytesRange": [
+        1336942,
+        1518842
+      ],
+      "card320SavingsPercentPoint": 98.04379022090714,
+      "card480SavingsPercentPoint": 96.25668829563823,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 6750276,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 6750276,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 2,
+    "key": "product/4d89abb2-eef8-4ecf-a161-20ef61b3dfca.png",
+    "originalSha256": "01cf87679541635bfee86ad20a31689cf8ce6461b7c67c26b80a76642bdc2711",
+    "originalBytes": 2019825,
+    "dimensions": [
+      952,
+      1652
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      952
+    ],
+    "owners": [
+      {
+        "productId": 66,
+        "name": "Pierre Ricaud P91091.91R4Q Rose",
+        "mediaRow": 113,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/4d89abb2-eef8-4ecf-a161-20ef61b3dfca.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2700907,
+      "storageAdditionBytesRange": [
+        2496582,
+        2905232
+      ],
+      "card320SavingsPercentPoint": 97.33471959204387,
+      "card480SavingsPercentPoint": 94.98501107769238,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 6,
+      "normalColdWireBytes": 12120870,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 2,
+      "normalColdWireBytes": 4040290,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 8,
+    "key": "product/3418e800-1c6a-4da1-8418-d467bb6967ef.png",
+    "originalSha256": "674f05ff27e6ceaefc95d90f8eaff7ff1dca4d69680d497909bdedc476b6c60d",
+    "originalBytes": 1942864,
+    "dimensions": [
+      921,
+      1707
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      921
+    ],
+    "owners": [
+      {
+        "productId": 65,
+        "name": "Pierre Ricaud P22023.96R3QF",
+        "mediaRow": 112,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/3418e800-1c6a-4da1-8418-d467bb6967ef.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2478388,
+      "storageAdditionBytesRange": [
+        2317731,
+        2639045
+      ],
+      "card320SavingsPercentPoint": 98.05771273748447,
+      "card480SavingsPercentPoint": 96.17780760773785,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 5,
+      "normalColdWireBytes": 9715920,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 0,
+      "normalColdWireBytes": 0,
+      "pending": 0
+    }
+  },
+  {
+    "priorRank": 10,
+    "key": "product/d6ead337-233b-4bbb-ab34-a5783d5645e0.png",
+    "originalSha256": "ca3710b838522623d31e2881bf197fcf4e1f1cbfc868838bd0e4a15e7a291a97",
+    "originalBytes": 1848122,
+    "dimensions": [
+      932,
+      1688
+    ],
+    "expectedWidths": [
+      160,
+      320,
+      480,
+      800,
+      932
+    ],
+    "owners": [
+      {
+        "productId": 62,
+        "name": "Adriatica A8242.9223Q",
+        "mediaRow": 109,
+        "isMain": true,
+        "sortOrder": 0,
+        "url": "https://api.vympel.kz/media/vympel-staging/product/d6ead337-233b-4bbb-ab34-a5783d5645e0.png"
+      }
+    ],
+    "oldCodecEstimateOnly": {
+      "basis": "Unchanged source SHA; existing 1.6.0 local artifacts, not current deployed codec output. Planning sensitivity +/-30% on historical derivative bytes; not a confidence interval. No new encoding.",
+      "storageAdditionBytesPoint": 2368302,
+      "storageAdditionBytesRange": [
+        2212248,
+        2524356
+      ],
+      "card320SavingsPercentPoint": 97.84873509432819,
+      "card480SavingsPercentPoint": 95.84497127354147,
+      "derivativeAndOriginalObjects": 6,
+      "currentCodec": "1.2.2",
+      "readyForExecution": false
+    },
+    "baseline": {
+      "normalColdRequests": 1,
+      "normalColdWireBytes": 1848442,
+      "pending": 0
+    },
+    "candidate": {
+      "normalColdRequests": 0,
+      "normalColdWireBytes": 0,
+      "pending": 0
+    }
+  }
+]

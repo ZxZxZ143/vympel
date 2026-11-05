@@ -18,6 +18,7 @@ import {IProductFeature} from "@/api/types/ProductTypes";
 import GoodCardSkeleton from "@/components/GoodCard/Skeleton";
 import {Text} from "@/components/ui/shared/text";
 import CmsResponsiveImage from "@/components/ui/shared/CmsResponsiveImage";
+import {useImageDiscovery} from "./useImageDiscovery";
 
 export type GoodsCarouselItem = {
     id: number;
@@ -65,31 +66,41 @@ const GoodsCarouselWithImage: FC<Props> = ({
     const [canNext, setCanNext] = useState(false);
     const carouselId = useId();
     const listId = `goods-carousel-${carouselId}`;
+    const {rootRef, enhanced, ready, loadImage} = useImageDiscovery(items, api);
 
     useEffect(() => {
-        if (!api) return;
-
+        const viewport = rootRef.current?.querySelector<HTMLElement>('[data-slot="carousel-content"]');
         const update = () => {
-            setCanPrev(api.canScrollPrev());
-            setCanNext(api.canScrollNext());
+            setCanPrev(ready && api ? api.canScrollPrev() : Boolean(viewport && viewport.scrollLeft > 1));
+            setCanNext(ready && api ? api.canScrollNext() : Boolean(viewport && viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - 1));
         };
 
         update();
-        api.on("select", update);
-        api.on("reInit", update);
+        api?.on("select", update);
+        api?.on("reInit", update);
+        viewport?.addEventListener("scroll", update, {passive: true});
+        window.addEventListener("resize", update, {passive: true});
 
         return () => {
-            api.off("select", update);
-            api.off("reInit", update);
+            api?.off("select", update);
+            api?.off("reInit", update);
+            viewport?.removeEventListener("scroll", update);
+            window.removeEventListener("resize", update);
         };
-    }, [api]);
+    }, [api, ready, rootRef, items, loading]);
+
+    const scrollFallback = (direction: number) => {
+        const viewport = rootRef.current?.querySelector<HTMLElement>('[data-slot="carousel-content"]');
+        viewport?.scrollBy({left: direction * viewport.clientWidth / 2});
+    };
 
     const renderProducts = () => {
         if (items?.length) {
             return (
-                items?.map((item) => (
+                items?.map((item, index) => (
                     <CarouselItem
                         key={item.id}
+                        {...(!ready ? {"aria-hidden": undefined, inert: undefined} : {})}
                         className={cn(
                             "pl-0",
                             "basis-[calc((100%_-_12px)/2)] sm:basis-[42%] xl:basis-[270px]"
@@ -98,6 +109,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
                         <GoodCard
                             id={item.id}
                             img={item.imageUrl ?? item.img}
+                            loadImage={loadImage(item, index)}
                             name={item.name}
                             price={item.price}
                             discountPercent={item.discountPercent}
@@ -139,6 +151,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
 
     return (
         <div
+            ref={rootRef}
             className={cn("w-full select-none", img && showBanner && "goods-carousel-with-banner", className)}
             aria-busy={loading}
         >
@@ -166,8 +179,15 @@ const GoodsCarouselWithImage: FC<Props> = ({
                     opts={{
                         align: "start",
                         loop: false,
+                        active: enhanced,
                     }}
-                    className="relative mx-auto w-full sm:px-12 lg:w-[82vw] lg:max-w-[1128px] lg:px-14"
+                    className={cn("relative mx-auto w-full sm:px-12 lg:w-[82vw] lg:max-w-[1128px] lg:px-14",
+                        !ready && "[&_[data-slot=carousel-content]]:overflow-x-auto")}
+                    {...(!ready ? {onKeyDownCapture: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                        scrollFallback(event.key === "ArrowLeft" ? -1 : 1);
+                        event.preventDefault();
+                    }} : {})}
                 >
                     <CarouselContent id={listId} className="ml-0 gap-3 sm:gap-9 lg:gap-17" data-motion="stagger">
                         {renderProducts()}
@@ -175,6 +195,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
 
                     <nav aria-label={t("controlsAria")}>
                         <CarouselPrevious
+                            {...(!ready ? {onClick: () => scrollFallback(-1)} : {})}
                             setClassName
                             type="button"
                             aria-label={t("previousItems")}
@@ -188,6 +209,7 @@ const GoodsCarouselWithImage: FC<Props> = ({
                         </CarouselPrevious>
 
                         <CarouselNext
+                            {...(!ready ? {onClick: () => scrollFallback(1)} : {})}
                             setClassName
                             type="button"
                             aria-label={t("nextItems")}

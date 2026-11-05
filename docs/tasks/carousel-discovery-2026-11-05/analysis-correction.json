@@ -1,0 +1,13 @@
+{
+  "issue": "Request-time DOM sampling initially misclassified an eligible adjacent cache hit as far",
+  "observation": "candidate-matrix-admitted/48.json",
+  "request": "https://api.vympel.kz/media/vympel-staging/product/c2d10915-d1d9-422e-b65b-24591fbd7f5d.png",
+  "requestApproxAtMs": 609.906,
+  "precedingSample": {"atMs": 404.8, "carouselWidth": 0, "reason": "Next hidden streaming container"},
+  "followingSample": {"atMs": 619.8, "carouselWidth": 1016, "horizontalIndexes": [0, 1, 2, 3], "activeIndexes": [0, 1, 2, 3, 4]},
+  "requestCardIndex": 4,
+  "wireBytes": 0,
+  "correction": "Use the final styled initial range for the fixed-position far-request bound, independently from approximate 200ms request-time visibility; retain sampled layout width and all raw records. Apply identically to baseline and candidate.",
+  "independentGate": "Unchanged: actual forbidden URLs and inactive far resources across all 48 matched observations, with synthetic network/geometry negative controls.",
+  "runtimeChange": false
+}

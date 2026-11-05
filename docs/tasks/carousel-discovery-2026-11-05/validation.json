@@ -1,0 +1,149 @@
+{
+  "status": "PASS",
+  "at": "2026-11-05T13:53:00.150030+00:00",
+  "scope": "local implementation and validation; no publication, deployment, SQL or media mutation",
+  "baselineCommit": "292d086d59f4198fb4efb40d48c08630e52e29f5",
+  "candidateRuntimeImage": "sha256:8692a97036572ba27d2cf8444dad7cec9d9dce483c8e023b0834054bc556a337",
+  "sourceSha256": {
+    "vympel_front/src/components/GoodCard/index.tsx": "75a0dbfe669792231b44aa6b34e572fc0ecc795b8a0e6c60e3a0d7d545593ed6",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/index.tsx": "b50f9432e5bdd7f15c8790f669ca67c0e7bd0fb3c9f8f98c69d0664177e5db5c",
+    "vympel_front/src/components/ui/shared/ResponsiveProductImage/index.tsx": "46ee0af88b9a41f7001b57c727ba8e107decd5e52df58ed452bafcdf11e862f8",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/imageDiscovery.test.ts": "6ea0582be70d845680f8a40f95fedcf006b70aaaf4c29812ea0bc5a6958748ac",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/imageDiscovery.ts": "e8eb45a3965c321f29158222b0ea4e534abf61e4cf7d5daccc1fe5d0db688543",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/index.test.tsx": "71de2422b6ecef9f341e6564f471f29d1a50239553bbc3f9e91f89a68e81ec21",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/useImageDiscovery.ts": "9484230f5ebe2710ef8583bd6582fec89b7f23a4d2381ea502d1bf266c9411e5",
+    "vympel_front/src/components/ui/shared/ResponsiveProductImage/index.test.tsx": "d1a0749aac5353bd43f764aaeb61e8fe9d3916b54106e0b620744f6e6d8d64e2"
+  },
+  "tests": {
+    "unitFiles": 50,
+    "unitTests": 283,
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "browserScenarioGroups": 11,
+    "matchedMatrixPairs": 48,
+    "navigationPairs": 24,
+    "staticWebPIntegrity": 206,
+    "originalIntegrity": 39,
+    "securityHeaderTests": 3,
+    "sharpAndGlobGuards": "PASS",
+    "productionAuditVulnerabilities": 0,
+    "fullAudit": {
+      "info": 0,
+      "low": 3,
+      "moderate": 8,
+      "high": 0,
+      "critical": 0,
+      "total": 11
+    },
+    "unchangedBudgets": "PASS",
+    "visualMatchedPairs": 4,
+    "acceptedTenPublicReferences": "PASS"
+  },
+  "networkGate": {
+    "status": "PASS",
+    "matchedObservations": 48,
+    "farRequestsBefore": 56,
+    "farRequestsAfter": 0,
+    "negativeControls": [
+      "network leak rejected",
+      "geometry change rejected"
+    ]
+  },
+  "navigationAdmission": {
+    "normalRegressions": [],
+    "slowNewPending": []
+  },
+  "receipts": {
+    "baseline-matrix-admitted": {
+      "status": "PASS",
+      "side": "baseline",
+      "stage": "matrix-admitted",
+      "image": "ghcr.io/zxzxz143/vympel-storefront@sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+      "imageId": "sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+      "frozenInputsSha256": "16b6ac7602684ea1df99a9ddfc03d84500d7ac940b83d757c3d25af16b7423ca",
+      "startedAt": "2026-11-05T13:09:34.823518+00:00",
+      "finishedAt": "2026-11-05T13:28:42.104927+00:00",
+      "network": "none",
+      "mounts": "read-only",
+      "refs": "accepted ten",
+      "tls": "loopback + process-scoped SPKI pin; no global trust change"
+    },
+    "candidate-matrix-admitted": {
+      "status": "PASS",
+      "side": "candidate",
+      "stage": "matrix-admitted",
+      "image": "vympel-carousel-local:review",
+      "imageId": "sha256:8692a97036572ba27d2cf8444dad7cec9d9dce483c8e023b0834054bc556a337",
+      "frozenInputsSha256": "16b6ac7602684ea1df99a9ddfc03d84500d7ac940b83d757c3d25af16b7423ca",
+      "startedAt": "2026-11-05T13:28:45.119942+00:00",
+      "finishedAt": "2026-11-05T13:47:46.985576+00:00",
+      "network": "none",
+      "mounts": "read-only",
+      "refs": "accepted ten",
+      "tls": "loopback + process-scoped SPKI pin; no global trust change"
+    },
+    "candidate-regression-complete": {
+      "status": "PASS",
+      "side": "candidate",
+      "stage": "regression-complete",
+      "image": "vympel-carousel-local:review",
+      "imageId": "sha256:8692a97036572ba27d2cf8444dad7cec9d9dce483c8e023b0834054bc556a337",
+      "startedAt": "2026-11-05T12:51:49.317191+00:00",
+      "finishedAt": "2026-11-05T12:53:42.097874+00:00",
+      "network": "none",
+      "mounts": "read-only",
+      "refs": "accepted ten",
+      "tls": "loopback + process-scoped SPKI pin; no global trust change"
+    },
+    "baseline-contracts": {
+      "status": "PASS",
+      "side": "baseline",
+      "stage": "contracts",
+      "image": "ghcr.io/zxzxz143/vympel-storefront@sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+      "imageId": "sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+      "startedAt": "2026-11-05T12:50:56.170890+00:00",
+      "finishedAt": "2026-11-05T12:51:15.544694+00:00",
+      "network": "none",
+      "mounts": "read-only",
+      "refs": "accepted ten",
+      "tls": "loopback + process-scoped SPKI pin; no global trust change"
+    },
+    "candidate-contracts": {
+      "status": "PASS",
+      "side": "candidate",
+      "stage": "contracts",
+      "image": "vympel-carousel-local:review",
+      "imageId": "sha256:8692a97036572ba27d2cf8444dad7cec9d9dce483c8e023b0834054bc556a337",
+      "frozenInputsSha256": "16b6ac7602684ea1df99a9ddfc03d84500d7ac940b83d757c3d25af16b7423ca",
+      "startedAt": "2026-11-05T12:55:16.485515+00:00",
+      "finishedAt": "2026-11-05T12:55:34.569147+00:00",
+      "network": "none",
+      "mounts": "read-only",
+      "refs": "accepted ten",
+      "tls": "loopback + process-scoped SPKI pin; no global trust change"
+    },
+    "baseline-throttle2": {
+      "status": "PASS",
+      "side": "baseline",
+      "stage": "throttle2",
+      "image": "ghcr.io/zxzxz143/vympel-storefront@sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+      "imageId": "sha256:1dd91655b7efcf1e56617553c788e11aaf140e67ab3b8a7f4d8e28f72bc4571d",
+      "frozenInputsSha256": "16b6ac7602684ea1df99a9ddfc03d84500d7ac940b83d757c3d25af16b7423ca",
+      "startedAt": "2026-11-05T13:07:23.781432+00:00",
+      "finishedAt": "2026-11-05T13:07:50.841479+00:00",
+      "network": "none",
+      "mounts": "read-only",
+      "refs": "accepted ten",
+      "tls": "loopback + process-scoped SPKI pin; no global trust change"
+    }
+  },
+  "limitations": [
+    "Single observation per side per tuple; local loopback is not deployed internet performance",
+    "Pending/partial bytes are separate from completed bytes",
+    "Product-page no-JS Suspense hidden ancestor is unchanged from baseline",
+    "DOM/AX/keyboard checks, not a human screen-reader session",
+    "Live response-wait cause remains unresolved",
+    "Next media batch remains review-only; private ownership not audited in this task"
+  ]
+}

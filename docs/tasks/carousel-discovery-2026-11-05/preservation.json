@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "at": "2026-11-05T13:52:59.821557+00:00",
+  "priorEvidence": {
+    "warm-investigation-2026-11-05": {
+      "files": 71,
+      "indexSha256": "d289a02b48b4fb8fe2eb0afd769d56700f307435265f3c2e2077c743c162f4f0"
+    },
+    "ten-final-292d086-2026-11-05": {
+      "files": 142,
+      "indexSha256": "fa022cbe49dcad196be9a94fbd8cc78072f8889fdd2c2f5740e5e85dda83fd81"
+    }
+  },
+  "originalUntrackedPreserved": 1203,
+  "unrelatedTrackedFiles": "unchanged",
+  "priorDocContents": "byte-for-byte preserved after removing only this task insertions",
+  "frozenInputsSha256": "16b6ac7602684ea1df99a9ddfc03d84500d7ac940b83d757c3d25af16b7423ca",
+  "candidateRuntimeSourceHashes": "match final build receipt",
+  "acceptedRunnerPins": {
+    "scripts/image-performance/benchmark-matrix.mjs": "813a3ad9899d79cfd5d0cd0058095116b9767322703450a6eefde22418e06cf1",
+    "scripts/image-performance/prime-images.mjs": "c602bc06afd902cc2d67608a2384f1e081be2ce1a485a1651666124d35866dc0",
+    "scripts/image-performance/benchmark-evidence.mjs": "29b0c8a04eaee048bcd4e389fbd5482dcdca72406fcbf877180ced27f7a210b0"
+  }
+}

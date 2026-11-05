@@ -1,0 +1,36 @@
+{
+  "baseline": {
+    "requests": 550,
+    "completedWire": 126307885,
+    "partialWire": 46908628,
+    "totalWire": 173219889,
+    "direct": 270,
+    "wire304": 4,
+    "pending": 63,
+    "carouselRequests": 168,
+    "carouselVisible": 0,
+    "carouselHorizontallyVisible": 72,
+    "initialHorizontalRequests": 80,
+    "initialViewportVisibleRequests": 0,
+    "farRequests": 56,
+    "farWire": 26583422
+  },
+  "candidate": {
+    "requests": 495,
+    "completedWire": 101856134,
+    "partialWire": 44924852,
+    "totalWire": 146784362,
+    "direct": 246,
+    "wire304": 4,
+    "pending": 47,
+    "carouselRequests": 112,
+    "carouselVisible": 0,
+    "carouselHorizontallyVisible": 68,
+    "initialHorizontalRequests": 80,
+    "initialViewportVisibleRequests": 0,
+    "farRequests": 0,
+    "farWire": 0
+  },
+  "normalNavigationRegressions": [],
+  "slowNewPending": []
+}

@@ -7,10 +7,11 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet"> & {
     src: string;
     maximumWidth?: number;
     priority?: boolean;
+    loadImage?: boolean;
 };
 
 /** Native srcset uses pre-generated media and never calls the Next runtime optimizer. */
-export default function ResponsiveProductImage({src, maximumWidth = 1600, priority = false, onError, ...props}: Props) {
+export default function ResponsiveProductImage({src, maximumWidth = 1600, priority = false, loadImage = true, onError, ...props}: Props) {
     const [failedVariant, setFailedVariant] = useState<string | null>(null);
     const imageRef = useRef<HTMLImageElement>(null);
     const image = failedVariant === src ? {src} : responsiveImage(src, maximumWidth);
@@ -18,8 +19,8 @@ export default function ResponsiveProductImage({src, maximumWidth = 1600, priori
         // A cached 404 can finish before React attaches onError during hydration.
         const node = imageRef.current;
         if (node?.complete && node.currentSrc && !node.naturalWidth) node.dispatchEvent(new Event("error"));
-    }, [src]);
-    return (
+    }, [src, loadImage]);
+    const element = (
         // eslint-disable-next-line @next/next/no-img-element -- Versioned, pre-generated responsive media.
         <img
             ref={imageRef}
@@ -37,4 +38,7 @@ export default function ResponsiveProductImage({src, maximumWidth = 1600, priori
             }}
         />
     );
+    // With scripting enabled noscript contains inert text, never a discoverable
+    // image. Without JS the same responsive resource remains progressively usable.
+    return loadImage ? element : <noscript>{element}</noscript>;
 }

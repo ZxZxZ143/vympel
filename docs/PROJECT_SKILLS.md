@@ -2,6 +2,30 @@
 
 ## Frontend Patterns That Work
 
+### Bound carousel image resources independently of card content
+
+* **When to use:** Native lazy loading requests horizontally distant product originals, particularly under changed browser effective-connection conditions.
+* **How:** Preserve four SSR images for the widest initial viewport; use Embla select/scroll/slidesInView/reInit events plus current slide geometry to activate visible cards and one neighbour per side. Keep activated product-ID/URL identities mounted. Defer only the image resource through noscript, not the card/text/actions. Leave GoodCard default-on for catalog grids. Without observers/API, retain native overflow and working controls; rebind listeners when empty/loading/data changes remount the viewport.
+* **Why:** Lazy loading controls scheduling but does not enforce a horizontal request bound. SSR avoids first-view hydration delays, resource gating prevents far-body downloads, and identity-based retention keeps backward navigation stable. The four-image mobile bootstrap is an explicit small overfetch trade-off.
+
+### Keep ECT independent from request throttling
+
+* **When to use:** Comparing native lazy-image discovery under both 3G/4G effective type and controlled transport.
+* **How:** Use CDP Network.emulateNetworkConditionsByRule for bytes/latency and the browser effective-type flag independently. Verify navigator.connection before navigation and at cutoff, and verify real transfer duration with a known-size frozen body. The deprecated combined emulation command can override the reported connection state. Reject mismatched profiles; do not relabel them. The durable carousel evidence gate also requires all matched tuples and checks negative controls.
+* **Why:** Otherwise a nominal slow/3G sample can actually exercise 4G discovery policy.
+
+### Separate component no-JS support from streamed page visibility
+
+* **When to use:** Validating SSR/no-JS carousel behavior in Next App Router.
+* **How:** Inspect hidden ancestors and compare the exact published application. Product recommendations in the existing Suspense stream remain in a hidden S:0 container without Next scripts; the homepage has no such ancestor. Test actual homepage native scrolling and noscript image decoding separately. Do not count decorative aria-hidden SVGs as hidden slides. Missing MutationObserver also breaks Playwright page.waitForFunction: use host-side polling to observe the actual component fallback.
+* **Why:** A test-tool dependency or existing page streaming limitation must not be attributed to image discovery or silently hidden. [Protocol](tasks/carousel-discovery-2026-11-05/PROTOCOL.md)
+
+### Distinguish fixed image bounds from sampled visibility
+
+* **When to use:** Joining CDP request timestamps with periodically sampled DOM visibility during SSR streaming.
+* **How:** For a fixed-position initial-window comparison, classify far URLs against the final styled initial carousel range, while retaining request-time visibility as a separate approximate observation. A preceding 200ms sample can still show zero layout in a hidden Next stream or pre-CSS stacked cards. Preserve such records and disclose the resolution instead of calling a valid adjacent cache hit a far request. Validate the complete request set independently and retain negative controls.
+* **Why:** Sparse DOM timing must not silently redefine the resource-discovery contract or inflate savings.
+
 ### Gate gallery controls on the hydrated carousel API
 
 * **When to use:** Server-rendered product gallery buttons depend on React, Embla and the controlled Radix dialog.
@@ -2845,6 +2869,8 @@
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
 ## Last Updated
+
+2026-11-05 — Recorded bounded Embla image discovery, four-image SSR bootstrap, retained resource identities, native fallback lifecycle, real network/ECT validation and separate Next streaming/TTFB limits. No new media encoding or external mutation. [Carousel review](tasks/carousel-discovery-2026-11-05/REPORT.md)
 
 2026-11-04 — In CRM reference-deletion tests, capture the field button before opening confirmation and wait for both dialog removal and focus on that exact element. React can remove the portal before the passive cleanup in `ConfirmDialog` restores focus. The original assertion failed on Ubuntu 24.04.5 with Node 22.23.4 even though the button stayed mounted.
 

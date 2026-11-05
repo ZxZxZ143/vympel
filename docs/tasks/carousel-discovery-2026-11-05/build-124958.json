@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "imageId": "sha256:8692a97036572ba27d2cf8444dad7cec9d9dce483c8e023b0834054bc556a337",
+  "inputs": {
+    "BASE_API_PUBLIC": "https://api.vympel.kz/api/public",
+    "NEXT_PUBLIC_BASE_API_PUBLIC": "https://api.vympel.kz/api/public",
+    "NEXT_PUBLIC_MEDIA_ORIGINS": "https://api.vympel.kz",
+    "NEXT_PUBLIC_SITE_URL": "https://preview.vympel.kz",
+    "NEXT_PUBLIC_APP_ENV": "staging",
+    "NEXT_PUBLIC_APP_RELEASE": "292d086d59f4198fb4efb40d48c08630e52e29f5",
+    "NEXT_PUBLIC_TELEMETRY_ENABLED": "false",
+    "SITE_INDEXING_ENABLED": "false"
+  },
+  "sourceSha256": {
+    "vympel_front/src/components/GoodCard/index.tsx": "75a0dbfe669792231b44aa6b34e572fc0ecc795b8a0e6c60e3a0d7d545593ed6",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/index.tsx": "b50f9432e5bdd7f15c8790f669ca67c0e7bd0fb3c9f8f98c69d0664177e5db5c",
+    "vympel_front/src/components/ui/shared/ResponsiveProductImage/index.tsx": "46ee0af88b9a41f7001b57c727ba8e107decd5e52df58ed452bafcdf11e862f8",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/imageDiscovery.test.ts": "6ea0582be70d845680f8a40f95fedcf006b70aaaf4c29812ea0bc5a6958748ac",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/imageDiscovery.ts": "e8eb45a3965c321f29158222b0ea4e534abf61e4cf7d5daccc1fe5d0db688543",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/index.test.tsx": "71de2422b6ecef9f341e6564f471f29d1a50239553bbc3f9e91f89a68e81ec21",
+    "vympel_front/src/components/ui/shared/GoodsCarouselWithImage/useImageDiscovery.ts": "9484230f5ebe2710ef8583bd6582fec89b7f23a4d2381ea502d1bf266c9411e5",
+    "vympel_front/src/components/ui/shared/ResponsiveProductImage/index.test.tsx": "d1a0749aac5353bd43f764aaeb61e8fe9d3916b54106e0b620744f6e6d8d64e2"
+  },
+  "logSha256": "b1da3c0aa58811943a6b0712defbf0c92414b0e5697cfe8cf8edd3a6232dc65a",
+  "localOnly": true,
+  "releaseLabel": "accepted baseline metadata retained for matched fixture; not a published candidate"
+}
