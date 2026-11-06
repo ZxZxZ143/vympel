@@ -13,6 +13,7 @@ import com.shop.vympel.s3.StorageProps;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
@@ -47,6 +49,7 @@ public class ObjectStorageService {
     private final ObjectStorageDeletionOutboxService objectStorageDeletionOutboxService;
     private final ProductRepository productRepository;
     private final ImageVariantEncoder imageVariantEncoder;
+    private final ApplicationEventPublisher eventPublisher;
     private static final Map<String, Set<String>> SUPPORTED_IMAGE_EXTENSIONS = Map.of(
             "image/jpeg", Set.of("jpg", "jpeg"),
             "image/png", Set.of("png"),
@@ -63,8 +66,13 @@ public class ObjectStorageService {
             String objectKey,
             String originalFilename,
             String contentType,
-            Long sizeBytes
+            Long sizeBytes,
+            boolean responsiveDeferred
     ) {
+    }
+
+    /** An eligible raster whose family could not be built within the request budget is deferred. */
+    private record UploadedImage(String key, boolean responsiveDeferred) {
     }
 
     @Transactional(rollbackOn = Exception.class)
@@ -90,10 +98,12 @@ public class ObjectStorageService {
                 .orElse(-1) + 1;
         boolean hasMainImage = existingImages.stream().anyMatch(media -> Boolean.TRUE.equals(media.getMain()));
         long encodingDeadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(20);
+        List<ResponsiveMediaPendingEvent.Item> deferred = new ArrayList<>();
         try {
             for (MultipartFile file : files) {
-                String key = uploadImage(file, ObjectStoragePath.PRODUCT.getValue(), uploadedKeys,
+                UploadedImage uploaded = uploadImage(file, ObjectStoragePath.PRODUCT.getValue(), uploadedKeys,
                         encodingDeadline);
+                String key = uploaded.key();
 
                 Media newMedia = new Media();
                 newMedia.setProduct(product);
@@ -103,6 +113,9 @@ public class ObjectStorageService {
                 newMedia.setUrl(key);
                 mediaRepository.save(newMedia);
                 hasMainImage = true;
+                if (uploaded.responsiveDeferred() && newMedia.getId() != null) {
+                    deferred.add(new ResponsiveMediaPendingEvent.Item(newMedia.getId(), key));
+                }
 
                 keys.add(key);
             }
@@ -117,7 +130,12 @@ public class ObjectStorageService {
             throw ex;
         }
 
-        log.info("Product images uploaded productId={} count={}", productId, keys.size());
+        if (!deferred.isEmpty()) {
+            // Delivered only after commit; the bounded worker then builds the missing families.
+            eventPublisher.publishEvent(new ResponsiveMediaPendingEvent(ResponsiveMediaArea.PRODUCT, deferred));
+        }
+        log.info("Product images uploaded productId={} count={} responsiveDeferred={}",
+                productId, keys.size(), deferred.size());
         return keys;
     }
 
@@ -141,9 +159,9 @@ public class ObjectStorageService {
         String contentType = normalizedContentType(file);
         String originalName = safeName(file.getOriginalFilename());
         List<String> uploadedKeys = new ArrayList<>();
-        String key;
+        UploadedImage uploaded;
         try {
-            key = uploadImage(file, ObjectStoragePath.CMS.getValue(), uploadedKeys,
+            uploaded = uploadImage(file, ObjectStoragePath.CMS.getValue(), uploadedKeys,
                     System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(20));
         } catch (IOException | RuntimeException ex) {
             cleanupUploadedObjects(uploadedKeys);
@@ -156,17 +174,18 @@ public class ObjectStorageService {
             throw ex;
         }
 
-        log.info("CMS image uploaded objectKey={} sizeBytes={}", key, file.getSize());
+        log.info("CMS image uploaded objectKey={} sizeBytes={}", uploaded.key(), file.getSize());
         return new StoredObject(
-                key,
+                uploaded.key(),
                 originalName,
                 contentType,
-                file.getSize()
+                file.getSize(),
+                uploaded.responsiveDeferred()
         );
     }
 
-    private String uploadImage(MultipartFile file, String prefix, List<String> uploadedKeys,
-                               long encodingDeadline) throws IOException {
+    private UploadedImage uploadImage(MultipartFile file, String prefix, List<String> uploadedKeys,
+                                      long encodingDeadline) throws IOException {
         String contentType = normalizedContentType(file);
         String extension = validatedExtension(file, contentType);
         String id = UUID.randomUUID().toString();
@@ -185,11 +204,62 @@ public class ObjectStorageService {
         // Publish the original last. A persisted responsive-v1 key promises a complete family.
         putImage(originalKey, bytes, contentType,
                 Map.of("originalName", safeName(file.getOriginalFilename())), uploadedKeys);
+        boolean deferred = encoded.isEmpty() && imageVariantEncoder.ineligibilityReason(bytes, contentType).isEmpty();
+        return new UploadedImage(originalKey, deferred);
+    }
+
+    /**
+     * Publishes a complete family for bytes that already exist under a legacy key. Every write is
+     * create-only: an existing identical object is reused, a differing one is a conflict and is never
+     * replaced. Derivatives precede the original. Only objects created here are removed if the
+     * surrounding transaction rolls back; reused objects and the legacy original are never touched.
+     */
+    public String publishResponsiveFamily(ResponsiveImageLayout.LegacyKey legacy, byte[] bytes,
+                                          ImageVariantEncoder.Encoded encoded) {
+        String base = ResponsiveImageLayout.base(legacy.area(), legacy.id(), bytes, encoded.width(), encoded.height());
+        String sourceSha256 = ResponsiveImageLayout.sha256(bytes);
+        for (var variant : new java.util.TreeMap<>(encoded.variants()).entrySet()) {
+            putCreateOnlyOrVerify(base + "/w" + variant.getKey() + ".webp", variant.getValue(), "image/webp",
+                    Map.of("source-sha256", sourceSha256));
+        }
+        String originalKey = base + "/original." + legacy.extension();
+        putCreateOnlyOrVerify(originalKey, bytes, legacy.contentType(), Map.of("source-sha256", sourceSha256));
         return originalKey;
+    }
+
+    private void putCreateOnlyOrVerify(String key, byte[] bytes, String contentType, Map<String, String> metadata) {
+        try {
+            s3.putObject(createOnlyRequest(key, bytes, contentType, metadata), RequestBody.fromBytes(bytes));
+        } catch (S3Exception exception) {
+            if (exception.statusCode() != 412) throw exception;
+            byte[] existing = download(key);
+            if (!ResponsiveImageLayout.sha256(existing).equals(ResponsiveImageLayout.sha256(bytes))) {
+                throw new ResponsiveFamilyConflictException(key);
+            }
+            log.info("Responsive family object reused objectKey={}", key);
+            return;
+        }
+        registerExactRollbackCleanup(key);
+    }
+
+    /** Validation for stored legacy bytes; the same rules as a fresh upload. */
+    public void validateStoredImage(byte[] bytes, String contentType) {
+        if (bytes == null || bytes.length == 0 || bytes.length > MAX_IMAGE_SIZE_BYTES) {
+            throw new IllegalArgumentException("Stored image size is not supported");
+        }
+        validateImageContent(bytes, contentType);
     }
 
     private void putImage(String key, byte[] bytes, String contentType, Map<String, String> metadata,
                           List<String> uploadedKeys) {
+        // S3/MinIO validates Content-MD5 against the received bytes; SHA-256 is retained for audit/backfill.
+        s3.putObject(createOnlyRequest(key, bytes, contentType, metadata), RequestBody.fromBytes(bytes));
+        uploadedKeys.add(key);
+        registerRollbackCleanup(key);
+    }
+
+    private PutObjectRequest createOnlyRequest(String key, byte[] bytes, String contentType,
+                                               Map<String, String> metadata) {
         var checksummedMetadata = new java.util.HashMap<>(metadata);
         checksummedMetadata.put("sha256", ResponsiveImageLayout.sha256(bytes));
         String md5;
@@ -198,15 +268,11 @@ public class ObjectStorageService {
         } catch (java.security.NoSuchAlgorithmException exception) {
             throw new IllegalStateException(exception);
         }
-        var request = PutObjectRequest.builder().bucket(props.bucket()).key(key).contentType(contentType)
+        return PutObjectRequest.builder().bucket(props.bucket()).key(key).contentType(contentType)
                 .contentMD5(md5).metadata(checksummedMetadata)
                 .cacheControl("public, max-age=31536000, immutable")
                 .overrideConfiguration(config -> config.putHeader("If-None-Match", "*"))
                 .build();
-        // S3/MinIO validates Content-MD5 against the received bytes; SHA-256 is retained for audit/backfill.
-        s3.putObject(request, RequestBody.fromBytes(bytes));
-        uploadedKeys.add(key);
-        registerRollbackCleanup(key);
     }
 
     private void validateImageContent(byte[] bytes, String contentType) {
@@ -585,6 +651,25 @@ public class ObjectStorageService {
             public void afterCompletion(int status) {
                 if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
                     cleanupUploadedObjects(List.of(key));
+                }
+            }
+        });
+    }
+
+    /** Deletes exactly one created key on rollback; never expands a family or touches reused objects. */
+    private void registerExactRollbackCleanup(String key) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()
+                || !TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != TransactionSynchronization.STATUS_ROLLED_BACK) return;
+                try {
+                    s3.deleteObject(DeleteObjectRequest.builder().bucket(props.bucket()).key(key).build());
+                } catch (RuntimeException cleanupError) {
+                    log.warn("Could not delete created family object after rollback: {}", key, cleanupError);
                 }
             }
         });

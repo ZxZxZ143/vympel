@@ -1,6 +1,7 @@
 package com.shop.vympel.db.repositories.cms;
 
 import com.shop.vympel.db.entity.cms.CmsMedia;
+import com.shop.vympel.db.repositories.media.MediaKeyCandidate;
 import com.shop.vympel.enums.CmsMediaLifecycleStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,25 @@ public interface CmsMediaRepository extends JpaRepository<CmsMedia, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select media from CmsMedia media where media.id = :mediaId")
     Optional<CmsMedia> findByIdForUpdate(@Param("mediaId") Long mediaId);
+
+    /** Active object-storage CMS media that are not yet a responsive family, in stable id order. */
+    @Query("""
+            select new com.shop.vympel.db.repositories.media.MediaKeyCandidate(media.id, media.objectKey)
+            from CmsMedia media
+            where media.storageType = com.shop.vympel.enums.CmsMediaStorageType.OBJECT_STORAGE
+              and media.lifecycleStatus = com.shop.vympel.enums.CmsMediaLifecycleStatus.ACTIVE
+              and media.id > :afterId
+              and media.objectKey is not null
+              and media.objectKey not like '%responsive-v1/%'
+            order by media.id
+            """)
+    List<MediaKeyCandidate> findResponsiveCandidates(@Param("afterId") long afterId, Pageable pageable);
+
+    @Query(value = """
+            select exists (select 1 from cms_media other where other.object_key = :key and other.id <> :mediaId)
+                or exists (select 1 from media product_media where product_media.url = :key)
+            """, nativeQuery = true)
+    boolean isObjectKeyShared(@Param("mediaId") Long mediaId, @Param("key") String key);
 
     @Query(value = """
             SELECT COUNT(*)

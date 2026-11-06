@@ -13,6 +13,14 @@ public final class ResponsiveImageLayout {
     public static final int[] WIDTHS = {160, 320, 480, 800, 1200, 1600, 1920, 2560};
     private static final Pattern ORIGINAL = Pattern.compile(
             "^(product|cms)/responsive-v1/([a-f0-9-]{36})/([a-f0-9]{64})/([1-9][0-9]{0,4})x([1-9][0-9]{0,4})/original\\.(png|jpe?g)$");
+    private static final Pattern LEGACY = Pattern.compile("^(product|cms)/([a-f0-9-]{36})\\.(png|jpe?g)$");
+
+    /** A pre-family upload key ({@code <area>/<uuid>.<ext>}) whose bytes can seed a family. */
+    public record LegacyKey(String area, String id, String extension) {
+        public String contentType() {
+            return "png".equals(extension) ? "image/png" : "image/jpeg";
+        }
+    }
 
     private ResponsiveImageLayout() {}
 
@@ -32,6 +40,22 @@ public final class ResponsiveImageLayout {
     public static String base(String prefix, String id, byte[] bytes, int width, int height) {
         if (!List.of("product", "cms").contains(prefix)) throw new IllegalArgumentException("Invalid media area");
         return prefix + "/responsive-v1/" + id + "/" + sha256(bytes) + "/" + width + "x" + height;
+    }
+
+    public static boolean isFamily(String key) {
+        return key != null && ORIGINAL.matcher(key).matches();
+    }
+
+    /**
+     * Parses a legacy original key. Its family reuses the same UUID and extension, so the legacy
+     * key of a converted row stays derivable from the family path for an exact reference restore.
+     */
+    public static java.util.Optional<LegacyKey> legacy(String key) {
+        if (key == null) return java.util.Optional.empty();
+        var match = LEGACY.matcher(key);
+        return match.matches()
+                ? java.util.Optional.of(new LegacyKey(match.group(1), match.group(2), match.group(3)))
+                : java.util.Optional.empty();
     }
 
     /** Known bounded keys only; never list a bucket or delete a caller-controlled prefix. */

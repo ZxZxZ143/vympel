@@ -26,11 +26,30 @@
 * **How:** For a fixed-position initial-window comparison, classify far URLs against the final styled initial carousel range, while retaining request-time visibility as a separate approximate observation. A preceding 200ms sample can still show zero layout in a hidden Next stream or pre-CSS stacked cards. Preserve such records and disclose the resolution instead of calling a valid adjacent cache hit a far request. Validate the complete request set independently and retain negative controls.
 * **Why:** Sparse DOM timing must not silently redefine the resource-discovery contract or inflate savings.
 
+### Audit the selected picture source separately from img fallback attributes
+
+* **When to use:** Checking CMS responsive identities in browser evidence at mobile/desktop widths.
+* **How:** `CmsResponsiveImage` selects its independent mobile `<source>` at `max-width: 639px`; the nested `img.srcSet` still describes desktop. Match a decoded mobile `currentSrc` to the unchanged locale/mobile baseline rather than the desktop manifest. The benchmark stores `currentSrc || src`, so an unloaded lazy image can expose fallback attributes without representing a fetched resource. Validate srcSet descriptors against encoded object metadata, use successful decode for readiness, and retain the actual network URL set for byte accounting.
+* **Why:** A blanket same-family check falsely rejected 14 correct mobile CMS instances in the accepted ten-reference attempt. The source component and fresh baseline proved those instances unchanged; all 108 observations passed the corrected auxiliary auditor without changing or rerunning the benchmark. [Picture proof](tasks/ten-final-292d086-2026-11-05/picture-contract-diagnostic.json)
+
 ### Gate gallery controls on the hydrated carousel API
 
 * **When to use:** Server-rendered product gallery buttons depend on React, Embla and the controlled Radix dialog.
 * **How:** Render `aria-busy` and native disabled controls until Embla publishes the main API. Leave the composed Radix trigger in charge of opening the dialog. Hold JS chunks to exercise a real early pointer attempt, then wait for public readiness and a thumbnail state transition before testing pointer, keyboard, Escape, focus return and original loading. Use the same interaction helper for local production and staging admission.
 * **Why:** Decoded images and an enabled SSR button previously allowed input before handlers attached. Browser timestamps reproduce the failure for both URL contracts. A stale reference or rollback timestamp must abort the entire retry transaction. [Regression evidence](tasks/gallery-retry-2026-11-04/TESTING.md) · [Retry procedure](tasks/gallery-retry-2026-11-04/RETRY.md)
+
+### Verify gallery interactivity independently of image decode
+
+* **When to use:** Browser admission for responsive media on a server-rendered product detail page.
+* **How:** Wait for a real thumbnail selection to change its public `aria-pressed` state, then activate the selected main image and verify the enlarged original, dismissal and focus. Capture timestamps for image decode, interaction acknowledgement and the dialog. A restored-state control reproduced a click on a visible, decoded button before React attached its handler. After the gallery acknowledged a thumbnail transition, pointer and keyboard activation both opened the original.
+* **Why:** Successful image decode and DOM visibility do not prove that click handlers are ready. Preserve a failed live gate and perform its required scoped rollback. Mark missing after-page LCP and fallback checks explicitly. Count immutable object payload, HTTP response body bytes and browser encoded bytes separately. [Ten-image execution and restoration record](tasks/image-backfill-ten-2026-11-04/REPORT.md)
+
+### Staging image admission and authenticated cache measurements (2026-11-04)
+
+* **When to use:** Browser verification of the deployed image release on the Basic-Auth-protected preview.
+* **How:** Check `srcSet`/`sizes` independently of `currentSrc`; existing CSS hides the static news banner below 1025px, so hidden/lazy images need not be loaded. Decode visible images and directly verify versioned WebP MIME/cache/ETag. For noindex, use `verify-preview-indexing.sh` as the canonical contract: robots deliberately allows crawling so headers/meta can be read; require no discovery metadata or indexable sitemap rather than inventing `Disallow: /`.
+* **Why:** Incorrect expectations caused two automatic, independently audited d8 rollbacks before the same immutable 0c538aa release passed. Validate the complete operator verifier before activation and preserve each attempt's evidence separately.
+* **Cache caveat:** Playwright `httpCredentials` also enables Fetch interception and sends `Network.setCacheDisabled` on its own CDP session; avoiding `page.route` alone is insufficient. The 48 matched staging cases recorded zero cache hits, so their warm label is repeat navigation, not proof of warmed HTTP cache. Keep that baseline intact and disclose the limitation. A separate bounded current-staging diagnostic authenticated only a small robots request through temporary CDP Fetch, disabled Fetch, and then measured without `httpCredentials`/routes: catalog 9/9 warm cache hits, zero network image bytes; static WebP 1/1 hit. Never send a global Authorization header to media or other origins. See [final evidence](tasks/image-release-0c538aa-2026-11-04/REPORT.md).
 
 ### Responsive images without request-time conversion (2026-11-03)
 
@@ -437,7 +456,7 @@
 ### Compact product-model variant selector
 
 * **When to use:** A product detail response contains two or more products in the same derived model group.
-* **How:** Render a semantic `ul` of canonical localized product links immediately after the product title and before gender in the right summary column. Preserve the backend's product-ID-ascending order on every sibling route; never promote the current product to the front. Keep each 60px thumbnail independent, mark only the current link with `aria-current="page"` and one token-backed one-pixel black border, keep siblings neutral with a subtle hover, and use one inset focus-visible outline that replaces the border instead of adding a ring or shadow. Use `overflow-x: auto` inside a `min-width: 0` owner and hide groups of size one. Load dynamic object-storage thumbnails directly (`next/image` `unoptimized`) like the established gallery so a containerized Next server does not proxy a host-only MinIO URL; replace null or failed media with `ProductImageFallback`.
+* **How:** Render a semantic `ul` of canonical localized product links immediately after the product title and before gender in the right summary column. Preserve the backend's product-ID-ascending order on every sibling route; never promote the current product to the front. Keep each 60px thumbnail independent, mark only the current link with `aria-current="page"` and one token-backed one-pixel black border, keep siblings neutral with a subtle hover, and use one inset focus-visible outline that replaces the border instead of adding a ring or shadow. Use `overflow-x: auto` inside a `min-width: 0` owner and hide groups of size one. Load dynamic object-storage thumbnails directly so a containerized Next server does not proxy a host-only MinIO URL: since 2026-11-06 the tile uses `ResponsiveProductImage` with `sizes="60px"` and a 320px ceiling (DPR 1-2 select w160), absolutely positioned `inset-0 size-full object-contain` to keep the former `fill` geometry, never `next/image` `unoptimized` (it emits no srcSet); replace null or failed media with `ProductImageFallback`.
 * **Why:** Route navigation preserves independent price/stock/media/analytics/cart/favorite identity, while the contained rail remains accessible and cannot widen a phone page.
 
 ### Trigger-independent catalog popovers
@@ -601,9 +620,17 @@
 ### Bounded upload encoding and reviewed backfill
 
 * **When to use:** New product/CMS raster uploads or a separately authorized existing-media batch.
-* **How:** Validate bytes/dimensions first, use one native encoder slot and a shared 20-second product-batch deadline, preserve GIF/APNG/EXIF originals, upload checksummed derivatives before the original, and persist only completed family keys. Keep the backend's native codec/version in the backfill manifest. Use conditional writes and GET/verify before reference changes; generated SQL ends in ROLLBACK. Do not deduplicate separately owned upload records merely because their photo bytes match.
+* **How:** Validate bytes/dimensions first, use one native encoder slot (awaited within the caller's deadline, never failed immediately) and a shared 20-second product-batch deadline, preserve GIF/APNG and EXIF-rotated JPEG originals (orientation absent/1 is safe to encode), upload checksummed derivatives before the original, and persist only completed family keys. Keep the backend's native codec/version in the backfill manifest. Use conditional writes and GET/verify before reference changes; generated SQL ends in ROLLBACK. Do not deduplicate separately owned upload records merely because their photo bytes match.
 * **Why:** This avoids request-time CPU spikes, broken srcSet promises, alpha/orientation/animation loss, and overwriting cached URLs. Cwebp versions can differ slightly in output; a checksum conflict requires review, not replacement. Both deletion paths must expand the same bounded family contract. Never run the sample as an automatic full-library migration.
 
+
+### Locked create-only legacy media conversion (2026-11-06)
+
+* **When to use:** Converting existing legacy product/CMS originals, or finishing uploads whose family could not be built inside the request budget.
+* **How:** Use `ResponsiveMediaConversionService` (one row per transaction) via `ResponsiveMediaBackfillService`, the ADMIN endpoint, the deferred converter or the opt-in job — never ad-hoc SQL. Lock the owner first (product row then its image rows, same order as upload/reorder; or the `cms_media` row), CAS the observed key, skip shared/orphaned/inactive keys, reuse the legacy UUID/extension for the family path, write create-only and compare bytes on 412. Change only the key column. Enqueue CMS revalidation in the same transaction. Keep the batch service non-transactional so locks never span several encodings.
+* **Why:** It gives the old guarded-batch guarantees (originals untouched, complete family before reference, CAS, exact restore derivable from the family path) without a manual SQL procedure per ten images, and it lets fallback uploads become responsive automatically.
+* **Gotcha:** `ObjectStorageService.delete(originalKey)` expands a family original into all derivatives. Rollback cleanup for a conversion must delete only keys this attempt created (`registerExactRollbackCleanup`), otherwise a rolled-back attempt that reused pre-uploaded derivatives would delete them.
+* **Gotcha:** Methods called through the CGLIB-proxied `ObjectStorageService` from another bean must be public; package-private calls can run on the proxy instance with null fields.
 
 ### Rank the matched IDs before pagination without changing matching
 
@@ -919,11 +946,47 @@
 
 ## Fullstack Integration Patterns
 
+### Preserve the canonical manifest and audit deployed state separately
+
+* **When to use:** Completing an immutable release after canonical GHCR publication and a successful staging rollout.
+* **How:** Keep the downloaded manifest byte-identical, including its publication-time `deployment_performed: false`. Record actual checkout, selectors, container IDs, accepted media/history fingerprints, health and deployment result in a separate terminal audit. Capture a fresh recovery environment from the currently accepted media state; an older deployment backup may contain the wrong application selectors and pre-backfill references. Never use a terminal acceptance controller as an implicit future rollback authorization.
+* **Why:** Publication provenance and current operational state are different facts. The 55576ffc rollout preserved all ten responsive references while replacing only three applications; the correct fallback is 292d086 with those references. [Evidence](tasks/carousel-apt-release-2026-11-05/REPORT.md)
+
+### Synchronize visual state without changing the frozen measurement
+
+* **When to use:** Before/after screenshots differ because consent, hydration, search visibility or hover state is not yet synchronized.
+* **How:** Preserve the original frames and unchanged timed matrix. Add a separately labeled read-only capture that explicitly waits for the relevant visible/interactive state, dismisses consent and checks decoded images. Review both sets; do not silently replace a failed measurement. In the 55576ffc audit, four raw page pairs matched and two state-synchronized follow-ups made all six pairs byte-identical; two carousel pairs also matched. LCP worsened in aggregate despite lower image wire bytes, and six pre-existing slow navigation cutoffs remained incomplete.
+* **Why:** A screenshot delay is not a readiness contract, and a good visual result does not prove better LCP, cache reuse or slow-link readiness. [Visual receipt](tasks/carousel-apt-release-2026-11-05/visual-review.json) · [Live timing limits](tasks/carousel-apt-release-2026-11-05/measurement-summary.json)
+
 ### Validate every workflow caller before adding cross-platform execution (2026-11-04)
 
 * **When to use:** A shared publication verifier starts an executable from another architecture.
 * **How:** Initialize the pinned QEMU action in every amd64 calling job before runtime checks; compare the complete parsed workflow with its parent after removing only the intended setup step. Preserve all other jobs/inputs, publication dependencies and manifest requirements. Run the existing manifest/security URL contracts and both exact published codec binaries locally.
 * **Why:** Docker Desktop emulation masked the missing setup in bccea7a's common runtime job; setup in the separate successful ARM job did not transfer between runners. Local execution supports the repair but cannot replace the new SHA's canonical GitHub-hosted release gates. Existing immutable tags must never be reused. See the [bounded CI repair](tasks/image-ci-arm64-fix-2026-11-04/README.md).
+
+### Cross-architecture runtime checks require setup in every calling job (2026-11-04)
+
+* **When to use:** A shared release verifier starts a foreign-architecture executable, including `cwebp -version`.
+* **How:** Inventory every workflow job that calls the verifier. Initialize the already pinned QEMU action before ARM64 execution on amd64 runners, or use a matching native runner. QEMU in a separate job does not affect this job. Local Docker Desktop emulation is not proof that a fresh GitHub runner is configured. Keep the runtime check; do not skip ARM to obtain a green release.
+* **Why:** [bccea7a publication](tasks/image-publication-2026-11-04/REPORT.md) built/signed all six native images but failed its common runtime job with `exec /usr/bin/cwebp: exec format error`. The dedicated QEMU-enabled ARM job and local published-image codec checks establish a different execution environment. Once immutable tags exist, preserve them and repair under a new reviewed SHA; a failed canonical gate prevents deployment even if independent artifact diagnostics pass.
+
+### Bind a backfill manifest to the actual release codec (2026-11-03)
+
+* **When to use:** Applying a reviewed responsive-image backfill after publishing the backend.
+* **How:** Prepare offline from the exact approved backend platform digest; record cwebp binary and linked-library hashes as well as its version. Regenerate twice and pin the manifest SHA. Compare against the running deployed image before asking for separate backfill approval. The ten-image Windows 1.6.0 sample and candidate Linux 1.2.2 sample differed for all 55 derivatives while preserving all ten originals. The new review-only manifest is in `docs/tasks/image-release-readiness-2026-11-03/`.
+* **Why:** Source-hashed responsive-v1 paths do not encode codec build identity. Same source/version string is insufficient to authorize overwriting a different existing encoded object. A published rebuild can receive updated distro libraries; require exact bytes or a fresh review, never silent overwrite.
+
+### Apply cache-only gateway changes using the installed Compose pair
+
+* **When to use:** Deploying the image candidate to existing GCP staging.
+* **How:** Use project `vympel-gcp-staging`, `/etc/vympel/staging.env`, the installed single-VM Compose file and `/etc/vympel/compose.host-ports.yml` together. Capture gateway image ID and prove the cached tag resolves to it, validate config, then explicitly recreate only that gateway with `--no-deps --no-build --pull never`. Keep ports, mounts, limits and host ingress unchanged. Rollback restores d8 config and the same gateway image along with three d8 apps.
+* **Why:** Nginx keeps parsed config and a file bind mount can retain an old inode across checkout; an app-only rollout can leave old cache policy active. Gateway identity changes are intentional here; PostgreSQL/Redis/MinIO identities must remain stable. The earlier 83af recovery config is historical, not a current d8 rollback env snapshot.
+
+### Preserve real baseline timing and honest release admission
+
+* **When to use:** Comparing the image candidate with deployed d8 or closing release readiness.
+* **How:** Historical remote normal browser observation is 6.5 seconds, versus the replay runner's 3 seconds. Use the staging-only wrapper/protocol in the readiness package, identical 18 normal / 6 slow combinations, unchanged cold/warm caching, 30-second 1.6Mbps slow window and explicit deployed identity. Collect a real slow d8 baseline: the old slow-before file is local replay. Plain conditional HTTP avoids Node fetch's automatic `Cache-Control: no-cache` when testing ETag 304. Require fresh installed-state/backup evidence through already-authorized access; a GCP RUNNING state or public HTTP 200 does not prove seven-container health.
+* **Why:** Time-window, codec and environment mismatches can manufacture apparent gains or false failures. Existing SSH keys were rejected after the earlier two-hour OS Login window; do not refresh credentials or claim live backup admission implicitly. Source-only product URLs legitimately remain original until separately approved backfill.
 
 ### PR component checks do not prove the full main release gate
 
@@ -2004,6 +2067,14 @@
 
 ## Testing Patterns
 
+### Warm-image investigations require request-set and document-timing evidence
+
+* A cold DOM can already contain lazy images that never become cold network requests. Priming only the frozen request set does not warm those undiscovered URLs. In the accepted ten-reference data, primed URLs had zero completed warm network transfers, while offscreen legacy product cards caused most additional warm bytes. Record DOM presence, network discovery, cache/304/body/partial outcomes, initial/final priority, clipped visibility and element/LCP timelines separately.
+* A browser's effective connection classification can alter native-lazy discovery without changing bandwidth throttling. Separate read-only 4G/3G controls on the same live state reproduced 5 versus 13 image requests for product 56 and 8 versus 16 for KZ product 46. Historical effectiveType was not captured, so do not retroactively assert it caused every old difference. Keep diagnostic treatments separate from matched release measurements.
+* Compare document TTFB before changing image priority. Cached High-priority LCP images can still appear late because HTML arrives late. Document TTFB includes network/server time; it does not isolate a particular backend fetch. In the inspected normal desktop warm cohort, image load-to-render median stayed near 40 ms while document TTFB increased.
+* A strict `cold cacheHits === 0` gate can falsely reject a long autoplay observation: an image downloaded earlier in the same cold navigation can legitimately be reused from cache when its slide returns. Preserve the failure and distinguish it from cache present before navigation. The separate diagnostic v2 admits reuse only after a distinct same-URL HTTP200 network completion in that same frozen navigation; missing, failed or later first responses still reject. Four record controls passed. The accepted benchmark source was **not** patched; future adoption needs review and a fresh complete protocol.
+* Public product image DTO `id` maps to the media row, allowing a read-only public owner review. Public galleries/CMS cannot prove absence of private or unpublished references. Existing local cwebp 1.6.0 artifacts may inform explicit estimates, but cannot substitute for exact deployed 1.2.2 manifest output. No encoding or live authorization follows from a shortlist. [Evidence and proposals](tasks/warm-investigation-2026-11-05/REPORT.md)
+
 ### Reproducible real-data pagination stand
 
 * **When to use:** User explicitly requests a persistent local demo and end-to-end proof of database pagination/search.
@@ -2282,6 +2353,8 @@
 
 ## Environment & Setup Gotchas
 
+* A PowerShell-only helper can leave `$LASTEXITCODE` null or stale. Validate its actual receipt file and PASS fields explicitly before copying admission evidence or launching an external action. In the 55576ffc release, a missing report-directory copy correctly stopped launch locally before SSH; copying the existing verified off-VM receipt allowed the single remote rollout. Do not infer that a shell exit code of zero means every following command ran.
+
 ### Existing GCP staging deployment and verification
 
 * **When to use:** Updating the existing staging VM; see the [2026-11-03 deployment record](deployment/GCP_STAGING_DEPLOYMENT_2026-11-03.md).
@@ -2289,6 +2362,9 @@
 * **Backup lesson:** Reject changing live MinIO copies. A bounded backend/MinIO pause produced a consistent copy; verify database restore, object hashes and application reads in an isolated internal recovery project before admission. Keep encrypted off-VM recovery material with its DPAPI-protected key and verified decryption evidence.
 * **Verifier mistakes:** `nginx -T` writes configuration to stdout and syntax diagnostics to stderr; compare configuration stdout and check exit status separately. An unbounded `OutOfMemoryError` search falsely matches the normal JVM option `-XX:+ExitOnOutOfMemoryError`; use exception-name boundaries plus Docker OOM state, and test the detector against actual logs and real error examples before deployment. These two mistakes caused unnecessary application rollbacks in this task.
 * **Access lesson:** IAP reachability alone does not establish SSH access. Changing `enable-oslogin` alters login policy and required separate explicit approval; scope it to the verified VM and register a key with bounded expiry.
+* **Expired-key renewal (2026-11-03):** The two-hour registration expired while the account, POSIX profile, instance OS Login and IAP remained valid. `gcloud compute os-login describe-profile` returns a `loginProfile` wrapper; unwrap it before reading keys or the projection can misleadingly return null. With explicit approval, re-register the existing public key using `--ttl=1h`, verify its fingerprint/absolute expiry, and use a separate IAP tunnel plus pinned host key. Registration belongs to the user profile, not only the `--project` VM; keep all use scoped to the approved instance. Do not change IAM/metadata or silently renew again.
+* **Read-only verifier correctness:** Actual installed single-VM service is `storefront`; `public` belongs to another Compose topology. Root reading the deployment-owned checkout needs per-command `git -c safe.directory=/opt/vympel/repository`; do not persist a global exception or misreport an ownership error as source drift. Both errors were corrected locally before admission passed. Compare full private rendered config/env against retained d8 snapshots without printing secrets. The historical MinIO container tag can differ from the configured GHCR mirror while its proven binary/ID remains unchanged; do not recreate a data service to normalize the tag.
+* **Backup admission scope:** Fresh read-only checks verified existing dump/archive SHA-256, readable archive contents, historical restore PASS and all 251 bucket files; internal MinIO telemetry metadata is mutable and excluded from live-file equality. The existing d8 backup gate passed the default 24-hour age bound. This is not a newly created backup or automatically valid evidence for another release; candidate activation still needs truthful release-scoped admission and final freshness checks.
 
 * If an upstream support registry stops serving a pinned image, do not bypass the availability gate or silently substitute a new binary. With explicit user authorization, validate cached OCI indexes/child manifests/config/layers against recorded digests, mirror the existing platform content into owned packages and pin the new index. An index limited to available required architectures has a different digest even when each child is unchanged. Ensure packages permit anonymous reads before credential-free CI; see `docs/deployment/MINIO_IMAGE_MIRRORS.md`.
 
@@ -2874,21 +2950,89 @@
 * **How:** Compare the failing commit with its parent gate, record the exact built total and the feature that changed the baseline, then raise the ceiling only to the next narrow boundary. The CRM rich-text plus optional-characteristics build measured 1.437 MiB and used 1.45 MiB; the completed Kaspi import, creatable-reference, expanded-characteristic, and model-variant UI measured 1.494857 MiB and therefore uses 1.51 MiB, leaving about 15.5 KiB rather than a broad allowance.
 * **Why:** A stale ceiling should still fail closed, but a documented measured rebaseline preserves the gate as a useful regression detector instead of blocking every future release for already-approved code.
 
+### Separate responsive media preparation from private admission
+
+* **When to use:** A bounded local image batch is approved without staging writes.
+* **How:** Preserve exact source pins and use the published backend child plus the full cwebp/library fingerprint. The original preparer emits SQL; a local adapter can remove only its SQL-output tail while leaving encoding unchanged. Independently regenerate/decode/hash every object and retain the draft manifest and exact bytes. Obtain separate private audit, upload and reference-write approvals later.
+* **Why:** Public DTO reuse and public 404s cannot prove hidden owners, lifecycle, concurrency or private object absence.
+
+### Account for model-selector originals and complete isolated fixtures
+
+* **When to use:** Estimating savings or testing responsive gallery/catalog families.
+* **How:** `ProductVariantSelector` currently uses `next/image` with `unoptimized`, so 60px selectors still request full originals (confirmed for media117/115/112). Count that consumer separately; gallery WebPs can add bytes when an original is already shared on the same page. Preserve that behavior in bounded image-only tasks. Supply actual filter/category DTO shapes to isolated published-storefront fixtures and wait for catalog readiness; missing metadata can trigger a React error boundary without a `pageerror`. Capture console errors too.
+* **Why:** Avoids false page-byte savings and misclassifying a malformed fixture as an image regression.
+
+### Private media admission must discover consumers and record expiring CAS inputs
+
+* **When to use:** Admitting a previously prepared immutable image batch before separate upload and reference-write approvals.
+* **How:** Use bounded PostgreSQL repeatable-read/read-only transactions and private MinIO HEAD/GET/inventory. Discover incoming FKs rather than assuming none: `cms_banner_media` and `media_i18n` reference `media` even when empty. Scan every owner/publication state, CMS namespace, JSON/text key reuse, CRM history and cleanup outbox. Product `media` has no lifecycle/version/timestamps; record full canonical row SHA-256, owner timestamps/category paths and observed xmin, then re-read before any future guarded write. Empty consumer tables need concurrency protection against future inserts. Compare all142 accepted rows and retained originals/families independently at completion.
+* **Why:** Public DTOs and404s do not prove private ownership or storage absence; a completed snapshot does not remain a lock or durable application version. PostgreSQL `json_agg` may contain embedded newlines, so parse a JSON value stream rather than one value per output line. [Completed second-batch admission](tasks/second-ten-private-2026-11-06/REPORT.md).
+
+### Verify Next unoptimized output in the browser, including omitted sizes
+
+* **When to use:** Evaluating small model-selector images while leaving application source unchanged.
+* **How:** The deployed `next/image unoptimized` path omits both `srcset` and `sizes`, even when the TSX supplies `sizes="60px"`. Measure unique response bodies and hashes via CDP, separating cold transfer from fully primed warm cache. Media115/117 appear on anchors58/68/70 and112 on39/65. A versioned original still carries identical source bytes; do not claim selector savings from a URL-only backfill. Keep a bounded-responsive selector fix separate, preserving geometry, links, accessibility and derivative/original/placeholder fallback.
+* **Why:** Source props alone are not the browser contract. Shared gallery/selector URLs must be counted once, and responsive gallery bytes may add traffic while the selector still needs the original. Twenty real read-only observations passed; local derivative-byte estimates are not deployed AFTER results.
+
 ## Last Updated
+
+2026-11-06 — Added the locked create-only legacy media conversion pattern and its two gotchas (family-expanding delete vs exact rollback cleanup; public methods across CGLIB proxies), the encoder slot-wait/EXIF-orientation rule, and the responsive variant-selector rule. Backend verification against real PostgreSQL: initialize a disposable native PostgreSQL 18 cluster in the scratchpad (`initdb -A trust`, `pg_ctl -o "-p 55441"`), create `vympel_db`, and run `gradlew test` with `VYMPEL_DB_URL=jdbc:postgresql://127.0.0.1:55441/vympel_db` and JDK 17 (`~/.jdks/ms-17.0.18`); Docker/cwebp/Redis-dependent tests skip.
+
+2026-11-06 — Before planning "automatic conversion of new uploads", read `ObjectStorageService.uploadImage`: it already builds responsive-v1 WebP families. The real gaps are its silent fallbacks (`Semaphore.tryAcquire` busy, shared 20-second deadline across a multi-file upload, EXIF JPEG excluded) and the absence of any deferred re-encode. `next/image` with `unoptimized` emits no srcSet even when `sizes` is set, so grep `unoptimized` to find remaining full-original consumers (variant selector, SmartSearch results).
+
+2026-11-06 — Completed63 conditional immutable creations with receipts/request IDs and independent private/public readback after a fresh4.15-second consistency pause, isolated recovery and encrypted off-VM verification. [Report](tasks/second-ten-upload-2026-11-06/REPORT.md). All142 media rows remain unchanged. Read back actual OS Login expiry: importing an already-present key may leave expiry unchanged; do not assume renewal or repeat it blindly. Enforce remaining-time gates. Separate bucket-map variables from TLS expectation records in terminal auditors. Include every checksum member in encrypted recovery archives and distinguish pre-upload191-object backups from the post-upload254-object state before Phase C review.
+
+2026-11-06 — Recorded completed second-batch private ownership/collision/concurrency admission, FK discovery, absent media version fields, actual cleanup settings, JSON-stream parsing and the selector's omitted sizes/srcset/full-original traffic. [Report and separate future approvals](tasks/second-ten-private-2026-11-06/REPORT.md). All ten candidates passed at the snapshot; uploads/apply are not authorized. No application source or staging data changed.
+
+2026-11-06 — Documented exact-runtime, SQL-free local second-batch preparation, independent byte verification, complete fixture API inputs and model-variant original-byte accounting. [Report](tasks/second-ten-local-2026-11-06/REPORT.md). Public DTO/404 checks do not establish private ownership, lifecycle, concurrency or storage absence; those gates remain blocked.
+
+2026-11-06 — Completed the approved 55576ffc publication and guarded staging release, with published two-platform APT/Trivy/codec checks, fresh accepted-state recovery and independent terminal audit. Preserved the real baseline and measured 48 matching observations/24 navigation cases: far 56→0, completed image wire −19.26%, mixed LCP and unchanged slow-link cutoffs. Recorded stable visual-state follow-ups, separate primed/late CMS cache traffic, actual API replacement downtime, immutable-manifest audit separation and PowerShell receipt-copy validation. [Release and limitations](tasks/carousel-apt-release-2026-11-05/REPORT.md)
 
 2026-11-05 — Verified the APT bootstrap boundary and documented local image admission. Windows `git archive` produced CRLF resource bytes different from Linux publication; compare canonical Git blobs and the final JAR rather than assuming export byte identity. Node 22 rejects the auxiliary `--test-isolation=none` flag; direct `node --test scripts/test-security-headers.mjs` is supported, and canonical release workflows do not invoke that auxiliary npm script. See [APT validation](deployment/BACKEND_APT_SECURITY.md).
 
+2026-11-05 — The storefront-only carousel candidate passed local and CI storefront checks, then failed canonical backend image admission on CVE-2026-109518 in `apt` and `libapt-pkg6.0` 2.4.14. Jammy fixed version is 2.4.15ubuntu0.1. The pinned Node 22 build works, but its test runner rejects the header test command flag. The same command passed on Node 24. Preserve the failed publication, exact prior staging recovery target, and real baseline before considering a separately reviewed release. [Evidence](tasks/carousel-release-2026-11-05/REPORT.md)
+
 2026-11-05 — Recorded bounded Embla image discovery, four-image SSR bootstrap, retained resource identities, native fallback lifecycle, real network/ECT validation and separate Next streaming/TTFB limits. No new media encoding or external mutation. [Carousel review](tasks/carousel-discovery-2026-11-05/REPORT.md)
+
+2026-11-05 — Added read-only warm-traffic/LCP investigation lessons: cold DOM versus network discovery, effective-connection controls, document TTFB attribution, legitimate intra-navigation autoplay cache reuse, preserved failed diagnostics, and public-only ownership/old-codec estimate limits. Accepted evidence and benchmark sources are unchanged; 76 complete live diagnostic observations passed. [Investigation](tasks/warm-investigation-2026-11-05/REPORT.md)
+
+2026-11-05 — Completed an accepted guarded ten-reference attempt with fresh 108-case BEFORE and AFTER datasets, stdout-only benchmark observation and post-exit checksum/tuple validation. Register the bounded OS Login key only after BEFORE passes; include measured runtime and an explicit access reserve before arming. A successful warm prime covers its frozen URL set, not later discoveries: this run had zero completed warm network transfers on primed image URLs, but 43 on newly discovered URLs. Report page/image/selected bytes, direct hits, 304s, pending/aborted requests, mixed LCP and CLS separately. Preserve auxiliary-auditor corrections and distinguish mobile picture selection/unloaded fallback attributes. The accepted guard is terminal; a future rollback or batch needs fresh authorization and admission. [Results and limitations](tasks/ten-final-292d086-2026-11-05/REPORT.md) · [Traffic accounting](tasks/ten-final-292d086-2026-11-05/findings.json)
+
+2026-11-05 — Windows evidence persistence now retries rename sharing errors up to ten times at 100 ms intervals and saves a separate FAIL receipt when the destination stays locked. Four regressions exercised real Python reader handles and error preservation. Release reader handles before test-directory cleanup. Monitor stdout events while a benchmark runs, then read the full JSON after process exit and require its exact tuple set. The isolated responsive storefront passed 16/16 supplemental observations in 114.494 s. Runner and evidence-helper hashes belong in the next fresh BEFORE/AFTER admission. [Validation](tasks/image-evidence-windows-2026-11-05/validation.json) · [Retry procedure](tasks/image-evidence-windows-2026-11-05/RETRY.md)
+
+2026-11-05 — On Windows, monitor the image benchmark through stdout while it runs. Opening the current JSON can prevent Node from replacing it atomically. A local reader reproduced `EPERM` until its file handle closed. The lock owner in the live incident was unverified. Preserve both the committed JSON and any temporary failure receipt. Compare only rows marked `admitted`, and trigger the reviewed restoration if any mandatory observation is missing. [Failure evidence](tasks/ten-prime-292d086-2026-11-05/failure-diagnostic.json) · [Paired measurements](tasks/ten-prime-292d086-2026-11-05/PERFORMANCE.md)
+
+2026-11-05 — Freeze CDP records at the cold cutoff before priming the exact image URL set in a same-origin inert document. Record network completion, load/error/abort, explicit decode and intrinsic dimensions independently. A valid PNG on HTTP 404 can decode successfully. Preserve all outcomes at the shared deadline and count wire 304s separately from direct browser hits. Include Next's neighboring prefetch GETs in offline fixtures and distinguish fixture results from deployed performance. [Verified protocol](tasks/prime-preflight-2026-11-04/PROTOCOL.md) · [Incident evidence](tasks/prime-preflight-2026-11-04/ELEVEN.md)
+
+2026-11-04 — Match the one visible pressed RU thumbnail to the zero-based main carousel index, then verify the non-inert slide, visible intersection and full-size placeholder inside its zoom button. Adjacent Embla slides can be partly in view. In two isolated rounds, removing only the selected placeholder made every negative control fail even with compact thumbnail placeholders present. For cache priming, an HTTP 200 in the host log does not prove browser decode completed. Exclude rows without final cache-gate fields and preserve per-URL diagnostics separately. [Selected-slide helper](../scripts/image-performance/selected-gallery.mjs) · [Live results and rollback](tasks/ten-selected-292d086-2026-11-04/REPORT.md)
+
+2026-11-04 — At 390 px the hidden desktop thumbnail rail can put a compact placeholder first in gallery DOM order. For the selected product 46 slide, scope the dual-404 check to the visible zoom button, wait for its full-size placeholder, check its label and require the failed zoom control to be disabled. Record the actual injected derivative and original requests. Reproduced on the published storefront image in a network-isolated fixture at 390 and 1440 px. Keep HTTP 304 revalidations separate from direct browser cache hits when benchmarking max-age=0 images. A failed live gate restored all ten references before after-timing could begin. [Tested helper](tasks/ten-retry-292d086-2026-11-04/check-selected-fallback.mjs) · [Retry evidence](tasks/ten-retry-292d086-2026-11-04/REPORT.md)
+
+2026-11-04 — Verify the restored backend inside the isolated project using its installed health budget (90 s start period, 18 retries at 10 s), followed by actual readiness, catalog and object reads. A 60-poll observer expired before the cold Java service finished. For gallery screenshots, wait for original image decode and Radix overlay removal after Escape. [Verified staging procedure](tasks/gallery-deploy-292d086-2026-11-04/REPORT.md)
 
 2026-11-04 — In CRM reference-deletion tests, capture the field button before opening confirmation and wait for both dialog removal and focus on that exact element. React can remove the portal before the passive cleanup in `ConfirmDialog` restores focus. The original assertion failed on Ubuntu 24.04.5 with Node 22.23.4 even though the button stayed mounted.
 
+2026-11-04 — A storefront-only application change still requires a green CRM job for immutable publication. Run 41825155321 failed its post-deletion focus assertion on Ubuntu/Node 22 while the full local Windows/Node 24 suite passed. Verify each candidate GHCR tag with a known-good parent digest in the same repository, and retain the canonical test failure as the release decision. [Failure evidence](tasks/gallery-deploy-799f363-2026-11-04/REPORT.md)
+
 2026-11-04 — Recorded the reproduced hydration race, public carousel readiness contract, deterministic gallery/fallback gates and rehearsed compare-and-swap retry against retained objects. The previously failed backfill remains restored.
 
+2026-11-04 — Added the SSR gallery interaction check, rehearsed exact-row rollback with deduplicated signed CMS revalidation, and documented the ten-image outcome. A future attempt must recheck the existing 65 object hashes and current rows. The asset-only cold/warm diagnostic and the unavailable full-page after results have separate evidence.
+
+2026-11-04 — Completed approved image publication/deployment and documented hidden-image/robots verifier pitfalls, Basic Auth's implicit cache interception, separate actual cache-hit proof, fresh d8 backup/restore, unchanged media rows/objects and deployed codec binding. Kept the failed attempts, rollback target and live-backfill approval boundary explicit.
+
 2026-11-04 — Recorded the applied four-line QEMU repair, complete-workflow comparison, unchanged standalone ARM checks and exact published amd64/ARM64 codec proof. Kept the new local candidate separate from external release approval and preserved unrelated pending documentation.
+
+2026-11-04 — Documented per-job QEMU prerequisites, Docker Desktop's masking of missing CI emulation, immutable partial-publication handling, and the distinction between published-codec diagnostics and deployed validation. Recorded complete d8 browser baseline and no staging/backfill mutation.
+
+2026-11-03 — Recorded approved one-hour OS Login renewal, profile-wrapper handling, actual storefront service name, safe read-only Git ownership checks and successful d8 state/backup admission. Added exact publication/rollout/rollback command guidance; no deployment/backfill authorization implied.
+
+2026-11-03 — Added exact-image codec/manifest binding, media-gateway bind-mount rollout, 6.5s remote baseline parity, conditional-fetch test behavior and current-host/backup admission lessons from image release preparation. All source/image gates pass; external release and live backfill remain unauthorized.
 
 2026-11-03 — Recorded responsive-family and cover-sizing conventions, pre-hydration fallback/focus fixes, bounded native/backfill verification, and honest cold/warm/slow-network measurement limits.
 
 2026-11-03 — Recorded existing-host Compose/OS Login constraints, consistent backup and isolated recovery verification, final staging deployment checks, and two corrected verifier false positives (Nginx output streams and the JVM OOM option).
+
+2026-10-29 — Confirmed the partial-publication recovery: the docs-only PR #26 merge `d8e6616` published all three images on attempt 1 after a pre-dispatch anonymous 404 check in every repository. Docs-only merges match no Release Images push paths, so the dispatch runs immediately instead of queueing behind a build-only push run.
 
 2026-10-29 — Applied the partial-publication rule to tagless SHA releases: `c84a28b` is preserved as non-deployable after a transient GHCR 401 during backend amd64 cosign signing, and publication continues from the next `main` commit instead of re-running the partial run.
 

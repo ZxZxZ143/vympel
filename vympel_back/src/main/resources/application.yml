@@ -145,6 +145,12 @@ app:
   image-variants:
     enabled: "${VYMPEL_IMAGE_VARIANTS_ENABLED:true}"
     executable: "${VYMPEL_IMAGE_VARIANTS_EXECUTABLE:cwebp}"
+    deferred-enabled: "${VYMPEL_IMAGE_VARIANTS_DEFERRED_ENABLED:true}"
+    backfill:
+      scheduled-enabled: "${VYMPEL_IMAGE_BACKFILL_SCHEDULED_ENABLED:false}"
+      batch-size: "${VYMPEL_IMAGE_BACKFILL_BATCH_SIZE:5}"
+      initial-delay-ms: "${VYMPEL_IMAGE_BACKFILL_INITIAL_DELAY_MS:120000}"
+      interval-ms: "${VYMPEL_IMAGE_BACKFILL_INTERVAL_MS:300000}"
   logging:
     max-file-size: "${APP_LOG_MAX_FILE_SIZE:50MB}"
     retention-days: "${APP_LOG_RETENTION_DAYS:30}"

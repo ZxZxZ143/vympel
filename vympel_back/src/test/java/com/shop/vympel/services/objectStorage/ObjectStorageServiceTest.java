@@ -50,6 +50,8 @@ class ObjectStorageServiceTest {
     @Mock
     private ObjectStorageDeletionOutboxService objectStorageDeletionOutboxService;
     @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+    @Mock
     private MultipartFile file;
     @Mock
     private MultipartFile secondFile;
@@ -72,7 +74,8 @@ class ObjectStorageServiceTest {
                 mediaRepository,
                 objectStorageDeletionOutboxService,
                 productRepository,
-                imageVariantEncoder
+                imageVariantEncoder,
+                eventPublisher
         );
     }
 
@@ -311,6 +314,98 @@ class ObjectStorageServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.uploadCmsImage(file));
 
         verify(s3, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void eligibleUploadThatKeptOnlyItsOriginalIsQueuedForDeferredConversion() throws Exception {
+        Product product = product(10L);
+        when(productRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(product));
+        when(mediaRepository.findAllByProductIdForUpdate(10L)).thenReturn(List.of());
+        when(mediaRepository.save(any(Media.class))).thenAnswer(invocation -> {
+            Media media = invocation.getArgument(0);
+            media.setId(77L);
+            return media;
+        });
+        mockImage(file, "watch.png", "image/png");
+        when(imageVariantEncoder.encode(any(byte[].class), any(String.class), org.mockito.ArgumentMatchers.eq(false),
+                org.mockito.ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+        when(imageVariantEncoder.ineligibilityReason(any(byte[].class), any(String.class))).thenReturn(Optional.empty());
+
+        List<String> keys = service.uploadProductImage(List.of(file), 10L);
+
+        var event = ArgumentCaptor.forClass(ResponsiveMediaPendingEvent.class);
+        verify(eventPublisher).publishEvent(event.capture());
+        assertEquals(ResponsiveMediaArea.PRODUCT, event.getValue().area());
+        assertEquals(List.of(new ResponsiveMediaPendingEvent.Item(77L, keys.get(0))), event.getValue().items());
+    }
+
+    @Test
+    void ineligibleOriginalIsNotQueuedForDeferredConversion() throws Exception {
+        Product product = product(10L);
+        when(productRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(product));
+        when(mediaRepository.findAllByProductIdForUpdate(10L)).thenReturn(List.of());
+        when(mediaRepository.save(any(Media.class))).thenAnswer(invocation -> {
+            Media media = invocation.getArgument(0);
+            media.setId(78L);
+            return media;
+        });
+        mockImage(file, "watch.png", "image/png");
+        when(imageVariantEncoder.encode(any(byte[].class), any(String.class), org.mockito.ArgumentMatchers.eq(false),
+                org.mockito.ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
+        when(imageVariantEncoder.ineligibilityReason(any(byte[].class), any(String.class)))
+                .thenReturn(Optional.of("ANIMATED"));
+
+        service.uploadProductImage(List.of(file), 10L);
+
+        verify(eventPublisher, never()).publishEvent(any(Object.class));
+    }
+
+    @Test
+    void legacyFamilyIsCreateOnlyWithDerivativesBeforeTheByteIdenticalOriginal() throws Exception {
+        byte[] original = imageBytes("png");
+        var legacy = ResponsiveImageLayout.legacy("product/12345678-1234-1234-1234-123456789012.png").orElseThrow();
+        var encoded = new ImageVariantEncoder.Encoded(400, 600,
+                java.util.Map.of(400, new byte[]{4}, 160, new byte[]{1}, 320, new byte[]{3}));
+
+        String key = service.publishResponsiveFamily(legacy, original, encoded);
+
+        String base = ResponsiveImageLayout.base("product", legacy.id(), original, 400, 600);
+        assertEquals(base + "/original.png", key);
+        var requests = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(s3, times(4)).putObject(requests.capture(), any(RequestBody.class));
+        assertEquals(List.of(base + "/w160.webp", base + "/w320.webp", base + "/w400.webp", key),
+                requests.getAllValues().stream().map(PutObjectRequest::key).toList());
+        requests.getAllValues().forEach(request -> {
+            assertEquals("*", request.overrideConfiguration().orElseThrow().headers().get("If-None-Match").get(0));
+            assertEquals("public, max-age=31536000, immutable", request.cacheControl());
+            assertEquals(ResponsiveImageLayout.sha256(original), request.metadata().get("source-sha256"));
+        });
+        assertEquals("image/png", requests.getAllValues().get(3).contentType());
+        assertEquals(ResponsiveImageLayout.sha256(original), requests.getAllValues().get(3).metadata().get("sha256"));
+        verify(s3, never()).deleteObject(any(DeleteObjectRequest.class));
+    }
+
+    @Test
+    void existingIdenticalFamilyObjectIsReusedButADifferentOneIsNeverReplaced() throws Exception {
+        byte[] original = imageBytes("png");
+        var legacy = ResponsiveImageLayout.legacy("cms/12345678-1234-1234-1234-123456789012.png").orElseThrow();
+        byte[] variant = new byte[]{1, 2, 3};
+        var encoded = new ImageVariantEncoder.Encoded(160, 90, java.util.Map.of(160, variant));
+        var preconditionFailed = (software.amazon.awssdk.services.s3.model.S3Exception)
+                software.amazon.awssdk.services.s3.model.S3Exception.builder().statusCode(412).message("exists").build();
+        when(s3.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenThrow(preconditionFailed);
+        when(s3.getObjectAsBytes(any(software.amazon.awssdk.services.s3.model.GetObjectRequest.class)))
+                .thenReturn(software.amazon.awssdk.core.ResponseBytes.fromByteArray(
+                        software.amazon.awssdk.services.s3.model.GetObjectResponse.builder().build(), variant))
+                .thenReturn(software.amazon.awssdk.core.ResponseBytes.fromByteArray(
+                        software.amazon.awssdk.services.s3.model.GetObjectResponse.builder().build(), new byte[]{9}));
+
+        assertThrows(ResponsiveFamilyConflictException.class,
+                () -> service.publishResponsiveFamily(legacy, original, encoded));
+
+        // The identical derivative was reused; the differing original stopped publication.
+        verify(s3, times(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        verify(s3, never()).deleteObject(any(DeleteObjectRequest.class));
     }
 
     private Product product(Long id) {

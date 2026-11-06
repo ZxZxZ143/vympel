@@ -81,6 +81,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/crm/cms", "/api/crm/cms/**").hasRole("ADMIN")
 
+                        .requestMatchers("/api/crm/media", "/api/crm/media/**").hasRole("ADMIN")
+
                         .requestMatchers("/api/crm/**").hasAnyRole("ADMIN", "MANAGER")
 
                         .anyRequest().authenticated()

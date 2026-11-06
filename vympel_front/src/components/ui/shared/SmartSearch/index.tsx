@@ -3,7 +3,6 @@
 import ProductPrice from "@/components/ProductPrice";
 import {customerPrice} from "@/utils/productPricing";
 
-import Image from "next/image";
 import {Search, X} from "lucide-react";
 import {useCallback, useEffect, useId, useRef, useState} from "react";
 import {useForm, useWatch} from "react-hook-form";
@@ -20,6 +19,7 @@ import {Text} from "@/components/ui/shared/text";
 import {routes} from "@/config/routes";
 import {cn} from "@/lib/utils";
 import ProductImageFallback from "@/components/ui/shared/ProductImageFallback";
+import ResponsiveProductImage from "@/components/ui/shared/ResponsiveProductImage";
 import {formatProductPrice} from "@/utils/formatProductPrice";
 import {isProductUnavailable} from "@/services/localProductStorage";
 import {useCatalogOverlay} from "@/components/CatalogPage/CatalogOverlayProvider";
@@ -639,17 +639,17 @@ function SmartSearchProductRow({
             >
                 <div className="flex size-search-overlay-result-image shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-card">
                     {product.imageUrl ? (
-                        <Image
+                        <ResponsiveProductImage
                             src={product.imageUrl}
                             alt={product.name}
                             width={72}
                             height={72}
                             sizes="72px"
+                            maximumWidth={320}
                             className={cn(
                                 "h-full w-full object-contain transition",
                                 unavailable && "opacity-45 saturate-50"
                             )}
-                            unoptimized
                         />
                     ) : (
                         <ProductImageFallback compact className="h-full w-full rounded-lg border-0"/>

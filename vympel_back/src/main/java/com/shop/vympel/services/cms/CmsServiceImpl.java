@@ -13,6 +13,8 @@ import com.shop.vympel.exceptions.BusinessRuleViolationException;
 import com.shop.vympel.exceptions.ResourceNotFoundException;
 import com.shop.vympel.services.marketplace.MarketplaceUrlPolicy;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
+import com.shop.vympel.services.objectStorage.ResponsiveMediaArea;
+import com.shop.vympel.services.objectStorage.ResponsiveMediaPendingEvent;
 import com.shop.vympel.services.social.InstagramPostUrlPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -174,7 +176,13 @@ public class CmsServiceImpl implements CmsService {
         media.setSizeBytes(storedObject.sizeBytes());
 
         try {
-            return toMediaResponse(cmsMediaRepository.save(media));
+            CmsMedia saved = cmsMediaRepository.save(media);
+            if (storedObject.responsiveDeferred() && saved.getId() != null) {
+                // Delivered after commit: the bounded worker builds the family the request could not.
+                eventPublisher.publishEvent(new ResponsiveMediaPendingEvent(ResponsiveMediaArea.CMS,
+                        List.of(new ResponsiveMediaPendingEvent.Item(saved.getId(), saved.getObjectKey()))));
+            }
+            return toMediaResponse(saved);
         } catch (RuntimeException ex) {
             try {
                 objectStorageService.delete(storedObject.objectKey());

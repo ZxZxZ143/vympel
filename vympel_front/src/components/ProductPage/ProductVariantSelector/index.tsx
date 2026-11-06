@@ -1,7 +1,6 @@
 "use client";
 
 import {useState} from "react";
-import Image from "next/image";
 import {useTranslations} from "use-intl";
 
 import {IProductModelVariantGroup} from "@/api/types/ProductTypes";
@@ -9,7 +8,12 @@ import {routes} from "@/config/routes";
 import {Link} from "@/i18n/navigation";
 import {cn} from "@/lib/utils";
 import ProductImageFallback from "@/components/ui/shared/ProductImageFallback";
+import ResponsiveProductImage from "@/components/ui/shared/ResponsiveProductImage";
 import {Text} from "@/components/ui/shared/text";
+
+// 60px tiles: a 320px ceiling covers DPR 3; DPR 1-2 select the 160px derivative.
+const VARIANT_TILE_SIZES = "60px";
+const VARIANT_TILE_MAXIMUM_WIDTH = 320;
 
 type Props = {
     currentProductId: number;
@@ -64,13 +68,12 @@ const VariantImage = ({imageUrl}: {imageUrl?: string | null}) => {
     const validUrl = typeof imageUrl === "string" && imageUrl.trim().length > 0 && failedUrl !== imageUrl;
 
     return validUrl ? (
-        <Image
+        <ResponsiveProductImage
             src={imageUrl}
             alt=""
-            fill
-            unoptimized
-            sizes="60px"
-            className="object-contain"
+            sizes={VARIANT_TILE_SIZES}
+            maximumWidth={VARIANT_TILE_MAXIMUM_WIDTH}
+            className="absolute inset-0 size-full object-contain text-transparent"
             onError={() => setFailedUrl(imageUrl)}
         />
     ) : (

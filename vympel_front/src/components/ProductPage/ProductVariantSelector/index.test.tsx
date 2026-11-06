@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element -- the Next Image test double must render plain markup. */
 import React from "react";
 import {readFileSync} from "node:fs";
 import {renderToStaticMarkup} from "react-dom/server";
@@ -9,27 +8,6 @@ import ProductVariantSelector from "./index";
 vi.mock("use-intl", () => ({
     useTranslations: () => (key: string, values?: Record<string, string | number>) => (
         values ? `${key}:${Object.values(values).join(":")}` : key
-    ),
-}));
-
-vi.mock("next/image", () => ({
-    default: ({
-        src,
-        alt,
-        className,
-        unoptimized,
-    }: {
-        src: string;
-        alt: string;
-        className?: string;
-        unoptimized?: boolean;
-    }) => (
-        <img
-            src={src}
-            alt={alt}
-            className={className}
-            data-unoptimized={unoptimized ? "true" : "false"}
-        />
     ),
 }));
 
@@ -92,10 +70,34 @@ describe("ProductVariantSelector", () => {
         expect(markup).toContain('aria-label="groupAria:TL4247HM"');
         expect(markup).toContain('href="/product/13"');
         expect(markup).toContain('aria-label="optionAria:Romanson TL4247HM White"');
-        expect(markup).toContain("https://media.test/white.jpg");
-        expect(markup.match(/data-unoptimized="true"/g)).toHaveLength(2);
+        expect(markup).toContain('src="https://media.test/white.jpg"');
+        expect(markup).not.toContain("srcSet");
+        expect(markup).not.toContain("srcset");
         expect(markup).toContain("product-image-fallback--compact");
         expect(markup).toContain("overflow-x-auto");
+    });
+
+    it("serves a bounded 60px derivative from a completed family instead of the full original", () => {
+        const family = `https://media.test/vympel/product/responsive-v1/${"1".repeat(8)}-1111-1111-1111-${"1".repeat(12)}/${"a".repeat(64)}/855x1840`;
+        const markup = renderToStaticMarkup(
+            <ProductVariantSelector
+                currentProductId={12}
+                group={{
+                    ...group,
+                    variants: [
+                        {...group.variants[0], mainImage: {id: 101, url: `${family}/original.png`, sortOrder: 0, isMain: true}},
+                        group.variants[1],
+                    ],
+                }}
+            />
+        );
+
+        expect(markup).toContain(`srcSet="${family}/w160.webp 160w, ${family}/w320.webp 320w"`);
+        expect(markup).toContain('sizes="60px"');
+        expect(markup).toContain(`src="${family}/w320.webp"`);
+        expect(markup).not.toContain(`${family}/original.png`);
+        expect(markup).not.toContain("w480.webp");
+        expect(markup).toContain("absolute inset-0 size-full object-contain");
     });
 
     it.each([12, 13, 14])("keeps canonical variant order when product %s is current", (currentProductId) => {

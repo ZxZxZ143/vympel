@@ -57,7 +57,8 @@ class ResponsiveImageStorageIntegrationTest {
                     new StorageProps("image-validation", "us-east-1", endpoint, endpoint,
                             "image-test", "local-test-only-password", true),
                     mock(MediaRepository.class), mock(ObjectStorageDeletionOutboxService.class),
-                    mock(ProductRepository.class), encoder);
+                    mock(ProductRepository.class), encoder,
+                    mock(org.springframework.context.ApplicationEventPublisher.class));
             String key = service.uploadCmsImage(new MockMultipartFile("image", "watch.png", "image/png", original)).objectKey();
             assertArrayEquals(original, service.download(key));
             var head = s3.headObject(b -> b.bucket("image-validation").key(key));

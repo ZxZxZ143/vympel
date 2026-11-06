@@ -22,8 +22,9 @@ import java.util.concurrent.TimeUnit;
 public class ImageVariantEncoder {
     private final boolean enabled;
     private final String executable;
-    private final Semaphore slot = new Semaphore(1);
+    final Semaphore slot = new Semaphore(1);
     private static final Duration DEADLINE = Duration.ofSeconds(20);
+    private static final int MAX_INPUT_BYTES = 10 * 1024 * 1024;
     private static final long MAX_OUTPUT_BYTES = 32L * 1024 * 1024;
 
     public ImageVariantEncoder(
@@ -39,15 +40,33 @@ public class ImageVariantEncoder {
         return encode(bytes, contentType, cms, System.nanoTime() + DEADLINE.toNanos());
     }
 
+    /**
+     * Static reasons an image must keep only its original. Empty means encoding may be attempted.
+     * Animated GIF/APNG and JPEG needing an EXIF orientation transform retain their originals:
+     * never flatten animation, discard orientation, or guess transformed dimensions.
+     */
+    public Optional<String> ineligibilityReason(byte[] bytes, String contentType) {
+        if (!enabled) return Optional.of("DISABLED");
+        if (bytes == null || bytes.length > MAX_INPUT_BYTES) return Optional.of("TOO_LARGE");
+        if (!("image/png".equals(contentType) || "image/jpeg".equals(contentType))) {
+            return Optional.of("UNSUPPORTED_TYPE");
+        }
+        if ("image/jpeg".equals(contentType) && jpegOrientation(bytes) != 1) return Optional.of("EXIF_ORIENTATION");
+        if ("image/png".equals(contentType) && hasAnimation(bytes)) return Optional.of("ANIMATED");
+        return Optional.empty();
+    }
+
     public Optional<Encoded> encode(byte[] bytes, String contentType, boolean cms, long deadline) {
-        // Animated GIF and EXIF-bearing JPEG retain their originals. Do not silently
-        // flatten animation, discard orientation, or guess transformed dimensions.
-        if (!enabled || System.nanoTime() >= deadline || bytes.length > 10 * 1024 * 1024
-                || !("image/png".equals(contentType) || "image/jpeg".equals(contentType))
-                || ("image/jpeg".equals(contentType) && hasExif(bytes))
-                || ("image/png".equals(contentType) && hasAnimation(bytes))) return Optional.empty();
-        if (!slot.tryAcquire()) {
-            log.info("Image variants deferred reason=encoder_busy");
+        if (System.nanoTime() >= deadline || ineligibilityReason(bytes, contentType).isPresent()) return Optional.empty();
+        // A concurrent upload or deferred conversion holds the single slot: wait for it within
+        // this caller's own deadline instead of silently keeping a heavy original.
+        try {
+            if (!slot.tryAcquire(Math.max(0L, deadline - System.nanoTime()), TimeUnit.NANOSECONDS)) {
+                log.info("Image variants deferred reason=encoder_busy");
+                return Optional.empty();
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
             return Optional.empty();
         }
         Path directory = null;
@@ -133,17 +152,67 @@ public class ImageVariantEncoder {
         return false;
     }
 
-    private boolean hasExif(byte[] bytes) {
-        for (int index = 2; index + 6 < bytes.length;) {
-            if ((bytes[index] & 255) != 255) return true; // Unrecognized JPEG: safe original fallback.
+    /**
+     * Returns 1 when the JPEG needs no orientation transform (no EXIF, or EXIF orientation 1),
+     * the EXIF orientation 2..8 otherwise, or -1 when the container cannot be parsed safely.
+     */
+    static int jpegOrientation(byte[] bytes) {
+        if (bytes.length < 4 || (bytes[0] & 255) != 0xff || (bytes[1] & 255) != 0xd8) return -1;
+        int orientation = 1;
+        for (int index = 2; index + 4 <= bytes.length;) {
+            if ((bytes[index] & 255) != 255) return -1; // Unrecognized JPEG: safe original fallback.
             int marker = bytes[index + 1] & 255;
-            if (marker == 0xda || marker == 0xd9) return false;
+            if (marker == 0xda || marker == 0xd9) return orientation;
             int length = ((bytes[index + 2] & 255) << 8) | (bytes[index + 3] & 255);
-            if (length < 2 || index + 2 + length > bytes.length) return true;
+            int end = index + 2 + length;
+            if (length < 2 || end > bytes.length) return -1;
             if (marker == 0xe1 && length >= 8 && bytes[index + 4] == 'E' && bytes[index + 5] == 'x'
-                    && bytes[index + 6] == 'i' && bytes[index + 7] == 'f') return true;
-            index += 2 + length;
+                    && bytes[index + 6] == 'i' && bytes[index + 7] == 'f'
+                    && bytes[index + 8] == 0 && bytes[index + 9] == 0) {
+                int value = exifOrientation(bytes, index + 10, end);
+                if (value < 0) return -1;
+                orientation = value;
+            }
+            index = end;
         }
-        return false;
+        return -1;
+    }
+
+    private static int exifOrientation(byte[] bytes, int tiff, int end) {
+        if (tiff + 8 > end) return -1;
+        boolean little;
+        if (bytes[tiff] == 'I' && bytes[tiff + 1] == 'I') little = true;
+        else if (bytes[tiff] == 'M' && bytes[tiff + 1] == 'M') little = false;
+        else return -1;
+        if (unsignedShort(bytes, tiff + 2, little) != 42) return -1;
+        long ifdOffset = unsignedInt(bytes, tiff + 4, little);
+        if (ifdOffset < 8 || ifdOffset > end - tiff - 2L) return -1;
+        int ifd = tiff + (int) ifdOffset;
+        int entries = unsignedShort(bytes, ifd, little);
+        for (int entry = 0; entry < entries; entry++) {
+            int offset = ifd + 2 + entry * 12;
+            if (offset + 12 > end) return -1;
+            if (unsignedShort(bytes, offset, little) != 0x0112) continue;
+            int type = unsignedShort(bytes, offset + 2, little);
+            long count = unsignedInt(bytes, offset + 4, little);
+            int value = unsignedShort(bytes, offset + 8, little);
+            return type == 3 && count == 1 && value >= 1 && value <= 8 ? value : -1;
+        }
+        return 1;
+    }
+
+    private static int unsignedShort(byte[] bytes, int offset, boolean little) {
+        int first = bytes[offset] & 255;
+        int second = bytes[offset + 1] & 255;
+        return little ? first | (second << 8) : (first << 8) | second;
+    }
+
+    private static long unsignedInt(byte[] bytes, int offset, boolean little) {
+        long value = 0;
+        for (int index = 0; index < 4; index++) {
+            int shift = little ? index * 8 : (3 - index) * 8;
+            value |= (long) (bytes[offset + index] & 255) << shift;
+        }
+        return value;
     }
 }
