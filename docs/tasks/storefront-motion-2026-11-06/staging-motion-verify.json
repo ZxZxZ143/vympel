@@ -1,0 +1,800 @@
+{
+  "results": [
+    {
+      "route": "/ru",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 85,
+      "hidden": 57,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 9,
+      "leftoverSample": [
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;",
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;"
+      ],
+      "overflowX": -15,
+      "cls": 0.0398,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/about",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 19,
+      "hidden": 11,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 5,
+      "leftoverSample": [
+        "P.text-text-secondary text-sm font-sans fo opacity: 1;",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;"
+      ],
+      "overflowX": -15,
+      "cls": 0.0001,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 7,
+      "hidden": 2,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands/romanson",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 8,
+      "hidden": 5,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 2,
+      "leftoverSample": [
+        "H2.text-product-title font-sans font-normal opacity: 1;",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;"
+      ],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/delivery",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 13,
+      "hidden": 5,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/guarantee",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 13,
+      "hidden": 7,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/payment",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 14,
+      "hidden": 6,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/catalog",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 13,
+      "hidden": 9,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -7,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/product/filters/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the ",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/product/3",
+      "width": 390,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 16,
+      "hidden": 13,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 1,
+      "leftoverSample": [
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);"
+      ],
+      "overflowX": -7,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 85,
+      "hidden": 53,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 2,
+      "leftover": 11,
+      "leftoverSample": [
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;",
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;"
+      ],
+      "overflowX": -15,
+      "cls": 0.0039,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/about",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 19,
+      "hidden": 9,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 3,
+      "leftoverSample": [
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;"
+      ],
+      "overflowX": -15,
+      "cls": 0.2534,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 7,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands/romanson",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 8,
+      "hidden": 5,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 2,
+      "leftoverSample": [
+        "H2.text-product-title font-sans font-normal opacity: 1;",
+        "H2.text-text-heading-primary text-2xl font- opacity: 1;"
+      ],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/delivery",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 13,
+      "hidden": 2,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/guarantee",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 13,
+      "hidden": 2,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/payment",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 14,
+      "hidden": 3,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/catalog",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 13,
+      "hidden": 9,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -7,
+      "cls": 0.0004,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/product/filters/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the ",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/product/3",
+      "width": 1440,
+      "reducedMotion": "no-preference",
+      "status": 200,
+      "targets": 16,
+      "hidden": 13,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 1,
+      "leftoverSample": [
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);"
+      ],
+      "overflowX": -7,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 85,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 1,
+      "leftoverSample": [
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);"
+      ],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/about",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 19,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 7,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands/romanson",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 8,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/delivery",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 13,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0.0001,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/guarantee",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 13,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/payment",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 14,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/catalog",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 13,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -7,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/product/filters/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the ",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/product/3",
+      "width": 390,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 16,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 1,
+      "leftoverSample": [
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);"
+      ],
+      "overflowX": -7,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 85,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 1,
+      "leftoverSample": [
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);"
+      ],
+      "overflowX": -15,
+      "cls": 0.0001,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/about",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 19,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0.2534,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 7,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/brands/romanson",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 8,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/delivery",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 13,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/guarantee",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 13,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/payment",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 14,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -15,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/catalog",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 13,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 0,
+      "leftoverSample": [],
+      "overflowX": -7,
+      "cls": 0.0004,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://api.vympel.kz/api/public/product/filters/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the ",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "route": "/ru/product/3",
+      "width": 1440,
+      "reducedMotion": "reduce",
+      "status": 200,
+      "targets": 16,
+      "hidden": 0,
+      "inViewHidden": 0,
+      "hiddenAfterScroll": 0,
+      "motionTransformsLeft": 0,
+      "leftover": 1,
+      "leftoverSample": [
+        "DIV.flex ml-0 gap-3 sm:gap-9 lg:gap-17 transform: translate3d(0px, 0px, 0px);"
+      ],
+      "overflowX": -7,
+      "cls": 0,
+      "errors": [
+        "Access to fetch at 'https://api.vympel.kz/api/public/category/all/ru' from origin 'http://127.0.0.1:3401' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the req",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    }
+  ],
+  "catalogBoundary": {
+    "gridAnimated": false,
+    "toolbarAnimated": false,
+    "gridInsideMotion": false
+  },
+  "paginationMs": 548,
+  "afterPagination": 0,
+  "productBoundary": {
+    "motionTargets": 4,
+    "buttonsInsideTargets": [],
+    "galleryAnimated": false
+  },
+  "footer": {
+    "ru": [
+      {
+        "text": "Наш магазин",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "label": "Наш магазин — открыть на карте 2ГИС в новой вкладке"
+      },
+      {
+        "text": "Наш магазин",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "label": "Наш магазин — открыть на карте 2ГИС в новой вкладке"
+      }
+    ],
+    "en": [
+      {
+        "text": "Our Store",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "label": "Our Store — open on the 2GIS map in a new tab"
+      },
+      {
+        "text": "Our Store",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "label": "Our Store — open on the 2GIS map in a new tab"
+      }
+    ],
+    "kz": [
+      {
+        "text": "Біздің дүкен",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "label": "Біздің дүкен — 2ГИС картасын жаңа қойындыда ашу"
+      },
+      {
+        "text": "Біздің дүкен",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "label": "Біздің дүкен — 2ГИС картасын жаңа қойындыда ашу"
+      }
+    ]
+  },
+  "noJsResults": {
+    "/ru/about": 0,
+    "/ru/delivery": 0,
+    "/ru/catalog": 0,
+    "/ru/product/3": 0
+  }
+}

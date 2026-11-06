@@ -3004,6 +3004,8 @@
 
 ## Last Updated
 
+2026-11-06 — `9306e04` staging rollout notes: `preview.vympel.kz` answers 401 without the access gate, so verify rendered HTML from the VM (`127.0.0.1:3000`) and run browser checks over an SSH `-L` forward (expect CORS console errors from the test origin only); About hero banner causes CLS ~0.25 at 1440 px with real CMS media regardless of motion. [Report](tasks/storefront-motion-2026-11-06/STAGING_DEPLOY.md)
+
 2026-11-06 — Added "Reusing home motion on other storefront pages" (full vs minimal `HomeMotion` variant, what stays outside motion roots, Suspense placement, home-only first-paint intros), "External map links in the footer", and the stale-trigger mistake fixed by a debounced body `ResizeObserver` refresh.
 
 2026-11-06 — Recorded how the media backfill was run on staging (dry run → one-row canary → detached batched loop from the operator's CRM tab), the 45-second extension evaluate limit, and the refresh-rotation UI gotcha. [Report](tasks/image-pipeline-7d6462e-2026-11-06/REPORT.md)

@@ -1307,6 +1307,8 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
+2026-11-06 — Deployed `9306e04` (storefront motion reuse + footer 2GIS link) to GCP staging via [Release Images 42220962441](https://github.com/ZxZxZ143/vympel/actions/runs/42220962441); backend/storefront/CRM only, data services unchanged, backup `/var/backups/vympel/releases/20261106-9306e04`. [Report](tasks/storefront-motion-2026-11-06/STAGING_DEPLOY.md)
+
 2026-11-06 — Storefront motion and footer store link (local commit only, not pushed/deployed): `HomeMotion` gained `variant` (`full`/`minimal`, `HOME_MOTION_VARIANTS`) and a debounced body-height `ScrollTrigger.refresh()`; About, Brands, brand, guarantee/delivery/payment use the home `data-motion` markup, catalog/product use the minimal variant outside interactive controls. Footer "Our store" (RU/EN/KZ, mobile + desktop) is now an `<a>` to `CONTACT_LINKS.storeMap` (2GIS card) with `target="_blank" rel="noopener noreferrer"` and new `footer.shopAria` labels; `Footer/index.test.tsx` covers all locales.
 
 2026-11-06 — Published `7d6462e` (Release Images 42208169897) and deployed it to GCP staging VM 3531996634123212598 (backend/storefront/CRM only; data services unchanged). Fresh backup `/var/backups/vympel/releases/20261106-7d6462e`. Converted all remaining legacy media through the ADMIN endpoint: 85 product + 31 CMS rows, 0 skips/failures, 63 second-batch objects reused; staging now serves 94/94 product and 32/32 object-storage CMS images as WebP families, storefront HTML has no legacy original URLs, CMS home/catalog revalidated. Legacy originals retained. Application rollback is 55576ffc. [Report](tasks/image-pipeline-7d6462e-2026-11-06/REPORT.md)
