@@ -11,6 +11,7 @@ import {LocaleEnum} from "@/i18n/routing";
 import {PUBLIC_BRANDS, normalizeBrandLookup, type PublicBrand} from "@/config/brandRoutes";
 import {routes} from "@/config/routes";
 import {PUBLIC_BREADCRUMB_SEPARATOR} from "@/config/publicBreadcrumb";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 
 type Props = {
     locale: LocaleEnum;
@@ -39,7 +40,7 @@ const BrandsPage = async ({locale}: Props) => {
     return (
         <main className="mx-auto max-w-360">
             <Navigation/>
-            <div className="responsive-page-x pt-10 sm:pt-12">
+            <HomeMotion className="responsive-page-x pt-10 sm:pt-12">
                 <nav
                     aria-label={t("breadcrumbsAria")}
                     className="public-breadcrumb catalog-filter-scroll flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden whitespace-nowrap pb-2"
@@ -70,7 +71,7 @@ const BrandsPage = async ({locale}: Props) => {
                     </Heading>
 
                     {brands.length ? (
-                        <ul className="mt-10 grid gap-4 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3">
+                        <ul className="mt-10 grid gap-4 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3" data-motion="stagger">
                             {brands.map((item) => (
                                 <li key={item.brand.slug}>
                                     <Link
@@ -109,7 +110,7 @@ const BrandsPage = async ({locale}: Props) => {
                         />
                     )}
                 </section>
-            </div>
+            </HomeMotion>
         </main>
     );
 };

@@ -42,6 +42,7 @@ export default function AboutInstagramSlider({posts}: Props) {
                             rel="noopener noreferrer"
                             aria-label={t("postAria", {description: post.alt})}
                             className="about-instagram-card group"
+                            data-motion="reveal"
                         >
                             <Image
                                 src={post.src}
@@ -54,7 +55,7 @@ export default function AboutInstagramSlider({posts}: Props) {
                             <span className="about-instagram-icon" aria-hidden="true">
                                 <InstaStroke className="h-auto w-full max-w-6"/>
                             </span>
-                        </a> : <div className="about-instagram-card group">
+                        </a> : <div className="about-instagram-card group" data-motion="reveal">
                             <Image
                                 src={post.src}
                                 alt={post.alt}

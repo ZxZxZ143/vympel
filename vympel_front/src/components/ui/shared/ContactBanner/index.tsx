@@ -51,6 +51,7 @@ const ContactBanner = ({
             "relative w-full overflow-hidden bg-connect-overlay rounded-2xl",
             className
         )}
+        data-motion="reveal"
     >
         <CmsResponsiveImage
             desktopSrc={imageSrc}

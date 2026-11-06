@@ -258,6 +258,18 @@
 * **How:** Keep all GSAP code in `src/components/HomePage/HomeMotion/index.tsx` and all timings/eases in `HomeMotion/motion.ts`; sections only declare intent with `data-motion="hero|title|title-link|lines|stagger|reveal|media|parallax"`, `data-motion-inner`, `data-motion-direction="left"`, `data-motion-y` and `data-motion-rotate`. Server sections stay server components because `HomeMotion` receives them through `children`. Use `power4.out` / `power4.inOut`, which are exactly `--ease-vympel` / `--ease-vympel-unveil`. Animate transform, opacity and clip-path only, run once, and clear inline styles on completion. Never animate an Embla slide element itself (loop carousels write slide transforms); animate its content or the `CarouselContent` children of a non-loop rail. Use `ScrollTrigger.batch` for repeated items and complete off-canvas slides immediately.
 * **Why:** One context gives one cleanup path, one reduced-motion gate and consistent choreography, while shared components such as `Title`, `Benefits` and `GoodsCarouselWithImage` carry inert attributes on other pages.
 
+### Reusing home motion on other storefront pages
+
+* **When to use:** A public page needs the home-page "premium" scroll feel, or an interactive page (catalog, product) needs restrained motion.
+* **How:** Wrap the server-rendered content below the first screen in `HomeMotion` (it accepts `className`, so it can replace an existing wrapper div without adding DOM) and mark elements with the same `data-motion` vocabulary; do not write page-specific GSAP. Content pages (About, Brands, brand, info pages) use the default `full` variant. Catalog and product use `variant="minimal"`: only `reveal`/`stagger`/`data-motion-inner` (opacity + transform); `hero`, `media` (clip-path), `parallax` and SplitText `title`/`lines` markup inside such a root stays static. Put the root only around passive sections (marketplaces, contact banner, benefits, recommendations); filters, sort, search, product grid, pagination, gallery, model selector, cart/favorite buttons and tabs must stay outside it. A streamed section (`Suspense`) gets its own root inside the boundary so the root hydrates together with the DOM it styles. First-screen CSS intros (`.home-motion-hero-intro`, `.home-motion-intro`) stay home-only: on text-first pages a delayed opacity intro would delay LCP.
+* **Why:** One mechanism keeps the reduced-motion gate, focus reveal, print fallback, no-JS visibility (nothing is hidden before JS runs) and the already-in-viewport skip identical on every page, while interactive controls never wait for an animation.
+
+### External map links in the footer
+
+* **When to use:** A footer label must open the store on a map (2GIS) in a new tab.
+* **How:** Keep the URL in `CONTACT_LINKS` (`storeMap`) in `src/config/routes.ts`, swap the label wrapper `div` for an `a` with the identical layout classes plus the standard `focus-visible:ring-2` ring, `target="_blank" rel="noopener noreferrer"`, and a localized `aria-label` (`footer.shopAria`) that starts with the visible text and says it opens in a new tab. Update both the mobile card and the desktop column, and add the key to RU/EN/KZ.
+* **Why:** One locale-independent URL, unchanged visual style, and an accessible name that satisfies label-in-name.
+
 ### Public storefront navigation progress
 
 * **When to use:** When adding or changing a public storefront link, locale switch, query-param control, or imperative App Router navigation that may wait for a route commit.
@@ -1750,6 +1762,13 @@
 * **Fix:** Normalize API data with `normalizePageResponse` or another explicit mapper before rendering; use safe derived arrays such as `reviewItems` for `.length`, `.map`, `.filter`, and `.reduce`.
 * **How to avoid:** Components must never call `.length`, `.map`, `.filter`, or `.reduce` on API data before normalizing it to a safe default value. Paginated API responses must be normalized before rendering, especially when supporting both legacy array and current page shapes.
 
+### Leaving scroll triggers measured against an old page height
+
+* **What happened:** Reusing `HomeMotion` below the catalog grid would hide marketplaces/benefits until scrolled past their start, but after a filter shrinks the grid those sections move up while ScrollTrigger keeps the old start positions, so they could stay at opacity 0 (start beyond the new maximum scroll).
+* **Root cause:** ScrollTrigger re-measures on window resize/load, not on DOM height changes, and the motion root stays mounted across same-route query navigations.
+* **Fix:** `HomeMotion` observes `document.body` with a `ResizeObserver` and calls `ScrollTrigger.refresh()` after `HOME_MOTION.refreshDelay` (200ms); the observer is disconnected in the same matchMedia cleanup.
+* **How to avoid:** Any hidden-until-scroll target below content whose height changes on the client (filters, pagination, streamed sections, lazy images without fixed boxes) must rely on that refresh; verify by changing filters/page and scrolling to the bottom.
+
 ### Over-animating public storefront controls
 
 * **What happened:** Search/category/filter interactions can become jumpy or inconsistent when each component invents its own timing and transforms.
@@ -2134,6 +2153,8 @@
 
 ## Debugging Tips
 
+* Scroll-motion verification: when the desktop app's Browser pane is hidden, the page runs as a background page and GSAP's ticker does not advance, so reveals look stuck. Measure with headless Edge/Playwright instead (`docs/tasks/storefront-motion-2026-11-06/verify-motion.mjs`): count targets hidden in the first viewport, hidden after a full scroll pass, reduced motion, JavaScript disabled, overflow and buffered layout shifts. Inline `opacity: 1` left by SplitText and Embla's own track `transform` are not hidden content.
+* Known: the home Philosophy copy shifts layout once (CLS ~0.04 at 390 px) when SplitText wraps it in `home-motion-line-mask`; measure buffered layout shifts at 390 px whenever `data-motion="lines"` is added (About intro measured 0).
 * Scroll-motion timing in the desktop app's Browser pane is only meaningful while the pane is shown: a hidden pane throttles `requestAnimationFrame` (tweens appeared to update roughly every 800ms). Disable scroll restoration (`history.scrollRestoration = 'manual'`) and scroll to the top before reloading, otherwise restored positions put targets in the viewport and correctly skip their reveals. Programmatic `element.focus()` does not fire `focusin` while the browser window lacks focus; dispatch a bubbling `FocusEvent('focusin')` to test the pending-reveal handler.
 
 * If frontend product/category requests return empty or null, check that `BASE_API_PUBLIC` or `NEXT_PUBLIC_BASE_API_PUBLIC` is set and includes `/api/public`.
@@ -2982,6 +3003,8 @@
 * **Why:** Source props alone are not the browser contract. Shared gallery/selector URLs must be counted once, and responsive gallery bytes may add traffic while the selector still needs the original. Twenty real read-only observations passed; local derivative-byte estimates are not deployed AFTER results.
 
 ## Last Updated
+
+2026-11-06 — Added "Reusing home motion on other storefront pages" (full vs minimal `HomeMotion` variant, what stays outside motion roots, Suspense placement, home-only first-paint intros), "External map links in the footer", and the stale-trigger mistake fixed by a debounced body `ResizeObserver` refresh.
 
 2026-11-06 — Recorded how the media backfill was run on staging (dry run → one-row canary → detached batched loop from the operator's CRM tab), the 45-second extension evaluate limit, and the refresh-rotation UI gotcha. [Report](tasks/image-pipeline-7d6462e-2026-11-06/REPORT.md)
 

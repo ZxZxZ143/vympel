@@ -36,6 +36,8 @@ export const CONTACT_LINKS = {
     phone: "tel:+77474080620",
     whatsapp: "https://wa.me/77474080620",
     instagram: instagramProfileUrl,
+    // Physical store card on 2GIS; one URL for every locale.
+    storeMap: "https://2gis.kz/almaty/geo/70000001028382844",
 } as const;
 
 export const MARKETPLACE_LINKS = {

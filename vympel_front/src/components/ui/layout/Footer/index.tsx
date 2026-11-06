@@ -49,14 +49,20 @@ const Footer = () => {
                     </div>
 
                     <div className="mt-5 grid gap-2">
-                        <div className="flex min-h-11 items-center justify-center gap-3 rounded-2xl bg-primary-bg px-4">
+                        <a
+                            href={CONTACT_LINKS.storeMap}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={t("shopAria")}
+                            className="flex min-h-11 items-center justify-center gap-3 rounded-2xl bg-primary-bg px-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
+                        >
                             <span className="flex size-6 items-center justify-center">
                                 <Subtract className="h-auto w-full" />
                             </span>
                             <Text font="footer" weight="regular" size="bodySm" colors="headingPrimary">
                                 {t("shop")}
                             </Text>
-                        </div>
+                        </a>
                         <a
                             href={CONTACT_LINKS.whatsapp}
                             target="_blank"
@@ -103,7 +109,13 @@ const Footer = () => {
                         </a>
                     </div>
                     <div>
-                        <div className="flex items-center gap-2 mb-3">
+                        <a
+                            href={CONTACT_LINKS.storeMap}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={t("shopAria")}
+                            className="flex items-center gap-2 mb-3 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
+                        >
                             <div className="w-6 h-6 flex items-center justify-center">
                                 <Subtract className="w-full h-auto" />
                             </div>
@@ -112,7 +124,7 @@ const Footer = () => {
                                     t("shop")
                                 }
                             </Text>
-                        </div>
+                        </a>
                         <a
                             href={CONTACT_LINKS.whatsapp}
                             target="_blank"

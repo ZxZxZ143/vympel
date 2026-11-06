@@ -23,6 +23,7 @@ import {
 import {ICategoryWithParent} from "@/api/types/CategoryTypes";
 import type {Page} from "@/api/types/PageType";
 import type {IProduct} from "@/api/types/ProductTypes";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 
 type Props = {
     categoryCode: string | undefined;
@@ -100,7 +101,11 @@ const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory, in
                         />
                     </div>
                 </div>
-                <div className="mt-[var(--spacing-responsive-section-y)] flex flex-col gap-[var(--spacing-responsive-section-y)]">
+                {/* Filters, sorting, search, grid and pagination stay outside the motion root: they must never wait. */}
+                <HomeMotion
+                    variant="minimal"
+                    className="mt-[var(--spacing-responsive-section-y)] flex flex-col gap-[var(--spacing-responsive-section-y)]"
+                >
                     <SectionWithTitle title={t("marketplaces")} spacing="none">
                         <MarketPlaces />
                     </SectionWithTitle>
@@ -120,7 +125,7 @@ const CatalogPage: FC<Props> = async ({categoryCode, locale, initialCategory, in
                         />
                     </SectionWithTitle>
                     <Benefits />
-                </div>
+                </HomeMotion>
             </div>
         </main>
     );

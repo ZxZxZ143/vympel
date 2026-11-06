@@ -1,6 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {
     HOME_MOTION,
+    HOME_MOTION_VARIANTS,
     isHorizontallyVisible,
     partitionByHorizontalVisibility,
     readMotionNumber,
@@ -51,5 +52,20 @@ describe("home motion helpers", () => {
         const headroomPercent = ((HOME_MOTION.heroParallax.scale - 1) / 2) * 100;
 
         expect(HOME_MOTION.heroParallax.yPercent).toBeLessThan(headroomPercent);
+    });
+
+    it("keeps the minimal variant to opacity and transform reveals only", () => {
+        expect(Object.values(HOME_MOTION_VARIANTS.full).every(Boolean)).toBe(true);
+        expect(HOME_MOTION_VARIANTS.minimal).toEqual({
+            heroParallax: false,
+            mediaUnveils: false,
+            parallax: false,
+            lineReveals: false,
+        });
+    });
+
+    it("re-measures triggers soon after the document height changes", () => {
+        expect(HOME_MOTION.refreshDelay).toBeGreaterThan(0);
+        expect(HOME_MOTION.refreshDelay).toBeLessThanOrEqual(250);
     });
 });

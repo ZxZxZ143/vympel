@@ -22,6 +22,7 @@ import {PUBLIC_BRANDS, normalizeBrandLookup} from "@/config/brandRoutes";
 import {PUBLIC_CATEGORY_CODES, routes} from "@/config/routes";
 import {PUBLIC_BREADCRUMB_SEPARATOR} from "@/config/publicBreadcrumb";
 import {cmsImageSources, findCmsBlock} from "@/utils/cmsContent";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 
 type Props = {
     productId: string;
@@ -192,29 +193,35 @@ const ProductPage = async ({
                         }}
                     />
 
+                    {/* Gallery, model selector, cart/favorite actions and tabs stay outside every motion root. */}
                     <React.Suspense fallback={null}>
-                    <AsyncProductRecommendations
-                        title={productT("relatedProducts")}
-                        productId={productId}
-                        locale={locale}
-                    />
+                        {/* Inside the boundary, so the root hydrates with the streamed rail it animates. */}
+                        <HomeMotion variant="minimal">
+                            <AsyncProductRecommendations
+                                title={productT("relatedProducts")}
+                                productId={productId}
+                                locale={locale}
+                            />
+                        </HomeMotion>
                     </React.Suspense>
 
-                    <SectionWithTitle title={productT("contact.heading")} spacing="subsection">
-                        <ContactBanner
-                            imageSrc={contactImages.desktop}
-                            imageMobileSrc={contactImages.mobile}
-                            imageFallbackSrc={contactImages.fallback}
-                            title={productT("contact.bannerTitle")}
-                            buttonText={productT("contact.button")}
-                            requestSource="product_contact_banner"
-                            sideText={[
-                                productT("contact.body1"),
-                                productT("contact.body2"),
-                                productT("contact.body3"),
-                            ]}
-                        />
-                    </SectionWithTitle>
+                    <HomeMotion variant="minimal">
+                        <SectionWithTitle title={productT("contact.heading")} spacing="subsection">
+                            <ContactBanner
+                                imageSrc={contactImages.desktop}
+                                imageMobileSrc={contactImages.mobile}
+                                imageFallbackSrc={contactImages.fallback}
+                                title={productT("contact.bannerTitle")}
+                                buttonText={productT("contact.button")}
+                                requestSource="product_contact_banner"
+                                sideText={[
+                                    productT("contact.body1"),
+                                    productT("contact.body2"),
+                                    productT("contact.body3"),
+                                ]}
+                            />
+                        </SectionWithTitle>
+                    </HomeMotion>
                 </div>
             </div>
         </main>

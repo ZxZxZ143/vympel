@@ -18,6 +18,7 @@ import {cmsImageSources, findCmsBlock} from "@/utils/cmsContent";
 
 import Pagination from "@/components/ui/shared/Pagination";
 import type {BrandProductsData} from "@/lib/brandPageData";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 
 type Props = {
     locale: LocaleEnum;
@@ -55,7 +56,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand, productsData}: Props)
         <main className="mx-auto max-w-360">
             <Navigation/>
 
-            <div className="responsive-page-x pt-10 sm:pt-12">
+            <HomeMotion className="responsive-page-x pt-10 sm:pt-12">
                 <nav
                     aria-label={t("breadcrumbsAria")}
                     className="public-breadcrumb catalog-filter-scroll flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden whitespace-nowrap pb-2"
@@ -120,11 +121,12 @@ const BrandPage = async ({locale, brandSlug, initialBrand, productsData}: Props)
                         size="productTitle"
                         weight="regular"
                         className="mb-brand-history-heading-gap leading-none"
+                        data-motion="title"
                     >
                         {t("historyTitle")}
                     </Heading>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2" data-motion="stagger">
                         {brand.historyParagraphs.map((paragraph) => (
                             <Text
                                 key={paragraph}
@@ -141,6 +143,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand, productsData}: Props)
                         href={catalogHref}
                         className="mt-brand-history-text-gap inline-flex items-center gap-3 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-text-heading-primary/40"
                         aria-label={t("catalogLinkAria", {brand: brand.displayName})}
+                        data-motion="reveal"
                     >
                         <Text as="span" size="bodyLg" weight="medium" colors="headingSecondary"
                               className="leading-none">
@@ -158,6 +161,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand, productsData}: Props)
                         font="mono"
                         weight="regular"
                         className="leading-none"
+                        data-motion="title"
                     >
                         {t("models")}
                     </Heading>
@@ -177,7 +181,7 @@ const BrandPage = async ({locale, brandSlug, initialBrand, productsData}: Props)
                         </Text>
                     )}
                 </section>
-            </div>
+            </HomeMotion>
         </main>
     );
 };

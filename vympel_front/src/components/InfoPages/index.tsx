@@ -9,6 +9,7 @@ import ShieldIcon from "@/assets/icons/ShieldIcon";
 import Navigation from "@/components/ui/layout/Navigation";
 import {Text} from "@/components/ui/shared/text";
 import {Heading} from "@/components/ui/shared/text/Heading";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 import {cn} from "@/lib/utils";
 
 type InfoPageLayoutProps = {
@@ -24,9 +25,9 @@ export function InfoPageLayout({title, children}: InfoPageLayoutProps) {
                 <Heading as="h1" size="h2" font="mono" colors="headingPrimary">
                     {title}
                 </Heading>
-                <div className="mt-info-title-text-gap">
+                <HomeMotion className="mt-info-title-text-gap">
                     {children}
-                </div>
+                </HomeMotion>
             </section>
         </main>
     );
@@ -39,7 +40,7 @@ type InfoTextBlockProps = {
 
 export function InfoTextBlock({children, className}: InfoTextBlockProps) {
     return (
-        <div className={cn("space-y-info-paragraph-gap", className)}>
+        <div className={cn("space-y-info-paragraph-gap", className)} data-motion="stagger">
             {children}
         </div>
     );
@@ -84,7 +85,7 @@ type WarrantyBadgeProps = {
 function WarrantyBadge({icon, title, subtitle}: WarrantyBadgeProps) {
     return (
         <article className="info-warranty-badge">
-            <span aria-hidden="true" className="info-warranty-badge-icon">
+            <span aria-hidden="true" className="info-warranty-badge-icon" data-motion-inner="">
                 {icon}
             </span>
             <span>
@@ -113,7 +114,7 @@ export function WarrantyBadges({
                                    supportSubtitle,
                                }: WarrantyBadgesProps) {
     return (
-        <div className="info-warranty-badges">
+        <div className="info-warranty-badges" data-motion="stagger">
             <WarrantyBadge
                 icon={<ShieldIcon/>}
                 title={warrantyTitle}
@@ -195,7 +196,7 @@ export function StoreLocationBlock({
                                    }: StoreLocationBlockProps) {
     return (
         <section className="info-store-location" aria-label={addressTitle}>
-            <div className="info-store-image-frame">
+            <div className="info-store-image-frame" data-motion="media" data-motion-direction="left">
                 <Image
                     src="/shop.webp"
                     alt={imageAlt}
@@ -204,7 +205,7 @@ export function StoreLocationBlock({
                     className="object-cover"
                 />
             </div>
-            <div className="info-store-contact w-full">
+            <div className="info-store-contact w-full" data-motion="stagger">
                 <IconInfoItem
                     icon={<MapIcon/>}
                     mainLines={[addressTitle, addressStreet, addressFloor]}

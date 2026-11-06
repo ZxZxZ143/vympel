@@ -24,6 +24,8 @@ export const HOME_MOTION = {
     heroScrub: 0.6,
     // yPercent must stay below half of the extra scale so the frame never exposes an edge.
     heroParallax: {yPercent: 5, scale: 1.12},
+    // Content above a motion root can change height (catalog filters, streamed sections); re-measure after it settles.
+    refreshDelay: 200,
 } as const;
 
 export const HOME_MOTION_QUERIES = {
@@ -32,6 +34,17 @@ export const HOME_MOTION_QUERIES = {
 } as const;
 
 export type HomeMotionConditions = Record<keyof typeof HOME_MOTION_QUERIES, boolean>;
+
+/*
+ * "full" is the home choreography. "minimal" keeps only opacity/transform reveals for pages whose content is the
+ * interface itself (catalog, product): no clip-path unveils, no SplitText line masks and no scroll-linked parallax.
+ */
+export const HOME_MOTION_VARIANTS = {
+    full: {heroParallax: true, mediaUnveils: true, parallax: true, lineReveals: true},
+    minimal: {heroParallax: false, mediaUnveils: false, parallax: false, lineReveals: false},
+} as const;
+
+export type HomeMotionVariant = keyof typeof HOME_MOTION_VARIANTS;
 
 type HorizontalBox = Pick<DOMRect, "left" | "right">;
 

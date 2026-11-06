@@ -8,7 +8,9 @@ import {useGSAP} from "@gsap/react";
 import {
     HOME_MOTION,
     HOME_MOTION_QUERIES,
+    HOME_MOTION_VARIANTS,
     HomeMotionConditions,
+    HomeMotionVariant,
     isHorizontallyVisible,
     partitionByHorizontalVisibility,
     readMotionNumber,
@@ -19,6 +21,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
 
 type Props = {
     className?: string;
+    variant?: HomeMotionVariant;
 };
 
 type PendingReveals = Map<Element, () => void>;
@@ -209,7 +212,31 @@ const playLineReveals = (targets: HTMLElement[], pending: PendingReveals) => {
     });
 };
 
-const setupHomeMotion = (root: HTMLElement, context: gsap.Context, desktop: boolean) => {
+// Trigger positions are measured once; when the document height changes (filters, pagination, streamed or
+// lazily sized content), re-measure so a moved section can still cross its start and never stays hidden.
+const observeDocumentHeight = () => {
+    if (typeof ResizeObserver === "undefined") return () => undefined;
+
+    let timer: number | undefined;
+    const observer = new ResizeObserver(() => {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => ScrollTrigger.refresh(), HOME_MOTION.refreshDelay);
+    });
+    observer.observe(document.body);
+
+    return () => {
+        window.clearTimeout(timer);
+        observer.disconnect();
+    };
+};
+
+const setupHomeMotion = (
+    root: HTMLElement,
+    context: gsap.Context,
+    desktop: boolean,
+    variant: HomeMotionVariant,
+) => {
+    const effects = HOME_MOTION_VARIANTS[variant];
     const pending: PendingReveals = new Map();
     let active = true;
 
@@ -224,28 +251,32 @@ const setupHomeMotion = (root: HTMLElement, context: gsap.Context, desktop: bool
         }
     };
 
-    setupHeroParallax(root);
+    if (effects.heroParallax) setupHeroParallax(root);
     setupReveals(root, desktop, pending);
-    setupMediaUnveils(root, pending);
-    if (desktop) setupParallax(root);
+    if (effects.mediaUnveils) setupMediaUnveils(root, pending);
+    if (effects.parallax && desktop) setupParallax(root);
 
-    const lineTargets = prepareLineReveals(root, pending);
-    document.fonts.ready.then(() => {
-        if (!active) return;
-        context.add(() => playLineReveals(lineTargets, pending));
-        ScrollTrigger.refresh();
-    });
+    if (effects.lineReveals) {
+        const lineTargets = prepareLineReveals(root, pending);
+        document.fonts.ready.then(() => {
+            if (!active) return;
+            context.add(() => playLineReveals(lineTargets, pending));
+            ScrollTrigger.refresh();
+        });
+    }
 
     root.addEventListener("focusin", revealFocused);
+    const stopObservingHeight = observeDocumentHeight();
 
     return () => {
         active = false;
+        stopObservingHeight();
         root.removeEventListener("focusin", revealFocused);
         pending.clear();
     };
 };
 
-const HomeMotion: FC<PropsWithChildren<Props>> = ({className, children}) => {
+const HomeMotion: FC<PropsWithChildren<Props>> = ({className, variant = "full", children}) => {
     const rootRef = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
@@ -256,9 +287,9 @@ const HomeMotion: FC<PropsWithChildren<Props>> = ({className, children}) => {
             const {motion, desktop} = context.conditions as HomeMotionConditions;
             if (!motion) return;
 
-            return setupHomeMotion(root, context, desktop);
+            return setupHomeMotion(root, context, desktop, variant);
         });
-    }, {scope: rootRef});
+    }, {scope: rootRef, dependencies: [variant]});
 
     return (
         <div ref={rootRef} className={className}>

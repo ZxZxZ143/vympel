@@ -12,6 +12,7 @@ import {PublicApiController} from "@/api/controllers/PublicController";
 import {cmsImageSources, cmsLink, cmsText, cmsTextList, findCmsBlock} from "@/utils/cmsContent";
 import CmsResponsiveImage from "@/components/ui/shared/CmsResponsiveImage";
 import {cmsAboutInstagramPosts} from "@/utils/aboutInstagramPosts";
+import HomeMotion from "@/components/HomePage/HomeMotion";
 
 type Props = {
     locale: LocaleEnum;
@@ -57,13 +58,14 @@ export default async function AboutPage({locale}: Props) {
                 />
             </section>
 
-            <div className="about-page-content">
+            <HomeMotion className="about-page-content">
                 <section className="about-page-section about-intro-grid" aria-label={t("intro.aria")}>
                     <Text
                         size="h5"
                         weight="light"
                         colors="headingSecondary"
                         className="about-intro-lead"
+                        data-motion="lines"
                     >
                         {cmsText(introBlock?.translation?.title, t("intro.left"))}
                     </Text>
@@ -72,6 +74,7 @@ export default async function AboutPage({locale}: Props) {
                         weight="regular"
                         colors="secondary"
                         className="about-intro-body"
+                        data-motion="lines"
                     >
                         {cmsText(introBlock?.translation?.description, t("intro.right"))}
                     </Text>
@@ -81,7 +84,7 @@ export default async function AboutPage({locale}: Props) {
                     <Title headingId="about-company-title" className="mb-9">
                         {t("company.title")}
                     </Title>
-                    <div className="about-company-grid">
+                    <div className="about-company-grid" data-motion="stagger">
                         {companyCardKeys.map((key, index) => (
                             <article key={key} className="about-company-card">
                                 <div className="about-company-card-header">
@@ -149,7 +152,7 @@ export default async function AboutPage({locale}: Props) {
                     </Title>
                     <MarketPlaces/>
                 </section>
-            </div>
+            </HomeMotion>
         </main>
     );
 }
