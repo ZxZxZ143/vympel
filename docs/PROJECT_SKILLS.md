@@ -632,6 +632,13 @@
 * **Gotcha:** `ObjectStorageService.delete(originalKey)` expands a family original into all derivatives. Rollback cleanup for a conversion must delete only keys this attempt created (`registerExactRollbackCleanup`), otherwise a rolled-back attempt that reused pre-uploaded derivatives would delete them.
 * **Gotcha:** Methods called through the CGLIB-proxied `ObjectStorageService` from another bean must be public; package-private calls can run on the proxy instance with null fields.
 
+### Running the media backfill on staging (2026-11-06)
+
+* **When to use:** Converting legacy media on the deployed staging after a release that contains `ResponsiveMediaConversionService`.
+* **How:** Take a fresh DB dump + MinIO tar first. From the operator's signed-in CRM tab (Claude in Chrome; the in-app browser could not accept the Basic Auth login), obtain a bearer with `POST /api/crm/auth/refresh` (credentials include) and call `POST /api/crm/media/responsive-backfill` with `dryRun: true` for PRODUCT and CMS, review, convert one row (`limit: 1`) and verify its public objects, then loop `limit: 25` with `afterId = nextAfterId` while `hasMore`. Run the loop as a detached async function in the page and poll a `window` variable: one call can take ~45 s, longer than the extension's 45 s evaluate timeout. Audit on the VM: every changed key is a complete family, its legacy key is derivable and still present, and storefront HTML on port 3000 contains no legacy URLs.
+* **Why:** 116 rows converted in about 6 minutes with zero skips, reuse of the 63 pre-uploaded second-batch objects, ~80% backend CPU and no service impact.
+* **Gotcha:** A refresh call from a script rotates the refresh cookie; an already-open CRM page that refreshes concurrently can show "Не удалось загрузить данные" until reload. It does not end the session.
+
 ### Rank the matched IDs before pagination without changing matching
 
 * **When to use:** Default catalog searches without explicit sorting.
@@ -2975,6 +2982,8 @@
 * **Why:** Source props alone are not the browser contract. Shared gallery/selector URLs must be counted once, and responsive gallery bytes may add traffic while the selector still needs the original. Twenty real read-only observations passed; local derivative-byte estimates are not deployed AFTER results.
 
 ## Last Updated
+
+2026-11-06 — Recorded how the media backfill was run on staging (dry run → one-row canary → detached batched loop from the operator's CRM tab), the 45-second extension evaluate limit, and the refresh-rotation UI gotcha. [Report](tasks/image-pipeline-7d6462e-2026-11-06/REPORT.md)
 
 2026-11-06 — Added the locked create-only legacy media conversion pattern and its two gotchas (family-expanding delete vs exact rollback cleanup; public methods across CGLIB proxies), the encoder slot-wait/EXIF-orientation rule, and the responsive variant-selector rule. Backend verification against real PostgreSQL: initialize a disposable native PostgreSQL 18 cluster in the scratchpad (`initdb -A trust`, `pg_ctl -o "-p 55441"`), create `vympel_db`, and run `gradlew test` with `VYMPEL_DB_URL=jdbc:postgresql://127.0.0.1:55441/vympel_db` and JDK 17 (`~/.jdks/ms-17.0.18`); Docker/cwebp/Redis-dependent tests skip.
 
