@@ -40,7 +40,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV SITE_INDEXING_ENABLED=$SITE_INDEXING_ENABLED
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
-RUN apk upgrade --no-cache libcrypto3 libssl3 \
+RUN apk upgrade --no-cache libcrypto3 libssl3 musl musl-utils zlib \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
