@@ -1429,6 +1429,13 @@
 
 ## Common Mistakes - DO NOT REPEAT
 
+### ❌ Piping a deploy script into `ssh ... bash -s` that calls `docker compose run`
+
+* **What happened:** The 052422c staging rollout stopped silently right after `compose run --rm --no-deps migrate`; the app recreation never ran.
+* **Root cause:** `docker compose run` attaches stdin, so it consumed the remainder of the script that bash was reading from the piped stdin.
+* **Fix:** Re-ran the second half with every compose/docker call redirected `< /dev/null` (`.cache/deploy-052422c/deploy-apps.sh`).
+* **How to avoid:** In stdin-fed remote scripts always use `compose run -T ... < /dev/null` (or copy the script to the VM and run it as a file). Also pass `--project=vympel-staging` to `gcloud compute os-login ssh-keys add`.
+
 ### ❌ Single-backslash regex escapes in Java written through a shell heredoc
 
 * **What happened:** `CrmBrandService` was generated through a Bash heredoc and the doubled backslashes in `\\p{M}` / `\\s+` arrived single. `\p` failed compilation, but `\s` is a legal Java 15+ escape (a space), so `"\s+"` silently meant "space followed by plus".
@@ -3028,6 +3035,8 @@
 * **Why:** Source props alone are not the browser contract. Shared gallery/selector URLs must be counted once, and responsive gallery bytes may add traffic while the selector still needs the original. Twenty real read-only observations passed; local derivative-byte estimates are not deployed AFTER results.
 
 ## Last Updated
+
+2026-11-13 — Recorded the `compose run` stdin pitfall from the 052422c staging rollout and the Trivy musl/zlib base-image fix (runtime `apk upgrade` now also lists `musl musl-utils zlib`).
 
 2026-11-13 — Added the brand-picker deletion pattern (backend protection list, cascade of collections, country kept and still selectable) and updated the native-field rule: brand is no longer a native select.
 
