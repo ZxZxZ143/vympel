@@ -6,8 +6,8 @@ import type {Feature, References, ReferenceCreateType} from "@/shared/api/types"
 import {CreatableReferenceSelect, CreatableReferenceMultiSelect} from "./CreatableReferenceFields";
 import {clearDeletedReference, removeReferenceFromCache, useReferenceDeletion, type ReferenceDeleteType} from "./referenceDeletion";
 
-const mocks = vi.hoisted(() => ({remove: vi.fn(), removeCollection: vi.fn(), success: vi.fn(), changed: vi.fn()}));
-vi.mock("@/shared/api/client", () => ({crmApi: {deleteReference: mocks.remove, deleteCollection: mocks.removeCollection}}));
+const mocks = vi.hoisted(() => ({remove: vi.fn(), removeCollection: vi.fn(), removeBrand: vi.fn(), success: vi.fn(), changed: vi.fn()}));
+vi.mock("@/shared/api/client", () => ({crmApi: {deleteReference: mocks.remove, deleteCollection: mocks.removeCollection, deleteBrand: mocks.removeBrand}}));
 vi.mock("@/shared/api/errors", () => ({getCrmErrorMessage: (error: {code: string}, fallback: string, _: unknown, codes: Record<string,string>) => codes[error.code] ?? fallback}));
 vi.mock("@/shared/i18n/useI18n", () => ({useI18n: () => ({t: (key: string) => key === "catalogTools.referenceDeleteDescription" ? "Delete «{value}»?" : key})}));
 vi.mock("@/shared/feedback/NotificationProvider", () => ({useNotifications: () => ({success: mocks.success})}));
@@ -30,7 +30,7 @@ function Harness({multi = false, type = "case-materials"}: {multi?: boolean; typ
   </div>{deletion.dialog}</>;
 }
 
-beforeEach(() => {vi.clearAllMocks();mocks.remove.mockResolvedValue(undefined);mocks.removeCollection.mockResolvedValue(undefined);});
+beforeEach(() => {vi.clearAllMocks();mocks.remove.mockResolvedValue(undefined);mocks.removeCollection.mockResolvedValue(undefined);mocks.removeBrand.mockResolvedValue(undefined);});
 afterEach(cleanup);
 const open = () => fireEvent.click(screen.getByRole("button", {name: "Field"}));
 const trash = () => screen.getByRole("button", {name: `catalogTools.deleteOption: ${custom.name}`});
@@ -155,4 +155,42 @@ it("uses a portal and supports Shift+Tab returning to the trigger without trappi
   expect(screen.getByRole("dialog").parentElement).toBe(document.body);
   fireEvent.keyDown(screen.getByRole("searchbox"), {key:"Tab",shiftKey:true});
   expect(screen.queryByRole("dialog")).toBeNull();expect(document.activeElement?.id).toBe("field");
+});
+
+describe("brand deletion", () => {
+  it("deletes a brand through the brand endpoint and shows the brand title", async () => {
+    render(<Harness type="brands"/>);
+    open();
+    fireEvent.click(trash());
+    expect(screen.getByRole("alertdialog").textContent).toContain("catalogTools.brandDeleteTitle");
+    fireEvent.click(confirm());
+    await waitFor(() => expect(mocks.removeBrand).toHaveBeenCalledWith(2));
+    expect(mocks.remove).not.toHaveBeenCalled();
+    expect(mocks.removeCollection).not.toHaveBeenCalled();
+  });
+
+  it("maps brand conflicts to localized messages and keeps the dialog open", async () => {
+    mocks.removeBrand.mockRejectedValueOnce({code: "BRAND_IN_USE"});
+    render(<Harness type="brands"/>);
+    open();
+    fireEvent.click(trash());
+    fireEvent.click(confirm());
+    expect(await screen.findByText("catalogTools.brandInUse")).toBeTruthy();
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+  });
+
+  it("drops the brand's collections from the cache and clears brand-scoped form fields", () => {
+    const references = {
+      brands: [{id: 5, name: "Orient", code: "orient", countryId: 9, countryCode: "china", countryName: "China", deletable: true}],
+      collections: [{id: 11, name: "Star", brandId: 5}, {id: 12, name: "Other", brandId: 6}],
+    } as unknown as References;
+    const next = removeReferenceFromCache(references, "brands", 5);
+    expect(next?.brands).toEqual([]);
+    expect(next?.collections.map((option) => option.id)).toEqual([12]);
+
+    expect(clearDeletedReference({brandId: "5", collectionId: "11", productionCountryId: "9", model: "A"}, "brands", 5))
+      .toEqual({brandId: "", collectionId: "", productionCountryId: "", model: "A"});
+    const untouched = {brandId: "6", collectionId: "12"};
+    expect(clearDeletedReference(untouched, "brands", 5)).toBe(untouched);
+  });
 });

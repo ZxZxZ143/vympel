@@ -572,7 +572,8 @@ describe("Kaspi product import flow", () => {
 
     fireEvent.change(await screen.findByLabelText("products.category"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: "products.categoryFirstSubmit" }));
-    fireEvent.change(screen.getByLabelText("products.brand"), { target: { value: "10" } });
+    fireEvent.click(document.getElementById("brandId")!);
+    fireEvent.click(screen.getByRole("dialog").querySelector('[data-reference-choice="10"]')!);
     fireEvent.click(screen.getByRole("button", { name: "products.collectionCreateOpen" }));
     fireEvent.change(screen.getByLabelText("products.collectionNameRu"), { target: { value: "Stale collection" } });
 
@@ -581,7 +582,9 @@ describe("Kaspi product import flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "products.kaspiImportAction" }));
     fireEvent.click(await screen.findByRole("button", { name: "products.kaspiImportApply" }));
 
-    expect((screen.getByLabelText("products.brand") as HTMLSelectElement).value).toBe("11");
+    fireEvent.click(document.getElementById("brandId")!);
+    expect(screen.getByRole("dialog").querySelector('[data-reference-choice="11"]')?.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
     expect(screen.queryByLabelText("products.collectionNameRu")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "products.collectionCreateOpen" }));
     expect((screen.getByLabelText("products.collectionBrand") as HTMLSelectElement).value).toBe("11");

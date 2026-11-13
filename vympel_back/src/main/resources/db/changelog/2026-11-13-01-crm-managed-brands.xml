@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="2026-11-13-01-crm-managed-brands" author="claude" dbms="postgresql">
+        <comment>
+            Replace the immutable six-brand/five-country domain with a CRM-managed one.
+            Existing rows are preserved; the database still guarantees well-formed identities,
+            unique names and exactly one country per brand.
+        </comment>
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS trg_supported_catalog_brand ON brand;
+            DROP TRIGGER IF EXISTS trg_supported_catalog_country ON country;
+            DROP TRIGGER IF EXISTS trg_supported_catalog_mapping ON brand_country;
+            DROP FUNCTION IF EXISTS assert_supported_catalog_domain();
+
+            ALTER TABLE brand DROP CONSTRAINT IF EXISTS chk_brand_supported_identity;
+            ALTER TABLE country DROP CONSTRAINT IF EXISTS chk_country_supported_identity;
+
+            ALTER TABLE brand
+                ADD CONSTRAINT chk_brand_identity CHECK (
+                    active = true
+                    AND code ~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+                    AND name IS NOT NULL
+                    AND btrim(name) <> ''
+                    AND name = btrim(name)
+                );
+
+            CREATE UNIQUE INDEX uq_brand_name_normalized ON brand (lower(name));
+
+            ALTER TABLE country
+                ADD CONSTRAINT chk_country_identity CHECK (
+                    active = true
+                    AND code ~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+                    AND iso2 ~ '^[A-Z]{2}$'
+                );
+
+            CREATE OR REPLACE FUNCTION assert_catalog_brand_country()
+            RETURNS trigger
+            LANGUAGE plpgsql
+            AS $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1
+                    FROM brand b
+                    LEFT JOIN brand_country bc ON bc.brand_id = b.id
+                    WHERE bc.brand_id IS NULL
+                ) THEN
+                    RAISE EXCEPTION 'Every brand must have exactly one country'
+                        USING ERRCODE = '23514', CONSTRAINT = 'chk_catalog_brand_country';
+                END IF;
+                IF EXISTS (
+                    SELECT 1
+                    FROM country c
+                    WHERE (SELECT count(*) FROM country_i18n ci
+                           WHERE ci.country_id = c.id AND ci.lang IN ('ru', 'en', 'kk')) <> 3
+                ) THEN
+                    RAISE EXCEPTION 'Every country must have RU/EN/KK names'
+                        USING ERRCODE = '23514', CONSTRAINT = 'chk_catalog_country_i18n';
+                END IF;
+                RETURN NULL;
+            END;
+            $$;
+
+            CREATE CONSTRAINT TRIGGER trg_catalog_brand_country_brand
+                AFTER INSERT OR UPDATE ON brand
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_catalog_brand_country();
+
+            CREATE CONSTRAINT TRIGGER trg_catalog_brand_country_mapping
+                AFTER UPDATE OR DELETE ON brand_country
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_catalog_brand_country();
+
+            CREATE CONSTRAINT TRIGGER trg_catalog_brand_country_country
+                AFTER INSERT OR UPDATE ON country
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_catalog_brand_country();
+
+            CREATE CONSTRAINT TRIGGER trg_catalog_brand_country_country_i18n
+                AFTER UPDATE OR DELETE ON country_i18n
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION assert_catalog_brand_country();
+        ]]></sql>
+        <rollback>
+            <sql splitStatements="false"><![CDATA[
+                DO $$
+                BEGIN
+                    RAISE EXCEPTION 'Rollback of CRM-managed brands is not supported: restoring the immutable domain would delete CRM-created brands and their products.';
+                END;
+                $$;
+            ]]></sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

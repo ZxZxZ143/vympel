@@ -20,6 +20,16 @@ import { Text } from "@/shared/ui/Text";
 import { getCategoryProfile, productTypeForCategory } from "@/features/products/productCategoryProfile";
 import { notifyProductListChanged } from "@/features/products/productListRefresh";
 import { brandCountryFor } from "@/features/products/brandCountry";
+import {
+  brandCreateErrorMessages,
+  emptyBrandForm,
+  mergeBrandCountryOption,
+  mergeBrandOption,
+  NEW_COUNTRY_OPTION,
+  toBrandPayload,
+  validateBrandForm,
+  type BrandFormState,
+} from "@/features/products/brandCreate";
 import { KaspiImportDialog, WildberriesImportDialog } from "@/features/products/KaspiImportDialog";
 import { applyKaspiImportPreview, applyWildberriesImportPreview } from "@/features/products/kaspiImport";
 import {
@@ -216,6 +226,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [collectionFormOpen, setCollectionFormOpen] = useState(false);
   const {
     control: collectionControl,
+    getValues: getCollectionValues,
     handleSubmit: handleCollectionSubmit,
     reset: resetCollectionForm,
     setValue: setCollectionValue,
@@ -226,6 +237,19 @@ export function ProductForm({ productId }: ProductFormProps) {
   const [collectionSaving, setCollectionSaving] = useState(false);
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [collectionSuccess, setCollectionSuccess] = useState<string | null>(null);
+  const [brandFormOpen, setBrandFormOpen] = useState(false);
+  const {
+    control: brandControl,
+    handleSubmit: handleBrandSubmit,
+    reset: resetBrandForm,
+    setValue: setBrandValue,
+  } = useForm<BrandFormState>({
+    defaultValues: emptyBrandForm,
+  });
+  const brandForm = (useWatch({ control: brandControl }) ?? emptyBrandForm) as BrandFormState;
+  const [brandSaving, setBrandSaving] = useState(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
+  const [brandSuccess, setBrandSuccess] = useState<string | null>(null);
   const [kaspiImportOpen, setKaspiImportOpen] = useState(false);
   const [wildberriesImportOpen, setWildberriesImportOpen] = useState(false);
   const [referenceCreateTarget, setReferenceCreateTarget] = useState<ReferenceCreateTarget | null>(null);
@@ -235,6 +259,9 @@ export function ProductForm({ productId }: ProductFormProps) {
     const next = clearDeletedReference(current, type, id);
     for (const field of Object.keys(next) as (keyof ProductFormState)[]) {
       if (next[field] !== current[field]) setProductValue(field, next[field] as never, {shouldDirty: true});
+    }
+    if (type === "brands" && getCollectionValues("brandId") === String(id)) {
+      setCollectionValue("brandId", "", {shouldDirty: true});
     }
   });
   const isEdit = productId !== undefined;
@@ -362,6 +389,68 @@ export function ProductForm({ productId }: ProductFormProps) {
         notifications.success(t("products.referenceCreate"));
       },
     });
+  };
+
+  const updateBrandField = <Field extends keyof BrandFormState>(field: Field, value: BrandFormState[Field]) => {
+    setBrandValue(field, value as never, { shouldDirty: true });
+    setBrandSuccess(null);
+    setBrandError(null);
+  };
+
+  const toggleBrandForm = () => {
+    setBrandFormOpen((current) => !current);
+    setBrandError(null);
+    setBrandSuccess(null);
+  };
+
+  const createBrand = async (values: BrandFormState) => {
+    if (brandSaving) {
+      return;
+    }
+
+    const validationError = validateBrandForm(values, t);
+
+    if (validationError) {
+      setBrandError(validationError);
+      return;
+    }
+
+    setBrandSaving(true);
+    setBrandError(null);
+    setBrandSuccess(null);
+
+    try {
+      const brand = await crmApi.createBrand(toBrandPayload(values), locale);
+
+      setReferences((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          brands: mergeBrandOption(current.brands, brand),
+          countries: mergeBrandCountryOption(current.countries, brand),
+        };
+      });
+      resetProductForm({
+        ...form,
+        brandId: String(brand.id),
+        collectionId: "",
+        productionCountryId: "",
+      }, { keepDirty: true });
+      setCollectionValue("brandId", String(brand.id));
+      resetBrandForm(emptyBrandForm);
+      setBrandSuccess(t("products.brandCreated"));
+      notifications.success(t("products.brandCreated"));
+      setBrandFormOpen(false);
+    } catch (error) {
+      const message = getCrmErrorMessage(error, t("products.brandCreateError"), t("products.brandCreateError"), brandCreateErrorMessages(t));
+      setBrandError(message);
+      notifications.error(message);
+    } finally {
+      setBrandSaving(false);
+    }
   };
 
   const toggleCollectionForm = () => {
@@ -774,7 +863,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                 </option>
               ))}
             </SelectField>
-            <ReferenceSelect id="brandId" label={t("products.brand")} value={form.brandId} options={references.brands} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("brandId", value)} />
+            <ReferenceSelect id="brandId" label={t("products.brand")} value={form.brandId} options={references.brands} placeholder={t("common.selectPlaceholder")} deletion={referenceDeletion.actionsFor("brands")} onChange={(value) => updateField("brandId", value)} />
             <ReferenceSelect id="categoryId" label={t("products.category")} value={form.categoryId} options={references.categories} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateField("categoryId", value)} disabled />
             <ReferenceSelect id="collectionId" label={t("products.collection")} value={form.collectionId} options={visibleCollections} placeholder={t("common.selectPlaceholder")} deletion={referenceDeletion.actionsFor("collections")} onChange={(value) => updateField("collectionId", value)} optional />
           </div>
@@ -790,6 +879,50 @@ export function ProductForm({ productId }: ProductFormProps) {
                 </Button>
               )}
             </div>
+          </div>
+
+          <div className="crm-form-section">
+            <div className="crm-form-section__header">
+              <Text as="span" size="small" tone="muted">
+                {t("products.brandCreateHint")}
+              </Text>
+              <Button type="button" variant="secondary" onClick={toggleBrandForm}>
+                {brandFormOpen ? t("products.brandCreateClose") : t("products.brandCreateOpen")}
+              </Button>
+            </div>
+
+            {brandError && <Text className="crm-form-error">{brandError}</Text>}
+            {brandSuccess && <Text className="crm-form-success">{brandSuccess}</Text>}
+
+            {brandFormOpen && (
+              <div className="crm-form-section__body">
+                <div className="crm-grid crm-grid--form">
+                  <TextField id="brandName" label={t("products.brandName")} value={brandForm.name} maxLength={100} onChange={(value) => updateBrandField("name", value)} />
+                  <SelectField id="brandCountryId" label={t("products.brandCountry")} value={brandForm.countryId} onChange={(value) => updateBrandField("countryId", value)}>
+                    <option value="">{t("common.selectPlaceholder")}</option>
+                    {references.countries.map((country) => (
+                      <option key={country.id} value={String(country.id)}>
+                        {country.name}
+                      </option>
+                    ))}
+                    <option value={NEW_COUNTRY_OPTION}>{t("products.brandCountryNew")}</option>
+                  </SelectField>
+                  {brandForm.countryId === NEW_COUNTRY_OPTION && (
+                    <>
+                      <TextField id="brandCountryIso2" label={t("products.countryIso2")} value={brandForm.countryIso2} maxLength={2} onChange={(value) => updateBrandField("countryIso2", value)} />
+                      <TextField id="brandCountryNameRu" label={t("products.countryNameRu")} value={brandForm.countryNameRu} maxLength={255} onChange={(value) => updateBrandField("countryNameRu", value)} />
+                      <TextField id="brandCountryNameEn" label={t("products.countryNameEn")} value={brandForm.countryNameEn} maxLength={255} onChange={(value) => updateBrandField("countryNameEn", value)} />
+                      <TextField id="brandCountryNameKz" label={t("products.countryNameKz")} value={brandForm.countryNameKz} maxLength={255} onChange={(value) => updateBrandField("countryNameKz", value)} />
+                    </>
+                  )}
+                </div>
+                <div className="crm-inline-actions">
+                  <Button type="button" isLoading={brandSaving} onClick={() => void handleBrandSubmit(createBrand)()}>
+                    {brandSaving ? t("common.loading") : t("products.brandCreateSubmit")}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="crm-form-section">

@@ -478,7 +478,7 @@ export function BulkProductCreateView() {
       <form className="crm-page" onSubmit={handleSubmit(submit)}>
         <FormPanel title={t("products.bulkCommonSection")}>
           <div className="crm-grid crm-grid--form">
-            <ReferenceSelect id="bulkBrandId" label={t("products.brand")} value={common.brandId} options={references.brands} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("brandId", value)} />
+            <ReferenceSelect deletion={referenceDeletion.actionsFor("brands")} id="bulkBrandId" label={t("products.brand")} value={common.brandId} options={references.brands} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("brandId", value)} />
             <ReferenceSelect deletion={referenceDeletion.actionsFor("collections")} id="bulkCollectionId" label={t("products.collection")} value={common.collectionId} options={visibleCollections} placeholder={t("common.selectPlaceholder")} onChange={(value) => updateCommon("collectionId", value)} optional />
             <SelectField id="bulkStatus" label={t("products.status")} value={common.status} onChange={(value) => updateCommon("status", value as ProductStatus)}>
               {statuses.map((status) => (
@@ -629,7 +629,7 @@ export function BulkProductCreateView() {
                             <div className="crm-grid">
                               <Text tone="muted" size="small">{t("products.bulkRowOverrides")}</Text>
                               <div className="crm-grid crm-grid--form">
-                                <ReferenceSelect id={`rowBrandId-${row.key}`} label={t("products.brand")} value={row.brandId} options={references.brands} placeholder={t("products.bulkUseCommonDefault")} onChange={(value) => updateRow(index, "brandId", value)} optional />
+                                <ReferenceSelect id={`rowBrandId-${row.key}`} label={t("products.brand")} value={row.brandId} options={references.brands} placeholder={t("products.bulkUseCommonDefault")} deletion={referenceDeletion.actionsFor("brands")} onChange={(value) => updateRow(index, "brandId", value)} optional />
                                 <ReferenceSelect id={`rowCollectionId-${row.key}`} label={t("products.collection")} value={row.collectionId} options={rowCollections} placeholder={t("products.bulkUseCommonDefault")} deletion={referenceDeletion.actionsFor("collections")} onChange={(value) => updateRow(index, "collectionId", value)} optional />
                                 <SelectField id={`rowStatus-${row.key}`} label={t("products.status")} value={row.status} onChange={(value) => updateRow(index, "status", value as BulkRowState["status"])}>
                                   <option value="">{t("products.bulkUseCommonDefault")}</option>

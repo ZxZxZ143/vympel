@@ -56,7 +56,7 @@ public class CrmReferenceService {
         List<Material> materials = materialRepository.findAll();
         List<GlassType> glassTypes = glassTypeRepository.findAll();
         List<StoneInlay> stoneInlays = stoneInlayRepository.findAll();
-        List<Country> countries = supportedCatalogDomainService.countries();
+        List<Country> countries = supportedCatalogDomainService.selectableCountries();
         List<InteriorFeature> colors = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("COLOR");
         List<InteriorFeature> styles = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("STYLE");
         List<InteriorFeature> interiorMechanisms = interiorFeatureRepository.findByFeatureTypeAndActiveTrueOrderByCodeAsc("MECHANISM");
@@ -125,11 +125,12 @@ public class CrmReferenceService {
                         .stream()
                         .map(assignment -> new CrmBrandReferenceOptionResponse(
                                 assignment.brand().getId(),
-                                assignment.definition().brandName(),
-                                assignment.definition().brandCode(),
+                                assignment.brand().getName(),
+                                assignment.brand().getCode(),
                                 assignment.country().getId(),
                                 assignment.country().getCode(),
-                                countryNames.getOrDefault(assignment.country().getId(), assignment.country().getCode())
+                                countryNames.getOrDefault(assignment.country().getId(), assignment.country().getCode()),
+                                CrmBrandService.isDeletable(assignment.brand().getCode())
                         ))
                         .sorted(Comparator.comparing(CrmBrandReferenceOptionResponse::name))
                         .toList(),

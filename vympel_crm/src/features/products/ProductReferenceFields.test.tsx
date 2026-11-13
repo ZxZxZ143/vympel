@@ -69,7 +69,8 @@ for (const mode of ["create", "edit", "bulk"] as const) describe(`${mode} refere
       fireEvent.keyDown(panel, {key:"Escape"});
       expect(document.activeElement).toBe(trigger);
     }
-    expect(document.getElementById(mode === "bulk" ? "bulkBrandId" : "brandId")?.tagName).toBe("SELECT");
+    // Brands use the shared picker so unused CRM-created brands can be deleted in place.
+    expect(document.getElementById(mode === "bulk" ? "bulkBrandId" : "brandId")?.tagName).toBe("BUTTON");
     if (id === 2 || id === 3) {
       expect(document.getElementById(mode === "bulk" ? "bulkProductionCountryId" : "productionCountryId")?.tagName).toBe("SELECT");
     }

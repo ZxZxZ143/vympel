@@ -8,12 +8,13 @@ import {useI18n} from "@/shared/i18n/useI18n";
 import {useNotifications} from "@/shared/feedback/NotificationProvider";
 import {ConfirmDialog} from "@/shared/ui/ConfirmDialog";
 
-export type ReferenceDeleteType = ReferenceCreateType | "collections";
+export type ReferenceDeleteType = ReferenceCreateType | "collections" | "brands";
 export type ReferenceDeletionActions = {
   canDelete: (option: Feature) => boolean;
   requestDelete: (option: Feature) => void;
 };
 const definitions: Record<ReferenceDeleteType, {key: keyof References; fields: string[]}> = {
+  brands: {key: "brands", fields: ["brandId"]},
   collections: {key: "collections", fields: ["collectionId"]},
   "watch-mechanisms": {key: "mechanisms", fields: ["mechanismId"]},
   genders: {key: "genders", fields: ["genderId"]},
@@ -35,7 +36,10 @@ const definitions: Record<ReferenceDeleteType, {key: keyof References; fields: s
 export function removeReferenceFromCache(references: References | null, type: ReferenceDeleteType, id: number) {
   if (!references) return references;
   const {key} = definitions[type];
-  return {...references, [key]: references[key].filter((option) => option.id !== id)};
+  const next = {...references, [key]: references[key].filter((option) => option.id !== id)};
+  // The backend deletes a brand's collections together with the brand.
+  if (type === "brands") next.collections = references.collections.filter((option) => option.brandId !== id);
+  return next;
 }
 
 // Shared dictionaries can be selected in several unsaved fields at once.
@@ -46,6 +50,12 @@ export function clearDeletedReference<T extends object>(form: T, type: Reference
     if (value === String(id) || (Array.isArray(value) && value.includes(String(id)))) {
       if (next === form) next = {...form};
       Reflect.set(next, field, Array.isArray(value) ? value.filter((item) => item !== String(id)) : "");
+      // Brand-scoped values cannot outlive the deleted brand.
+      if (type === "brands") {
+        for (const dependent of ["collectionId", "productionCountryId"]) {
+          if (Reflect.has(next, dependent)) Reflect.set(next, dependent, "");
+        }
+      }
     }
   }
   return next;
@@ -65,6 +75,7 @@ export function useReferenceDeletion(onDeleted: (type: ReferenceDeleteType, id: 
     setError(null);
     try {
       if (pending.type === "collections") await crmApi.deleteCollection(pending.option.id);
+      else if (pending.type === "brands") await crmApi.deleteBrand(pending.option.id);
       else await crmApi.deleteReference(pending.type, pending.option.id);
       onDeleted(pending.type, pending.option.id);
       setPending(null);
@@ -72,6 +83,8 @@ export function useReferenceDeletion(onDeleted: (type: ReferenceDeleteType, id: 
     } catch (caught) {
       setError(getCrmErrorMessage(caught, t("catalogTools.deleteError"), undefined, {
         COLLECTION_IN_USE: t("catalogTools.collectionInUse"),
+        BRAND_IN_USE: t("catalogTools.brandInUse"),
+        BRAND_PROTECTED: t("catalogTools.brandProtected"),
         REFERENCE_IN_USE: t("catalogTools.referenceInUse"),
         REFERENCE_PROTECTED: t("catalogTools.referenceProtected"),
       }));
@@ -84,9 +97,15 @@ export function useReferenceDeletion(onDeleted: (type: ReferenceDeleteType, id: 
         if (!busyRef.current && canDelete(option)) { setError(null); setPending({type, option}); }
       }};
     },
-    dialog: <ConfirmDialog open={pending !== null} title={t(pending?.type === "collections" ? "catalogTools.collectionDeleteTitle" : "catalogTools.referenceDeleteTitle")}
+    dialog: <ConfirmDialog open={pending !== null} title={t(deleteTitleKey(pending?.type))}
       description={t("catalogTools.referenceDeleteDescription").replace("{value}", () => pending?.option.name ?? "")}
       error={error} confirmLabel={t(busy ? "catalogTools.deleting" : "catalogTools.referenceDeleteConfirm")} cancelLabel={t("common.cancel")} isLoading={busy}
       onConfirm={remove} onOpenChange={(open) => { if (!open && !busyRef.current) setPending(null); }}/>,
   };
+}
+
+function deleteTitleKey(type: ReferenceDeleteType | undefined) {
+  if (type === "collections") return "catalogTools.collectionDeleteTitle";
+  if (type === "brands") return "catalogTools.brandDeleteTitle";
+  return "catalogTools.referenceDeleteTitle";
 }

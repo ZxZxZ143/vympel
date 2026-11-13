@@ -46,6 +46,8 @@ describe("CRM authentication messages", () => {
       "PRODUCT_BULK_CREATED",
       "PRODUCT_PROMOTION_CHANGED",
       "COLLECTION_CREATED",
+      "BRAND_CREATED",
+      "BRAND_DELETED",
       "REFERENCE_VALUE_CREATED",
       "ADMIN_CREATED_USER",
       "ADMIN_UPDATED_USER",

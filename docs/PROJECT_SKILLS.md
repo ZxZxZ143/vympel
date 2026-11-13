@@ -105,7 +105,7 @@
 ### Reference deletion in the actual field option picker
 
 * **When to use:** A user-manageable product dictionary or collection needs cleanup during create/edit, including bulk defaults and per-row overrides.
-* **How:** Use `CreatableReferenceSelect`/`CreatableReferenceMultiSelect` with `useReferenceDeletion().actionsFor(type)`. Custom pickers render separate selection and trash buttons; reference trash requires `deletable === true`. Use the same searchable picker whenever creation or deletion is supported, even if the dictionary is empty or currently contains only protected values. Keep only fixed non-creatable category/brand/country fields native. Multi-select features use the same option rows and independent trash buttons; toggling a choice keeps the list open and deleting one choice preserves the others. Use the existing `ConfirmDialog` for a confirm-before-write flow, synchronous in-flight guard, localized in-use/protected errors, inert background and stable focus restoration. Preserve backend rejection checks. Never put dictionary cleanup back on the products list.
+* **How:** Use `CreatableReferenceSelect`/`CreatableReferenceMultiSelect` with `useReferenceDeletion().actionsFor(type)`. Custom pickers render separate selection and trash buttons; reference trash requires `deletable === true`. Use the same searchable picker whenever creation or deletion is supported, even if the dictionary is empty or currently contains only protected values. Keep only fixed non-creatable category/country fields native; brand fields use the picker since 2026-11-13 so unused CRM-created brands can be deleted. Multi-select features use the same option rows and independent trash buttons; toggling a choice keeps the list open and deleting one choice preserves the others. Use the existing `ConfirmDialog` for a confirm-before-write flow, synchronous in-flight guard, localized in-use/protected errors, inert background and stable focus restoration. Preserve backend rejection checks. Never put dictionary cleanup back on the products list.
 * **Why:** Deletion is discoverable at the point of selection and cannot accidentally select a value or bypass canonical/in-use protection.
 
 ### Portalled reference pickers without losing form keyboard order
@@ -555,6 +555,18 @@
 * **How:** The unfiltered API must include `DRAFT`, `ACTIVE`, and `ARCHIVED`, default to `createdAt DESC`, and expose zero-based paging. Search ID/model/SKU/status/brand/category code/category name/localized product name with a separate non-null text query; combine it with a validated status filter when selected. Reset the page to zero on search/status changes and expose previous/next controls plus counts. CRM list requests and responses are no-store, and create/update/image/delete mutations must broadcast `notifyProductListChanged` so cached list routes refetch; focus also refreshes the current query.
 * **Why:** A successful create is not usable if the product lands on an unreachable page or disappears because the list silently filters drafts.
 
+### CRM brand deletion in the brand picker
+
+* **When to use:** Removing an unused brand from product create/edit or bulk forms.
+* **How:** Pass `deletion={referenceDeletion.actionsFor("brands")}` to the brand `ReferenceSelect`; trash shows only when the option has `deletable === true` (backend marks the six storefront landing-page brands false). `useReferenceDeletion` calls `crmApi.deleteBrand`, maps `BRAND_IN_USE`/`BRAND_PROTECTED`, and `removeReferenceFromCache("brands")` also drops that brand's collections; `clearDeletedReference` clears `brandId` plus `collectionId`/`productionCountryId`. ProductForm also clears the inline collection draft brand. Tests select brands through the picker (`[data-reference-choice]`), not `fireEvent.change` on a select.
+* **Why:** Same deletion UX as collections and characteristics, and no stale brand-scoped values survive in unsaved forms.
+
+### CRM inline brand creation
+
+* **When to use:** A product form needs a brand that does not exist yet.
+* **How:** Mirror the collection section in `ProductForm`: hint + secondary toggle, `crm-form-section__body` with a `crm-grid crm-grid--form`, a dedicated RHF form (`BrandFormState`), and a primary save button. Country is a native select of `references.countries` plus the `NEW_COUNTRY_OPTION` sentinel that reveals ISO2 + RU/EN/KZ name fields. Validate and build the payload with `brandCreate.ts`, map backend codes through `brandCreateErrorMessages`, merge the response with `mergeBrandOption`/`mergeBrandCountryOption`, select the new brand (clearing collection and production country) and make it the collection-form brand.
+* **Why:** Same visual pattern as collection creation and no page reload; derived brand country keeps working because the response is a full `BrandFeature`.
+
 ### CRM inline collection creation
 
 * **When to use:** When a product create/edit workflow needs a missing collection.
@@ -657,7 +669,13 @@
 * **How:** Preserve an unsorted Pageable for implicit search; pass only that search to the relevance-enabled `findIds` overload. Add a CASE ORDER BY ahead of availability: normalized exact name across stored locales, exact model/SKU, name prefix, contained phrase, remaining matches. Prefix precedes the broader contains bucket so it remains meaningful. Rank-only text normalization/LIKE escaping does not belong in `searchSpecification`. Reuse the unchanged count specification and batched summary hydration; stable createdAt/ID ties keep pages consistent. Quick search retains the old overload.
 * **Why:** Per-page sorting cannot recover a globally misplaced exact match. Joining every locale name can duplicate products; correlated EXISTS preserves one row per product and unchanged eligibility.
 
-### Closed supported catalog domain
+### CRM-managed brand -> country domain (replaces the closed domain on 2026-11-13)
+
+* **When to use:** Adding brands/countries, or any read/write involving brand identity, country identity or brand-country mapping.
+* **How:** Create brands only through `POST /api/crm/brands` / `CrmBrandService`: slug `code` from the latin name, case-insensitive duplicate check, transaction-scoped advisory locks on brand/country keys, then insert `brand` + `brand_country` (and, for a new country, `country` + RU/EN/KK `country_i18n`) in one transaction. The deferred triggers from `2026-11-13-01-crm-managed-brands.xml` reject a brand without a country or a country without three names at commit. `SupportedCatalogDomainService` resolves assignments from the DB; keep product validation (`requireAssignment`, `BRAND_COUNTRY_MISMATCH`) going through it. Storefront `PUBLIC_BRANDS` landing pages remain a separate closed list.
+* **Why:** Admins need new brands without a migration, while the DB still guarantees exactly one country per brand.
+
+### Closed supported catalog domain (historical, superseded 2026-11-13)
 
 * **When to use:** Any backend read or write involving brand identity, country identity, brand-country mapping, CRM references, product validation, or public brand/country filters.
 * **How:** Keep the six mappings in `SupportedBrandCountry` and resolve persisted entities through `SupportedCatalogDomainService`. Require one active exact brand, one active exact ISO country, and one mapping; reject unsupported brands and crafted country mismatches before persistence. Let database checks and deferred exact-domain triggers protect direct SQL. Do not query arbitrary brand/country rows into CRM or public options.
@@ -1410,6 +1428,13 @@
 * **Why:** The gallery follows saved order, cards and detail start from the explicit main image, thumbnails never overflow the hero area, slider/lightbox state stays synchronized, and broken media does not collapse layout or leak a browser broken-image icon.
 
 ## Common Mistakes - DO NOT REPEAT
+
+### ❌ Single-backslash regex escapes in Java written through a shell heredoc
+
+* **What happened:** `CrmBrandService` was generated through a Bash heredoc and the doubled backslashes in `\\p{M}` / `\\s+` arrived single. `\p` failed compilation, but `\s` is a legal Java 15+ escape (a space), so `"\s+"` silently meant "space followed by plus".
+* **Root cause:** Shell quoting layers rewrote backslashes.
+* **Fix:** Rewrote the regexes with the Edit tool.
+* **How to avoid:** Author Java sources containing regex escapes with Write/Edit, and grep new files for single backslashes before compiling.
 
 ### Sizing the mobile hero frame by viewport height and padding the contained image
 
@@ -3003,6 +3028,10 @@
 * **Why:** Source props alone are not the browser contract. Shared gallery/selector URLs must be counted once, and responsive gallery bytes may add traffic while the selector still needs the original. Twenty real read-only observations passed; local derivative-byte estimates are not deployed AFTER results.
 
 ## Last Updated
+
+2026-11-13 — Added the brand-picker deletion pattern (backend protection list, cascade of collections, country kept and still selectable) and updated the native-field rule: brand is no longer a native select.
+
+2026-11-13 — Added CRM-managed brand -> country domain and CRM inline brand creation patterns, marked the closed supported-domain pattern historical, and recorded the heredoc `\s` regex mistake. Backend verification needs `JAVA_HOME=~/.jdks/ms-17.0.18`; Docker 29 is available so Testcontainers migration tests run instead of skipping.
 
 2026-11-06 — `9306e04` staging rollout notes: `preview.vympel.kz` answers 401 without the access gate, so verify rendered HTML from the VM (`127.0.0.1:3000`) and run browser checks over an SSH `-L` forward (expect CORS console errors from the test origin only); About hero banner causes CLS ~0.25 at 1440 px with real CMS media regardless of motion. [Report](tasks/storefront-motion-2026-11-06/STAGING_DEPLOY.md)
 

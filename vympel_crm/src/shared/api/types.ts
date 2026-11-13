@@ -458,6 +458,20 @@ export type CollectionPayload = {
   };
 };
 
+export type CountryCreatePayload = {
+  iso2: string;
+  nameRu: string;
+  nameEn: string;
+  nameKz: string;
+};
+
+/** Exactly one of `countryId` / `newCountry` must be set. */
+export type BrandCreatePayload = {
+  name: string;
+  countryId: number | null;
+  newCountry: CountryCreatePayload | null;
+};
+
 export type CrmCollection = Feature & {
   brandId: number;
   brandName: string | null;

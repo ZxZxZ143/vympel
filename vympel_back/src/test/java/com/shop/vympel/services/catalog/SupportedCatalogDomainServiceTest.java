@@ -44,7 +44,6 @@ class SupportedCatalogDomainServiceTest {
 
         SupportedCatalogDomainService.Assignment assignment = service.requireAssignment(1L, 2L);
 
-        assertThat(assignment.definition()).isEqualTo(SupportedBrandCountry.ROMANSON);
         assertThat(assignment.brand()).isSameAs(romanson);
         assertThat(assignment.country()).isSameAs(southKorea);
     }

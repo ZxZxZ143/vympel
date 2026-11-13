@@ -1,5 +1,12 @@
 package com.shop.vympel.db;
 
+import com.shop.vympel.dtos.crm.CrmBrandCreateRequest;
+import com.shop.vympel.dtos.crm.CrmBrandReferenceOptionResponse;
+import com.shop.vympel.dtos.crm.CrmCountryCreateRequest;
+import com.shop.vympel.enums.Language;
+import com.shop.vympel.exceptions.BusinessRuleViolationException;
+import com.shop.vympel.services.catalog.SupportedCatalogDomainService;
+import com.shop.vympel.services.crm.CrmBrandService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -34,6 +42,15 @@ class SupportedCatalogMigrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @Autowired
+    private CrmBrandService crmBrandService;
+
+    @Autowired
+    private SupportedCatalogDomainService supportedCatalogDomainService;
 
     @Test
     void migrationBuildsTheExactSupportedDomainAndLocalizedLabels() {
@@ -70,18 +87,117 @@ class SupportedCatalogMigrationTest {
     }
 
     @Test
-    void databaseRejectsUnsupportedRowsAndMappingDrift() {
+    void databaseRejectsBrandsWithoutCountryAndMalformedIdentities() {
         assertThatThrownBy(() -> jdbcTemplate.update(
-                "insert into brand(code, name, active) values ('unsupported', 'Unsupported', true)"
+                "insert into brand(code, name, active) values ('orphan', 'Orphan', true)"
+        )).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "insert into brand(code, name, active) values ('Bad Code', 'Bad', true)"
+        )).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "insert into country(code, iso2, active) values ('nowhere', 'X1', true)"
+        )).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "insert into country(code, iso2, active) values ('nowhere', 'XN', true)"
         )).isInstanceOf(DataIntegrityViolationException.class);
 
         Long romansonId = jdbcTemplate.queryForObject("select id from brand where code='romanson'", Long.class);
+        assertThatThrownBy(() -> jdbcTemplate.update("delete from brand_country where brand_id=?", romansonId))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(jdbcTemplate.queryForObject("select count(*) from brand", Long.class)).isEqualTo(6);
+    }
+
+    @Test
+    void crmCreatesBrandsWithExistingOrNewCountryAndRejectsDuplicates() {
         Long switzerlandId = jdbcTemplate.queryForObject("select id from country where iso2='CH'", Long.class);
-        assertThatThrownBy(() -> jdbcTemplate.update(
-                "update brand_country set country_id=? where brand_id=?",
-                switzerlandId,
-                romansonId
-        )).isInstanceOf(DataIntegrityViolationException.class);
+
+        transactionTemplate.executeWithoutResult(status -> {
+            CrmBrandReferenceOptionResponse brand = crmBrandService.create(
+                    new CrmBrandCreateRequest("  Swiss   Military ", switzerlandId, null), Language.EN);
+            assertThat(brand.code()).isEqualTo("swiss-military");
+            assertThat(brand.name()).isEqualTo("Swiss Military");
+            assertThat(brand.countryId()).isEqualTo(switzerlandId);
+            assertThat(brand.countryName()).isEqualTo("Switzerland");
+
+            CrmBrandReferenceOptionResponse withNewCountry = crmBrandService.create(
+                    new CrmBrandCreateRequest("Orient", null,
+                            new CrmCountryCreateRequest("cn", "Китай", "China", "Қытай")), Language.RU);
+            assertThat(withNewCountry.countryCode()).isEqualTo("china");
+            assertThat(withNewCountry.countryName()).isEqualTo("Китай");
+            assertThat(jdbcTemplate.queryForObject(
+                    "select iso2 from country where id=?", String.class, withNewCountry.countryId())).isEqualTo("CN");
+
+            jdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE");
+
+            assertThatThrownBy(() -> crmBrandService.create(
+                    new CrmBrandCreateRequest("ROMANSON", switzerlandId, null), Language.RU))
+                    .isInstanceOfSatisfying(BusinessRuleViolationException.class,
+                            error -> assertThat(error.getCode()).isEqualTo("BRAND_EXISTS"));
+            assertThatThrownBy(() -> crmBrandService.create(
+                    new CrmBrandCreateRequest("Seiko", null,
+                            new CrmCountryCreateRequest("JP", "Япония", "Japan", "Жапония")), Language.RU))
+                    .isInstanceOfSatisfying(BusinessRuleViolationException.class,
+                            error -> assertThat(error.getCode()).isEqualTo("COUNTRY_EXISTS"));
+            assertThatThrownBy(() -> crmBrandService.create(
+                    new CrmBrandCreateRequest("Победа", switzerlandId, null), Language.RU))
+                    .isInstanceOfSatisfying(BusinessRuleViolationException.class,
+                            error -> assertThat(error.getCode()).isEqualTo("BRAND_NAME_INVALID"));
+
+            assertThat(supportedCatalogDomainService.supportedBrandIds()).contains(brand.id(), withNewCountry.id());
+            status.setRollbackOnly();
+        });
+
+        assertThat(jdbcTemplate.queryForObject("select count(*) from brand", Long.class)).isEqualTo(6);
+    }
+
+    @Test
+    void crmDeletesOnlyUnusedNonStorefrontBrandsAndKeepsTheirCountry() {
+        Long romansonId = jdbcTemplate.queryForObject("select id from brand where code='romanson'", Long.class);
+
+        transactionTemplate.executeWithoutResult(status -> {
+            CrmBrandReferenceOptionResponse brand = crmBrandService.create(
+                    new CrmBrandCreateRequest("Orient", null,
+                            new CrmCountryCreateRequest("CN", "Китай", "China", "Қытай")), Language.RU);
+            assertThat(brand.deletable()).isTrue();
+            jdbcTemplate.update(
+                    "insert into collection(brand_id, code, name, active) values (?, 'STAR', 'Star', true)", brand.id());
+            jdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE");
+
+            CrmBrandService.DeletedBrand deleted = crmBrandService.delete(brand.id());
+            jdbcTemplate.execute("SET CONSTRAINTS ALL IMMEDIATE");
+
+            assertThat(deleted.code()).isEqualTo("orient");
+            assertThat(deleted.deletedCollections()).isEqualTo(1);
+            assertThat(jdbcTemplate.queryForObject(
+                    "select count(*) from brand where id=?", Long.class, brand.id())).isZero();
+            assertThat(jdbcTemplate.queryForObject(
+                    "select count(*) from collection where brand_id=?", Long.class, brand.id())).isZero();
+            assertThat(supportedCatalogDomainService.selectableCountries())
+                    .extracting(country -> country.getIso2())
+                    .contains("CN");
+
+            assertThatThrownBy(() -> crmBrandService.delete(romansonId))
+                    .isInstanceOfSatisfying(BusinessRuleViolationException.class,
+                            error -> assertThat(error.getCode()).isEqualTo("BRAND_PROTECTED"));
+            status.setRollbackOnly();
+        });
+
+        transactionTemplate.executeWithoutResult(status -> {
+            Long switzerlandId = jdbcTemplate.queryForObject("select id from country where iso2='CH'", Long.class);
+            CrmBrandReferenceOptionResponse brand = crmBrandService.create(
+                    new CrmBrandCreateRequest("Swiss Military", switzerlandId, null), Language.RU);
+            jdbcTemplate.update(
+                    "insert into product(model, sku, price, stock_quantity, status, product_type, brand_id) "
+                            + "values ('In use', 'brand-delete-in-use', 1, 0, 'DRAFT', 'WATCH', ?)",
+                    brand.id());
+
+            assertThatThrownBy(() -> crmBrandService.delete(brand.id()))
+                    .isInstanceOfSatisfying(BusinessRuleViolationException.class,
+                            error -> assertThat(error.getCode()).isEqualTo("BRAND_IN_USE"));
+            status.setRollbackOnly();
+        });
+
+        assertThat(jdbcTemplate.queryForObject("select count(*) from brand", Long.class)).isEqualTo(6);
     }
 
     @Test

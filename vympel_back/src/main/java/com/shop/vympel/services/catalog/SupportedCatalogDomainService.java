@@ -11,13 +11,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Resolves the brand -> country catalog domain from the database.
+ * Brands are managed from the CRM; each active brand owns exactly one active country.
+ */
 @Service
 @RequiredArgsConstructor
 public class SupportedCatalogDomainService {
@@ -31,22 +35,18 @@ public class SupportedCatalogDomainService {
             throw unsupportedBrand();
         }
 
-        Brand brand = brandRepository.findById(brandId).orElseThrow(this::unsupportedBrand);
-        SupportedBrandCountry definition = SupportedBrandCountry.fromBrandCode(brand.getCode())
-                .filter(candidate -> candidate.brandName().equals(brand.getName()))
-                .filter(candidate -> Boolean.TRUE.equals(brand.getActive()))
+        Brand brand = brandRepository.findById(brandId)
+                .filter(candidate -> Boolean.TRUE.equals(candidate.getActive()))
                 .orElseThrow(this::unsupportedBrand);
 
         List<BrandCountry> mappings = brandCountryRepository.findByBrand(brand);
         if (mappings.size() != 1) {
-            throw invalidDomain("Brand must have exactly one supported country: " + definition.brandName());
+            throw invalidDomain("Brand must have exactly one country: " + brand.getName());
         }
 
         Country country = countryRepository.findById(mappings.get(0).getId().getCountryId())
-                .orElseThrow(() -> invalidDomain("Mapped country is missing for brand: " + definition.brandName()));
-        if (!Boolean.TRUE.equals(country.getActive()) || !definition.countryIso2().equals(country.getIso2())) {
-            throw invalidDomain("Brand country mapping is invalid for brand: " + definition.brandName());
-        }
+                .filter(candidate -> Boolean.TRUE.equals(candidate.getActive()))
+                .orElseThrow(() -> invalidDomain("Mapped country is missing for brand: " + brand.getName()));
 
         if (submittedCountryId != null && !country.getId().equals(submittedCountryId)) {
             throw new BusinessRuleViolationException(
@@ -55,21 +55,28 @@ public class SupportedCatalogDomainService {
             );
         }
 
-        return new Assignment(definition, brand, country);
+        return new Assignment(brand, country);
     }
 
     @Transactional(readOnly = true)
     public List<Assignment> assignments() {
-        Map<String, Brand> brandsByCode = brandRepository.findAll().stream()
-                .collect(Collectors.toMap(Brand::getCode, brand -> brand));
+        Map<Long, Country> countries = countryRepository.findAll().stream()
+                .filter(country -> Boolean.TRUE.equals(country.getActive()))
+                .collect(Collectors.toMap(Country::getId, country -> country));
 
-        return Arrays.stream(SupportedBrandCountry.values())
-                .map(definition -> {
-                    Brand brand = brandsByCode.get(definition.brandCode());
-                    if (brand == null) {
-                        throw invalidDomain("Supported brand is missing: " + definition.brandName());
+        return brandRepository.findAll().stream()
+                .filter(brand -> Boolean.TRUE.equals(brand.getActive()))
+                .sorted(Comparator.comparing(Brand::getId))
+                .map(brand -> {
+                    List<BrandCountry> mappings = brandCountryRepository.findByBrand(brand);
+                    if (mappings.size() != 1) {
+                        throw invalidDomain("Brand must have exactly one country: " + brand.getName());
                     }
-                    return requireAssignment(brand.getId(), null);
+                    Country country = countries.get(mappings.get(0).getId().getCountryId());
+                    if (country == null) {
+                        throw invalidDomain("Mapped country is missing for brand: " + brand.getName());
+                    }
+                    return new Assignment(brand, country);
                 })
                 .toList();
     }
@@ -84,10 +91,26 @@ public class SupportedCatalogDomainService {
         return assignments().stream().map(assignment -> assignment.country().getId()).collect(Collectors.toSet());
     }
 
+    /** Countries that own at least one brand, in brand order. */
     @Transactional(readOnly = true)
     public List<Country> countries() {
         Map<Long, Country> countries = new LinkedHashMap<>();
         assignments().forEach(assignment -> countries.putIfAbsent(assignment.country().getId(), assignment.country()));
+        return List.copyOf(countries.values());
+    }
+
+    /**
+     * Every active country, including ones whose brands were deleted, so the CRM can bind new brands to them.
+     * Brand-owned countries come first in brand order.
+     */
+    @Transactional(readOnly = true)
+    public List<Country> selectableCountries() {
+        Map<Long, Country> countries = new LinkedHashMap<>();
+        countries().forEach(country -> countries.put(country.getId(), country));
+        countryRepository.findAll().stream()
+                .filter(country -> Boolean.TRUE.equals(country.getActive()))
+                .sorted(Comparator.comparing(Country::getId))
+                .forEach(country -> countries.putIfAbsent(country.getId(), country));
         return List.copyOf(countries.values());
     }
 
@@ -102,6 +125,6 @@ public class SupportedCatalogDomainService {
         return new BusinessRuleViolationException("CATALOG_DOMAIN_INVALID", message);
     }
 
-    public record Assignment(SupportedBrandCountry definition, Brand brand, Country country) {
+    public record Assignment(Brand brand, Country country) {
     }
 }

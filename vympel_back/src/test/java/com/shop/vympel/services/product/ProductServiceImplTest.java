@@ -16,7 +16,6 @@ import com.shop.vympel.services.categoryProduct.CategoryProductService;
 import com.shop.vympel.services.accessoryDetail.AccessoryDetailService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfileService;
 import com.shop.vympel.services.catalog.CatalogCategoryProfile;
-import com.shop.vympel.services.catalog.SupportedBrandCountry;
 import com.shop.vympel.services.catalog.SupportedCatalogDomainService;
 import com.shop.vympel.services.objectStorage.ObjectStorageService;
 import com.shop.vympel.services.productDescription.ProductDescriptionService;
@@ -241,7 +240,7 @@ class ProductServiceImplTest {
         country.setId(2L);
         when(catalogCategoryProfileService.profileForPublicCategoryId(2L)).thenReturn(CatalogCategoryProfile.GENERIC);
         when(supportedCatalogDomainService.requireAssignment(1L, null)).thenReturn(
-                new SupportedCatalogDomainService.Assignment(SupportedBrandCountry.ROMANSON, brand, country)
+                new SupportedCatalogDomainService.Assignment(brand, country)
         );
         when(skuService.skuGen(request)).thenReturn("SKU-TEST");
         when(skuService.withCollisionSuffix("SKU-TEST")).thenReturn("SKU-TEST-ABC12345");
@@ -290,7 +289,7 @@ class ProductServiceImplTest {
         country.setId(2L);
         when(catalogCategoryProfileService.profileForPublicCategoryId(10L)).thenReturn(CatalogCategoryProfile.ACCESSORY);
         when(supportedCatalogDomainService.requireAssignment(1L, null)).thenReturn(
-                new SupportedCatalogDomainService.Assignment(SupportedBrandCountry.ROMANSON, brand, country)
+                new SupportedCatalogDomainService.Assignment(brand, country)
         );
         when(skuService.skuGen(request)).thenReturn("SKU-ACCESSORY");
         when(productRepository.findProductBySku("SKU-ACCESSORY")).thenReturn(Optional.empty());

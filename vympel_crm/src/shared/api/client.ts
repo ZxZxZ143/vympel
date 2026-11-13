@@ -10,6 +10,8 @@ import {
 import {
   Activity,
   AuthResponse,
+  BrandCreatePayload,
+  BrandFeature,
   CollectionPayload,
   CmsBlock,
   CmsBlockPayload,
@@ -457,6 +459,9 @@ export const crmApi = {
   deleteArchivedProduct(id: number) {
     return crmFetch<void>(`/products/${id}/permanent`, { method: "DELETE" });
   },
+  deleteBrand(id: number) {
+    return crmFetch<void>(`/brands/${id}`, { method: "DELETE" });
+  },
   deleteCollection(id: number) {
     return crmFetch<void>(`/collections/${id}`, { method: "DELETE" });
   },
@@ -530,6 +535,12 @@ export const crmApi = {
     }
 
     return crmFetch<CrmCollection[]>(`/collections?${query.toString()}`);
+  },
+  createBrand(payload: BrandCreatePayload, lang: string) {
+    return crmFetch<BrandFeature>(`/brands?lang=${encodeURIComponent(lang)}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   },
   createCollection(payload: CollectionPayload, lang: string) {
     return crmFetch<CrmCollection>(`/collections?lang=${encodeURIComponent(lang)}`, {
