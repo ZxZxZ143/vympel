@@ -1429,6 +1429,13 @@
 
 ## Common Mistakes - DO NOT REPEAT
 
+### ❌ Reading lazy JPA associations in a non-transactional public read (and `Optional.orElse(proxy.getX())`)
+
+* **What happened:** On staging every accessory product page (`GET /api/public/product/{lang}/{id}` for ACCESSORIES) returned 500 `INTERNAL_ERROR`; the storefront only logged `ApiError ... status: 500` and showed the "product unavailable" state. Backend log: `LazyInitializationException: Could not initialize proxy [Material#9] - no session` in `AccessoryDetailService.materialDto`.
+* **Root cause:** `spring.jpa.open-in-view=false` and `ProductServiceImpl.getPublic` is not transactional, but `AccessoryDetailService.getByProductIdOrNull` had no `@Transactional`, so the LAZY `caseMaterial`/`insertMaterial`/`color` proxies were detached. `.orElse(material.getCode())` is evaluated eagerly, so it touched the proxy even when the i18n name existed. Watch/interior detail services already used read transactions; only accessories failed.
+* **Fix:** `@Transactional(readOnly = true)` on `getByProductIdOrNull` and `orElseGet(material::getCode)`. Regression: `AccessoryDetailPublicReadIntegrationTest` (Testcontainers, deliberately without a test transaction — a `@Transactional` test hides this bug).
+* **How to avoid:** Any service method that maps LAZY associations to DTOs must own a read transaction; use `orElseGet` for fallbacks that touch entities. Test public reads outside a test transaction.
+
 ### ❌ Piping a deploy script into `ssh ... bash -s` that calls `docker compose run`
 
 * **What happened:** The 052422c staging rollout stopped silently right after `compose run --rm --no-deps migrate`; the app recreation never ran.
@@ -3035,6 +3042,8 @@
 * **Why:** Source props alone are not the browser contract. Shared gallery/selector URLs must be counted once, and responsive gallery bytes may add traffic while the selector still needs the original. Twenty real read-only observations passed; local derivative-byte estimates are not deployed AFTER results.
 
 ## Last Updated
+
+2026-11-14 — Diagnosed staging accessory product pages (500 from `LazyInitializationException` in `AccessoryDetailService`) via backend container logs over a 1h OS Login key + IAP tunnel; recorded the lazy-association/`orElse` mistake and the no-test-transaction regression pattern. Fix is local, not yet deployed.
 
 2026-11-13 — Recorded the `compose run` stdin pitfall from the 052422c staging rollout and the Trivy musl/zlib base-image fix (runtime `apk upgrade` now also lists `musl musl-utils zlib`).
 

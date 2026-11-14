@@ -21,6 +21,7 @@ import com.shop.vympel.enums.Language;
 import com.shop.vympel.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,8 @@ public class AccessoryDetailService {
     private final MaterialI18nRepository materialI18nRepository;
     private final InteriorFeatureI18nRepository interiorFeatureI18nRepository;
 
+    // Material and color are lazy associations; resolve them inside the read transaction.
+    @Transactional(readOnly = true)
     public AccessoryDetailResponse getByProductIdOrNull(Long productId, Language language) {
         return accessoryDetailRepository.findByProduct_Id(productId)
                 .map(detail -> toResponse(detail, language))
@@ -123,7 +126,7 @@ public class AccessoryDetailService {
         id.setLang(language.getValue());
         String name = materialI18nRepository.findById(id)
                 .map(MaterialI18n::getName)
-                .orElse(material.getCode());
+                .orElseGet(material::getCode);
         return new FeatureDto(material.getId(), name);
     }
 
@@ -136,7 +139,7 @@ public class AccessoryDetailService {
         id.setLang(language.getValue());
         String name = interiorFeatureI18nRepository.findById(id)
                 .map(InteriorFeatureI18n::getName)
-                .orElse(feature.getCode());
+                .orElseGet(feature::getCode);
         return new FeatureDto(feature.getId(), name);
     }
 
