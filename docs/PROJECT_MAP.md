@@ -1310,7 +1310,7 @@ The 2026-08-21 SHA-only preview publication contract compiles the storefront for
 
 ## Last Updated
 
-2026-11-14 — Fixed public accessory product detail 500 (`AccessoryDetailService.getByProductIdOrNull` now runs in a read-only transaction); added `vympel_back/src/test/java/com/shop/vympel/services/accessoryDetail/AccessoryDetailPublicReadIntegrationTest.java`. No API contract or schema change. Not deployed to staging yet.
+2026-11-14 — Fixed public accessory product detail 500 (`AccessoryDetailService.getByProductIdOrNull` now runs in a read-only transaction); added `AccessoryDetailPublicReadIntegrationTest`. No API contract or schema change. Deployed `9db9e85` to GCP staging via [Release Images 43619481540](https://github.com/ZxZxZ143/vympel/actions/runs/43619481540); backend/storefront/CRM recreated, no migration, data services unchanged, backup `/var/backups/vympel/releases/20261114-9db9e85`. [Report](tasks/accessory-public-detail-2026-11-14/STAGING_DEPLOY.md)
 
 2026-11-13 — Deployed `052422c` (CRM brand create/delete + Alpine musl/zlib image fix) to GCP staging via [Release Images 43425307085](https://github.com/ZxZxZ143/vympel/actions/runs/43425307085); migration `2026-11-13-01-crm-managed-brands` applied (93 changes), backend/storefront/CRM recreated, data services unchanged, backup `/var/backups/vympel/releases/20261113-052422c`. [Report](tasks/crm-brand-management-2026-11-13/STAGING_DEPLOY.md)
 

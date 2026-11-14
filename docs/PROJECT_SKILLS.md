@@ -3043,7 +3043,7 @@
 
 ## Last Updated
 
-2026-11-14 — Diagnosed staging accessory product pages (500 from `LazyInitializationException` in `AccessoryDetailService`) via backend container logs over a 1h OS Login key + IAP tunnel; recorded the lazy-association/`orElse` mistake and the no-test-transaction regression pattern. Fix is local, not yet deployed.
+2026-11-14 — Diagnosed staging accessory product pages (500 from `LazyInitializationException` in `AccessoryDetailService`) via backend container logs over a 1h OS Login key + IAP tunnel; recorded the lazy-association/`orElse` mistake and the no-test-transaction regression pattern. Deployed as `9db9e85` (no migration; backend-only diff guarded in the deploy script). An image publication takes ~20 min, so a 1h OS Login key registered for diagnosis may only just cover the rollout; check expiry before starting the backup.
 
 2026-11-13 — Recorded the `compose run` stdin pitfall from the 052422c staging rollout and the Trivy musl/zlib base-image fix (runtime `apk upgrade` now also lists `musl musl-utils zlib`).
 
