@@ -21,6 +21,14 @@ Run `deployment/scripts/verify-migrations.sh <compose-file> <env-file>`. The one
 
 After migration, compare the expected/latest changeset from the exact release manifest and packaged master changelog, not a stale runbook constant. The 2026-11-03 staging release boundary is `2026-10-17-01-product-discounts`; the verified database contains 92 changesets. Review migration logs for errors without copying credentials into evidence.
 
+### GCP staging transactional wrapper
+
+For the established GCP staging VM, `deployment/scripts/deploy-gcp-staging.sh <release-sha>` wraps the same migration boundary with immutable-image pull, VM backup services, backend-first promotion, bounded health/edge checks, state recording, and automatic **application** rollback.
+
+The staging wrapper deliberately runs the migration service as a uniquely named detached container and polls Docker state directly instead of depending on the `docker compose run --rm` client process to terminate after container completion.
+
+The wrapper never rolls the database backward automatically. If migration has succeeded and a later application or smoke check fails, it restores the prior release environment and application images only, then warns that the Liquibase state remains forward. See `docs/deployment/GCP_STAGING_AUTOMATED_DEPLOY.md`.
+
 ## Failure policy
 
 - Do not run destructive automated down-migrations.
