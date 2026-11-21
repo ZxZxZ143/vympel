@@ -105,9 +105,17 @@ case "$telemetry_enabled" in
   true|false) ;;
   *) echo "Published metadata contains an invalid telemetry flag" >&2; exit 1 ;;
 esac
-if [ "$site_indexing_enabled" != "false" ]; then
-  echo "Preview publication requires SITE_INDEXING_ENABLED=false" >&2
-  exit 1
+if [ "$site_indexing_enabled" = "true" ]; then
+  if [ "$deployment_environment" != "production" ]; then
+    echo "SITE_INDEXING_ENABLED=true is allowed only for a production publication" >&2
+    exit 1
+  fi
+  case "$storefront_site_url" in
+    https://preview.*|*sslip.io*)
+      echo "SITE_INDEXING_ENABLED=true is not allowed for a preview or temporary storefront origin" >&2
+      exit 1
+      ;;
+  esac
 fi
 generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 git_tag_value=null

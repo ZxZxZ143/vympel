@@ -20,6 +20,22 @@ describe("storefront sitemap", () => {
         expect(values.some((url) => url.includes("/crm"))).toBe(false);
     });
 
+    it("links every localized entry to its hreflang alternates without duplicates", () => {
+        const urls = buildSitemap({categories: [], products: [
+            {id: 41, name: "Active", price: 1, status: "ACTIVE", collection: {id: "1", name: "C"}},
+        ]}, new URL("https://shop.example.test"));
+        const product = urls.find((entry) => entry.url === "https://shop.example.test/kz/product/41");
+
+        expect(product?.alternates?.languages).toEqual({
+            ru: "https://shop.example.test/ru/product/41",
+            kk: "https://shop.example.test/kz/product/41",
+            en: "https://shop.example.test/en/product/41",
+            "x-default": "https://shop.example.test/ru/product/41",
+        });
+        expect(new Set(urls.map((entry) => entry.url)).size).toBe(urls.length);
+        expect(urls.find((entry) => entry.url === "https://shop.example.test/ru")?.priority).toBe(1);
+    });
+
     it("fails instead of emitting a partial successful sitemap when the backend is unavailable", async () => {
         const failingFetch = async () => { throw new Error("offline"); };
         await expect(fetchSitemapCatalog("https://api.example.test/api/public", failingFetch as typeof fetch))

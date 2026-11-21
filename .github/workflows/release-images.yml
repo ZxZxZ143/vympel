@@ -41,6 +41,11 @@ on:
         default: staging
         type: choice
         options: [staging, production]
+      site_indexing_enabled:
+        description: Allow search engine indexing; only for a production storefront on its canonical public domain
+        required: true
+        default: false
+        type: boolean
       publish_images:
         description: Publish all three immutable images to GHCR after every release gate passes
         required: true
@@ -94,12 +99,26 @@ jobs:
           STOREFRONT_SITE_URL: ${{ inputs.storefront_site_url }}
           DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
           ALLOW_PLACEHOLDERS: ${{ inputs.acknowledge_placeholder_public_config }}
+          SITE_INDEXING_REQUESTED: ${{ inputs.site_indexing_enabled && 'true' || 'false' }}
         run: |
           set -eu
           checked_out_sha=$(git rev-parse HEAD)
           if [ "$checked_out_sha" != "$GITHUB_SHA" ] || ! printf '%s\n' "$GITHUB_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
             echo "The checked-out source does not match the required full commit SHA." >&2
             exit 1
+          fi
+
+          if [ "$SITE_INDEXING_REQUESTED" = "true" ]; then
+            if [ "$DEPLOYMENT_ENVIRONMENT" != "production" ]; then
+              echo "Search indexing may be enabled only for a production build." >&2
+              exit 1
+            fi
+            case "$STOREFRONT_SITE_URL" in
+              https://preview.*|*sslip.io*)
+                echo "Search indexing must not be enabled for a preview or temporary storefront origin." >&2
+                exit 1
+                ;;
+            esac
           fi
 
           publish_enabled=false
@@ -178,7 +197,7 @@ jobs:
               NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment || 'ci' }}
               NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
               NEXT_PUBLIC_TELEMETRY_ENABLED=false
-              SITE_INDEXING_ENABLED=false
+              SITE_INDEXING_ENABLED=${{ inputs.site_indexing_enabled && 'true' || 'false' }}
           - image: vympel-crm
             context: vympel_crm
             dockerfile: vympel_crm/Dockerfile
@@ -348,7 +367,7 @@ jobs:
         NEXT_PUBLIC_APP_ENV=${{ inputs.deployment_environment }}
         NEXT_PUBLIC_APP_RELEASE=${{ github.sha }}
         NEXT_PUBLIC_TELEMETRY_ENABLED=false
-        SITE_INDEXING_ENABLED=false
+        SITE_INDEXING_ENABLED=${{ inputs.site_indexing_enabled && 'true' || 'false' }}
       cache: true
       cache-mode: max
       cache-scope: vympel-storefront
@@ -477,7 +496,7 @@ jobs:
       PUBLIC_STOREFRONT_SITE_URL: ${{ inputs.storefront_site_url }}
       PUBLIC_DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
       PUBLIC_TELEMETRY_ENABLED: "false"
-      PUBLIC_SITE_INDEXING_ENABLED: "false"
+      PUBLIC_SITE_INDEXING_ENABLED: ${{ inputs.site_indexing_enabled && 'true' || 'false' }}
       PLACEHOLDER_ACKNOWLEDGED: ${{ inputs.acknowledge_placeholder_public_config }}
     steps:
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
@@ -630,7 +649,11 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness | grep -q '"status":"UP"'
           test "$(curl --fail --silent --show-error http://127.0.0.1:3200/ru | wc -c)" -gt 500
           test "$(curl --fail --silent --show-error http://127.0.0.1:3201/login | wc -c)" -gt 500
-          sh deployment/scripts/verify-preview-indexing.sh http://127.0.0.1:3200
+          if [ "${{ inputs.site_indexing_enabled && 'true' || 'false' }}" = "true" ]; then
+            sh deployment/scripts/verify-public-indexing.sh http://127.0.0.1:3200 "${{ inputs.storefront_site_url }}"
+          else
+            sh deployment/scripts/verify-preview-indexing.sh http://127.0.0.1:3200
+          fi
           docker compose \
             -f compose.yml \
             -f deployment/rehearsals/compose.published-images.yml \
@@ -695,7 +718,11 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness | grep -q '"status":"UP"'
           test "$(curl --fail --silent --show-error http://127.0.0.1:3200/ru | wc -c)" -gt 500
           test "$(curl --fail --silent --show-error http://127.0.0.1:3201/login | wc -c)" -gt 500
-          sh deployment/scripts/verify-preview-indexing.sh http://127.0.0.1:3200
+          if [ "${{ inputs.site_indexing_enabled && 'true' || 'false' }}" = "true" ]; then
+            sh deployment/scripts/verify-public-indexing.sh http://127.0.0.1:3200 "${{ inputs.storefront_site_url }}"
+          else
+            sh deployment/scripts/verify-preview-indexing.sh http://127.0.0.1:3200
+          fi
           test "$(curl --fail --silent --show-error \
             'http://127.0.0.1:3200/_next/image?url=%2Fcatalog-hero-banner.jpg&w=64&q=75' | wc -c)" -gt 100
           docker compose \

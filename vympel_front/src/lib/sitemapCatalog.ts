@@ -4,7 +4,7 @@ import type {ICategory} from "@/api/types/CategoryTypes";
 import type {IProduct} from "@/api/types/ProductTypes";
 import {normalizePageResponse, type PageResponseLike} from "@/api/types/PageType";
 import {PUBLIC_BRANDS} from "@/config/brandRoutes";
-import {localizedPath, requireCanonicalSiteUrl, SEO_LOCALES} from "@/lib/seo";
+import {localizedAlternates, localizedPath, requireCanonicalSiteUrl, SEO_LOCALES} from "@/lib/seo";
 
 const MAX_PRODUCT_PAGES = 1_000;
 const PRODUCT_PAGE_SIZE = 60;
@@ -69,41 +69,53 @@ export async function fetchSitemapCatalog(
     return {categories, products};
 }
 
+type SitemapRoute = {
+    segments: readonly string[];
+    changeFrequency: NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
+    priority: number;
+};
+
 export function buildSitemap(
     catalog: SitemapCatalog,
     siteUrl = requireCanonicalSiteUrl(),
 ): MetadataRoute.Sitemap {
-    const staticRoutes: readonly string[][] = [
-        [],
-        ["about"],
-        ["brands"],
-        ["catalog"],
-        ["delivery"],
-        ["guarantee"],
-        ["payment"],
+    const routes: SitemapRoute[] = [
+        {segments: [], changeFrequency: "daily", priority: 1},
+        {segments: ["catalog"], changeFrequency: "daily", priority: 0.9},
+        {segments: ["brands"], changeFrequency: "weekly", priority: 0.7},
+        {segments: ["about"], changeFrequency: "monthly", priority: 0.5},
+        {segments: ["delivery"], changeFrequency: "monthly", priority: 0.4},
+        {segments: ["guarantee"], changeFrequency: "monthly", priority: 0.4},
+        {segments: ["payment"], changeFrequency: "monthly", priority: 0.4},
     ];
-    const paths = new Set<string>();
-
-    for (const locale of SEO_LOCALES) {
-        for (const route of staticRoutes) {
-            paths.add(localizedPath(locale, route));
-        }
-        for (const category of catalog.categories) {
-            paths.add(localizedPath(locale, ["catalog", category.code]));
-        }
-        for (const brand of PUBLIC_BRANDS) {
-            paths.add(localizedPath(locale, ["brands", brand.slug]));
-        }
-        for (const product of catalog.products) {
-            if ((product.status ?? "ACTIVE").toUpperCase() === "ACTIVE") {
-                paths.add(localizedPath(locale, ["product", String(product.id)]));
-            }
+    for (const category of catalog.categories) {
+        routes.push({segments: ["catalog", category.code], changeFrequency: "daily", priority: 0.8});
+    }
+    for (const brand of PUBLIC_BRANDS) {
+        routes.push({segments: ["brands", brand.slug], changeFrequency: "weekly", priority: 0.7});
+    }
+    for (const product of catalog.products) {
+        if ((product.status ?? "ACTIVE").toUpperCase() === "ACTIVE") {
+            routes.push({segments: ["product", String(product.id)], changeFrequency: "weekly", priority: 0.6});
         }
     }
 
-    return [...paths]
-        .sort()
-        .map((path) => ({url: new URL(path, siteUrl).toString()}));
+    const entries = new Map<string, MetadataRoute.Sitemap[number]>();
+    for (const route of routes) {
+        const languages = localizedAlternates(siteUrl, route.segments);
+        for (const locale of SEO_LOCALES) {
+            const url = new URL(localizedPath(locale, route.segments), siteUrl).toString();
+            if (entries.has(url)) continue;
+            entries.set(url, {
+                url,
+                changeFrequency: route.changeFrequency,
+                priority: route.priority,
+                alternates: {languages},
+            });
+        }
+    }
+
+    return [...entries.values()].sort((left, right) => left.url.localeCompare(right.url));
 }
 
 async function fetchWithTimeout(url: URL, fetcher: FetchLike): Promise<Response> {
