@@ -611,6 +611,8 @@ jobs:
       REGISTRY: ghcr.io/zxzxz143
       RELEASE_TAG: ${{ github.sha }}
       COMPOSE_PROJECT_NAME: vympel-ghcr-${{ github.run_id }}-${{ github.run_attempt }}
+      # Runtime origin must match the compiled contract; an indexing build rejects the local HTTP default.
+      NEXT_PUBLIC_SITE_URL: ${{ inputs.storefront_site_url }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Enable ARM64 emulation
@@ -678,6 +680,8 @@ jobs:
       REGISTRY: ghcr.io/zxzxz143
       RELEASE_TAG: ${{ github.sha }}
       COMPOSE_PROJECT_NAME: vympel-ghcr-arm64-${{ github.run_id }}-${{ github.run_attempt }}
+      # Runtime origin must match the compiled contract; an indexing build rejects the local HTTP default.
+      NEXT_PUBLIC_SITE_URL: ${{ inputs.storefront_site_url }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Enable ARM64 emulation
