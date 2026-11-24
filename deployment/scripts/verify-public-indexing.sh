@@ -26,9 +26,9 @@ home=$temp_dir/home.html
 robots=$temp_dir/robots.txt
 sitemap=$temp_dir/sitemap.xml
 
-curl --fail --silent --show-error --dump-header "$headers" --output "$home" "$origin/ru"
-curl --fail --silent --show-error --output "$robots" "$origin/robots.txt"
-curl --fail --silent --show-error --output "$sitemap" "$origin/sitemap.xml"
+curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 10 --max-time 60 --dump-header "$headers" --output "$home" "$origin/ru"
+curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 10 --max-time 60 --output "$robots" "$origin/robots.txt"
+curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 10 --max-time 60 --output "$sitemap" "$origin/sitemap.xml"
 
 if grep -Eiq '^x-robots-tag:.*noindex' "$headers"; then
   echo "Production response still carries an X-Robots-Tag noindex header" >&2
